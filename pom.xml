@@ -25,8 +25,9 @@
   </modules>
 
   <scm>
-    <connection>scm:git:https://${GIT_USERNAME}:${GIT_PASSWORD}@github.expedia.biz/hotels-bdp/beekeeper.git</connection>
-    <developerConnection>scm:git:https://${GIT_USERNAME}:${GIT_PASSWORD}@github.expedia.biz/hotels-bdp/beekeeper.git</developerConnection>
+    <connection>scm:git:git@github.com:HotelsDotCom/beekeeper.git</connection>
+	<developerConnection>scm:git:git@github.com:HotelsDotCom/beekeeper.git</developerConnection>
+	<url>https://github.com/HotelsDotCom/beekeeper</url>
     <tag>HEAD</tag>
   </scm>
 
