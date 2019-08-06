@@ -1,0 +1,13 @@
+FROM openjdk:11-jdk
+RUN curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+RUN unzip awscli-bundle.zip
+RUN ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+ARG PORT
+EXPOSE $PORT
+ARG BEEKEEPER_VERSION
+COPY /target/beekeeper-cleanup-${BEEKEEPER_VERSION}-bin.tgz /usr/src/app/beekeeper-cleanup-${BEEKEEPER_VERSION}-bin.tgz
+WORKDIR /usr/src/app
+RUN tar -xf beekeeper-cleanup-${BEEKEEPER_VERSION}-bin.tgz
+WORKDIR /usr/src/app/beekeeper-cleanup-${BEEKEEPER_VERSION}
+ENV BEEKEEPER_VERSION=${BEEKEEPER_VERSION}
+ENTRYPOINT ["/bin/bash", "-c", "exec /usr/src/app/beekeeper-cleanup-${BEEKEEPER_VERSION}/bin/startup.sh"]

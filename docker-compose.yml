@@ -1,0 +1,14 @@
+version: '3.7'
+services:
+  mysql:
+    image: mysql:latest
+    container_name: database
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=beekeeper
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
