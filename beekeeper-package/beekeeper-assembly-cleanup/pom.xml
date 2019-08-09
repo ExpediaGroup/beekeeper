@@ -13,6 +13,7 @@
   <packaging>pom</packaging>
 
   <properties>
+    <docker.port>8008</docker.port>
     <dockerfile-maven-plugin.version>1.4.10</dockerfile-maven-plugin.version>
   </properties>
 
@@ -54,24 +55,11 @@
         <version>${dockerfile-maven-plugin.version}</version>
         <executions>
           <execution>
-            <id>tag-cleanup-latest</id>
-            <phase>deploy</phase>
+            <id>tag-cleanup</id>
+            <phase>package</phase>
             <goals>
               <goal>build</goal>
               <goal>tag</goal>
-              <goal>push</goal>
-            </goals>
-            <configuration>
-              <tag>latest</tag>
-            </configuration>
-          </execution>
-          <execution>
-            <id>tag-cleanup-version</id>
-            <phase>deploy</phase>
-            <goals>
-              <goal>build</goal>
-              <goal>tag</goal>
-              <goal>push</goal>
             </goals>
             <configuration>
               <tag>${project.version}</tag>
@@ -79,11 +67,11 @@
           </execution>
         </executions>
         <configuration>
-          <dockerfile>src/main/docker/Dockerfile</dockerfile>
+          <dockerfile>${dockerfile.path}</dockerfile>
           <repository>${docker.repo}/beekeeper-cleanup</repository>
           <buildArgs>
             <BEEKEEPER_VERSION>${project.version}</BEEKEEPER_VERSION>
-            <PORT>8008</PORT>
+            <PORT>${docker.port}</PORT>
           </buildArgs>
           <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
         </configuration>
