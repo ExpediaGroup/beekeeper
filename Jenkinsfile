@@ -12,6 +12,9 @@ pipeline {
     GIT = credentials('s-hcom-jenkins-rbac')
     GIT_USERNAME = "${env.GIT_USR}"
     GIT_PASSWORD = "${env.GIT_PSW}"
+
+    PROJECT_VERSION = readMavenPom().getVersion()
+    DOCKER_ORG = readMavenPom().properties['docker.org']
   }
 
   stages {
@@ -21,8 +24,14 @@ pipeline {
         checkout scm
         echo 'Building...'
         withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'hcomdata-artifactory-maven-settings') {
-          sh 'mvn clean deploy jacoco:report checkstyle:checkstyle'
+          sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs'
         }
+        echo 'Pushing images...'
+        withCredentials([usernamePassword(credentialsId: '???', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        }
+        docker push $DOCKER_ORG/beekeeper-cleanup
+        docker push $DOCKER_ORG/beekeeper-path-scheduler-apiary
       }
     }
 
@@ -53,8 +62,13 @@ pipeline {
                   -Dresume=false \
                   -DreleaseVersion=${RELEASE_VERSION} \
                   -DdevelopmentVersion=${DEVELOPMENT_VERSION} \
-                  -DautoVersionSubmodules=true"""
+                  -DautoVersionSubmodules=true"""{
         }
+        echo 'Pushing images...'
+        docker tag $DOCKER_ORG/beekeeper-cleanup:${RELEASE_VERSION} $DOCKER_ORG/beekeeper-cleanup:latest
+        docker tag $DOCKER_ORG/beekeeper-path-scheduler-apiary:${RELEASE_VERSION} $DOCKER_ORG/beekeeper-cleanup:latest
+        docker push $DOCKER_ORG/beekeeper-cleanup
+        docker push $DOCKER_ORG/beekeeper-path-scheduler-apiary
       }
     }
   }

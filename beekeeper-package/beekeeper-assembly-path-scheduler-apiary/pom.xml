@@ -68,7 +68,7 @@
         </executions>
         <configuration>
           <dockerfile>${dockerfile.path}</dockerfile>
-          <repository>${docker.repo}/beekeeper-path-scheduler-apiary</repository>
+          <repository>${docker.org}/beekeeper-path-scheduler-apiary</repository>
           <buildArgs>
             <BEEKEEPER_VERSION>${project.version}</BEEKEEPER_VERSION>
             <PORT>${docker.port}</PORT>
