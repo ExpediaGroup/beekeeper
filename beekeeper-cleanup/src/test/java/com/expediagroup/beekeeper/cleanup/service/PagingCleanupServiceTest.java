@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.cleanup.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -37,6 +38,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+
+import com.amazonaws.services.s3.model.DeleteObjectsResult;
+import com.amazonaws.services.s3.model.MultiObjectDeleteException;
 
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
@@ -100,6 +104,28 @@ class PagingCleanupServiceTest {
 
     pagingCleanupService.cleanUp(Instant.now());
     verifyNoMoreInteractions(pathCleaner);
+  }
+
+  @Test
+  void multiobjectDeletionException() {
+    housekeepingPathRepository.save(entityPath1);
+
+    MultiObjectDeleteException.DeleteError deleteError = new MultiObjectDeleteException.DeleteError();
+    DeleteObjectsResult.DeletedObject deletedObject = new DeleteObjectsResult.DeletedObject();
+
+    deleteError.setCode("403");
+    deleteError.setMessage("EXCEPTION");
+    deleteError.setKey("s3://error-bucket");
+
+    deletedObject.setKey("s3://success-bucket");
+
+    List<MultiObjectDeleteException.DeleteError> deleteErrors = List.of(deleteError);
+    List<DeleteObjectsResult.DeletedObject> deletedObjects = List.of(deletedObject);
+
+    MultiObjectDeleteException multiObjectDeleteException = new MultiObjectDeleteException(deleteErrors,
+      deletedObjects);
+    doThrow(multiObjectDeleteException).when(pathCleaner).cleanupPath(any(), any());
+    pagingCleanupService.cleanUp(Instant.now());
   }
 
   private void assertOriginalObjectsAreUpdated() {

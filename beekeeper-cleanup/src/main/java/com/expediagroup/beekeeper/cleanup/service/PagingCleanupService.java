@@ -30,6 +30,8 @@ import org.springframework.data.domain.Pageable;
 
 import io.micrometer.core.annotation.Timed;
 
+import com.amazonaws.services.s3.model.MultiObjectDeleteException;
+
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
@@ -88,6 +90,15 @@ public class PagingCleanupService implements CleanupService {
       log.info("Cleaning up path \"{}\"", housekeepingPath.getPath());
       pathCleaner.cleanupPath(housekeepingPath.getPath(), housekeepingPath.getTableName());
       updateAttemptsAndStatus(housekeepingPath, PathStatus.DELETED);
+    } catch (MultiObjectDeleteException e) {
+      updateAttemptsAndStatus(housekeepingPath, PathStatus.FAILED);
+      log.warn("Unexpected MultiObjectDeleteException deleting \"{}\"", housekeepingPath.getPath());
+      e.getDeletedObjects().forEach(object -> log.warn("File deleted successfully: {} ", object.getKey()));
+      e.getErrors()
+        .forEach(error -> {
+          log.warn("Error deleting {} with code {} and message {}", error.getKey(), error.getCode(),
+            error.getMessage());
+        });
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingPath, PathStatus.FAILED);
       log.warn("Unexpected exception deleting \"{}\"", housekeepingPath.getPath(), e);
