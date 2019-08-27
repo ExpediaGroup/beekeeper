@@ -13,7 +13,7 @@ pipeline {
     GIT_USERNAME = "${env.GIT_USR}"
     GIT_PASSWORD = "${env.GIT_PSW}"
 
-    DOCKER_ORG = readMavenPom().properties['docker.org']
+    DOCKER_ORG = readMavenPom().getProperties().getProperty('docker.org')
   }
 
   stages {
