@@ -9,7 +9,7 @@ pipeline {
   }
 
   environment {
-    GIT = credentials('s-hcom-jenkins-rbac')
+    GIT = credentials('s-hcom-ci')
     GIT_USERNAME = "${env.GIT_USR}"
     GIT_PASSWORD = "${env.GIT_PSW}"
 
@@ -22,7 +22,7 @@ pipeline {
         echo 'Checking out project...'
         checkout scm
         echo 'Building...'
-        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'hcomdata-artifactory-maven-settings') {
+        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'hcomdata-oss-settings') {
           sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs'
         }
         jacoco()
@@ -31,8 +31,8 @@ pipeline {
             tools: [checkStyle(reportEncoding: 'UTF-8'), spotbugs()]
         )
         echo 'Pushing images...'
-        withCredentials([usernamePassword(credentialsId: '', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-egopensource', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+          docker login -u $USERNAME -p $PASSWORD
         }
         docker push $DOCKER_ORG/beekeeper-cleanup
         docker push $DOCKER_ORG/beekeeper-path-scheduler-apiary
@@ -61,7 +61,7 @@ pipeline {
           }
         }
         echo 'Performing release...'
-        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'hcomdata-artifactory-maven-settings') {
+        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'hcomdata-oss-settings') {
           sh """mvn --batch-mode release:prepare release:perform \
                   -Dresume=false \
                   -DreleaseVersion=${RELEASE_VERSION} \
