@@ -56,7 +56,7 @@
         <executions>
           <execution>
             <id>tag-path-scheduler-apiary</id>
-            <phase>package</phase>
+            <phase>deploy</phase>
             <goals>
               <goal>build</goal>
               <goal>tag</goal>

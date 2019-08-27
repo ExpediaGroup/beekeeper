@@ -13,7 +13,6 @@ pipeline {
     GIT_USERNAME = "${env.GIT_USR}"
     GIT_PASSWORD = "${env.GIT_PSW}"
 
-    PROJECT_VERSION = readMavenPom().getVersion()
     DOCKER_ORG = readMavenPom().properties['docker.org']
   }
 
@@ -26,8 +25,13 @@ pipeline {
         withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'hcomdata-artifactory-maven-settings') {
           sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs'
         }
+        jacoco()
+        recordIssues(
+            enabledForFailure: true, aggregatingResults: true,
+            tools: [checkStyle(reportEncoding: 'UTF-8'), spotbugs()]
+        )
         echo 'Pushing images...'
-        withCredentials([usernamePassword(credentialsId: '???', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+        withCredentials([usernamePassword(credentialsId: '', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
           docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         }
         docker push $DOCKER_ORG/beekeeper-cleanup
@@ -37,7 +41,7 @@ pipeline {
 
     stage('Release') {
       options {
-       timeout(time: 14, unit: 'DAYS')
+       timeout(time: 2, unit: 'HOURS')
       }
 
       input {

@@ -56,7 +56,7 @@
         <executions>
           <execution>
             <id>tag-cleanup</id>
-            <phase>package</phase>
+            <phase>deploy</phase>
             <goals>
               <goal>build</goal>
               <goal>tag</goal>
