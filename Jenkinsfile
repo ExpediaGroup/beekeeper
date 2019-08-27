@@ -9,7 +9,7 @@ pipeline {
   }
 
   environment {
-    GIT = credentials('s-hcom-ci')
+    GIT = credentials('eg-oss-ci')
     GIT_USERNAME = "${env.GIT_USR}"
     GIT_PASSWORD = "${env.GIT_PSW}"
 
@@ -22,7 +22,7 @@ pipeline {
         echo 'Checking out project...'
         checkout scm
         echo 'Building...'
-        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'hcomdata-oss-settings') {
+        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'eg-oss-settings') {
           sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs'
         }
         jacoco()
@@ -61,7 +61,7 @@ pipeline {
           }
         }
         echo 'Performing release...'
-        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'hcomdata-oss-settings') {
+        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'eg-oss-settings') {
           sh """mvn --batch-mode release:prepare release:perform \
                   -Dresume=false \
                   -DreleaseVersion=${RELEASE_VERSION} \
