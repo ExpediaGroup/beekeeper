@@ -66,7 +66,7 @@ pipeline {
                   -Dresume=false \
                   -DreleaseVersion=${RELEASE_VERSION} \
                   -DdevelopmentVersion=${DEVELOPMENT_VERSION} \
-                  -DautoVersionSubmodules=true"""{
+                  -DautoVersionSubmodules=true"""
         }
         echo 'Pushing images...'
         docker tag $DOCKER_ORG/beekeeper-cleanup:${RELEASE_VERSION} $DOCKER_ORG/beekeeper-cleanup:latest
