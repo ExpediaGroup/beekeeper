@@ -70,7 +70,7 @@ pipeline {
         }
         echo 'Pushing images...'
         docker tag $DOCKER_ORG/beekeeper-cleanup:${RELEASE_VERSION} $DOCKER_ORG/beekeeper-cleanup:latest
-        docker tag $DOCKER_ORG/beekeeper-path-scheduler-apiary:${RELEASE_VERSION} $DOCKER_ORG/beekeeper-cleanup:latest
+        docker tag $DOCKER_ORG/beekeeper-path-scheduler-apiary:${RELEASE_VERSION} $DOCKER_ORG/beekeeper-path-scheduler-apiary:latest
         docker push $DOCKER_ORG/beekeeper-cleanup
         docker push $DOCKER_ORG/beekeeper-path-scheduler-apiary
       }
