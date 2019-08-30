@@ -16,7 +16,7 @@ pipeline {
     GIT_USERNAME = "${env.GIT_USR}"
     GIT_PASSWORD = "${env.GIT_PSW}"
 
-    MAVEN_SETTINGS = credentials('eg-oss-settings.xml')
+    MVN_OSS_SETTINGS = credentials('eg-oss-settings.xml')
 
     OSS_GPG_PUB_KEYRING = credentials('pubring.gpg')
     OSS_GPG_SEC_KEYRING = credentials('secring.gpg')
@@ -29,7 +29,7 @@ pipeline {
         echo 'Checking out project...'
         checkout scm
         echo 'Building...'
-        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs -s ${MVN_OSS_SETTINGS}'
+        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs -s ${MVN_OSS_SETTINGS} '
         jacoco()
         recordIssues(
           enabledForFailure: true, aggregatingResults: true,
@@ -76,7 +76,7 @@ pipeline {
                 -DreleaseVersion=${RELEASE_VERSION} \
                 -DdevelopmentVersion=${DEVELOPMENT_VERSION} \
                 -DautoVersionSubmodules=true \
-                -s ${MAVEN_SETTINGS}"""
+                -s ${MVN_OSS_SETTINGS}"""
         echo 'Pushing images...'
         script {
           DOCKER_REGISTRY = sh(script: 'mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout', returnStdout: true).trim()
