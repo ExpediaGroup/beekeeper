@@ -29,6 +29,7 @@ pipeline {
       steps {
         echo 'Checking out project...'
         checkout scm
+        sh 'docker images'
         echo 'Building...'
         sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs -s ${MVN_OSS_SETTINGS}'
         jacoco()
