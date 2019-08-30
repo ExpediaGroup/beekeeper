@@ -18,6 +18,7 @@
   </modules>
 
   <properties>
+    <docker.org>expediagroup</docker.org>
     <dockerfile.path>src/main/docker/Dockerfile</dockerfile.path>
   </properties>
 

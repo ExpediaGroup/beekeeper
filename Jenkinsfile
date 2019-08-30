@@ -13,7 +13,15 @@ pipeline {
     GIT_USERNAME = "${env.GIT_USR}"
     GIT_PASSWORD = "${env.GIT_PSW}"
 
-    DOCKER_ORG = readMavenPom().getProperties().getProperty('docker.org')
+    withCredentials([file(credentialsId: 'eg-oss-settings.xml', variable: 'SETTINGS')]) {
+      MAVEN_SETTINGS = SETTINGS
+    }
+    OSS_GPG_PUB_KEYRING = credentials('pubring.gpg')
+    OSS_GPG_SEC_KEYRING = credentials('secring.gpg')
+    OSS_GPG_PASSPHRASE = credentials('private-key-passphrase')
+
+    pom = readMavenPom file: 'pom.xml'
+    PROJECT_VERSION = pom.version
   }
 
   stages {
@@ -22,8 +30,12 @@ pipeline {
         echo 'Checking out project...'
         checkout scm
         echo 'Building...'
-        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'eg-oss-settings') {
-          sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs'
+        echo 'Maven Settings'
+        echo $MAVEN_SETTINGS
+        echo 'Project version'
+        echo $PROJECT_VERSION
+        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6') {
+          sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs --settings $MAVEN_SETTINGS'
         }
         jacoco()
         recordIssues(
@@ -31,11 +43,12 @@ pipeline {
             tools: [checkStyle(reportEncoding: 'UTF-8'), spotbugs()]
         )
         echo 'Pushing images...'
+        docker images
         withCredentials([usernamePassword(credentialsId: 'dockerhub-egopensource', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
           docker login -u $USERNAME -p $PASSWORD
         }
-        docker push $DOCKER_ORG/beekeeper-cleanup
-        docker push $DOCKER_ORG/beekeeper-path-scheduler-apiary
+        // docker push $DOCKER_ORG/beekeeper-cleanup
+        // docker push $DOCKER_ORG/beekeeper-path-scheduler-apiary
       }
     }
 
@@ -61,12 +74,13 @@ pipeline {
           }
         }
         echo 'Performing release...'
-        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'eg-oss-settings') {
+        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6') {
           sh """mvn --batch-mode release:prepare release:perform \
                   -Dresume=false \
                   -DreleaseVersion=${RELEASE_VERSION} \
                   -DdevelopmentVersion=${DEVELOPMENT_VERSION} \
-                  -DautoVersionSubmodules=true"""
+                  -DautoVersionSubmodules=true \
+                  --settings $MAVEN_SETTINGS"""
         }
         echo 'Pushing images...'
         docker tag $DOCKER_ORG/beekeeper-cleanup:${RELEASE_VERSION} $DOCKER_ORG/beekeeper-cleanup:latest
