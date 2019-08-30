@@ -75,7 +75,7 @@ pipeline {
                 -DreleaseVersion=${RELEASE_VERSION} \
                 -DdevelopmentVersion=${DEVELOPMENT_VERSION} \
                 -DautoVersionSubmodules=true \
-                 -Darguments="-s MAVEN_SETTINGS""""
+                 -Darguments=\"-s MAVEN_SETTINGS\""""
         echo 'Pushing images...'
         script {
           DOCKER_REGISTRY = sh(script: 'mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout', returnStdout: true).trim()
