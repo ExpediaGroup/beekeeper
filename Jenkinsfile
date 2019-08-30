@@ -29,7 +29,6 @@ pipeline {
       steps {
         echo 'Checking out project...'
         checkout scm
-        sh 'docker images'
         echo 'Building...'
         sh 'mvn clean deploy jacoco:report checkstyle:checkstyle -s ${MVN_OSS_SETTINGS}'
         jacoco()
@@ -46,8 +45,15 @@ pipeline {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-egopensource', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
           sh 'docker login -u $USERNAME -p $PASSWORD'
         }
-        // docker push ${DOCKER_REGISTRY}/beekeeper-cleanup
-        // docker push ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary
+        // sh 'docker push ${DOCKER_REGISTRY}/beekeeper-cleanup'
+        // sh 'docker push ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary'
+      }
+    }
+
+    stage('Cleanup') {
+      steps {
+        sh 'docker rmi $(docker images -q docker/beekeeper-cleanup) --force'
+        sh 'docker rmi $(docker images -q docker/beekeeper-path-scheduler-apiary) --force'
       }
     }
 
@@ -87,6 +93,13 @@ pipeline {
         sh 'docker tag ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary:${RELEASE_VERSION} ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary:latest'
         sh 'docker push ${DOCKER_REGISTRY}/beekeeper-cleanup'
         sh 'docker push ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary'
+      }
+    }
+
+    stage('Cleanup release') {
+      steps {
+        sh 'docker rmi $(docker images -q docker/beekeeper-cleanup) --force'
+        sh 'docker rmi $(docker images -q docker/beekeeper-path-scheduler-apiary) --force'
       }
     }
   }
