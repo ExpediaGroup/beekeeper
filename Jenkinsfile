@@ -26,9 +26,7 @@ pipeline {
         echo 'Checking out project...'
         checkout scm
         echo 'Building...'
-        echo 'Maven Settings'
-        sh """${MAVEN_SETTINGS}"""
-        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs -Darguments="-s MAVEN_SETTINGS"'
+        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs -Darguments="-s ${MAVEN_SETTINGS}"'
         jacoco()
         recordIssues(
             enabledForFailure: true, aggregatingResults: true,
@@ -75,7 +73,7 @@ pipeline {
                 -DreleaseVersion=${RELEASE_VERSION} \
                 -DdevelopmentVersion=${DEVELOPMENT_VERSION} \
                 -DautoVersionSubmodules=true \
-                 -Darguments=\"-s MAVEN_SETTINGS\""""
+                -Darguments=\"-s ${MAVEN_SETTINGS}\""""
         echo 'Pushing images...'
         script {
           DOCKER_REGISTRY = sh(script: 'mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout', returnStdout: true).trim()
