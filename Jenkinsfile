@@ -26,13 +26,13 @@ pipeline {
         echo 'Checking out project...'
         checkout scm
         echo 'Building...'
-        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6') {
+        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'pom.xml') {
           sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs -s ${MAVEN_SETTINGS}'
         }
         jacoco()
         recordIssues(
-            enabledForFailure: true, aggregatingResults: true,
-            tools: [checkStyle(reportEncoding: 'UTF-8'), spotbugs()]
+          enabledForFailure: true, aggregatingResults: true,
+          tools: [checkStyle(reportEncoding: 'UTF-8'), spotbugs()]
         )
         echo 'Pushing images...'
         script {
