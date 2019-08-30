@@ -22,8 +22,7 @@ pipeline {
     OSS_GPG_SEC_KEYRING = credentials('secring.gpg')
     OSS_GPG_PASSPHRASE = credentials('private-key-passphrase')
 
-    pom = readMavenPom file: 'pom.xml'
-    PROJECT_VERSION = pom.version
+    PROJECT_VERSION = readMavenPom().getVersion()
   }
 
   stages {
