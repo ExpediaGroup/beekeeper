@@ -30,6 +30,7 @@ pipeline {
         echo 'Checking out project...'
         checkout scm
         echo 'Building...'
+        sh 'docker images'
         sh 'mvn clean deploy jacoco:report checkstyle:checkstyle -s ${MVN_OSS_SETTINGS}'
         jacoco()
         recordIssues(
@@ -47,13 +48,6 @@ pipeline {
         }
         // sh 'docker push ${DOCKER_REGISTRY}/beekeeper-cleanup'
         // sh 'docker push ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary'
-      }
-    }
-
-    stage('Cleanup') {
-      steps {
-        sh 'docker rmi -f $(docker images -q ${DOCKER_REGISTRY}/beekeeper-cleanup)'
-        sh 'docker rmi -f $(docker images -q ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary)'
       }
     }
 
@@ -93,13 +87,6 @@ pipeline {
         sh 'docker tag ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary:${RELEASE_VERSION} ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary:latest'
         sh 'docker push ${DOCKER_REGISTRY}/beekeeper-cleanup'
         sh 'docker push ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary'
-      }
-    }
-
-    stage('Cleanup release') {
-      steps {
-        sh 'docker rmi $(docker images -q docker/beekeeper-cleanup) --force'
-        sh 'docker rmi $(docker images -q docker/beekeeper-path-scheduler-apiary) --force'
       }
     }
   }
