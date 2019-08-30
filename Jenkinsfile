@@ -26,8 +26,8 @@ pipeline {
         echo 'Checking out project...'
         checkout scm
         echo 'Building...'
-        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: 'pom.xml') {
-          sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs -s ${MAVEN_SETTINGS}'
+        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6', mavenSettingsConfig: '${MVN_OSS_SETTINGS}') {
+          sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs'
         }
         jacoco()
         recordIssues(
