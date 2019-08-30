@@ -31,11 +31,11 @@ pipeline {
         checkout scm
         sh 'docker images'
         echo 'Building...'
-        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs -s ${MVN_OSS_SETTINGS}'
+        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle -s ${MVN_OSS_SETTINGS}'
         jacoco()
         recordIssues(
           enabledForFailure: true, aggregatingResults: true,
-          tools: [checkStyle(reportEncoding: 'UTF-8'), spotbugs()]
+          tools: [checkStyle(reportEncoding: 'UTF-8')]
         )
         echo 'Pushing images...'
         script {
