@@ -15,9 +15,8 @@ pipeline {
 
     DOCKER_ORG = readMavenPom().getProperties().getProperty('docker.org')
 
-    withCredentials([file(credentialsId: 'eg-oss-settings.xml', variable: 'SETTINGS')]) {
-      MAVEN_SETTINGS = SETTINGS
-    }
+    MAVEN_SETTINGS = credentials('eg-oss-settings.xml')
+
     OSS_GPG_PUB_KEYRING = credentials('pubring.gpg')
     OSS_GPG_SEC_KEYRING = credentials('secring.gpg')
     OSS_GPG_PASSPHRASE = credentials('private-key-passphrase')
@@ -46,7 +45,7 @@ pipeline {
         echo 'Pushing images...'
         docker images
         withCredentials([usernamePassword(credentialsId: 'dockerhub-egopensource', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
-          docker login -u $USERNAME -p $PASSWORD
+          sh 'docker login -u $USERNAME -p $PASSWORD'
         }
         // docker push ${DOCKER_ORG}/beekeeper-cleanup
         // docker push ${DOCKER_ORG}/beekeeper-path-scheduler-apiary
