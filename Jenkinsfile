@@ -44,7 +44,7 @@ pipeline {
         script {
           DOCKER_REGISTRY = sh(script: 'mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout', returnStdout: true).trim()
         }
-        echo Docker registry ${DOCKER_REGISTRY}
+        echo 'Docker registry ${DOCKER_REGISTRY}'
         sh 'docker images'
         withCredentials([usernamePassword(credentialsId: 'dockerhub-egopensource', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
           sh 'docker login -u $USERNAME -p $PASSWORD'
