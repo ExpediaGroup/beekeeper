@@ -52,8 +52,8 @@ pipeline {
 
     stage('Cleanup') {
       steps {
-        sh 'docker rmi $(docker images -q docker/beekeeper-cleanup) --force'
-        sh 'docker rmi $(docker images -q docker/beekeeper-path-scheduler-apiary) --force'
+        sh 'docker rmi -f $(docker images -q ${DOCKER_REGISTRY}/beekeeper-cleanup)'
+        sh 'docker rmi -f $(docker images -q ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary)'
       }
     }
 
