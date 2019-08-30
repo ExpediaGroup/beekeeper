@@ -29,7 +29,8 @@ pipeline {
         echo 'Checking out project...'
         checkout scm
         echo 'Building...'
-        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs -s ${MVN_OSS_SETTINGS} '
+        sh 'echo ${MVN_OSS_SETTINGS} > MVN_OSS_SETTINGS.xml'
+        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs -s ${MVN_OSS_SETTINGS}'
         jacoco()
         recordIssues(
           enabledForFailure: true, aggregatingResults: true,
