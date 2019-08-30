@@ -13,6 +13,8 @@ pipeline {
     GIT_USERNAME = "${env.GIT_USR}"
     GIT_PASSWORD = "${env.GIT_PSW}"
 
+    DOCKER_ORG = readMavenPom().getProperties().getProperty('docker.org')
+
     withCredentials([file(credentialsId: 'eg-oss-settings.xml', variable: 'SETTINGS')]) {
       MAVEN_SETTINGS = SETTINGS
     }
