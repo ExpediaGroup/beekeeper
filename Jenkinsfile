@@ -13,7 +13,7 @@ pipeline {
     GIT_USERNAME = "${env.GIT_USR}"
     GIT_PASSWORD = "${env.GIT_PSW}"
 
-    DOCKER_ORG = readMavenPom().getProperties().getProperty('docker.org')
+    DOCKER_REGISTRY = readMavenPom().getProperties().getProperty('docker.REGISTRY')
 
     MAVEN_SETTINGS = credentials('eg-oss-settings.xml')
 
@@ -32,8 +32,6 @@ pipeline {
         echo 'Building...'
         echo 'Maven Settings'
         echo $MAVEN_SETTINGS
-        echo 'Project version'
-        echo $PROJECT_VERSION
         withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6') {
           sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs --settings $MAVEN_SETTINGS'
         }
@@ -43,12 +41,14 @@ pipeline {
             tools: [checkStyle(reportEncoding: 'UTF-8'), spotbugs()]
         )
         echo 'Pushing images...'
-        docker images
+        DOCKER_REGISTRY=$(mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout)
+        echo Docker registry $PROJECT_VERSION
+        sh 'docker images'
         withCredentials([usernamePassword(credentialsId: 'dockerhub-egopensource', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
           sh 'docker login -u $USERNAME -p $PASSWORD'
         }
-        // docker push ${DOCKER_ORG}/beekeeper-cleanup
-        // docker push ${DOCKER_ORG}/beekeeper-path-scheduler-apiary
+        // docker push ${DOCKER_REGISTRY}/beekeeper-cleanup
+        // docker push ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary
       }
     }
 
@@ -82,11 +82,12 @@ pipeline {
                   -DautoVersionSubmodules=true \
                   --settings $MAVEN_SETTINGS"""
         }
+        DOCKER_REGISTRY=$(mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout)
         echo 'Pushing images...'
-        sh 'docker tag ${DOCKER_ORG}/beekeeper-cleanup:${RELEASE_VERSION} ${DOCKER_ORG}/beekeeper-cleanup:latest'
-        sh 'docker tag ${DOCKER_ORG}/beekeeper-path-scheduler-apiary:${RELEASE_VERSION} ${DOCKER_ORG}/beekeeper-path-scheduler-apiary:latest'
-        sh 'docker push ${DOCKER_ORG}/beekeeper-cleanup'
-        sh 'docker push ${DOCKER_ORG}/beekeeper-path-scheduler-apiary'
+        sh 'docker tag ${DOCKER_REGISTRY}/beekeeper-cleanup:${RELEASE_VERSION} ${DOCKER_REGISTRY}/beekeeper-cleanup:latest'
+        sh 'docker tag ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary:${RELEASE_VERSION} ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary:latest'
+        sh 'docker push ${DOCKER_REGISTRY}/beekeeper-cleanup'
+        sh 'docker push ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary'
       }
     }
   }
