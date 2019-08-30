@@ -49,8 +49,8 @@ pipeline {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-egopensource', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
           docker login -u $USERNAME -p $PASSWORD
         }
-        // docker push $DOCKER_ORG/beekeeper-cleanup
-        // docker push $DOCKER_ORG/beekeeper-path-scheduler-apiary
+        // docker push ${DOCKER_ORG}/beekeeper-cleanup
+        // docker push ${DOCKER_ORG}/beekeeper-path-scheduler-apiary
       }
     }
 
@@ -85,10 +85,10 @@ pipeline {
                   --settings $MAVEN_SETTINGS"""
         }
         echo 'Pushing images...'
-        docker tag $DOCKER_ORG/beekeeper-cleanup:${RELEASE_VERSION} $DOCKER_ORG/beekeeper-cleanup:latest
-        docker tag $DOCKER_ORG/beekeeper-path-scheduler-apiary:${RELEASE_VERSION} $DOCKER_ORG/beekeeper-path-scheduler-apiary:latest
-        docker push $DOCKER_ORG/beekeeper-cleanup
-        docker push $DOCKER_ORG/beekeeper-path-scheduler-apiary
+        docker tag ${DOCKER_ORG}/beekeeper-cleanup:${RELEASE_VERSION} ${DOCKER_ORG}/beekeeper-cleanup:latest
+        docker tag ${DOCKER_ORG}/beekeeper-path-scheduler-apiary:${RELEASE_VERSION} ${DOCKER_ORG}/beekeeper-path-scheduler-apiary:latest
+        docker push ${DOCKER_ORG}/beekeeper-cleanup
+        docker push ${DOCKER_ORG}/beekeeper-path-scheduler-apiary
       }
     }
   }
