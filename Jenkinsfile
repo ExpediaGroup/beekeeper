@@ -20,6 +20,7 @@ pipeline {
 
     OSS_GPG_PUB_KEYRING = credentials('pubring.gpg')
     OSS_GPG_SEC_KEYRING = credentials('secring.gpg')
+    OSS_GPG_KEYNAME='oss@expediagroup.com'
     OSS_GPG_PASSPHRASE = credentials('private-key-passphrase')
   }
 
@@ -29,7 +30,6 @@ pipeline {
         echo 'Checking out project...'
         checkout scm
         echo 'Building...'
-        sh 'echo ${MVN_OSS_SETTINGS} > MVN_OSS_SETTINGS.xml'
         sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs -s ${MVN_OSS_SETTINGS}'
         jacoco()
         recordIssues(
