@@ -41,7 +41,7 @@ pipeline {
             tools: [checkStyle(reportEncoding: 'UTF-8'), spotbugs()]
         )
         echo 'Pushing images...'
-        DOCKER_REGISTRY=$(mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout)
+        DOCKER_REGISTRY = sh(script: 'mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout', returnStdout: true)
         echo Docker registry $PROJECT_VERSION
         sh 'docker images'
         withCredentials([usernamePassword(credentialsId: 'dockerhub-egopensource', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
@@ -82,8 +82,8 @@ pipeline {
                   -DautoVersionSubmodules=true \
                   --settings $MAVEN_SETTINGS"""
         }
-        DOCKER_REGISTRY=$(mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout)
         echo 'Pushing images...'
+        DOCKER_REGISTRY = sh(script: 'mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout', returnStdout: true)
         sh 'docker tag ${DOCKER_REGISTRY}/beekeeper-cleanup:${RELEASE_VERSION} ${DOCKER_REGISTRY}/beekeeper-cleanup:latest'
         sh 'docker tag ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary:${RELEASE_VERSION} ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary:latest'
         sh 'docker push ${DOCKER_REGISTRY}/beekeeper-cleanup'
