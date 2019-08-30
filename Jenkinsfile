@@ -27,9 +27,9 @@ pipeline {
         checkout scm
         echo 'Building...'
         echo 'Maven Settings'
-        echo $MAVEN_SETTINGS
+        echo '{$MAVEN_SETTINGS}'
         withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6') {
-          sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs --settings $MAVEN_SETTINGS'
+          sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs --settings ${MAVEN_SETTINGS}'
         }
         jacoco()
         recordIssues(
