@@ -27,10 +27,8 @@ pipeline {
         checkout scm
         echo 'Building...'
         echo 'Maven Settings'
-        echo '${MAVEN_SETTINGS}'
-        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6') {
-          sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs --settings ${MAVEN_SETTINGS}'
-        }
+        sh """${MAVEN_SETTINGS}"""
+        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs -Darguments="-s MAVEN_SETTINGS"'
         jacoco()
         recordIssues(
             enabledForFailure: true, aggregatingResults: true,
@@ -72,14 +70,12 @@ pipeline {
           }
         }
         echo 'Performing release...'
-        withMaven(jdk: 'OpenJDK11', maven: 'Maven3.6') {
-          sh """mvn --batch-mode release:prepare release:perform \
-                  -Dresume=false \
-                  -DreleaseVersion=${RELEASE_VERSION} \
-                  -DdevelopmentVersion=${DEVELOPMENT_VERSION} \
-                  -DautoVersionSubmodules=true \
-                  --settings $MAVEN_SETTINGS"""
-        }
+        sh """mvn --batch-mode release:prepare release:perform \
+                -Dresume=false \
+                -DreleaseVersion=${RELEASE_VERSION} \
+                -DdevelopmentVersion=${DEVELOPMENT_VERSION} \
+                -DautoVersionSubmodules=true \
+                 -Darguments="-s MAVEN_SETTINGS""""
         echo 'Pushing images...'
         script {
           DOCKER_REGISTRY = sh(script: 'mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout', returnStdout: true).trim()
