@@ -2,7 +2,10 @@ pipeline {
   agent {
     label 'centos7-alljava-maven-docker'
   }
-
+  tools {
+    jdk 'OpenJDK11'
+    maven 'Maven3.6'
+  }
   options {
     parallelsAlwaysFailFast()
     skipStagesAfterUnstable()
