@@ -13,15 +13,11 @@ pipeline {
     GIT_USERNAME = "${env.GIT_USR}"
     GIT_PASSWORD = "${env.GIT_PSW}"
 
-    DOCKER_REGISTRY = readMavenPom().getProperties().getProperty('docker.REGISTRY')
-
     MAVEN_SETTINGS = credentials('eg-oss-settings.xml')
 
     OSS_GPG_PUB_KEYRING = credentials('pubring.gpg')
     OSS_GPG_SEC_KEYRING = credentials('secring.gpg')
     OSS_GPG_PASSPHRASE = credentials('private-key-passphrase')
-
-    PROJECT_VERSION = readMavenPom().getVersion()
   }
 
   stages {
