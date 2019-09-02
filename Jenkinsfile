@@ -16,6 +16,8 @@ pipeline {
     GIT_USERNAME = "${env.GIT_USR}"
     GIT_PASSWORD = "${env.GIT_PSW}"
 
+    DOCKER_REGISTRY = 'expediagroup'
+
     MVN_OSS_SETTINGS = credentials('eg-oss-settings.xml')
 
     OSS_GPG_PUB_KEYRING = credentials('pubring.gpg')
@@ -30,10 +32,6 @@ pipeline {
         echo 'Checking out project...'
         checkout scm
         echo 'Building...'
-        script {
-          DOCKER_REGISTRY = sh(script: 'mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout', returnStdout: true).trim()
-        }
-        echo 'Docker registry $DOCKER_REGISTRY'
         sh 'mvn clean deploy jacoco:report checkstyle:checkstyle -s ${MVN_OSS_SETTINGS}'
         jacoco()
         recordIssues(
