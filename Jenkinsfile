@@ -76,9 +76,6 @@ pipeline {
                 -DautoVersionSubmodules=true \
                 -s ${MVN_OSS_SETTINGS}"""
         echo 'Pushing images...'
-        script {
-          DOCKER_REGISTRY = sh(script: 'mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout', returnStdout: true).trim()
-        }
         sh 'docker tag ${DOCKER_REGISTRY}/beekeeper-cleanup:${RELEASE_VERSION} ${DOCKER_REGISTRY}/beekeeper-cleanup:latest'
         sh 'docker tag ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary:${RELEASE_VERSION} ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary:latest'
         sh 'docker push ${DOCKER_REGISTRY}/beekeeper-cleanup'
