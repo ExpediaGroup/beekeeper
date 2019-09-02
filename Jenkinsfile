@@ -31,7 +31,7 @@ pipeline {
         checkout scm
         echo 'Building...'
         sh 'docker images'
-        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle -s ${MVN_OSS_SETTINGS}'
+        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle -s ${MVN_OSS_SETTINGS} -DskipTests'
         jacoco()
         recordIssues(
           enabledForFailure: true, aggregatingResults: true,
