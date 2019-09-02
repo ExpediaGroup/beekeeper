@@ -17,28 +17,8 @@
     <module>beekeeper-assembly-path-scheduler-apiary</module>
   </modules>
 
-  <profiles>
-    <profile>
-      <id>snapshot-profile</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <properties>
-        <docker.repo>${artifactory.docker.snapshot.repository.id}.${artifactory.base}</docker.repo>
-      </properties>
-    </profile>
-    <profile>
-      <id>release-profile</id>
-      <activation>
-        <property>
-          <name>performRelease</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <properties>
-        <docker.repo>${artifactory.docker.release.repository.id}.${artifactory.base}</docker.repo>
-      </properties>
-    </profile>
-  </profiles>
+  <properties>
+    <dockerfile.path>src/main/docker/Dockerfile</dockerfile.path>
+  </properties>
 
 </project>

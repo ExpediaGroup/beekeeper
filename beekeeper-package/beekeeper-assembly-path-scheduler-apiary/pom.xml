@@ -13,6 +13,7 @@
   <packaging>pom</packaging>
 
   <properties>
+    <docker.port>8080</docker.port>
     <dockerfile-maven-plugin.version>1.4.10</dockerfile-maven-plugin.version>
   </properties>
 
@@ -54,24 +55,11 @@
         <version>${dockerfile-maven-plugin.version}</version>
         <executions>
           <execution>
-            <id>tag-path-scheduler-apiary-latest</id>
+            <id>tag-path-scheduler-apiary</id>
             <phase>deploy</phase>
             <goals>
               <goal>build</goal>
               <goal>tag</goal>
-              <goal>push</goal>
-            </goals>
-            <configuration>
-              <tag>latest</tag>
-            </configuration>
-          </execution>
-          <execution>
-            <id>tag-path-scheduler-apiary-version</id>
-            <phase>deploy</phase>
-            <goals>
-              <goal>build</goal>
-              <goal>tag</goal>
-              <goal>push</goal>
             </goals>
             <configuration>
               <tag>${project.version}</tag>
@@ -79,11 +67,11 @@
           </execution>
         </executions>
         <configuration>
-          <dockerfile>src/main/docker/Dockerfile</dockerfile>
-          <repository>${docker.repo}/beekeeper-path-scheduler-apiary</repository>
+          <dockerfile>${dockerfile.path}</dockerfile>
+          <repository>${docker.registry}/beekeeper-path-scheduler-apiary</repository>
           <buildArgs>
             <BEEKEEPER_VERSION>${project.version}</BEEKEEPER_VERSION>
-            <PORT>8080</PORT>
+            <PORT>${docker.port}</PORT>
           </buildArgs>
           <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
         </configuration>
