@@ -22,7 +22,7 @@ pipeline {
 
     OSS_GPG_PUB_KEYRING = credentials('pubring.gpg')
     OSS_GPG_SEC_KEYRING = credentials('secring.gpg')
-    OSS_GPG_KEYNAME='oss@expediagroup.com'
+    OSS_GPG_KEYNAME = 'oss@expediagroup.com'
     OSS_GPG_PASSPHRASE = credentials('private-key-passphrase')
   }
 
