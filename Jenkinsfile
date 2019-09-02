@@ -30,24 +30,22 @@ pipeline {
         echo 'Checking out project...'
         checkout scm
         echo 'Building...'
-        sh 'docker images'
-        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle -s ${MVN_OSS_SETTINGS} -DskipTests'
+        script {
+          DOCKER_REGISTRY = sh(script: 'mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout', returnStdout: true).trim()
+        }
+        echo 'Docker registry $DOCKER_REGISTRY'
+        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle -s ${MVN_OSS_SETTINGS}'
         jacoco()
         recordIssues(
           enabledForFailure: true, aggregatingResults: true,
           tools: [checkStyle(reportEncoding: 'UTF-8')]
         )
         echo 'Pushing images...'
-        script {
-          DOCKER_REGISTRY = sh(script: 'mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout', returnStdout: true).trim()
-        }
-        echo 'Docker registry ${DOCKER_REGISTRY}'
-        sh 'docker images'
         withCredentials([usernamePassword(credentialsId: 'dockerhub-egopensource', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
           sh 'docker login -u $USERNAME -p $PASSWORD'
         }
-        // sh 'docker push ${DOCKER_REGISTRY}/beekeeper-cleanup'
-        // sh 'docker push ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary'
+        sh 'docker push ${DOCKER_REGISTRY}/beekeeper-cleanup'
+        sh 'docker push ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary'
       }
     }
 
