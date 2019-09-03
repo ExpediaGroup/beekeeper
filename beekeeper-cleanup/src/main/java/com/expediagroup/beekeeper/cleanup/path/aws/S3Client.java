@@ -69,7 +69,7 @@ public class S3Client {
       return keyVersions
           .stream()
           .map(DeleteObjectsRequest.KeyVersion::getKey)
-          .peek(key -> log.info("Dry run - deleting up \"{}/{}\"", bucket, key))
+          .peek(key -> log.info("Dry run - deleting \"{}/{}\"", bucket, key))
           .collect(Collectors.toList());
     }
   }

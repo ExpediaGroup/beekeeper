@@ -236,48 +236,6 @@ class BeekeeperDryRunCleanupIntegrationTest {
     return true;
   }
 
-  @Test
-  void assertGaugeMetrics() throws SQLException {
-    String doubleContent = CONTENT + CONTENT;
-    amazonS3.putObject(BUCKET, OBJECT_KEY1, doubleContent);
-    mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
-
-    String partition11File = "database/table/id1/partition11/file";
-    amazonS3.putObject(BUCKET, partition11File, CONTENT);
-    mySqlTestUtils.insertPath("s3://" + BUCKET + "/" + partition11File, TABLE_NAME);
-
-    await().atMost(1, TimeUnit.MINUTES).until(() -> logsContainLineFromS3Client(OBJECT_KEY1));
-
-    // assert that the first value appears in the metrics
-    await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> {
-          try {
-            Counter counter = BeekeeperCleanup.meterRegistry()
-                .get(S3BytesDeletedReporter.DRY_RUN_METRIC_NAME)
-                .counter();
-            return counter.measure().iterator().next().getValue() == doubleContent.getBytes().length;
-          } catch (Exception e) {
-            return false;
-          }
-        });
-
-    await().atMost(1, TimeUnit.MINUTES).until(() -> logsContainLineFromS3Client(partition11File));
-
-    // assert that the second value appears in the metrics, and that values are not added together
-    await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> {
-          try {
-            Counter counter = BeekeeperCleanup.meterRegistry()
-                .get(S3BytesDeletedReporter.DRY_RUN_METRIC_NAME)
-                .counter();
-            return counter.measure().iterator().next().getValue()
-                == CONTENT.getBytes().length + doubleContent.getBytes().length;
-          } catch (Exception e) {
-            return false;
-          }
-        });
-  }
-
   private boolean logsContainLineFromS3Client(String messageFragment) {
     for (ILoggingEvent event : TestAppender.events) {
       boolean messageIsInLogs = event.getFormattedMessage().contains(messageFragment);
