@@ -14,7 +14,9 @@ git checkout -b my-new-feature
 ```
 where "my-new-feature" describes what you're working on.
 
-## 3. Add tests for any bug fixes or new functionality
+## 3. Add unit tests
+
+If your contribution modifies existing or adds new code please add corresponding unit tests for this.
 
 ## 4. Ensure that the build passes
 
