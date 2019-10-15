@@ -41,7 +41,7 @@ pipeline {
         )
         recordIssues(
           enabledForFailure: true, aggregatingResults: true,
-          tools: [checkStyle(reportEncoding: 'UTF-8'), spotbugs(reportEncoding: 'UTF-8')]
+          tools: [checkStyle(reportEncoding: 'UTF-8'), spotbugs()]
         )
         echo 'Pushing images...'
         withCredentials([usernamePassword(credentialsId: 'dockerhub-egopensource', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
