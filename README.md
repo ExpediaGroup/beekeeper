@@ -1,18 +1,39 @@
 # Beekeeper
 
-# Overview
-Beekeeper is a service that schedules orphaned paths for cleanup.
+Beekeeper is a service that schedules orphaned paths for deletion.
+
+The original inspiration for a data deletion tool came from another of our open source projects called [Circus Train](https://github.com/HotelsDotCom/circus-train). At a high level, Circus Train replicates Hive datasets. The datasets are copied as immutable snapshots to ensure strong consistency and snapshot isolation, only pointing the replicated Hive Metastore to the new snapshot on successful completion. This process leaves behind snapshots of data which are now unreferenced by the Hive Metastore, so Circus Train includes a Housekeeping module to delete these files later.
+
+## Start using
+
+Beekeeper's docker images can be found in Expedia Group's [dockerhub](https://hub.docker.com/u/expediagroup). To deploy Beekeeper in AWS, see the [terraform repo](https://github.com/ExpediaGroup/beekeeper-terraform). 
+
+## How does it work?
+
+Beekeeper makes use of [Apiary](https://github.com/ExpediaGroup/apiary) - an open source federated cloud data lake - to detect changes in the Hive Metastore. One of Apiary’s components, the Apiary Metastore Listener, captures Hive events and publishes these as messages to an SNS topic. Beekeeper uses these messages to detect changes to the Hive Metastore, and perform appropriate deletions.
+
+Beekeeper comprises two separate Spring-based Java applications. One application schedules paths for deletion in a shared database, and the other performs deletions.
+
+## End-to-end lifecycle example
 
 ![Beekeeper architecture](.README_images/architecture_diagram.png)
 
-# End-to-end lifecycle example
+1. A Hive table is configured with the parameter `beekeeper.remove.unreferenced.data=true` (see [Table configuration]() for more details.)
+2. An operation is executed on the table that orphans some data (alter partition, drop partition, etc.)
+3. Hive Metastore events are emitted by the [Hive Metastore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-listener) as a result of the operation.
+4. Hive events are picked up from the queue by Beekeeper using [Apiary Receiver](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-receivers).
+5. Beekeeper processes these messages and schedules orphaned paths for deletion by adding them to a database.
+6. The scheduled paths are deleted by Beekeeper after a configurable delay, the default is 3 days (see [Table configuration]() for more details.)
 
-- A Hive table is configured with the parameter `beekeeper.remove.unreferenced.data=true` to have orphaned data managed by Beekeeper.
-- An operation is executed on the table that orphans some data at particular paths (alter partition, drop partition, etc.).
-- Hive metastore events are emitted by the [Hive metastore listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-listener) as a result of the operation.
-- Hive events are picked up from the queue by Beekeeper using [Apiary Receiver](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-receivers).
-- Beekeeper processes these messages and schedules orphaned paths for deletion by adding them to a database.
-- The scheduled paths are deleted by default in 3 days (but can be configured with a different value with table parameter `beekeeper.unreferenced.data.retention.period`).
+## Table configuration
+
+Beekeeper only actions on events which are marked with a specific parameter. This parameter, as well as other configuration parameters, is added to the table that you wish to have Beekeeper monitor. The configuration for tables is as follows:
+
+| Parameter             | Required | Possible values | Description |
+|:----|:----:|:----:|:----|
+| `beekeeper.remove.unreferenced.data=true`   | Yes |  `true` or `false`       | Set this parameter to ensure Beekeeper monitors your table for orphaned data. |
+| `beekeeper.unreferenced.data.retention.period=X` | No | e.g. `P7D` or `PT3H` (based on [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601)) | Set this parameter to control the delay between schedule and deletion by Beekeeper. Default is 3 days. |
+
 
 # Running the applications
 
