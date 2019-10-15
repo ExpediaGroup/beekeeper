@@ -37,7 +37,7 @@ pipeline {
           execPattern: '**/**.exec',
           classPattern: '**/classes',
           sourcePattern: '**/src/main/java',
-          inclusionPattern: '**/*.java'
+          inclusionPattern: '**/*.java',
           exclusionPattern: ''
         )
         recordIssues(
