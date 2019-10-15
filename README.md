@@ -1,12 +1,16 @@
-# Beekeeper
+# Overview
 
 Beekeeper is a service that schedules orphaned paths for deletion.
 
 The original inspiration for a data deletion tool came from another of our open source projects called [Circus Train](https://github.com/HotelsDotCom/circus-train). At a high level, Circus Train replicates Hive datasets. The datasets are copied as immutable snapshots to ensure strong consistency and snapshot isolation, only pointing the replicated Hive Metastore to the new snapshot on successful completion. This process leaves behind snapshots of data which are now unreferenced by the Hive Metastore, so Circus Train includes a Housekeeping module to delete these files later.
 
+Circus Train’s Housekeeping module has been re-written and updated to create this service.
+
 ## Start using
 
-Beekeeper's docker images can be found in Expedia Group's [dockerhub](https://hub.docker.com/u/expediagroup). To deploy Beekeeper in AWS, see the [terraform repo](https://github.com/ExpediaGroup/beekeeper-terraform). 
+Docker images can be found in Expedia Group's [dockerhub](https://hub.docker.com/u/expediagroup). 
+
+To deploy Beekeeper in AWS, see the [terraform repo](https://github.com/ExpediaGroup/beekeeper-terraform). 
 
 ## How does it work?
 
@@ -25,9 +29,9 @@ Beekeeper comprises two separate Spring-based Java applications. One application
 5. Beekeeper processes these messages and schedules orphaned paths for deletion by adding them to a database.
 6. The scheduled paths are deleted by Beekeeper after a configurable delay, the default is 3 days (see [Table configuration]() for more details.)
 
-## Table configuration
+## Hive table configuration
 
-Beekeeper only actions on events which are marked with a specific parameter. This parameter, as well as other configuration parameters, is added to the table that you wish to have Beekeeper monitor. The configuration for tables is as follows:
+Beekeeper only actions on events which are marked with a specific parameter. This parameter, as well as other configuration parameters, is added to the Hive table that you wish to have Beekeeper monitor. The configuration for tables is as follows:
 
 | Parameter             | Required | Possible values | Description |
 |:----|:----:|:----:|:----|
