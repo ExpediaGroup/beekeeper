@@ -38,10 +38,11 @@ pipeline {
           classPattern: '**/classes',
           sourcePattern: '**/src/main/java',
           inclusionPattern: '**/*.java'
+          exclusionPattern: ''
         )
         recordIssues(
           enabledForFailure: true, aggregatingResults: true,
-          tools: [checkStyle(reportEncoding: 'UTF-8'), spotbugs()]
+          tools: [checkStyle(reportEncoding: 'UTF-8'), spotBugs()]
         )
         echo 'Pushing images...'
         withCredentials([usernamePassword(credentialsId: 'dockerhub-egopensource', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
