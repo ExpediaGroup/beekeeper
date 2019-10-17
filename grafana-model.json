@@ -15,23 +15,362 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 2344,
+  "id": 2913,
   "links": [],
   "panels": [
     {
+      "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 0
       },
+      "id": 26,
+      "panels": [],
+      "title": "Data deleted in time period",
+      "type": "row"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorPostfix": false,
+      "colorPrefix": false,
+      "colorValue": false,
+      "colors": [
+        "#56A64B",
+        "#FF9830",
+        "#d44a3a"
+      ],
+      "datasource": "[HOT] graphite-us-west-2",
+      "format": "decbytes",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 0,
+        "y": 1
+      },
+      "id": 22,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "refId": "A",
+          "target": "cumulative(removeBelowValue(derivative(hcom-data-prod.com.hotels.bdp.beekeeper.s3-bytes-deleted.count), 0))"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": "1d",
+      "timeShift": null,
+      "title": "",
+      "type": "singlestat",
+      "valueFontSize": "100%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "total"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": "[HOT] graphite-us-west-2",
+      "format": "decbytes",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 3,
+        "y": 1
+      },
+      "id": 18,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "refId": "A",
+          "target": "cumulative(removeBelowValue(derivative(hcom-data-prod.com.hotels.bdp.beekeeper.s3-bytes-deleted.count), 0))"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": "1w",
+      "timeShift": null,
+      "title": "",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "total"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": "[HOT] graphite-us-west-2",
+      "format": "decbytes",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 6,
+        "y": 1
+      },
+      "id": 20,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "refId": "A",
+          "target": "cumulative(removeBelowValue(derivative(hcom-data-prod.com.hotels.bdp.beekeeper.s3-bytes-deleted.count), 0))"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": "1M",
+      "timeShift": null,
+      "title": "",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "total"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": "[HOT] graphite-us-west-2",
+      "format": "decbytes",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 9,
+        "y": 1
+      },
+      "id": 16,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "refId": "A",
+          "target": "cumulative(removeBelowValue(derivative(hcom-data-prod.com.hotels.bdp.beekeeper.s3-bytes-deleted.count), 0))"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": "10y",
+      "timeShift": null,
+      "title": "",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "total"
+    },
+    {
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
       "id": 4,
-      "title": "Row title",
+      "title": "All other metrics",
       "type": "row"
     },
     {
       "aliasColors": {},
-      "bars": false,
+      "bars": true,
       "dashLength": 10,
       "dashes": false,
       "datasource": "[HOT] graphite-us-west-2",
@@ -40,9 +379,9 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 1
+        "y": 5
       },
-      "id": 10,
+      "id": 14,
       "legend": {
         "avg": false,
         "current": false,
@@ -52,7 +391,7 @@
         "total": false,
         "values": false
       },
-      "lines": true,
+      "lines": false,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null as zero",
@@ -68,7 +407,7 @@
       "targets": [
         {
           "refId": "A",
-          "target": "alias(hcom-data-lab.com.hotels.bdp.beekeeper.s3-bytes-deleted.count, 'S3 bytes deleted')"
+          "target": "alias(removeBelowValue(derivative(hcom-data-prod.com.hotels.bdp.beekeeper.s3-bytes-deleted.count), 0), 'S3 bytes deleted')"
         }
       ],
       "thresholds": [],
@@ -123,7 +462,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 1
+        "y": 5
       },
       "id": 6,
       "legend": {
@@ -154,7 +493,7 @@
         {
           "refCount": 0,
           "refId": "A",
-          "target": "alias(hcom-data-lab.com.hotels.bdp.beekeeper.cleanup-job.class.com.expediagroup.beekeeper.cleanup.service.PagingCleanupService.exception.none.method.cleanUp.mean, 'Duration (ms)')"
+          "target": "alias(hcom-data-prod.com.hotels.bdp.beekeeper.cleanup-job.class.com.expediagroup.beekeeper.cleanup.service.PagingCleanupService.exception.none.method.cleanUp.mean, 'Duration (ms)')"
         }
       ],
       "thresholds": [],
@@ -177,7 +516,7 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "format": "ms",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -185,7 +524,7 @@
           "show": true
         },
         {
-          "format": "short",
+          "format": "ms",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -209,7 +548,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 10
+        "y": 14
       },
       "id": 8,
       "legend": {
@@ -240,7 +579,7 @@
         {
           "refCount": 0,
           "refId": "A",
-          "target": "alias(hcom-data-lab.com.hotels.bdp.beekeeper.s3-paths-deleted.class.com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner.exception.none.method.cleanupPath.mean, 'Duration (ms)')"
+          "target": "alias(hcom-data-prod.com.hotels.bdp.beekeeper.s3-paths-deleted.class.com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner.exception.none.method.cleanupPath.mean, 'Duration (ms)')"
         }
       ],
       "thresholds": [],
@@ -263,7 +602,7 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "format": "ms",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -271,7 +610,7 @@
           "show": true
         },
         {
-          "format": "short",
+          "format": "ms",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -295,7 +634,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 10
+        "y": 14
       },
       "id": 2,
       "legend": {
@@ -326,12 +665,12 @@
         {
           "refCount": 0,
           "refId": "A",
-          "target": "alias(hcom-data-lab.com.hotels.bdp.beekeeper.scheduled-paths.class.com.expediagroup.beekeeper.scheduler.service.PathSchedulerService.exception.none.method.scheduleForHousekeeping.count, 'Scheduled')"
+          "target": "alias(hcom-data-prod.com.hotels.bdp.beekeeper.scheduled-paths.class.com.expediagroup.beekeeper.scheduler.service.PathSchedulerService.exception.none.method.scheduleForHousekeeping.count, 'Scheduled')"
         },
         {
           "refCount": 0,
           "refId": "B",
-          "target": "alias(hcom-data-lab.com.hotels.bdp.beekeeper.s3-paths-deleted.class.com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner.exception.none.method.cleanupPath.count, 'Deleted')"
+          "target": "alias(hcom-data-prod.com.hotels.bdp.beekeeper.s3-paths-deleted.class.com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner.exception.none.method.cleanupPath.count, 'Deleted')"
         }
       ],
       "thresholds": [],
@@ -386,7 +725,91 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 19
+        "y": 23
+      },
+      "id": 10,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {},
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "refCount": 0,
+          "refId": "A",
+          "target": "alias(hcom-data-prod.com.hotels.bdp.beekeeper.s3-bytes-deleted.count, 'S3 bytes deleted total')"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Bytes deleted",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "decbytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "decbytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "[HOT] graphite-us-west-2",
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 23
       },
       "id": 12,
       "legend": {
@@ -414,7 +837,7 @@
       "targets": [
         {
           "refId": "A",
-          "target": "alias(hcom-data-lab.com.hotels.bdp.beekeeper.dry-run-s3-bytes-deleted.count, 'Dry run S3 bytes deleted')"
+          "target": "alias(hcom-data-prod.com.hotels.bdp.beekeeper.dry-run-s3-bytes-deleted.count, 'Dry run S3 bytes deleted')"
         }
       ],
       "thresholds": [],
@@ -467,7 +890,7 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {
@@ -498,5 +921,5 @@
   "timezone": "",
   "title": "BDP :: Beekeeper",
   "uid": "AYngdZZWk",
-  "version": 35
+  "version": 9
 }
