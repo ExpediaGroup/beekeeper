@@ -1,20 +1,50 @@
-# Beekeeper
-
 # Overview
-Beekeeper is a service that schedules orphaned paths for cleanup.
+
+Beekeeper is a service that schedules orphaned paths for deletion.
+
+The original inspiration for a data deletion tool came from another of our open source projects called [Circus Train](https://github.com/HotelsDotCom/circus-train). At a high level, Circus Train replicates Hive datasets. The datasets are copied as immutable snapshots to ensure strong consistency and snapshot isolation, only pointing the replicated Hive Metastore to the new snapshot on successful completion. This process leaves behind snapshots of data which are now unreferenced by the Hive Metastore, so Circus Train includes a Housekeeping module to delete these files later.
+
+Beekeeper is based on Circus Train's Housekeeping module, however it is decoupled from Circus Train so it can be used by other applications as well.
+
+## Start using
+
+To deploy Beekeeper in AWS, see the [terraform repo](https://github.com/ExpediaGroup/beekeeper-terraform). 
+
+Docker images can be found in Expedia Group's [dockerhub](https://hub.docker.com/search/?q=expediagroup%2Fbeekeeper&type=image). 
+
+# How does it work?
+
+Beekeeper makes use of [Apiary](https://github.com/ExpediaGroup/apiary) - an open source federated cloud data lake - to detect changes in the Hive Metastore. One of Apiary’s components, the [Apiary Metastore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-events/apiary-metastore-listener), captures Hive events and publishes these as messages to an SNS topic. Beekeeper uses these messages to detect changes to the Hive Metastore, and perform appropriate deletions.
+
+Beekeeper comprises two separate Spring-based Java applications. One application schedules paths for deletion in a shared database, and the other performs deletions.
+
+## End-to-end lifecycle example
 
 ![Beekeeper architecture](.README_images/architecture_diagram.png)
 
-# End-to-end lifecycle example
+1. A Hive table is configured with the parameter `beekeeper.remove.unreferenced.data=true` (see [Hive table configuration](#hive-table-configuration) for more details.)
+2. An operation is executed on the table that orphans some data (alter partition, drop partition, etc.)
+3. Hive Metastore events are emitted by the [Hive Metastore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-listener) as a result of the operation.
+4. Hive events are picked up from the queue by Beekeeper using [Apiary Receiver](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-receivers).
+5. Beekeeper processes these messages and schedules orphaned paths for deletion by adding them to a database.
+6. The scheduled paths are deleted by Beekeeper after a configurable delay, the default is 3 days (see [Hive table configuration](#hive-table-configuration) for more details.)
 
-- A Hive table is configured with the parameter `beekeeper.remove.unreferenced.data=true` to have orphaned data managed by Beekeeper.
-- An operation is executed on the table that orphans some data at particular paths (alter partition, drop partition, etc.).
-- Hive metastore events are emitted by the [Hive metastore listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-listener) as a result of the operation.
-- Hive events are picked up from the queue by Beekeeper using [Apiary Receiver](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-receivers).
-- Beekeeper processes these messages and schedules orphaned paths for deletion by adding them to a database.
-- The scheduled paths are deleted by default in 3 days (but can be configured with a different value with table parameter `beekeeper.unreferenced.data.retention.period`).
+## Hive table configuration
 
-# Running the applications
+Beekeeper only actions on events which are marked with a specific parameter. This parameter, as well as other parameters, need to be added to the Hive table that you wish to be monitored by Beekeeper. The configuration parameters for Hive tables are as follows:
+
+| Parameter             | Required | Possible values | Description |
+|:----|:----:|:----:|:----|
+| `beekeeper.remove.unreferenced.data=true`   | Yes |  `true` or `false`       | Set this parameter to ensure Beekeeper monitors your table for orphaned data. |
+| `beekeeper.unreferenced.data.retention.period=X` | No | e.g. `P7D` or `PT3H` (based on [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601)) | Set this parameter to control the delay between schedule and deletion by Beekeeper. Default is 3 days. |
+
+This command can be used to add a parameter to a Hive Table:
+
+```SQL
+ALTER TABLE <table-name> SET TBLPROPERTIES("beekeeper.remove.unreferenced.data"="true");
+```
+
+# Running Beekeeper
 
 Beekeeper comprises two Spring Boot applications, `beekeeper-cleanup` and `beekeeper-path-scheduler-apiary`, which run independently of each other:
 
@@ -38,7 +68,7 @@ spring.datasource:
 
 This can be provided via a file or Spring can load properties from the environment (see below). 
 
-# Using Docker
+## Using Docker
 
 Two Docker images are created during `mvn install` one for cleanup and one for path scheduling. 
 
@@ -108,22 +138,22 @@ If you would like to connect a dockerised application to a local MySQL database 
 
 where `<database-url>` is the name of the running MySQL container.
 
-# Application configuration
-## Beekeeper Path Scheduler Apiary
+## Application configuration
+### Beekeeper Path Scheduler Apiary
 | Property                            | Required | Description |
 |:----|:----|:----|
 | `apiary.queue-url`                  | Yes      | URL for SQS queue. |
 | `apiary.cleanup-delay-property-key` | No       | Table parameter to use for Apiary listener. Default value is `beekeeper.unreferenced.data.retention.period`. |
 | `beekeeper.default-cleanup-delay`   | No       | Default Time To Live (TTL) for orphaned paths in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Durations) format: only days, hours, minutes and seconds can be specified in the expression. Default value is `P3D` (3 days). |
 
-## Beekeeper Cleanup
+### Beekeeper Cleanup
 | Property             | Required | Description |
 |:----|:----:|:----|
 | `cleanup-page-size`  | No       | Number of rows that should be processed in one page. Default value is `500`. |
 | `dry-run-enabled`            | No       | Enable to simply display the deletions that would be performed, without actually doing so. Default value is `false`. |
 | `scheduler-delay-ms` | No       | Amount of time (in milliseconds) between consecutive cleanups. Default value is `300000` (5 minutes after the previous cleanup completes). |
 
-## Metrics
+### Metrics
 
 Beekeeper currently supports Graphite metrics. If enabled, both host and prefix are required. If they are not provided, the application will throw an exception and not start.
 
@@ -134,7 +164,7 @@ Beekeeper currently supports Graphite metrics. If enabled, both host and prefix 
 | `graphite.prefix` | If enabled     | Prefix for reported metrics. |
 | `graphite.port`   | No       | Graphite port. Default is `2003`. |
 
-# External links
+## External links
 
 Please see the [Housekeeping](https://github.com/HotelsDotCom/housekeeping) library for more information.
 

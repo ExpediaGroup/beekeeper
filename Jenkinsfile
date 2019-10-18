@@ -32,11 +32,17 @@ pipeline {
         echo 'Checking out project...'
         checkout scm
         echo 'Building...'
-        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle -s ${MVN_OSS_SETTINGS}'
-        jacoco()
+        sh 'mvn clean deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs -s ${MVN_OSS_SETTINGS}'
+        jacoco(
+          execPattern: '**/**.exec',
+          classPattern: '**/classes',
+          sourcePattern: '**/src/main/java',
+          inclusionPattern: '**/*.java',
+          exclusionPattern: ''
+        )
         recordIssues(
           enabledForFailure: true, aggregatingResults: true,
-          tools: [checkStyle(reportEncoding: 'UTF-8')]
+          tools: [checkStyle(reportEncoding: 'UTF-8'), spotBugs()]
         )
         echo 'Pushing images...'
         withCredentials([usernamePassword(credentialsId: 'dockerhub-egopensource', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
@@ -49,7 +55,7 @@ pipeline {
 
     stage('Release') {
       options {
-       timeout(time: 2, unit: 'HOURS')
+        timeout(time: 2, unit: 'HOURS')
       }
 
       input {
