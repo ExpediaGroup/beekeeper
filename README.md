@@ -138,6 +138,14 @@ If you would like to connect a dockerised application to a local MySQL database 
 
 where `<database-url>` is the name of the running MySQL container.
 
+## Endpoints
+
+Being a Spring Boot Application, all [standard actuator endpoints](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html) are supported.
+
+For example, the healthcheck endpoint at: `http://<address>:<port>/actuator/health`. 
+
+By default, `beekeeper-path-scheduler-apiary` listens on port 8080 and `beekeeper-cleanup` listens on port 8008. 
+
 ## Application configuration
 ### Beekeeper Path Scheduler Apiary
 | Property                            | Required | Description |
