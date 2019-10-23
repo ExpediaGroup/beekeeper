@@ -144,7 +144,9 @@ Being a Spring Boot Application, all [standard actuator endpoints](https://docs.
 
 For example, the healthcheck endpoint at: `http://<address>:<port>/actuator/health`. 
 
-By default, `beekeeper-path-scheduler-apiary` listens on port 8080 and `beekeeper-cleanup` listens on port 8008. 
+By default, `beekeeper-path-scheduler-apiary` listens on port 8080 and `beekeeper-cleanup` listens on port 8008. To access this endpoint when running in a Docker container, the port must be published:
+
+    docker run -p <port>:<port> <image-id>
 
 ## Application configuration
 ### Beekeeper Path Scheduler Apiary
