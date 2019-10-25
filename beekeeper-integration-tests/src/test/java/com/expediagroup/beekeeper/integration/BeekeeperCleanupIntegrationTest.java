@@ -25,6 +25,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpCoreContext;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -66,6 +70,7 @@ public class BeekeeperCleanupIntegrationTest {
   private static final String AWS_ACCESS_KEY_ID = "accessKey";
   private static final String AWS_SECRET_KEY = "secretKey";
   private static final String CONTENT = "Content";
+  private static final String HEALTHCHECK_URI = "http://localhost:8008/actuator/health";
 
   private static AmazonS3 amazonS3;
   private static LocalStackContainer s3Container;
@@ -243,9 +248,8 @@ public class BeekeeperCleanupIntegrationTest {
   private void assertMetrics() {
     MeterRegistry meterRegistry = BeekeeperCleanup.meterRegistry();
     List<Meter> meters = meterRegistry.getMeters();
-    assertThat(meters).hasSize(3);
     assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-        .containsExactlyInAnyOrder("cleanup-job", "s3-paths-deleted", S3BytesDeletedReporter.METRIC_NAME);
+        .contains("cleanup-job", "s3-paths-deleted", S3BytesDeletedReporter.METRIC_NAME);
   }
 
   @Test
@@ -273,5 +277,14 @@ public class BeekeeperCleanupIntegrationTest {
     counter = BeekeeperCleanup.meterRegistry().get(S3BytesDeletedReporter.METRIC_NAME).counter();
     assertThat(counter.measure().iterator().next().getValue()).isEqualTo(
         CONTENT.getBytes().length + doubleContent.getBytes().length);
+  }
+
+  @Test
+  public void healthCheck() {
+    CloseableHttpClient client = HttpClientBuilder.create().build();
+    HttpGet request = new HttpGet(HEALTHCHECK_URI);
+    HttpCoreContext context = new HttpCoreContext();
+    await().atMost(30, TimeUnit.SECONDS)
+      .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
   }
 }

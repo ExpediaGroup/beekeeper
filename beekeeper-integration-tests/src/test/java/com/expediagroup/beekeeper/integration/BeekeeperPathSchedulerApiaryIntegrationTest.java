@@ -33,6 +33,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpCoreContext;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -69,6 +73,7 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
       .minus(1L, ChronoUnit.MINUTES);
   private static final String DATABASE = "some_db";
   private static final String TABLE = "some_table";
+  private static final String HEALTHCHECK_URI = "http://localhost:8080/actuator/health";
 
   private static AmazonSQS amazonSQS;
   private static String alterPartitionEvent;
@@ -164,11 +169,20 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
     assertMetrics();
   }
 
+  @Test
+  public void healthCheck() {
+    CloseableHttpClient client = HttpClientBuilder.create().build();
+    HttpGet request = new HttpGet(HEALTHCHECK_URI);
+    HttpCoreContext context = new HttpCoreContext();
+    await().atMost(30, TimeUnit.SECONDS)
+      .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
+  }
+
   private void assertMetrics() {
     MeterRegistry meterRegistry = BeekeeperPathSchedulerApiary.meterRegistry();
     List<Meter> meters = meterRegistry.getMeters();
-    assertThat(meters).hasSize(1);
-    assertThat(meters.get(0).getId().getName()).isEqualTo("scheduled-paths");
+    assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
+      .contains("scheduled-paths");
   }
 
   private SendMessageRequest sendMessageRequest(String payload) {

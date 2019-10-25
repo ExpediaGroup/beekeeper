@@ -25,6 +25,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpCoreContext;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -37,7 +41,6 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 
@@ -69,6 +72,7 @@ class BeekeeperDryRunCleanupIntegrationTest {
   private static final String AWS_ACCESS_KEY_ID = "accessKey";
   private static final String AWS_SECRET_KEY = "secretKey";
   private static final String CONTENT = "Content";
+  private static final String HEALTHCHECK_URI = "http://localhost:8008/actuator/health";
 
   private static final String S3_CLIENT_CLASS_NAME = "S3Client";
 
@@ -227,12 +231,20 @@ class BeekeeperDryRunCleanupIntegrationTest {
     await().atMost(30, TimeUnit.SECONDS).until(this::assertMetrics);
   }
 
+  @Test
+  public void healthCheck() {
+    CloseableHttpClient client = HttpClientBuilder.create().build();
+    HttpGet request = new HttpGet(HEALTHCHECK_URI);
+    HttpCoreContext context = new HttpCoreContext();
+    await().atMost(30, TimeUnit.SECONDS)
+      .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
+  }
+
   private boolean assertMetrics() {
     MeterRegistry meterRegistry = BeekeeperCleanup.meterRegistry();
     List<Meter> meters = meterRegistry.getMeters();
-    assertThat(meters).hasSize(3);
     assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-        .containsExactlyInAnyOrder("cleanup-job", "s3-paths-deleted", S3BytesDeletedReporter.DRY_RUN_METRIC_NAME);
+        .contains("cleanup-job", "s3-paths-deleted", S3BytesDeletedReporter.DRY_RUN_METRIC_NAME);
     return true;
   }
 
