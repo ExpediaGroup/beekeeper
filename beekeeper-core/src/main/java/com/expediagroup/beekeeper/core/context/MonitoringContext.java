@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Configuration;
 
 import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.config.NamingConvention;
 import io.micrometer.core.instrument.util.HierarchicalNameMapper;
 import io.micrometer.graphite.GraphiteConfig;
@@ -31,7 +32,7 @@ import com.expediagroup.beekeeper.core.config.GraphiteConfigFactory;
 public class MonitoringContext {
 
   @Bean
-  GraphiteMeterRegistry registry(GraphiteConfigFactory graphiteConfigFactory) {
+  GraphiteMeterRegistry graphiteMeterRegistry(GraphiteConfigFactory graphiteConfigFactory) {
     GraphiteConfig graphiteConfig = graphiteConfigFactory.newInstance();
     GraphiteMeterRegistry graphiteMeterRegistry = new GraphiteMeterRegistry(graphiteConfig, Clock.SYSTEM,
         (id, convention) -> graphiteConfig.prefix()
@@ -43,7 +44,7 @@ public class MonitoringContext {
   }
 
   @Bean
-  public TimedAspect timedAspect(GraphiteMeterRegistry registry) {
+  public TimedAspect timedAspect(MeterRegistry registry) {
     return new TimedAspect(registry);
   }
 }

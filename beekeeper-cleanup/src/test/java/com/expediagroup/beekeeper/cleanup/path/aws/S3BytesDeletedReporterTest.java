@@ -32,7 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.graphite.GraphiteMeterRegistry;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest.KeyVersion;
@@ -53,7 +53,7 @@ class S3BytesDeletedReporterTest {
   private final long size = content.getBytes().length;
   private final DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket);
   private final ObjectMetadata objectMetadata = new ObjectMetadata();
-  private @Mock GraphiteMeterRegistry meterRegistry;
+  private @Mock MeterRegistry meterRegistry;
   private @Mock S3Client s3Client;
   private @Mock Counter counter;
   private S3BytesDeletedReporter s3BytesDeletedReporter;

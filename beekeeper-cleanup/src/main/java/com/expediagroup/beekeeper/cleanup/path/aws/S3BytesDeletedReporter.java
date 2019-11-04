@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.graphite.GraphiteMeterRegistry;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 
@@ -37,7 +37,7 @@ public class S3BytesDeletedReporter {
   private final Map<String, Long> keyToSize = new HashMap<>();
   private final Counter counter;
 
-  public S3BytesDeletedReporter(S3Client s3Client, GraphiteMeterRegistry meterRegistry, boolean dryRunEnabled) {
+  public S3BytesDeletedReporter(S3Client s3Client, MeterRegistry meterRegistry, boolean dryRunEnabled) {
     this.s3Client = s3Client;
 
     String metricName = dryRunEnabled ? DRY_RUN_METRIC_NAME : METRIC_NAME;
