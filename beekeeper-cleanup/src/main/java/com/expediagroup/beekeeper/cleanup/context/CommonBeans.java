@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.graphite.GraphiteMeterRegistry;
 
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
@@ -70,7 +70,7 @@ public class CommonBeans {
   }
 
   @Bean
-  public S3BytesDeletedReporter s3BytesDeletedReporter(S3Client s3Client, MeterRegistry meterRegistry,
+  public S3BytesDeletedReporter s3BytesDeletedReporter(S3Client s3Client, GraphiteMeterRegistry meterRegistry,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
     return new S3BytesDeletedReporter(s3Client, meterRegistry, dryRunEnabled);
   }

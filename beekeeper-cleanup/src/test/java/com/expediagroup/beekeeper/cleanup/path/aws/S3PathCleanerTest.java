@@ -42,7 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.findify.s3mock.S3Mock;
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.graphite.GraphiteMeterRegistry;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -71,7 +71,7 @@ class S3PathCleanerTest {
   private S3Client s3Client;
   private S3SentinelFilesCleaner s3SentinelFilesCleaner;
   private S3BytesDeletedReporter s3BytesDeletedReporter;
-  private @Mock MeterRegistry meterRegistry;
+  private @Mock GraphiteMeterRegistry meterRegistry;
 
   private S3PathCleaner s3PathCleaner;
 
