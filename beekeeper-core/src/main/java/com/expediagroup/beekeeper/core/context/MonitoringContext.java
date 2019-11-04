@@ -32,7 +32,7 @@ import com.expediagroup.beekeeper.core.config.GraphiteConfigFactory;
 public class MonitoringContext {
 
   @Bean
-  GraphiteMeterRegistry graphiteMeterRegistry(GraphiteConfigFactory graphiteConfigFactory) {
+  GraphiteMeterRegistry meterRegistry(GraphiteConfigFactory graphiteConfigFactory) {
     GraphiteConfig graphiteConfig = graphiteConfigFactory.newInstance();
     GraphiteMeterRegistry graphiteMeterRegistry = new GraphiteMeterRegistry(graphiteConfig, Clock.SYSTEM,
         (id, convention) -> graphiteConfig.prefix()
