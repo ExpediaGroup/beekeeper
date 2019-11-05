@@ -65,6 +65,6 @@ public class BeekeeperCleanup implements ApplicationContextAware {
   @Override
   public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     context = (ConfigurableApplicationContext) applicationContext;
-    meterRegistry = (MeterRegistry) context.getBean("registry");
+    meterRegistry = (MeterRegistry) context.getBean("meterRegistry");
   }
 }
