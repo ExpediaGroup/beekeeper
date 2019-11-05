@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.graphite.GraphiteMeterRegistry;
 
 import com.amazonaws.services.s3.AmazonS3;
 
@@ -92,7 +93,7 @@ class CommonBeansTest {
   @Test
   void s3BytesDeletedReporter() {
     S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), false);
-    MeterRegistry meterRegistry = mock(MeterRegistry.class);
+    MeterRegistry meterRegistry = mock(GraphiteMeterRegistry.class);
     S3BytesDeletedReporter s3BytesDeletedReporter = new S3BytesDeletedReporter(s3Client, meterRegistry, false);
     S3BytesDeletedReporter beansS3BytesDeletedReporter = commonBeans.s3BytesDeletedReporter(s3Client, meterRegistry,
         false);

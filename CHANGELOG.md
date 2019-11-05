@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.4] - TBD
 ### Changed
 - Parent pom version to 1.1.0 (was 1.0.0).
+- `MeterRegistry` to `GraphiteMeterRegistry` so that Spring metrics use Beekeeper's `GraphiteConfig` and not the default config.
 
 ### Added
 - Health check endpoints.
