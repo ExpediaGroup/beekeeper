@@ -17,6 +17,7 @@ package com.expediagroup.beekeeper.scheduler.apiary.messaging;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -51,13 +52,11 @@ public class MessageEventToPathEventMapper {
   public Optional<PathEvent> map(MessageEvent messageEvent) {
     ListenerEvent listenerEvent = messageEvent.getEvent();
     EventType eventType = listenerEvent.getEventType();
-    String cleanupDelay = listenerEvent.getTableParameters()
-        .getOrDefault(cleanupDelayPropertyKey, defaultCleanupDelay);
 
     EntityHousekeepingPath.Builder builder = new EntityHousekeepingPath.Builder()
         .pathStatus(PathStatus.SCHEDULED)
         .creationTimestamp(LocalDateTime.now())
-        .cleanupDelay(Duration.parse(cleanupDelay))
+        .cleanupDelay(extractCleanupDelay(listenerEvent))
         .clientId(CLIENT_ID)
         .tableName(listenerEvent.getTableName())
         .databaseName(listenerEvent.getDbName());
@@ -85,5 +84,17 @@ public class MessageEventToPathEventMapper {
     }
 
     return Optional.of(new PathEvent(builder.build(), messageEvent));
+  }
+
+  private Duration extractCleanupDelay(ListenerEvent listenerEvent) {
+    String tableCleanupDelay = listenerEvent.getTableParameters()
+      .getOrDefault(cleanupDelayPropertyKey, defaultCleanupDelay);
+    try {
+      return Duration.parse(tableCleanupDelay);
+    } catch (DateTimeParseException e) {
+      log.error("Text '{}' cannot be parsed to a Duration for table '{}.{}'. Using default setting.",
+        tableCleanupDelay, listenerEvent.getDbName(), listenerEvent.getTableName());
+      return Duration.parse(defaultCleanupDelay);
+    }
   }
 }

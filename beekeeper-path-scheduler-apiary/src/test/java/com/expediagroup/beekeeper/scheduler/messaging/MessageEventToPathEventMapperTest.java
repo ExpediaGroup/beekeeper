@@ -127,6 +127,18 @@ public class MessageEventToPathEventMapperTest {
     assertPath(messageEvent, pathEvent, DEFAULT_CLEANUP_DELAY);
   }
 
+  @Test
+  public void mapDefaultDelayOnDurationException() {
+    setupMocks(alterPartitionEvent);
+    when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
+    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_PATH);
+    when(alterPartitionEvent.getTableParameters())
+      .thenReturn(Collections.singletonMap(CLEANUP_DELAY_PROPERTY, "1"));
+    MessageEvent messageEvent = newMessageEvent(alterPartitionEvent);
+    Optional<PathEvent> pathEvent = mapper.map(messageEvent);
+    assertPath(messageEvent, pathEvent, DEFAULT_CLEANUP_DELAY);
+  }
+
   private void assertPath(MessageEvent messageEvent, Optional<PathEvent> pathEventOptional, String cleanupDelay) {
     PathEvent pathEvent = pathEventOptional.get();
     assertThat(pathEvent.getMessageEvent()).isEqualTo(messageEvent);
