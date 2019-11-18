@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.5] - TBD
 ### Changed
-- Using default deletion delay if table parameter is configured incorrectly
+- Using default deletion delay if table parameter is configured incorrectly.
 
 ## [1.1.4] - 2019-11-07
 ### Changed
