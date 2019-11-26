@@ -66,7 +66,7 @@ public class S3PathCleaner implements PathCleaner {
 
       try {
         String path = s3SchemeURI.getPath();
-        if (s3SchemeURI.getPath().endsWith("/")) {
+        if (path.endsWith("/")) {
           path = path.substring(0, path.length() - 1);
         }
         sentinelFilesCleaner.deleteSentinelFiles(path);
