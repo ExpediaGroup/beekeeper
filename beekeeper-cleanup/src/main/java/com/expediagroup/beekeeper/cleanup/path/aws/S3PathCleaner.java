@@ -50,9 +50,9 @@ public class S3PathCleaner implements PathCleaner {
   @Override
   @Timed("s3-paths-deleted")
   public void cleanupPath(String housekeepingPath, String tableName) {
-    S3SchemeURI s3URI = extractURI(housekeepingPath);
-    String key = s3URI.getKey();
-    String bucket = s3URI.getBucket();
+    S3SchemeURI s3SchemeURI = extractURI(housekeepingPath);
+    String key = s3SchemeURI.getKey();
+    String bucket = s3SchemeURI.getBucket();
 
     // doesObjectExists returns true only when the key is a file
     boolean isFile = s3Client.doesObjectExist(bucket, key);
@@ -81,13 +81,13 @@ public class S3PathCleaner implements PathCleaner {
   }
 
   private S3SchemeURI extractURI(String housekeepingPath) {
-    S3SchemeURI s3SchemeUri;
+    S3SchemeURI s3SchemeURI;
     try {
-      s3SchemeUri = new S3SchemeURI(housekeepingPath);
+      s3SchemeURI = new S3SchemeURI(housekeepingPath);
     } catch (Exception e) {
       throw new BeekeeperException(format("Could not create URI from path: '%s'", housekeepingPath), e);
     }
-    return s3SchemeUri;
+    return s3SchemeURI;
   }
 
   private void deleteFilesInDirectory(String bucket, String key) {
