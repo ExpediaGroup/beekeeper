@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import io.micrometer.core.annotation.Timed;
 
-import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.base.Strings;
@@ -51,9 +50,9 @@ public class S3PathCleaner implements PathCleaner {
   @Override
   @Timed("s3-paths-deleted")
   public void cleanupPath(String housekeepingPath, String tableName) {
-    AmazonS3URI amazonS3URI = new AmazonS3URI(housekeepingPath, false);
-    String key = amazonS3URI.getKey();
-    String bucket = amazonS3URI.getBucket();
+    S3SchemeURI s3URI = extractURI(housekeepingPath);
+    String key = s3URI.getKey();
+    String bucket = s3URI.getBucket();
 
     // doesObjectExists returns true only when the key is a file
     boolean isFile = s3Client.doesObjectExist(bucket, key);
@@ -79,6 +78,16 @@ public class S3PathCleaner implements PathCleaner {
         log.warn("Sentinel file(s) could not be deleted", e);
       }
     }
+  }
+
+  private S3SchemeURI extractURI(String housekeepingPath) {
+    S3SchemeURI s3SchemeUri;
+    try {
+      s3SchemeUri = new S3SchemeURI(housekeepingPath);
+    } catch (Exception e) {
+      throw new BeekeeperException(format("Could not create URI from path: '%s'", housekeepingPath), e);
+    }
+    return s3SchemeUri;
   }
 
   private void deleteFilesInDirectory(String bucket, String key) {
