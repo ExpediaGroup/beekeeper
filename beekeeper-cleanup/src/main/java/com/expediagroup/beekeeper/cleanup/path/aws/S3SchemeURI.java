@@ -37,6 +37,11 @@ public class S3SchemeURI {
     this.amazonS3URI = new AmazonS3URI(s3Uri);
   }
 
+  public String getPath() {
+    return amazonS3URI.getURI()
+      .toString();
+  }
+
   public String getKey() {
     return amazonS3URI.getKey();
   }

@@ -65,14 +65,15 @@ public class S3PathCleaner implements PathCleaner {
       deleteFilesInDirectory(bucket, key);
 
       try {
-        if (housekeepingPath.endsWith("/")) {
-          housekeepingPath = housekeepingPath.substring(0, housekeepingPath.length() - 1);
+        String path = s3SchemeURI.getPath();
+        if (s3SchemeURI.getPath().endsWith("/")) {
+          path = path.substring(0, housekeepingPath.length() - 1);
         }
-        sentinelFilesCleaner.deleteSentinelFiles(housekeepingPath);
+        sentinelFilesCleaner.deleteSentinelFiles(path);
 
         // attempt to delete parents if there is at least one parent
         if (key.contains("/")) {
-          deleteParentSentinelFiles(bucket, key, housekeepingPath, tableName);
+          deleteParentSentinelFiles(bucket, key, path, tableName);
         }
       } catch (Exception e) {
         log.warn("Sentinel file(s) could not be deleted", e);

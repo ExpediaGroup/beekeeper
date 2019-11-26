@@ -38,6 +38,7 @@ class S3SchemeURITest {
   @Test
   void typicalPath() throws URISyntaxException {
     S3SchemeURI uri = new S3SchemeURI(S3_PATH);
+    assertThat(uri.getPath()).isEqualTo(S3_PATH);
     assertThat(uri.getBucket()).isEqualTo(BUCKET);
     assertThat(uri.getKey()).isEqualTo(KEY);
   }
@@ -45,6 +46,7 @@ class S3SchemeURITest {
   @Test
   void s3aPath() throws URISyntaxException {
     S3SchemeURI uri = new S3SchemeURI(S3A_PATH);
+    assertThat(uri.getPath()).isEqualTo(S3_PATH);
     assertThat(uri.getBucket()).isEqualTo(BUCKET);
     assertThat(uri.getKey()).isEqualTo(KEY);
   }
@@ -52,6 +54,7 @@ class S3SchemeURITest {
   @Test
   void s3nPath() throws URISyntaxException {
     S3SchemeURI uri = new S3SchemeURI(S3N_PATH);
+    assertThat(uri.getPath()).isEqualTo(S3_PATH);
     assertThat(uri.getBucket()).isEqualTo(BUCKET);
     assertThat(uri.getKey()).isEqualTo(KEY);
   }
