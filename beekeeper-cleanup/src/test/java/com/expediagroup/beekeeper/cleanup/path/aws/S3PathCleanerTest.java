@@ -346,4 +346,12 @@ class S3PathCleanerTest {
 
     verifyNoMoreInteractions(mockS3BytesDeletedReporter);
   }
+
+  @Test
+  void extractingURIFails() {
+    String path = "not a real path";
+    assertThatExceptionOfType(BeekeeperException.class)
+      .isThrownBy(() -> s3PathCleaner.cleanupPath(path, tableName))
+      .withMessage(format("Could not create URI from path: '%s'", path));
+  }
 }
