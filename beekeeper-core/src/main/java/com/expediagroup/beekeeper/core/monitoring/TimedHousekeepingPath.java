@@ -13,12 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.cleanup.path;
+package com.expediagroup.beekeeper.core.monitoring;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
-public interface PathCleaner {
+/**
+ * Times the annotated method by triggering {@link TimedHousekeepingPathAspect}. Can only be used on a method with a
+ * {@link HousekeepingPath} as a single argument.
+ */
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TimedHousekeepingPath {
 
-  void cleanupPath(HousekeepingPath housekeepingPath);
+  /**
+   * Name of the TimedHousekeepingPath metric.
+   */
+  String value();
 
 }

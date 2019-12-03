@@ -182,7 +182,7 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
     MeterRegistry meterRegistry = BeekeeperPathSchedulerApiary.meterRegistry();
     List<Meter> meters = meterRegistry.getMeters();
     assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-      .contains("scheduled-paths");
+      .contains("paths-scheduled");
   }
 
   private SendMessageRequest sendMessageRequest(String payload) {
