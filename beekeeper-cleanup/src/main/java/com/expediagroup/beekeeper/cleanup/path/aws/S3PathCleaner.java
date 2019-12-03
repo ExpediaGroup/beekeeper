@@ -48,9 +48,9 @@ public class S3PathCleaner implements PathCleaner {
   }
 
   @Override
-  @Timed("s3-paths-deleted")
-  public void cleanupPath(String housekeepingPath, String tableName) {
-    S3SchemeURI s3SchemeURI = extractURI(housekeepingPath);
+  @TimedHousekeepingPath("s3-paths-deleted")
+  public void cleanupPath(HousekeepingPath housekeepingPath) {
+    S3SchemeURI s3SchemeURI = extractURI(housekeepingPath.getPath());
     String key = s3SchemeURI.getKey();
     String bucket = s3SchemeURI.getBucket();
 
