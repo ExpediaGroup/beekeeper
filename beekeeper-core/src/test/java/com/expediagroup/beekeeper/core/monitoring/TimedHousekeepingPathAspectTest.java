@@ -98,7 +98,7 @@ public class TimedHousekeepingPathAspectTest {
   }
 
   @Test
-  public void timeFailsIfPathIsInWrongLocation() {
+  public void timeFailsIfPathIsNotFirstArgument() {
     monitoredClass.pathIsNotTheFirstArg(1, "test-string", housekeepingPath);
     assertThatThrownBy(() -> RequiredSearch.in(meterRegistry)
       .name(TIMER_NAME)
