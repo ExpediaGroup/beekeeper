@@ -1,21 +1,8 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This class is loosely based on {@link io.micrometer.core.aop.TimedAspect}. It has been adapted in order to create
+ * a custom tag for the timer metric that is registered each time it is called.
  */
 package com.expediagroup.beekeeper.core.monitoring;
-
-import java.util.function.Function;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -24,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 
@@ -50,7 +36,11 @@ public class TimedHousekeepingPathAspect {
   }
 
   @Around("@annotation(timedHousekeepingPath) && args(path,..)")
-  public Object time(ProceedingJoinPoint pjp, HousekeepingPath path, TimedHousekeepingPath timedHousekeepingPath) throws Throwable {
+  public Object time(
+      ProceedingJoinPoint pjp,
+      HousekeepingPath path,
+      TimedHousekeepingPath timedHousekeepingPath)
+    throws Throwable {
     String metricName = timedHousekeepingPath.value();
     Timer.Sample sample = Timer.start(meterRegistry);
     String exceptionClass = "none";
@@ -63,7 +53,7 @@ public class TimedHousekeepingPathAspect {
       try {
         sample.stop(Timer.builder(metricName)
           .tags(EXCEPTION_TAG, exceptionClass)
-          .tags(metricTags(path).apply(pjp))
+          .tags(metricTags(pjp, path))
           .register(meterRegistry));
       } catch (Exception e) {
         // ignoring on purpose
@@ -71,11 +61,11 @@ public class TimedHousekeepingPathAspect {
     }
   }
 
-  private Function<ProceedingJoinPoint, Iterable<Tag>> metricTags(HousekeepingPath path) {
-    return (pjp -> Tags.of(
+  private Tags metricTags(ProceedingJoinPoint pjp, HousekeepingPath path) {
+    return Tags.of(
       "class", pjp.getStaticPart().getSignature().getDeclaringTypeName(),
       "method", pjp.getStaticPart().getSignature().getName(),
-      "table", String.join(".", path.getDatabaseName(), path.getTableName())));
+      "table", String.join(".", path.getDatabaseName(), path.getTableName()));
   }
 
 }
