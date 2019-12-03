@@ -28,6 +28,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +55,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 
 @ExtendWith(MockitoExtension.class)
 class S3PathCleanerTest {
@@ -60,14 +63,12 @@ class S3PathCleanerTest {
   private final String content = "Some content";
   private final String bucket = "bucket";
   private final String keyRoot = "table/id1/partition_1";
-  private final String keyRootAsDirectory = keyRoot + "/";
   private final String key1 = "table/id1/partition_1/file1";
   private final String key2 = "table/id1/partition_1/file2";
   private final String partition1Sentinel = "table/id1/partition_1_$folder$";
   private final String absolutePath = "s3://" + bucket + "/" + keyRoot;
   private final String tableName = "table";
   private final String databaseName = "database";
-  private final String fullyQualifiedTableName = databaseName + "." + tableName;
 
   private final S3Mock s3Mock = new S3Mock.Builder().withPort(0).withInMemoryBackend().build();
   private EntityHousekeepingPath housekeepingPath;
@@ -240,7 +241,7 @@ class S3PathCleanerTest {
 
     s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, s3BytesDeletedReporter);
     assertThatExceptionOfType(BeekeeperException.class)
-        .isThrownBy(() -> s3PathCleaner.cleanupPath(absolutePath, tableName))
+        .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath))
         .withMessage(format("Not all files could be deleted at path \"%s/%s\"; deleted 1/2 objects", bucket,
             keyRootAsDirectory));
   }
@@ -355,7 +356,7 @@ class S3PathCleanerTest {
     when(mockS3Client.listObjects(bucket, keyRoot + "/")).thenReturn(Collections.singletonList(s3ObjectSummary));
 
     assertThatExceptionOfType(BeekeeperException.class)
-        .isThrownBy(() -> s3PathCleaner.cleanupPath(absolutePath, key1));
+        .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
 
     verify(mockS3BytesDeletedReporter).cacheFileSizes(any(DeleteObjectsRequest.class));
     verify(mockS3BytesDeletedReporter).reportDeletedFiles(deletedKeysCaptor.capture());
