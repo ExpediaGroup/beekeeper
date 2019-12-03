@@ -29,4 +29,13 @@ public class MonitoredClass {
     return path;
   }
 
+  @TimedHousekeepingPath(TIMER_NAME)
+  public HousekeepingPath multipleArguments(HousekeepingPath path, int i, String s) {
+    return path;
+  }
+
+  @TimedHousekeepingPath(TIMER_NAME)
+  public HousekeepingPath pathIsNotTheFirstArg(int i, String s, HousekeepingPath path) {
+    return path;
+  }
 }

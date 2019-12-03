@@ -30,6 +30,12 @@ import io.micrometer.core.instrument.Timer;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
+/**
+ * Aspect for intercepting methods annotated with {@link TimedHousekeepingPath}.
+ *
+ * The method can have any number of arguments but a {@link HousekeepingPath} must be the first. Will add the fully
+ * qualified table name to the timer metric as a tag.
+ */
 @Aspect
 @Component
 public class TimedHousekeepingPathAspect {
