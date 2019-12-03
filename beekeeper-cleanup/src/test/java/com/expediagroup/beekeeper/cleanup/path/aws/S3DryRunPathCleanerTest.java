@@ -32,7 +32,6 @@ import io.findify.s3mock.S3Mock;
 
 import com.amazonaws.services.s3.AmazonS3;
 
-import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,7 +51,7 @@ class S3DryRunPathCleanerTest {
   private EntityHousekeepingPath housekeepingPath;
   private AmazonS3 amazonS3;
   private S3Client s3Client;
-  private @Mock BytesDeletedReporter bytesDeletedReporter;
+  private @Mock S3BytesDeletedReporter s3BytesDeletedReporter;
 
   private S3PathCleaner s3DryRunPathCleaner;
 
@@ -61,7 +60,7 @@ class S3DryRunPathCleanerTest {
     amazonS3 = AmazonS3Factory.newInstance(s3Mock);
     amazonS3.createBucket(bucket);
     s3Client = new S3Client(amazonS3, true);
-    s3DryRunPathCleaner = new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
+    s3DryRunPathCleaner = new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), s3BytesDeletedReporter);
     housekeepingPath = new EntityHousekeepingPath.Builder()
       .path(absolutePath)
       .tableName(tableName)
