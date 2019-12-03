@@ -39,7 +39,7 @@ public class S3Client {
     this.dryRunEnabled = dryRunEnabled;
   }
 
-  void deleteObject(String bucket, String key) {
+  public void deleteObject(String bucket, String key) {
     if (dryRunEnabled) {
       log.info("Dry run - deleting: \"{}/{}\"", bucket, key);
     } else {
@@ -48,11 +48,11 @@ public class S3Client {
     }
   }
 
-  List<S3ObjectSummary> listObjects(String bucket, String key) {
+  public List<S3ObjectSummary> listObjects(String bucket, String key) {
     return amazonS3.listObjectsV2(bucket, key).getObjectSummaries();
   }
 
-  List<String> deleteObjects(DeleteObjectsRequest deleteObjectsRequest) {
+  public List<String> deleteObjects(DeleteObjectsRequest deleteObjectsRequest) {
     List<DeleteObjectsRequest.KeyVersion> keyVersions = deleteObjectsRequest.getKeys();
     if (keyVersions.isEmpty()) {
       return Collections.emptyList();
@@ -74,15 +74,15 @@ public class S3Client {
     }
   }
 
-  boolean doesObjectExist(String bucket, String key) {
+  public boolean doesObjectExist(String bucket, String key) {
     return amazonS3.doesObjectExist(bucket, key);
   }
 
-  ObjectMetadata getObjectMetadata(String bucket, String key) {
+  public ObjectMetadata getObjectMetadata(String bucket, String key) {
     return amazonS3.getObjectMetadata(bucket, key);
   }
 
-  boolean isEmpty(String bucket, String key, String leafKey) {
+  public boolean isEmpty(String bucket, String key, String leafKey) {
     List<S3ObjectSummary> objectsLeftAtPath = amazonS3.listObjectsV2(bucket, key + "/").getObjectSummaries();
     if (!dryRunEnabled) {
       return objectsLeftAtPath.size() == 0;
