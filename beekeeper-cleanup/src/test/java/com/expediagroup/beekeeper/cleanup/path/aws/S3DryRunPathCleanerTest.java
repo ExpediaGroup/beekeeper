@@ -17,9 +17,9 @@ package com.expediagroup.beekeeper.cleanup.path.aws;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,10 +29,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.findify.s3mock.S3Mock;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
 
 import com.amazonaws.services.s3.AmazonS3;
+
+import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 
 @ExtendWith(MockitoExtension.class)
 class S3DryRunPathCleanerTest {
@@ -45,23 +46,29 @@ class S3DryRunPathCleanerTest {
   private final String partition1Sentinel = "table/id1/partition_1_$folder$";
   private final String absolutePath = "s3://" + bucket + "/" + keyRoot;
   private final String tableName = "table";
+  private final String databaseName = "database";
 
   private final S3Mock s3Mock = new S3Mock.Builder().withPort(0).withInMemoryBackend().build();
+  private EntityHousekeepingPath housekeepingPath;
   private AmazonS3 amazonS3;
   private S3Client s3Client;
-  private S3BytesDeletedReporter s3BytesDeletedReporter;
-  private @Mock MeterRegistry meterRegistry;
+  private @Mock BytesDeletedReporter bytesDeletedReporter;
 
   private S3PathCleaner s3DryRunPathCleaner;
 
   @BeforeEach
   void setUp() {
-    when(meterRegistry.counter(anyString())).thenReturn(mock(Counter.class));
     amazonS3 = AmazonS3Factory.newInstance(s3Mock);
     amazonS3.createBucket(bucket);
     s3Client = new S3Client(amazonS3, true);
-    s3BytesDeletedReporter = new S3BytesDeletedReporter(s3Client, meterRegistry, false);
-    s3DryRunPathCleaner = new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), s3BytesDeletedReporter);
+    s3DryRunPathCleaner = new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
+    housekeepingPath = new EntityHousekeepingPath.Builder()
+      .path(absolutePath)
+      .tableName(tableName)
+      .databaseName(databaseName)
+      .creationTimestamp(LocalDateTime.now())
+      .cleanupDelay(Duration.ofDays(1))
+      .build();
   }
 
   @AfterEach
@@ -74,7 +81,7 @@ class S3DryRunPathCleanerTest {
     amazonS3.putObject(bucket, key1, content);
     amazonS3.putObject(bucket, key2, content);
 
-    s3DryRunPathCleaner.cleanupPath(absolutePath, tableName);
+    s3DryRunPathCleaner.cleanupPath(housekeepingPath);
 
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isTrue();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isTrue();
@@ -86,7 +93,8 @@ class S3DryRunPathCleanerTest {
     amazonS3.putObject(bucket, key2, content);
 
     String directoryPath = absolutePath + "/";
-    s3DryRunPathCleaner.cleanupPath(directoryPath, tableName);
+    housekeepingPath.setPath(directoryPath);
+    s3DryRunPathCleaner.cleanupPath(housekeepingPath);
 
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isTrue();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isTrue();
@@ -98,7 +106,8 @@ class S3DryRunPathCleanerTest {
     amazonS3.putObject(bucket, key2, content);
 
     String absoluteFilePath = "s3://" + bucket + "/" + key1;
-    s3DryRunPathCleaner.cleanupPath(absoluteFilePath, tableName);
+    housekeepingPath.setPath(absoluteFilePath);
+    s3DryRunPathCleaner.cleanupPath(housekeepingPath);
 
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isTrue();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isTrue();
@@ -111,7 +120,7 @@ class S3DryRunPathCleanerTest {
     amazonS3.putObject(bucket, key1, content);
     amazonS3.putObject(bucket, key2, content);
 
-    s3DryRunPathCleaner.cleanupPath(absolutePath, tableName);
+    s3DryRunPathCleaner.cleanupPath(housekeepingPath);
 
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isTrue();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isTrue();
@@ -130,7 +139,7 @@ class S3DryRunPathCleanerTest {
     amazonS3.putObject(bucket, partition10File, content);
     amazonS3.putObject(bucket, partition10Sentinel, "");
 
-    s3DryRunPathCleaner.cleanupPath(absolutePath, tableName);
+    s3DryRunPathCleaner.cleanupPath(housekeepingPath);
 
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isTrue();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isTrue();
@@ -150,7 +159,7 @@ class S3DryRunPathCleanerTest {
     amazonS3.putObject(bucket, parentSentinelFile, "");
     amazonS3.putObject(bucket, tableSentinelFile, "");
 
-    s3DryRunPathCleaner.cleanupPath(absolutePath, tableName);
+    s3DryRunPathCleaner.cleanupPath(housekeepingPath);
 
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isTrue();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isTrue();
@@ -171,7 +180,8 @@ class S3DryRunPathCleanerTest {
     amazonS3.putObject(bucket, tableSentinelFile, "");
 
     String tableAbsolutePath = "s3://" + bucket + "/table";
-    s3DryRunPathCleaner.cleanupPath(tableAbsolutePath, tableName);
+    housekeepingPath.setPath(tableAbsolutePath);
+    s3DryRunPathCleaner.cleanupPath(housekeepingPath);
 
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isTrue();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isTrue();
@@ -182,7 +192,7 @@ class S3DryRunPathCleanerTest {
 
   @Test
   void pathDoesNotExist() {
-    assertThatCode(() -> s3DryRunPathCleaner.cleanupPath(absolutePath, tableName)).doesNotThrowAnyException();
+    assertThatCode(() -> s3DryRunPathCleaner.cleanupPath(housekeepingPath)).doesNotThrowAnyException();
   }
 
 }
