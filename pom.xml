@@ -115,6 +115,22 @@
   </dependencies>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>com.mycila</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>${license.maven.plugin.version}</version>
+          <configuration>
+            <!-- excluding files that don't need a header update -->
+            <excludes>
+              <exclude>src/main/java/com/expediagroup/beekeeper/core/monitoring/TimedHousekeepingPathAspect.java</exclude>
+            </excludes>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
