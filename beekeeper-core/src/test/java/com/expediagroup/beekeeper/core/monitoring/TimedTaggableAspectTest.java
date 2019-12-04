@@ -45,7 +45,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 @ContextConfiguration(classes = { TestApplication.class, MonitoredClass.class },
   loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class TimedHousekeepingPathAspectTest {
+public class TimedTaggableAspectTest {
 
   public static final String TIMER_NAME = "metric-timer";
   private static final String DATABASE = "database";
