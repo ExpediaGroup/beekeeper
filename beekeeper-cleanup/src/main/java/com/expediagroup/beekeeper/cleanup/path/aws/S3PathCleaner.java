@@ -33,7 +33,7 @@ import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
 import com.expediagroup.beekeeper.core.config.FileSystem;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.core.monitoring.TimedHousekeepingPath;
+import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 
 public class S3PathCleaner implements PathCleaner {
 
@@ -51,7 +51,7 @@ public class S3PathCleaner implements PathCleaner {
   }
 
   @Override
-  @TimedHousekeepingPath("s3-paths-deleted")
+  @TimedTaggable("s3-paths-deleted")
   public void cleanupPath(HousekeepingPath housekeepingPath) {
     S3SchemeURI s3SchemeURI = extractURI(housekeepingPath.getPath());
     String key = s3SchemeURI.getKey();

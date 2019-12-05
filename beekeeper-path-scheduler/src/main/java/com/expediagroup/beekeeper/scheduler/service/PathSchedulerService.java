@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.core.monitoring.TimedHousekeepingPath;
+import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @Service
@@ -37,7 +37,7 @@ public class PathSchedulerService implements SchedulerService {
   }
 
   @Override
-  @TimedHousekeepingPath("paths-scheduled")
+  @TimedTaggable("paths-scheduled")
   public void scheduleForHousekeeping(HousekeepingPath cleanUpPath) {
     try {
       housekeepingPathRepository.save((EntityHousekeepingPath) cleanUpPath);

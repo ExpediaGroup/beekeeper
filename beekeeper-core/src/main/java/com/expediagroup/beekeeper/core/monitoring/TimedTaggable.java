@@ -20,20 +20,18 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-
 /**
- * Times the annotated method by triggering {@link TimedHousekeepingPathAspect}.
+ * Times the annotated method by triggering {@link TimedTaggableAspect}.
  *
- * The method can have any number of arguments but a {@link HousekeepingPath} must be the first. Will add the fully
- * qualified table name to the timer metric as a tag.
+ * The method can have any number of arguments but a {@link Taggable} must be the first. Will add the custom tag to the
+ * timer metric.
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface TimedHousekeepingPath {
+public @interface TimedTaggable {
 
   /**
-   * Name of the TimedHousekeepingPath metric.
+   * Name of the TimedTaggable metric.
    */
   String value();
 

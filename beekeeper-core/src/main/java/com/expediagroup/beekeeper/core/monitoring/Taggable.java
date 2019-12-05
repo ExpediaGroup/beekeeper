@@ -15,27 +15,8 @@
  */
 package com.expediagroup.beekeeper.core.monitoring;
 
-import static com.expediagroup.beekeeper.core.monitoring.TimedTaggableAspectTest.TIMER_NAME;
+public interface Taggable {
 
-import org.springframework.stereotype.Component;
+  MetricTag getMetricTag();
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-
-@Component
-public class MonitoredClass {
-
-  @TimedTaggable(TIMER_NAME)
-  public HousekeepingPath doSomething(HousekeepingPath path) {
-    return path;
-  }
-
-  @TimedTaggable(TIMER_NAME)
-  public HousekeepingPath multipleArguments(HousekeepingPath path, int i, String s) {
-    return path;
-  }
-
-  @TimedTaggable(TIMER_NAME)
-  public HousekeepingPath pathIsNotTheFirstArg(int i, String s, HousekeepingPath path) {
-    return path;
-  }
 }

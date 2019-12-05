@@ -4,6 +4,7 @@
  */
 package com.expediagroup.beekeeper.core.monitoring;
 
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -14,34 +15,32 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-
 /**
- * Aspect for intercepting methods annotated with {@link TimedHousekeepingPath}.
+ * Aspect for intercepting methods annotated with {@link TimedTaggable}.
  *
- * The method can have any number of arguments but a {@link HousekeepingPath} must be the first. Will add the fully
- * qualified table name to the timer metric as a tag.
+ * The method can have any number of arguments but a {@link Taggable} must be the first. Will add the custom tag to the
+ * timer metric.
  */
 @Aspect
 @Component
-public class TimedHousekeepingPathAspect {
+public class TimedTaggableAspect {
 
   public static final String EXCEPTION_TAG = "exception";
 
   private MeterRegistry meterRegistry;
 
   @Autowired
-  public TimedHousekeepingPathAspect(MeterRegistry meterRegistry) {
+  public TimedTaggableAspect(MeterRegistry meterRegistry) {
     this.meterRegistry = meterRegistry;
   }
 
-  @Around("@annotation(timedHousekeepingPath) && args(path,..)")
+  @Around("@annotation(timedTaggable) && args(taggable,..)")
   public Object time(
       ProceedingJoinPoint pjp,
-      HousekeepingPath path,
-      TimedHousekeepingPath timedHousekeepingPath)
+      Taggable taggable,
+      TimedTaggable timedTaggable)
     throws Throwable {
-    String metricName = timedHousekeepingPath.value();
+    String metricName = timedTaggable.value();
     Timer.Sample sample = Timer.start(meterRegistry);
     String exceptionClass = "none";
     try {
@@ -53,7 +52,7 @@ public class TimedHousekeepingPathAspect {
       try {
         sample.stop(Timer.builder(metricName)
           .tags(EXCEPTION_TAG, exceptionClass)
-          .tags(metricTags(pjp, path))
+          .tags(metricTags(pjp, taggable.getMetricTag()))
           .register(meterRegistry));
       } catch (Exception e) {
         // ignoring on purpose
@@ -61,11 +60,13 @@ public class TimedHousekeepingPathAspect {
     }
   }
 
-  private Tags metricTags(ProceedingJoinPoint pjp, HousekeepingPath path) {
-    return Tags.of(
-      "class", pjp.getStaticPart().getSignature().getDeclaringTypeName(),
-      "method", pjp.getStaticPart().getSignature().getName(),
-      "table", String.join(".", path.getDatabaseName(), path.getTableName()));
+  private Tags metricTags(ProceedingJoinPoint pjp, MetricTag metricTag) {
+    Tags tags = Tags.of("class", pjp.getStaticPart().getSignature().getDeclaringTypeName(),
+      "method", pjp.getStaticPart().getSignature().getName());
+    if (!StringUtils.isBlank(metricTag.getTag()) && !StringUtils.isBlank(metricTag.getKey())) {
+      tags = tags.and(metricTag.getKey(), metricTag.getTag());
+    }
+    return tags;
   }
 
 }
