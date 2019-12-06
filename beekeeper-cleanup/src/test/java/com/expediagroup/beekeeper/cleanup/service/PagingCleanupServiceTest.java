@@ -91,7 +91,7 @@ class PagingCleanupServiceTest {
     verify(pathCleaner, times(3)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
       .extracting("path")
-      .containsExactlyInAnyOrder(path1, path2, path3);
+      .containsExactly(path1, path2, path3);
     assertOriginalObjectsAreUpdated();
 
     pagingCleanupService.cleanUp(Instant.now());
@@ -121,7 +121,7 @@ class PagingCleanupServiceTest {
     verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
       .extracting("path")
-      .containsExactlyInAnyOrder(path1, path2);
+      .containsExactly(path1, path2);
   }
 
   @Test
@@ -136,7 +136,7 @@ class PagingCleanupServiceTest {
     verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
       .extracting("path")
-      .containsExactlyInAnyOrder(path1, path2);
+      .containsExactly(path1, path2);
   }
 
   @Test
@@ -153,7 +153,7 @@ class PagingCleanupServiceTest {
     verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
       .extracting("path")
-      .containsExactlyInAnyOrder(path1, path2);
+      .containsExactly(path1, path2);
     verifyNoMoreInteractions(pathCleaner);
   }
 
@@ -172,7 +172,7 @@ class PagingCleanupServiceTest {
     verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
       .extracting("path")
-      .containsExactlyInAnyOrder(path1, path2);
+      .containsExactly(path1, path2);
 
     List<EntityHousekeepingPath> result = housekeepingPathRepository.findAll();
     assertThat(result.size()).isEqualTo(2);
@@ -199,7 +199,7 @@ class PagingCleanupServiceTest {
     verify(pathCleaner, times(3)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
       .extracting("path")
-      .containsExactlyInAnyOrder(path1, path2, path3);
+      .containsExactly(path1, path2, path3);
 
     List<EntityHousekeepingPath> afterClean = housekeepingPathRepository.findAll();
     assertThat(afterClean.get(0)).isEqualToComparingFieldByFieldRecursively(beforeClean.get(0));
