@@ -68,8 +68,11 @@ public class S3PathCleaner implements PathCleaner {
     } catch (Exception e) {
       throw e;
     } finally {
-      bytesDeletedReporter.report(bytesDeletedCalculator.getBytesDeleted(), String.join(".",
-        housekeepingPath.getDatabaseName(), housekeepingPath.getTableName()), FileSystem.S3);
+      long bytesDeleted = bytesDeletedCalculator.getBytesDeleted();
+      if (bytesDeleted > 0) {
+        bytesDeletedReporter.report(bytesDeleted, String.join(".",
+          housekeepingPath.getDatabaseName(), housekeepingPath.getTableName()), FileSystem.S3);
+      }
     }
   }
 
@@ -93,29 +96,24 @@ public class S3PathCleaner implements PathCleaner {
     if (!key.endsWith("/")) {
       key += "/";
     }
-    List<S3ObjectSummary> objectSummaries = s3Client.listObjects(bucket, key);
-    List<String> keys = mapToKeys(objectSummaries);
+    List<String> keys = s3Client.listObjects(bucket, key)
+      .stream()
+      .map(S3ObjectSummary::getKey)
+      .collect(Collectors.toList());
     bytesDeletedCalculator.cacheFiles(bucket, keys);
     List<String> keysDeleted = deleteFiles(bucket, keys);
     bytesDeletedCalculator.calculateBytesDeleted(keysDeleted);
-
-    int total = keys.size();
-    int successes = keysDeleted.size();
-    if (successes != total) {
+    int totalFiles = keys.size();
+    int successfulDeletes = keysDeleted.size();
+    if (successfulDeletes != totalFiles) {
       keys.removeAll(keysDeleted);
       String failedDeletions = keys.stream()
         .map(k -> format("'%s'", k))
         .collect(Collectors.joining(", "));
       throw new BeekeeperException(
           format("Not all files could be deleted at path \"%s/%s\"; deleted %s/%s objects. Objects not deleted: %s.",
-            bucket, key, successes, total, failedDeletions));
+            bucket, key, successfulDeletes, totalFiles, failedDeletions));
     }
-  }
-
-  private List<String> mapToKeys(List<S3ObjectSummary> objectSummaries) {
-    return objectSummaries.stream()
-      .map(S3ObjectSummary::getKey)
-      .collect(Collectors.toList());
   }
 
   private List<String> deleteFiles(String bucket, List<String> keys) {

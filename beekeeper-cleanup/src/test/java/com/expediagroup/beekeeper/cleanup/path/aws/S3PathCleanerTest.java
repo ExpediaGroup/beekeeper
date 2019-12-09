@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
@@ -108,7 +109,6 @@ class S3PathCleanerTest {
 
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isFalse();
-
     verify(bytesDeletedReporter).report(content.getBytes().length * 2, fullyQualifiedTableName, FileSystem.S3);
   }
 
@@ -123,7 +123,6 @@ class S3PathCleanerTest {
 
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isFalse();
-
     verify(bytesDeletedReporter).report(content.getBytes().length * 2, fullyQualifiedTableName, FileSystem.S3);
   }
 
@@ -137,7 +136,6 @@ class S3PathCleanerTest {
     s3PathCleaner.cleanupPath(housekeepingPath);
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isTrue();
-
     verify(bytesDeletedReporter).report(content.getBytes().length, fullyQualifiedTableName, FileSystem.S3);
   }
 
@@ -152,7 +150,6 @@ class S3PathCleanerTest {
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, partition1Sentinel)).isFalse();
-
     verify(bytesDeletedReporter).report(content.getBytes().length * 2, fullyQualifiedTableName, FileSystem.S3);
   }
 
@@ -216,7 +213,6 @@ class S3PathCleanerTest {
     assertThat(amazonS3.doesObjectExist(bucket, partition1Sentinel)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, parentSentinelFile)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, tableSentinelFile)).isFalse();
-
     verify(bytesDeletedReporter).report(content.getBytes().length * 2, fullyQualifiedTableName, FileSystem.S3);
   }
 
@@ -343,8 +339,7 @@ class S3PathCleanerTest {
     housekeepingPath.setPath(absolutePath + "/file1");
     assertThatExceptionOfType(AmazonServiceException.class)
         .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
-
-    verify(bytesDeletedReporter).report(0, databaseName + "." + tableName, FileSystem.S3);
+    verifyZeroInteractions(bytesDeletedReporter);
   }
 
   @Test
@@ -355,8 +350,7 @@ class S3PathCleanerTest {
 
     assertThatExceptionOfType(AmazonServiceException.class)
         .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
-
-    verify(bytesDeletedReporter).report(0, databaseName + "." + tableName, FileSystem.S3);
+    verifyZeroInteractions(bytesDeletedReporter);
   }
 
   @Test
@@ -379,7 +373,6 @@ class S3PathCleanerTest {
 
     assertThatExceptionOfType(BeekeeperException.class)
       .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
-
     verify(bytesDeletedReporter).report(bytes, databaseName + "." + tableName, FileSystem.S3);
   }
 
