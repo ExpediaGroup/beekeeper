@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.7] - TBD
 ### Adding
 - `TimedTaggable` annotation to time and report table level metrics.
+- `BytesDeletedReporter` to report bytes deleted at a table level.
 
 ## [1.1.6] - 2019-11-27
 ### Changed
