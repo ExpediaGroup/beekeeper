@@ -23,8 +23,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.micrometer.core.annotation.Timed;
-
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.base.Strings;
@@ -32,6 +30,8 @@ import com.google.common.base.Strings;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 
 public class S3PathCleaner implements PathCleaner {
 
@@ -48,9 +48,9 @@ public class S3PathCleaner implements PathCleaner {
   }
 
   @Override
-  @Timed("s3-paths-deleted")
-  public void cleanupPath(String housekeepingPath, String tableName) {
-    S3SchemeURI s3SchemeURI = extractURI(housekeepingPath);
+  @TimedTaggable("s3-paths-deleted")
+  public void cleanupPath(HousekeepingPath housekeepingPath) {
+    S3SchemeURI s3SchemeURI = extractURI(housekeepingPath.getPath());
     String key = s3SchemeURI.getKey();
     String bucket = s3SchemeURI.getBucket();
 
@@ -73,7 +73,7 @@ public class S3PathCleaner implements PathCleaner {
 
         // attempt to delete parents if there is at least one parent
         if (key.contains("/")) {
-          deleteParentSentinelFiles(bucket, key, path, tableName);
+          deleteParentSentinelFiles(bucket, key, path, housekeepingPath.getTableName());
         }
       } catch (Exception e) {
         log.warn("Sentinel file(s) could not be deleted", e);

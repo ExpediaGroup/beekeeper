@@ -20,11 +20,10 @@ import static java.lang.String.format;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import io.micrometer.core.annotation.Timed;
-
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @Service
@@ -38,7 +37,7 @@ public class PathSchedulerService implements SchedulerService {
   }
 
   @Override
-  @Timed("scheduled-paths")
+  @TimedTaggable("paths-scheduled")
   public void scheduleForHousekeeping(HousekeepingPath cleanUpPath) {
     try {
       housekeepingPathRepository.save((EntityHousekeepingPath) cleanUpPath);

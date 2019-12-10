@@ -13,12 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.cleanup.path;
+package com.expediagroup.beekeeper.core.monitoring;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface PathCleaner {
+/**
+ * Times the annotated method by triggering {@link TimedTaggableAspect}.
+ *
+ * The method can have any number of arguments but a {@link Taggable} must be the first. Will add the custom tag to the
+ * timer metric.
+ */
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TimedTaggable {
 
-  void cleanupPath(HousekeepingPath housekeepingPath);
+  /**
+   * Name of the TimedTaggable metric.
+   */
+  String value();
 
 }

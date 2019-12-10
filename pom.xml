@@ -31,6 +31,7 @@
   </scm>
 
   <properties>
+    <apache.commons.lang3>3.0</apache.commons.lang3>
     <assertj.version>3.12.2</assertj.version>
     <awaitility.version>3.1.6</awaitility.version>
     <docker.registry>expediagroup</docker.registry>
@@ -115,6 +116,22 @@
   </dependencies>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>com.mycila</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>${license.maven.plugin.version}</version>
+          <configuration>
+            <!-- excluding files that don't need a header update -->
+            <excludes>
+              <exclude>src/main/java/com/expediagroup/beekeeper/core/monitoring/TimedTaggableAspect.java</exclude>
+            </excludes>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

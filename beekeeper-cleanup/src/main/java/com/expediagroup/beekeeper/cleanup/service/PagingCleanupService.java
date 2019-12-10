@@ -76,8 +76,7 @@ public class PagingCleanupService implements CleanupService {
 
   private void processPage(List<EntityHousekeepingPath> pageContent) {
     if (dryRunEnabled) {
-      pageContent.forEach(
-          housekeepingPath -> pathCleaner.cleanupPath(housekeepingPath.getPath(), housekeepingPath.getTableName()));
+      pageContent.forEach(pathCleaner::cleanupPath);
     } else {
       pageContent.forEach(this::cleanupContent);
     }
@@ -86,7 +85,7 @@ public class PagingCleanupService implements CleanupService {
   private void cleanupContent(EntityHousekeepingPath housekeepingPath) {
     try {
       log.info("Cleaning up path \"{}\"", housekeepingPath.getPath());
-      pathCleaner.cleanupPath(housekeepingPath.getPath(), housekeepingPath.getTableName());
+      pathCleaner.cleanupPath(housekeepingPath);
       updateAttemptsAndStatus(housekeepingPath, PathStatus.DELETED);
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingPath, PathStatus.FAILED);
