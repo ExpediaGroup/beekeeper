@@ -70,8 +70,8 @@ public class S3PathCleaner implements PathCleaner {
     } finally {
       long bytesDeleted = bytesDeletedCalculator.getBytesDeleted();
       if (bytesDeleted > 0) {
-        bytesDeletedReporter.report(bytesDeleted, String.join(".",
-          housekeepingPath.getDatabaseName(), housekeepingPath.getTableName()), FileSystem.S3);
+        bytesDeletedReporter.report(bytesDeleted, String.join(".", housekeepingPath.getDatabaseName(),
+          housekeepingPath.getTableName()), FileSystem.S3);
       }
     }
   }
