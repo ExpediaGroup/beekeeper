@@ -327,7 +327,7 @@ class S3PathCleanerTest {
   }
 
   @Test
-  void reportZeroBytesDeletedWhenFileDeletionFails() {
+  void noBytesDeletedMetricWhenFileDeletionFails() {
     S3Client mockS3Client = mock(S3Client.class);
     s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
     when(mockS3Client.doesObjectExist(bucket, key1)).thenReturn(true);
@@ -343,7 +343,7 @@ class S3PathCleanerTest {
   }
 
   @Test
-  void reportZeroBytesDeletedWhenDirectoryDeletionFails() {
+  void noBytesDeletedMetricWhenDirectoryDeletionFails() {
     S3Client mockS3Client = mock(S3Client.class);
     s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
     doThrow(AmazonServiceException.class).when(mockS3Client).listObjects(bucket, keyRootAsDirectory);
