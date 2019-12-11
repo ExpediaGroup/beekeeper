@@ -30,7 +30,7 @@ import com.google.common.base.Strings;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
-import com.expediagroup.beekeeper.core.config.FileSystem;
+import com.expediagroup.beekeeper.core.config.FileSystemType;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
@@ -65,13 +65,11 @@ public class S3PathCleaner implements PathCleaner {
         deleteFilesInDirectory(bucket, key, bytesDeletedCalculator);
         deleteSentinelFiles(s3SchemeURI, key, bucket, housekeepingPath.getTableName());
       }
-    } catch (Exception e) {
-      throw e;
     } finally {
       long bytesDeleted = bytesDeletedCalculator.getBytesDeleted();
       if (bytesDeleted > 0) {
         bytesDeletedReporter.report(bytesDeleted, String.join(".", housekeepingPath.getDatabaseName(),
-          housekeepingPath.getTableName()), FileSystem.S3);
+          housekeepingPath.getTableName()), FileSystemType.S3);
       }
     }
   }
@@ -87,7 +85,7 @@ public class S3PathCleaner implements PathCleaner {
   }
 
   private void deleteFile(String bucket, String key, S3BytesDeletedCalculator bytesDeletedCalculator) {
-    bytesDeletedCalculator.cacheFiles(bucket, List.of(key));
+    bytesDeletedCalculator.storeFileSizes(bucket, List.of(key));
     s3Client.deleteObject(bucket, key);
     bytesDeletedCalculator.calculateBytesDeleted(List.of(key));
   }
@@ -100,13 +98,13 @@ public class S3PathCleaner implements PathCleaner {
       .stream()
       .map(S3ObjectSummary::getKey)
       .collect(Collectors.toList());
-    bytesDeletedCalculator.cacheFiles(bucket, keys);
-    List<String> keysDeleted = deleteFiles(bucket, keys);
-    bytesDeletedCalculator.calculateBytesDeleted(keysDeleted);
+    bytesDeletedCalculator.storeFileSizes(bucket, keys);
+    List<String> deletedKeys = deleteFiles(bucket, keys);
+    bytesDeletedCalculator.calculateBytesDeleted(deletedKeys);
     int totalFiles = keys.size();
-    int successfulDeletes = keysDeleted.size();
+    int successfulDeletes = deletedKeys.size();
     if (successfulDeletes != totalFiles) {
-      keys.removeAll(keysDeleted);
+      keys.removeAll(deletedKeys);
       String failedDeletions = keys.stream()
         .map(k -> format("'%s'", k))
         .collect(Collectors.joining(", "));

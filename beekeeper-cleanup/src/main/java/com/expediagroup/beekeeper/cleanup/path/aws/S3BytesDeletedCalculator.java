@@ -31,7 +31,7 @@ public class S3BytesDeletedCalculator {
     this.s3Client = s3Client;
   }
 
-  public void cacheFiles(String bucket, List<String> keys) {
+  public void storeFileSizes(String bucket, List<String> keys) {
     if (!keyToSize.isEmpty()) {
       throw new BeekeeperException("Should not cache files twice.");
     }

@@ -56,7 +56,7 @@ class S3BytesDeletedCalculatorTest {
   @Test
   void typicalAllKeysSuccessfullyDeleted() {
     List<String> keys = Arrays.asList(key1, key2, key3);
-    s3BytesDeletedCalculator.cacheFiles(bucket, keys);
+    s3BytesDeletedCalculator.storeFileSizes(bucket, keys);
     s3BytesDeletedCalculator.calculateBytesDeleted(keys);
     assertThat(s3BytesDeletedCalculator.getBytesDeleted()).isEqualTo(contentBytes * 3);
   }
@@ -64,7 +64,7 @@ class S3BytesDeletedCalculatorTest {
   @Test
   void noKeysSuccessfullyDeleted() {
     List<String> keys = Arrays.asList(key1, key2, key3);
-    s3BytesDeletedCalculator.cacheFiles(bucket, keys);
+    s3BytesDeletedCalculator.storeFileSizes(bucket, keys);
     s3BytesDeletedCalculator.calculateBytesDeleted(Collections.emptyList());
     assertThat(s3BytesDeletedCalculator.getBytesDeleted()).isEqualTo(0);
   }
@@ -72,7 +72,7 @@ class S3BytesDeletedCalculatorTest {
   @Test
   void someKeysSuccessfullyDeleted() {
     List<String> keys = Arrays.asList(key1, key2, key3);
-    s3BytesDeletedCalculator.cacheFiles(bucket, keys);
+    s3BytesDeletedCalculator.storeFileSizes(bucket, keys);
     s3BytesDeletedCalculator.calculateBytesDeleted(Arrays.asList(key1));
     assertThat(s3BytesDeletedCalculator.getBytesDeleted()).isEqualTo(contentBytes);
   }
@@ -81,8 +81,8 @@ class S3BytesDeletedCalculatorTest {
   void multipleCacheFilesThrowsException() {
     List<String> keys = Arrays.asList(key1, key2, key3);
     List<String> keys2 = Arrays.asList("somekey1", "somekey2", "somekey3");
-    s3BytesDeletedCalculator.cacheFiles(bucket, keys);
-    assertThatThrownBy(() -> s3BytesDeletedCalculator.cacheFiles(bucket, keys2))
+    s3BytesDeletedCalculator.storeFileSizes(bucket, keys);
+    assertThatThrownBy(() -> s3BytesDeletedCalculator.storeFileSizes(bucket, keys2))
       .isInstanceOf(BeekeeperException.class)
       .hasMessage("Should not cache files twice.");
   }

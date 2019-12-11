@@ -25,7 +25,7 @@ import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.search.Search;
 
-import com.expediagroup.beekeeper.core.config.FileSystem;
+import com.expediagroup.beekeeper.core.config.FileSystemType;
 
 @Service
 public class BytesDeletedReporter {
@@ -43,8 +43,8 @@ public class BytesDeletedReporter {
     this.metricName = dryRunEnabled ? DRY_RUN_METRIC_NAME : METRIC_NAME;
   }
 
-  public void report(long bytesDeleted, String fullyQualifiedTableName, FileSystem fileSystem) {
-    String fileSystemMetricName = String.join("-", fileSystem.toString()
+  public void report(long bytesDeleted, String fullyQualifiedTableName, FileSystemType fileSystemType) {
+    String fileSystemMetricName = String.join("-", fileSystemType.toString()
       .toLowerCase(), metricName);
     Counter counter = Search.in(meterRegistry)
       .name(fileSystemMetricName)

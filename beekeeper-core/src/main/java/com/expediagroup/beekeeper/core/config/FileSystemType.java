@@ -15,7 +15,7 @@
  */
 package com.expediagroup.beekeeper.core.config;
 
-public enum FileSystem {
+public enum FileSystemType {
 
   S3
 

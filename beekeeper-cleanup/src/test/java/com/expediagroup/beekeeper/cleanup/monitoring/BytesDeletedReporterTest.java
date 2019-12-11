@@ -36,7 +36,7 @@ import io.micrometer.core.instrument.Statistic;
 import io.micrometer.core.instrument.search.RequiredSearch;
 
 import com.expediagroup.beekeeper.cleanup.TestApplication;
-import com.expediagroup.beekeeper.core.config.FileSystem;
+import com.expediagroup.beekeeper.core.config.FileSystemType;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -60,8 +60,8 @@ public class BytesDeletedReporterTest {
 
   @Test
   public void typical() {
-    bytesDeletedReporter.report(BYTES_DELETED, TABLE, FileSystem.S3);
-    bytesDeletedReporter.report(BYTES_DELETED, TABLE, FileSystem.S3);
+    bytesDeletedReporter.report(BYTES_DELETED, TABLE, FileSystemType.S3);
+    bytesDeletedReporter.report(BYTES_DELETED, TABLE, FileSystemType.S3);
     Counter counter = RequiredSearch.in(meterRegistry)
       .name("s3-" + METRIC_NAME)
       .tags("table", TABLE)
@@ -76,7 +76,7 @@ public class BytesDeletedReporterTest {
   @Test
   public void typicalDryRun() {
     bytesDeletedReporter = new BytesDeletedReporter(meterRegistry, true);
-    bytesDeletedReporter.report(BYTES_DELETED, TABLE, FileSystem.S3);
+    bytesDeletedReporter.report(BYTES_DELETED, TABLE, FileSystemType.S3);
     Counter counter = RequiredSearch.in(meterRegistry)
       .name("s3-" + DRY_RUN_METRIC_NAME)
       .tags("table", TABLE)
@@ -91,8 +91,8 @@ public class BytesDeletedReporterTest {
   @Test
   public void multipleTablesCreateMultipleCounters() {
     String table2 = "database.table2";
-    bytesDeletedReporter.report(BYTES_DELETED, TABLE, FileSystem.S3);
-    bytesDeletedReporter.report(BYTES_DELETED * 2, table2, FileSystem.S3);
+    bytesDeletedReporter.report(BYTES_DELETED, TABLE, FileSystemType.S3);
+    bytesDeletedReporter.report(BYTES_DELETED * 2, table2, FileSystemType.S3);
     Counter counter1 = RequiredSearch.in(meterRegistry)
       .name("s3-" + METRIC_NAME)
       .tags("table", TABLE)
