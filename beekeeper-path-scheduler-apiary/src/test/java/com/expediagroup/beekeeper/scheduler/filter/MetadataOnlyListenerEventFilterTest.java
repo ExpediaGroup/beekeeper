@@ -129,4 +129,10 @@ public class MetadataOnlyListenerEventFilterTest {
     verifyNoMoreInteractions(dropPartitionEvent);
   }
 
+  @Test
+  public void filterNullEvent() {
+    boolean filter = metadataOnlyListenerEventFilter.filter(null);
+    assertThat(filter).isTrue();
+  }
+
 }

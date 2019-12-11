@@ -37,6 +37,7 @@ Beekeeper only actions on events which are marked with a specific parameter. Thi
 |:----|:----:|:----:|:----|
 | `beekeeper.remove.unreferenced.data=true`   | Yes |  `true` or `false`       | Set this parameter to ensure Beekeeper monitors your table for orphaned data. |
 | `beekeeper.unreferenced.data.retention.period=X` | No | e.g. `P7D` or `PT3H` (based on [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601)) | Set this parameter to control the delay between schedule and deletion by Beekeeper. If this is either not set, or configured incorrectly, the default will be used. Default is 3 days. |
+| `beekeeper.permit.drop.table=true` | No | `true` or `false` | If this parameter is false, or not set, Beekeeper will ignore drop table events. |
 
 This command can be used to add a parameter to a Hive Table:
 

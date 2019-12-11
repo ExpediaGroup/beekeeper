@@ -81,4 +81,10 @@ public class TableParameterListenerEventFilterTest {
     Boolean filter = listenerEventFilter.filter(alterPartitionEvent);
     assertThat(filter).isTrue();
   }
+
+  @Test
+  public void filterNullEvent() {
+    boolean filter = listenerEventFilter.filter(null);
+    assertThat(filter).isTrue();
+  }
 }
