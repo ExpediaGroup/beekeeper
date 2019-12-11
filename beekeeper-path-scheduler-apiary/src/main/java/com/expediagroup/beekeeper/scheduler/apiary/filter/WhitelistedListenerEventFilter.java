@@ -15,17 +15,20 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
+import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
+import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
+import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
 @Component
-public class DropTableListenerEventFilter implements ListenerEventFilter {
+public class WhitelistedListenerEventFilter implements ListenerEventFilter {
 
-  private static final String DROP_TABLE_WHITELIST_PARAMETER = "beekeeper.permit.drop.table";
+  private static final String BEEKEEPER_HIVE_EVENT_WHITELIST = "beekeeper.hive.event.whitelist";
 
   @Override
   public boolean filter(ListenerEvent listenerEvent) {
@@ -33,13 +36,20 @@ public class DropTableListenerEventFilter implements ListenerEventFilter {
       return true;
     }
     Class<? extends ListenerEvent> eventClass = listenerEvent.getEventType().eventClass();
-    if (!DropTableEvent.class.equals(eventClass)) {
+    if (AlterPartitionEvent.class.equals(eventClass) || AlterTableEvent.class.equals(eventClass)) {
       return false;
     }
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
     if (tableParameters == null) {
       return true;
     }
-    return !Boolean.valueOf(tableParameters.get(DROP_TABLE_WHITELIST_PARAMETER));
+    return !isWhitelisted(listenerEvent.getEventType(), tableParameters);
+  }
+
+  private boolean isWhitelisted(EventType eventType, Map<String, String> tableParameters) {
+    String whitelist = tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST);
+    return Arrays.stream(whitelist.split(","))
+      .map(String::trim)
+      .anyMatch(whitelistedEvent -> whitelistedEvent.equalsIgnoreCase(eventType.toString()));
   }
 }

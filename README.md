@@ -29,6 +29,16 @@ Beekeeper comprises two separate Spring-based Java applications. One application
 5. Beekeeper processes these messages and schedules orphaned paths for deletion by adding them to a database.
 6. The scheduled paths are deleted by Beekeeper after a configurable delay, the default is 3 days (see [Hive table configuration](#hive-table-configuration) for more details.)
 
+## Supported events
+
+Beekeeper will currently only be triggered by these events:
+- `alter_partition`
+- `alter_table`
+- `drop_partition`
+- `drop_table`
+
+By default, `alter_partition` and `alter_table` events require no further configuration. However, in order to avoid unexpected data loss, other even types require whitelsiting on a per table basis. See [Hive table configuration](#hive-table-configuration) for more details.
+
 ## Hive table configuration
 
 Beekeeper only actions on events which are marked with a specific parameter. This parameter, as well as other parameters, need to be added to the Hive table that you wish to be monitored by Beekeeper. The configuration parameters for Hive tables are as follows:
@@ -37,7 +47,7 @@ Beekeeper only actions on events which are marked with a specific parameter. Thi
 |:----|:----:|:----:|:----|
 | `beekeeper.remove.unreferenced.data=true`   | Yes |  `true` or `false`       | Set this parameter to ensure Beekeeper monitors your table for orphaned data. |
 | `beekeeper.unreferenced.data.retention.period=X` | No | e.g. `P7D` or `PT3H` (based on [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601)) | Set this parameter to control the delay between schedule and deletion by Beekeeper. If this is either not set, or configured incorrectly, the default will be used. Default is 3 days. |
-| `beekeeper.permit.drop.table=true` | No | `true` or `false` | If this parameter is false, or not set, Beekeeper will ignore drop table events. |
+| `beekeeper.hive.event.whitelist=X` | No | Comma separate list of event types to whitelist. For example, `beekeeper.hive.event.whitelist=drop_table,drop_partition`.  | Beekeeper will always process `alter_partition` and `alter_table` events. Add other event types to this list to ensure Beekeeper does not ignore them. |
 
 This command can be used to add a parameter to a Hive Table:
 

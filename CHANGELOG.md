@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.7] - TBD
 ### Adding
 - `TimedTaggable` annotation to time and report table level metrics.
-- `DropTableListenerEventFilter` to filter drop table events unless tagged with `beekeeper.permit.drop.table`.
+- `WhitelistedListenerEventFilter` to filter events unless listed in `beekeeper.hive.events.whitelist`.
 
 ## [1.1.6] - 2019-11-27
 ### Changed
