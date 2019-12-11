@@ -46,17 +46,11 @@ public class BytesDeletedReporter {
   public void report(long bytesDeleted, String fullyQualifiedTableName, FileSystemType fileSystemType) {
     String fileSystemMetricName = String.join("-", fileSystemType.toString()
       .toLowerCase(), metricName);
-    Counter counter = Search.in(meterRegistry)
-      .name(fileSystemMetricName)
-      .tags(tags(fullyQualifiedTableName))
-      .counter();
-    if (counter == null) {
-      counter = Counter
+    Counter counter = Counter
         .builder(fileSystemMetricName)
         .baseUnit("bytes")
         .tags(tags(fullyQualifiedTableName))
         .register(meterRegistry);
-    }
     counter.increment(bytesDeleted);
   }
 
