@@ -20,11 +20,14 @@ import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+
+import javax.transaction.Transactional;
 
 @Repository
 public interface HousekeepingPathRepository extends JpaRepository<EntityHousekeepingPath, Long> {
@@ -34,4 +37,14 @@ public interface HousekeepingPathRepository extends JpaRepository<EntityHousekee
       + "and p.modifiedTimestamp <= :instant order by p.modifiedTimestamp")
   Page<EntityHousekeepingPath> findRecordsForCleanupByModifiedTimestamp(@Param("instant") LocalDateTime instant,
       Pageable pageable);
+
+  @Modifying
+  @Transactional
+  @Query("delete from EntityHousekeepingPath p where "
+      + " p.databaseName=:databaseName and "
+      + " p.tableName=:tableName and "
+      + " p.cleanupType = 'EXPIRED'")
+  void cleanupOldExpiredRows(
+          @Param("databaseName") String databaseName,
+          @Param("tableName") String tableName);
 }

@@ -58,6 +58,10 @@ public interface HousekeepingPath {
 
   void setCleanupAttempts(int cleanupAttempts);
 
+  String getCleanupType();
+
+  void setCleanupType(String cleanupType);
+
   String getClientId();
 
   void setClientId(String clientId);

@@ -70,6 +70,9 @@ public class EntityHousekeepingPath implements HousekeepingPath {
   @Column(name = "cleanup_attempts", nullable = false)
   private int cleanupAttempts;
 
+  @Column(name = "cleanup_type", nullable = false)
+  private String cleanupType;
+
   @Column(name = "client_id")
   private String clientId;
 
@@ -79,7 +82,8 @@ public class EntityHousekeepingPath implements HousekeepingPath {
 
   private EntityHousekeepingPath(Long id, String path, String databaseName, String tableName,
       PathStatus pathStatus, LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,
-      LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts, String clientId) {
+      LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts, String cleanupType,
+      String clientId) {
     this.id = id;
     this.path = path;
     this.databaseName = databaseName;
@@ -90,6 +94,7 @@ public class EntityHousekeepingPath implements HousekeepingPath {
     this.cleanupTimestamp = cleanupTimestamp;
     this.cleanupDelay = cleanupDelay;
     this.cleanupAttempts = cleanupAttempts;
+    this.cleanupType = cleanupType;
     this.clientId = clientId;
   }
 
@@ -179,6 +184,16 @@ public class EntityHousekeepingPath implements HousekeepingPath {
   }
 
   @Override
+  public String getCleanupType() {
+    return cleanupType;
+  }
+
+  @Override
+  public void setCleanupType(String cleanupType) {
+    this.cleanupType = cleanupType;
+  }
+
+  @Override
   public String getClientId() {
     return clientId;
   }
@@ -211,6 +226,7 @@ public class EntityHousekeepingPath implements HousekeepingPath {
     private LocalDateTime cleanupTimestamp;
     private Duration cleanupDelay;
     private int cleanupAttempts;
+    private String cleanupType;
     private String clientId;
 
     public Builder() { }
@@ -260,6 +276,11 @@ public class EntityHousekeepingPath implements HousekeepingPath {
       return this;
     }
 
+    public Builder cleanupType(String cleanupType) {
+      this.cleanupType = cleanupType;
+      return this;
+    }
+
     public Builder clientId(String clientId) {
       this.clientId = clientId;
       return this;
@@ -269,7 +290,8 @@ public class EntityHousekeepingPath implements HousekeepingPath {
       cleanupTimestamp = configureCleanupTimestamp();
 
       return new EntityHousekeepingPath(id, path, databaseName, tableName, pathStatus,
-          creationTimestamp, modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, clientId);
+          creationTimestamp, modifiedTimestamp,
+          cleanupTimestamp, cleanupDelay, cleanupAttempts, cleanupType, clientId);
     }
 
     private LocalDateTime configureCleanupTimestamp() {

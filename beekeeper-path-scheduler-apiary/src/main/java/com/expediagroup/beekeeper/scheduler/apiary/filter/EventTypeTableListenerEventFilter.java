@@ -15,33 +15,46 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
-import org.springframework.stereotype.Component;
-
-import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
-import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
+import com.expediagroup.beekeeper.core.model.CleanupType;
+import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 @Component
-public class MetadataOnlyListenerEventFilter implements ListenerEventFilter {
+public class EventTypeTableListenerEventFilter implements ListenerEventFilter {
 
   @Override
   public boolean filter(ListenerEvent listenerEvent) {
+    if (listenerEvent == null) {
+      return true;
+    }
+
+    Map<String, String> tableParameters = listenerEvent.getTableParameters();
+    if (tableParameters == null) {
+      return true;
+    }
+
+    Boolean isUnreferenced = CleanupType.UNREFERENCED.getBoolean(tableParameters);
+    Boolean isExpired = CleanupType.EXPIRED.getBoolean(tableParameters);
+
     EventType eventType = listenerEvent.getEventType();
     switch (eventType) {
+    case CREATE_TABLE:
+      return !(isExpired);
+    case ADD_PARTITION:
+      return !(isExpired);
     case ALTER_PARTITION:
-      AlterPartitionEvent alterPartitionEvent = (AlterPartitionEvent) listenerEvent;
-      return isMetadataUpdate(alterPartitionEvent.getOldPartitionLocation(),
-        alterPartitionEvent.getPartitionLocation());
+      return !(isExpired || isUnreferenced);
     case ALTER_TABLE:
-      AlterTableEvent alterTableEvent = (AlterTableEvent) listenerEvent;
-      return isMetadataUpdate(alterTableEvent.getOldTableLocation(), alterTableEvent.getTableLocation());
+      return !(isExpired || isUnreferenced);
+    case DROP_PARTITION:
+      return !(isUnreferenced);
+    case DROP_TABLE:
+      return !(isUnreferenced);
     default:
-      return false;
+      return true;
     }
-  }
-
-  private boolean isMetadataUpdate(String oldLocation, String location) {
-    return location == null || oldLocation == null || oldLocation.equals(location);
   }
 }

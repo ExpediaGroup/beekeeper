@@ -19,17 +19,19 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
-public class PathEvent {
-  private final HousekeepingPath housekeepingPath;
+import java.util.List;
+
+public class PathEvents {
+  private final List<HousekeepingPath> housekeepingPaths;
   private final MessageEvent messageEvent;
 
-  public PathEvent(HousekeepingPath housekeepingPath, MessageEvent messageEvent) {
-    this.housekeepingPath = housekeepingPath;
+  public PathEvents(List<HousekeepingPath> housekeepingPaths, MessageEvent messageEvent) {
+    this.housekeepingPaths = housekeepingPaths;
     this.messageEvent = messageEvent;
   }
 
-  public HousekeepingPath getHousekeepingPath() {
-    return housekeepingPath;
+  public List<HousekeepingPath> getHousekeepingPaths() {
+    return housekeepingPaths;
   }
 
   public MessageEvent getMessageEvent() {

@@ -31,17 +31,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.expediagroup.beekeeper.core.model.CleanupType;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PathStatus;
 
 public class MySqlTestUtils {
 
   private static final String DROP_TABLE = "DROP TABLE IF EXISTS beekeeper.%s;";
-  private static final String SELECT_TABLE = "SELECT * FROM beekeeper.%s;";
+  private static final String SELECT_TABLE = "SELECT * FROM beekeeper.%s where cleanup_type = '%s' order by path;";
   private static final String INSERT_PATH = "INSERT INTO beekeeper.path (%s) VALUES (%s);";
 
   private static final String CLEANUP_ATTEMPTS = "cleanup_attempts";
   private static final String CLEANUP_DELAY = "cleanup_delay";
+  private static final String CLEANUP_TYPE = "cleanup_type";
   private static final String CLEANUP_TIMESTAMP = "cleanup_timestamp";
   private static final String CLIENT_ID = "client_id";
   private static final String CREATION_TIMESTAMP = "creation_timestamp";
@@ -59,10 +61,13 @@ public class MySqlTestUtils {
   }
 
   public void insertPath(String path, String table) throws SQLException {
-    String fields = String.join(", ", PATH, PATH_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME);
+    // TODO: for now, we'll just keep testing unreferenced paths only
+    String cleanupType = CleanupType.UNREFERENCED.toString().toLowerCase();
+
+    String fields = String.join(", ", PATH, PATH_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME, CLEANUP_TYPE);
     String values = Stream.of(path, PathStatus.SCHEDULED.toString(), "PT1S", Timestamp.valueOf(LocalDateTime.now(UTC)
         .minus(1L, ChronoUnit.DAYS))
-        .toString(), table)
+        .toString(), table, cleanupType)
         .map(s -> "\"" + s + "\"")
         .collect(Collectors.joining(", "));
 
@@ -70,11 +75,20 @@ public class MySqlTestUtils {
         .executeUpdate(format(INSERT_PATH, fields, values));
   }
 
-  public int rowsInTable(String table) throws SQLException {
+  public int unreferencedRowsInTable(String table) throws SQLException {
+    return rowsInTable(table, CleanupType.UNREFERENCED.toString());
+  }
+
+  public int expiredRowsInTable(String table) throws SQLException {
+    return rowsInTable(table, CleanupType.EXPIRED.toString());
+  }
+
+  private int rowsInTable(String table, String cleanupType) throws SQLException {
     ResultSet resultSet = connection.createStatement()
-        .executeQuery(format(SELECT_TABLE, table));
+        .executeQuery(format(SELECT_TABLE, table, cleanupType));
     resultSet.last();
-    return resultSet.getRow();
+    int rowsInTable = resultSet.getRow();
+    return rowsInTable;
   }
 
   public void dropTable(String tableName) throws SQLException {
@@ -86,9 +100,17 @@ public class MySqlTestUtils {
     connection.close();
   }
 
-  public List<EntityHousekeepingPath> getPaths() throws SQLException {
+  public List<EntityHousekeepingPath> getUnreferencedPaths() throws SQLException {
+    return getPaths(CleanupType.UNREFERENCED.toString());
+  }
+
+  public List<EntityHousekeepingPath> getExpiredPaths() throws SQLException {
+    return getPaths(CleanupType.EXPIRED.toString());
+  }
+
+  private List<EntityHousekeepingPath> getPaths(String cleanupType) throws SQLException {
     ResultSet resultSet = connection.createStatement()
-        .executeQuery(format(SELECT_TABLE, PATH));
+        .executeQuery(format(SELECT_TABLE, PATH, cleanupType));
     List<EntityHousekeepingPath> paths = new ArrayList<>();
     while (resultSet.next()) {
       paths.add(map(resultSet));
@@ -110,6 +132,7 @@ public class MySqlTestUtils {
             .toLocalDateTime())
         .cleanupDelay(Duration.parse(resultSet.getString(CLEANUP_DELAY)))
         .clientId(resultSet.getString(CLIENT_ID))
+        .cleanupType(resultSet.getString(CLEANUP_TYPE))
         .build();
     path.setCleanupTimestamp(Timestamp.valueOf(resultSet.getString(CLEANUP_TIMESTAMP))
         .toLocalDateTime());

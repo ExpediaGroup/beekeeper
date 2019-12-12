@@ -13,17 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.scheduler.apiary.messaging;
+package com.expediagroup.beekeeper.core.model;
 
-import java.io.Closeable;
-import java.util.Optional;
+import java.util.Map;
 
-import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvents;
+public enum CleanupType {
+  UNREFERENCED(
+          "beekeeper.remove.unreferenced.data"),
+  EXPIRED("beekeeper.remove.expired.data");
 
-public interface PathEventReader extends Closeable {
+  private String tableParameter;
 
-  Optional<PathEvents> read();
+  CleanupType(String tableParameter) {
+    this.tableParameter = tableParameter;
+  }
 
-  void delete(PathEvents pathEvent);
+  public String tableParameterName() {
+    return this.tableParameter;
+  }
 
+  public Boolean getBoolean(Map<String,String> tableParameters) {
+    return Boolean.valueOf(tableParameters.get(tableParameterName()));
+  }
 }

@@ -18,15 +18,18 @@ package com.expediagroup.beekeeper.scheduler.apiary.service;
 import static java.lang.String.format;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
+import com.expediagroup.beekeeper.core.model.CleanupType;
+import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.PathEventReader;
-import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvent;
+import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvents;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 
 @Component
@@ -34,23 +37,38 @@ public class PathSchedulerApiary {
 
   private final PathEventReader pathEventReader;
   private final SchedulerService pathSchedulerService;
+  private final HousekeepingPathRepository housekeepingPathRepository;
 
   @Autowired
-  public PathSchedulerApiary(PathEventReader pathEventReader, SchedulerService pathSchedulerService) {
+  public PathSchedulerApiary(PathEventReader pathEventReader, SchedulerService pathSchedulerService, HousekeepingPathRepository housekeepingPathRepository) {
     this.pathEventReader = pathEventReader;
     this.pathSchedulerService = pathSchedulerService;
+    this.housekeepingPathRepository = housekeepingPathRepository;
   }
 
   public void schedulePath() {
-    Optional<PathEvent> pathToBeScheduled = pathEventReader.read();
+    Optional<PathEvents> pathToBeScheduled = pathEventReader.read();
     if (pathToBeScheduled.isPresent()) {
-      PathEvent pathEvent = pathToBeScheduled.get();
-      HousekeepingPath path = pathEvent.getHousekeepingPath();
-      try {
-        pathSchedulerService.scheduleForHousekeeping(path);
-      } catch (Exception e) {
-        throw new BeekeeperException(format(
+      PathEvents pathEvent = pathToBeScheduled.get();
+      List<HousekeepingPath> paths = pathEvent.getHousekeepingPaths();
+
+      for (HousekeepingPath path : paths) {
+        if ( path.getCleanupType().equalsIgnoreCase(CleanupType.EXPIRED.toString()) ) {
+          try {
+            housekeepingPathRepository.cleanupOldExpiredRows(path.getDatabaseName(), path.getTableName());
+          } catch (Exception e) {
+              throw new BeekeeperException(format("Unable to cleanup before scheduling '%s' for deletion", path.getPath()), e);
+          }
+        }
+      }
+
+      for (HousekeepingPath path : paths) {
+        try {
+          pathSchedulerService.scheduleForHousekeeping(path);
+        } catch (Exception e) {
+          throw new BeekeeperException(format(
             "Unable to schedule path '%s' for deletion, this message will go back on the queue", path.getPath()), e);
+        }
       }
       pathEventReader.delete(pathEvent);
     }

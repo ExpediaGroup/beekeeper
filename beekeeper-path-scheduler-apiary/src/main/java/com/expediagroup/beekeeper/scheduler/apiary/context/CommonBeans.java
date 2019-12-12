@@ -29,10 +29,8 @@ import org.springframework.retry.annotation.EnableRetry;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
-import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeTableListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.MetadataOnlyListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.FilteringMessageReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToPathEventMapper;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
@@ -61,9 +59,9 @@ public class CommonBeans {
 
   @Bean(name = "filteringMessageReader")
   MessageReader filteringMessageReader(@Qualifier("retryingMessageReader") MessageReader messageReader,
-    TableParameterListenerEventFilter tableParameterFilter, EventTypeListenerEventFilter eventTypeFilter,
-    MetadataOnlyListenerEventFilter metadataOnlyListenerEventFilter) {
-    List<ListenerEventFilter> filters = List.of(eventTypeFilter, tableParameterFilter, metadataOnlyListenerEventFilter);
+    EventTypeTableListenerEventFilter eventTypeTableListenerEventFilter) {
+    List<ListenerEventFilter> filters = List.of(
+            eventTypeTableListenerEventFilter);
     return new FilteringMessageReader(messageReader, filters);
   }
 

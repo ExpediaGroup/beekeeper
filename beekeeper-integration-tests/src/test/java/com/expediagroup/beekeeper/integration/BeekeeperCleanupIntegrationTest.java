@@ -141,7 +141,7 @@ public class BeekeeperCleanupIntegrationTest {
     String path = "s3://" + BUCKET + "/" + OBJECT_KEY1;
     mySqlTestUtils.insertPath(path, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getUnreferencedPaths().get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     // deleting a file shouldn't delete a folder sentinel
@@ -159,7 +159,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getUnreferencedPaths().get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -177,7 +177,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH + "/", TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getUnreferencedPaths().get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -199,7 +199,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getUnreferencedPaths().get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -222,7 +222,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getUnreferencedPaths().get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -238,7 +238,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getUnreferencedPaths().get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
@@ -263,7 +263,7 @@ public class BeekeeperCleanupIntegrationTest {
     mySqlTestUtils.insertPath("s3://" + BUCKET + "/" + partition11File, TABLE_NAME);
 
     await().atMost(1, TimeUnit.MINUTES)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getUnreferencedPaths().get(0).getPathStatus() == PathStatus.DELETED);
 
     // assert that the first value appears in the metrics
     Counter counter = BeekeeperCleanup.meterRegistry().get(S3BytesDeletedReporter.METRIC_NAME).counter();
@@ -271,7 +271,7 @@ public class BeekeeperCleanupIntegrationTest {
     assertThat(counter.measure().iterator().next().getValue()).isEqualTo(doubleContent.getBytes().length);
 
     await().atMost(1, TimeUnit.MINUTES)
-        .until(() -> mySqlTestUtils.getPaths().get(1).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getUnreferencedPaths().get(1).getPathStatus() == PathStatus.DELETED);
 
     // assert that the second value appears in the metrics, and that values are not added together
     counter = BeekeeperCleanup.meterRegistry().get(S3BytesDeletedReporter.METRIC_NAME).counter();
