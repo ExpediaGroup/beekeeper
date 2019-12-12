@@ -33,12 +33,12 @@ Beekeeper comprises two separate Spring-based Java applications. One application
 
 Beekeeper only actions on events which are marked with a specific parameter. This parameter, as well as other parameters, need to be added to the Hive table that you wish to be monitored by Beekeeper. The configuration parameters for Hive tables are as follows:
 
-| Parameter             | Required | Possible values | Description |
-|:----|:----:|:----:|:----|
-| `beekeeper.remove.unreferenced.data=true`   | Yes |  `true` or `false`       | Set this parameter to ensure Beekeeper monitors your table for orphaned data. |
-| `beekeeper.unreferenced.data.retention.period=X` | No | e.g. `P7D` or `PT3H` (based on [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601)) | Set this parameter to control the delay between schedule and deletion by Beekeeper. Default is 3 days. |
-| `beekeeper.remove.expired.data=true`   | Yes |  `true` or `false`       | Set this parameter to ensure Beekeeper monitors your table for data that is old enough to be removed. |
-| `beekeeper.expired.data.retention.period=X` | No | e.g. `P7D` or `PT3H` (based on [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601)) | Set this parameter to control the delay between recent table activity and deletion by Beekeeper. Default is 30 days. |
+| Parameter                                        | Required |                                      Possible values                                      | Description                                                                                                                                                                            |
+|:-------------------------------------------------|:--------:|:-----------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `beekeeper.remove.unreferenced.data=true`        |   Yes    |                                     `true` or `false`                                     | Set this parameter to ensure Beekeeper monitors your table for orphaned data.                                                                                                          |
+| `beekeeper.remove.expired.data=true`             |   Yes    |                                     `true` or `false`                                     | Set this parameter to ensure Beekeeper monitors your table for data that is old enough to be removed.                                                                                  |
+| `beekeeper.expired.data.retention.period=X`      |    No    | e.g. `P7D` or `PT3H` (based on [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601)) | Set this parameter to control the delay between recent table activity and deletion by Beekeeper. Default is 30 days.                                                                   |
+| `beekeeper.unreferenced.data.retention.period=X` |    No    | e.g. `P7D` or `PT3H` (based on [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601)) | Set this parameter to control the delay between schedule and deletion by Beekeeper. If this is either not set, or configured incorrectly, the default will be used. Default is 3 days. |
 
 This command can be used to add a parameter to a Hive Table:
 

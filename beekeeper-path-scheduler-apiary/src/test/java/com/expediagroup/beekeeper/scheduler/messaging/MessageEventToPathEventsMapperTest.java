@@ -143,6 +143,7 @@ public class MessageEventToPathEventsMapperTest {
     assertPath(messageEvent, pathEvent, DEFAULT_EXPIRED_CLEANUP_DELAY, EXPIRED, PATH, 1);
   }
 
+  // TODO: More discovery over what this is suppose to be doing.
   private void assertPath(MessageEvent messageEvent,
                           Optional<PathEvents> pathEventsOptional,
                           String cleanupDelay,
@@ -152,9 +153,13 @@ public class MessageEventToPathEventsMapperTest {
     PathEvents pathEvents = pathEventsOptional.get();
     assertThat(pathEvents.getMessageEvent()).isEqualTo(messageEvent);
     List<HousekeepingPath> paths = pathEvents.getHousekeepingPaths();
-
     HousekeepingPath path = pathEvents.getHousekeepingPaths().get(index);
+  }
 
+  private void assertPath(MessageEvent messageEvent, Optional<PathEvent> pathEventOptional, String cleanupDelay) {
+    PathEvent pathEvent = pathEventOptional.get();
+    assertThat(pathEvent.getMessageEvent()).isEqualTo(messageEvent);
+    HousekeepingPath path = pathEvent.getHousekeepingPath();
     LocalDateTime now = LocalDateTime.now();
     assertThat(path.getPath()).isEqualTo(pathToCleanup);
     assertThat(path.getTableName()).isEqualTo(TABLE);
@@ -167,6 +172,18 @@ public class MessageEventToPathEventsMapperTest {
     assertThat(path.getCleanupTimestamp())
         .isEqualTo(path.getCreationTimestamp().plus(Duration.parse(cleanupDelay)));
     assertThat(pathEvents.getMessageEvent().getMessageProperties()).isEqualTo(newMessageProperties());
+  }
+
+  @Test
+  public void mapDefaultDelayOnDurationException() {
+    setupMocks(alterPartitionEvent);
+    when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
+    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_PATH);
+    when(alterPartitionEvent.getTableParameters())
+      .thenReturn(Collections.singletonMap(CLEANUP_DELAY_PROPERTY, "1"));
+    MessageEvent messageEvent = newMessageEvent(alterPartitionEvent);
+    Optional<PathEvent> pathEvent = mapper.map(messageEvent);
+    assertPath(messageEvent, pathEvent, DEFAULT_CLEANUP_DELAY);
   }
 
   private MessageEvent newMessageEvent(ListenerEvent event) {

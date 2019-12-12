@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
 import com.expediagroup.beekeeper.core.model.CleanupType;
@@ -75,6 +76,13 @@ public class MessageEventToPathEventMapper {
 
     List<HousekeepingPath> paths = new ArrayList<>();
     boolean isMetadataUpdate = false;
+    EntityHousekeepingPath.Builder builder = new EntityHousekeepingPath.Builder()
+        .pathStatus(PathStatus.SCHEDULED)
+        .creationTimestamp(LocalDateTime.now())
+        .cleanupDelay(extractCleanupDelay(listenerEvent))
+        .clientId(CLIENT_ID)
+        .tableName(listenerEvent.getTableName())
+        .databaseName(listenerEvent.getDbName());
 
     switch (eventType) {
     case CREATE_TABLE:
@@ -164,5 +172,17 @@ public class MessageEventToPathEventMapper {
 
   private boolean isMetadataUpdate(String oldLocation, String location) {
     return location == null || oldLocation == null || oldLocation.equals(location);
+  }
+
+  private Duration extractCleanupDelay(ListenerEvent listenerEvent) {
+    String tableCleanupDelay = listenerEvent.getTableParameters()
+      .getOrDefault(cleanupDelayPropertyKey, defaultCleanupDelay);
+    try {
+      return Duration.parse(tableCleanupDelay);
+    } catch (DateTimeParseException e) {
+      log.error("Text '{}' cannot be parsed to a Duration for table '{}.{}'. Using default setting.",
+        tableCleanupDelay, listenerEvent.getDbName(), listenerEvent.getTableName());
+      return Duration.parse(defaultCleanupDelay);
+    }
   }
 }

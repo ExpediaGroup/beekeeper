@@ -13,12 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.cleanup.path;
+package com.expediagroup.beekeeper.core.monitoring;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+public class MetricTag {
 
-public interface PathCleaner {
+  private String key;
+  private String tag;
 
-  void cleanupPath(HousekeepingPath housekeepingPath);
+  public MetricTag(String key, String tag) {
+    this.key = key;
+    this.tag = tag;
+  }
+
+  public String getKey() {
+    return key;
+  }
+
+  public String getTag() {
+    return tag;
+  }
 
 }

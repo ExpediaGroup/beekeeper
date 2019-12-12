@@ -5,7 +5,7 @@
   <parent>
     <artifactId>beekeeper-parent</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>1.1.4-SNAPSHOT</version>
+    <version>1.1.7-SNAPSHOT</version>
   </parent>
 
   <artifactId>beekeeper-core</artifactId>
@@ -30,6 +30,10 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
       <version>${springframework.boot.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>

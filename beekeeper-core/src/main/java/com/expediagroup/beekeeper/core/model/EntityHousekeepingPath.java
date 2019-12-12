@@ -31,10 +31,12 @@ import javax.persistence.Table;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import com.expediagroup.beekeeper.core.monitoring.MetricTag;
+import com.expediagroup.beekeeper.core.monitoring.Taggable;
 
 @Entity
 @Table(name = "path")
-public class EntityHousekeepingPath implements HousekeepingPath {
+public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -212,6 +214,11 @@ public class EntityHousekeepingPath implements HousekeepingPath {
   public void setCleanupDelay(Duration cleanupDelay) {
     this.cleanupDelay = cleanupDelay;
     cleanupTimestamp = creationTimestamp.plus(cleanupDelay);
+  }
+
+  @Override
+  public MetricTag getMetricTag() {
+    return new MetricTag("table", String.join(".", databaseName, tableName));
   }
 
   public static final class Builder {

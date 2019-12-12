@@ -23,9 +23,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.micrometer.core.annotation.Timed;
-
-import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.base.Strings;
@@ -33,6 +30,8 @@ import com.google.common.base.Strings;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 
 public class S3PathCleaner implements PathCleaner {
 
@@ -49,11 +48,11 @@ public class S3PathCleaner implements PathCleaner {
   }
 
   @Override
-  @Timed("s3-paths-deleted")
-  public void cleanupPath(String housekeepingPath, String tableName) {
-    AmazonS3URI amazonS3URI = new AmazonS3URI(housekeepingPath, false);
-    String key = amazonS3URI.getKey();
-    String bucket = amazonS3URI.getBucket();
+  @TimedTaggable("s3-paths-deleted")
+  public void cleanupPath(HousekeepingPath housekeepingPath) {
+    S3SchemeURI s3SchemeURI = extractURI(housekeepingPath.getPath());
+    String key = s3SchemeURI.getKey();
+    String bucket = s3SchemeURI.getBucket();
 
     // doesObjectExists returns true only when the key is a file
     boolean isFile = s3Client.doesObjectExist(bucket, key);
@@ -66,19 +65,30 @@ public class S3PathCleaner implements PathCleaner {
       deleteFilesInDirectory(bucket, key);
 
       try {
-        if (housekeepingPath.endsWith("/")) {
-          housekeepingPath = housekeepingPath.substring(0, housekeepingPath.length() - 1);
+        String path = s3SchemeURI.getPath();
+        if (path.endsWith("/")) {
+          path = path.substring(0, path.length() - 1);
         }
-        sentinelFilesCleaner.deleteSentinelFiles(housekeepingPath);
+        sentinelFilesCleaner.deleteSentinelFiles(path);
 
         // attempt to delete parents if there is at least one parent
         if (key.contains("/")) {
-          deleteParentSentinelFiles(bucket, key, housekeepingPath, tableName);
+          deleteParentSentinelFiles(bucket, key, path, housekeepingPath.getTableName());
         }
       } catch (Exception e) {
         log.warn("Sentinel file(s) could not be deleted", e);
       }
     }
+  }
+
+  private S3SchemeURI extractURI(String housekeepingPath) {
+    S3SchemeURI s3SchemeURI;
+    try {
+      s3SchemeURI = new S3SchemeURI(housekeepingPath);
+    } catch (Exception e) {
+      throw new BeekeeperException(format("Could not create URI from path: '%s'", housekeepingPath), e);
+    }
+    return s3SchemeURI;
   }
 
   private void deleteFilesInDirectory(String bucket, String key) {
