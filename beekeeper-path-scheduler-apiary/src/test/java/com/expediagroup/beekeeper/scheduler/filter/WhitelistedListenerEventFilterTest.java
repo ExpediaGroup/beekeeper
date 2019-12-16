@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -101,6 +102,15 @@ public class WhitelistedListenerEventFilterTest {
     when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
     when(dropTableEvent.getTableParameters())
       .thenReturn(null);
+    boolean filter = listenerEventFilter.filter(dropTableEvent);
+    assertThat(filter).isTrue();
+  }
+
+  @Test
+  public void filterEmptyTableParameters() {
+    when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
+    when(dropTableEvent.getTableParameters())
+      .thenReturn(Collections.emptyMap());
     boolean filter = listenerEventFilter.filter(dropTableEvent);
     assertThat(filter).isTrue();
   }

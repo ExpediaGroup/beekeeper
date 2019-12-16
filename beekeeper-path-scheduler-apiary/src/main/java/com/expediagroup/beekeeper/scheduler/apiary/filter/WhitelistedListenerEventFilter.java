@@ -48,6 +48,9 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
 
   private boolean isWhitelisted(EventType eventType, Map<String, String> tableParameters) {
     String whitelist = tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST);
+    if (whitelist == null) {
+      return false;
+    }
     return Arrays.stream(whitelist.split(","))
       .map(String::trim)
       .anyMatch(whitelistedEvent -> whitelistedEvent.equalsIgnoreCase(eventType.toString()));
