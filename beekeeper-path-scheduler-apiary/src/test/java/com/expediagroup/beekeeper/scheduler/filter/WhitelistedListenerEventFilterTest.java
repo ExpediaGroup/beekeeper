@@ -115,9 +115,4 @@ public class WhitelistedListenerEventFilterTest {
     assertThat(filter).isTrue();
   }
 
-  @Test
-  public void filterNullEvent() {
-    boolean filter = listenerEventFilter.filter(null);
-    assertThat(filter).isTrue();
-  }
 }

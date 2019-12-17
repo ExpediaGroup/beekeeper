@@ -27,9 +27,6 @@ public class MetadataOnlyListenerEventFilter implements ListenerEventFilter {
 
   @Override
   public boolean filter(ListenerEvent listenerEvent) {
-    if (listenerEvent == null) {
-      return true;
-    }
     EventType eventType = listenerEvent.getEventType();
     switch (eventType) {
     case ALTER_PARTITION:
