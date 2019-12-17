@@ -19,20 +19,26 @@ import java.util.Map;
 
 public enum CleanupType {
   UNREFERENCED(
-          "beekeeper.remove.unreferenced.data"),
-  EXPIRED("beekeeper.remove.expired.data");
+          "beekeeper.remove.unreferenced.data", "beekeeper.unreferenced.data.retention.period"),
+  EXPIRED("beekeeper.remove.expired.data", "beekeeper.expired.data.retention.period");
 
-  private String tableParameter;
+  private String tableBooleanParameter;
+  private String tableValueParameter;
 
-  CleanupType(String tableParameter) {
-    this.tableParameter = tableParameter;
+  CleanupType(String tableBooleanParameter, String tableValueParameter) {
+    this.tableBooleanParameter = tableBooleanParameter;
+    this.tableValueParameter = tableValueParameter;
   }
 
   public String tableParameterName() {
-    return this.tableParameter;
+    return this.tableBooleanParameter;
   }
 
   public Boolean getBoolean(Map<String,String> tableParameters) {
     return Boolean.valueOf(tableParameters.get(tableParameterName()));
+  }
+
+  public String getValue(Map<String,String> tableParameters) {
+    return tableParameters.get(this.tableValueParameter);
   }
 }

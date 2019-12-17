@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import com.expediagroup.beekeeper.core.model.CleanupType;
+import com.expediagroup.beekeeper.core.model.LifeCycle;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -58,8 +59,9 @@ import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvents;
         "properties.beekeeper.default-expired-cleanup-delay=P356D",
         "properties.apiary.expired-cleanup-delay-property-key=beekeeper.expired.data.retention.period"
 })
-@ContextConfiguration(classes = { MessageEventToPathEventMapper.class },
-    loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(
+        classes = { MessageEventToPathEventMapper.class },
+        loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class MessageEventToPathEventsMapperTest {
 
@@ -85,8 +87,10 @@ public class MessageEventToPathEventsMapperTest {
   @Autowired
   private MessageEventToPathEventMapper mapper;
 
-  @Test
-  public void typicalMapAlterPartitionEvent() {
+  /**
+   * Tests the Happy Path AlterPartition Event
+   */
+  @Test public void typicalMapAlterPartitionEvent() {
     setupMocks(alterPartitionEvent, true, true, true);
     when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
     when(alterPartitionEvent.getTableLocation()).thenReturn(PATH);
@@ -98,8 +102,10 @@ public class MessageEventToPathEventsMapperTest {
     assertPath(messageEvent, pathEvent, CLEANUP_EXPIRED_DELAY, EXPIRED, PATH,1);
   }
 
-  @Test
-  public void typicalMapAlterTableEvent() {
+  /**
+   * Tests the Happy Path AlterTable Event
+   */
+  @Test public void typicalMapAlterTableEvent() {
     setupMocks(alterTableEvent, true, true, true);
     when(alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
     when(alterTableEvent.getTableLocation()).thenReturn(OLD_PATH);
@@ -110,8 +116,10 @@ public class MessageEventToPathEventsMapperTest {
     assertPath(messageEvent, pathEvent, CLEANUP_EXPIRED_DELAY, EXPIRED, OLD_PATH, 1);
   }
 
-  @Test
-  public void typicalMapDropPartitionEvent() {
+  /**
+   * Tests the Happy Path DropPartition Event
+   */
+  @Test public void typicalMapDropPartitionEvent() {
     setupMocks(dropPartitionEvent, true, true, true);
     when(dropPartitionEvent.getEventType()).thenReturn(EventType.DROP_PARTITION);
     when(dropPartitionEvent.getPartitionLocation()).thenReturn(OLD_PATH);
@@ -120,8 +128,10 @@ public class MessageEventToPathEventsMapperTest {
     assertPath(messageEvent, pathEvent, CLEANUP_UNREFERENCED_DELAY, UNREFERENCED, OLD_PATH, 0);
   }
 
-  @Test
-  public void typicalMapDropTableEvent() {
+  /**
+   * Tests the Typical DropTable Event
+   */
+  @Test public void typicalMapDropTableEvent() {
     setupMocks(dropTableEvent, true,true, true);
     when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
     when(dropTableEvent.getTableLocation()).thenReturn(OLD_PATH);
@@ -130,8 +140,10 @@ public class MessageEventToPathEventsMapperTest {
     assertPath(messageEvent, pathEvent, CLEANUP_UNREFERENCED_DELAY, UNREFERENCED, OLD_PATH, 0);
   }
 
-  @Test
-  public void typicalMapDefaultDelay() {
+  /**
+   * Tests the default delay workflow
+   */
+  @Test public void typicalMapDefaultDelay() {
     setupMocks(alterPartitionEvent, true, true, false);
     when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
     when(alterPartitionEvent.getPartitionLocation()).thenReturn(PATH);
@@ -143,7 +155,35 @@ public class MessageEventToPathEventsMapperTest {
     assertPath(messageEvent, pathEvent, DEFAULT_EXPIRED_CLEANUP_DELAY, EXPIRED, PATH, 1);
   }
 
-  // TODO: More discovery over what this is suppose to be doing.
+  /**
+   * Tests that the default deletion delay should be used if the table parameter is configured incorrectly
+   * Flow: If parsing the Durati on throws a DateTimeParseException, return the default duration.
+   * @see com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToPathEventMapper#extractCleanupDelay(ListenerEvent listenerEvent, LifeCycle.EventType eventType)
+   */
+  @Test public void mapDefaultDelayOnDurationException() {
+    Map<String,String> tableParams = new HashMap<>();
+    tableParams.put(UNREFERENCED.tableParameterName(), "true");
+    tableParams.put(CLEANUP_UNREFERENCED_DELAY_PROPERTY, "");
+    when(alterPartitionEvent.getTableParameters()).thenReturn(tableParams);
+    when(alterPartitionEvent.getDbName()).thenReturn(DATABASE);
+    when(alterPartitionEvent.getTableName()).thenReturn(TABLE);
+    when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
+    when(alterPartitionEvent.getPartitionLocation()).thenReturn(PATH);
+    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_PATH);
+    MessageEvent messageEvent = newMessageEvent(alterPartitionEvent);
+    Optional<PathEvents> pathEvent = mapper.map(messageEvent);
+    assertPath(messageEvent, pathEvent, DEFAULT_UNREFERENCED_CLEANUP_DELAY, UNREFERENCED, OLD_PATH,0);
+  }
+
+  /**
+   * Canned assertions for a given event and path events
+   * @param messageEvent Message Event that generated the given Path events
+   * @param pathEventsOptional Path Events from the map method
+   * @param cleanupDelay Delay duration for the given path
+   * @param cleanupType Type of cleanup that was generated for the path event
+   * @param pathToCleanup Path to assert that should exist for the given PathEvent
+   * @param index Index to look at in the pathEvents List
+   */
   private void assertPath(MessageEvent messageEvent,
                           Optional<PathEvents> pathEventsOptional,
                           String cleanupDelay,
@@ -152,14 +192,10 @@ public class MessageEventToPathEventsMapperTest {
                           int index) {
     PathEvents pathEvents = pathEventsOptional.get();
     assertThat(pathEvents.getMessageEvent()).isEqualTo(messageEvent);
-    List<HousekeepingPath> paths = pathEvents.getHousekeepingPaths();
-    HousekeepingPath path = pathEvents.getHousekeepingPaths().get(index);
-  }
 
-  private void assertPath(MessageEvent messageEvent, Optional<PathEvent> pathEventOptional, String cleanupDelay) {
-    PathEvent pathEvent = pathEventOptional.get();
-    assertThat(pathEvent.getMessageEvent()).isEqualTo(messageEvent);
-    HousekeepingPath path = pathEvent.getHousekeepingPath();
+    List<HousekeepingPath> houseKeepingPaths = pathEvents.getHousekeepingPaths();
+    HousekeepingPath path = houseKeepingPaths.get(index);
+
     LocalDateTime now = LocalDateTime.now();
     assertThat(path.getPath()).isEqualTo(pathToCleanup);
     assertThat(path.getTableName()).isEqualTo(TABLE);
@@ -169,32 +205,35 @@ public class MessageEventToPathEventsMapperTest {
     assertThat(path.getCleanupType()).isEqualToIgnoringCase(cleanupType.toString());
     assertThat(path.getModifiedTimestamp()).isNull();
     assertThat(path.getCreationTimestamp()).isBetween(CREATION_TIMESTAMP, now);
-    assertThat(path.getCleanupTimestamp())
-        .isEqualTo(path.getCreationTimestamp().plus(Duration.parse(cleanupDelay)));
+    assertThat(path.getCleanupTimestamp()).isEqualTo(path.getCreationTimestamp().plus(Duration.parse(cleanupDelay)));
     assertThat(pathEvents.getMessageEvent().getMessageProperties()).isEqualTo(newMessageProperties());
   }
 
-  @Test
-  public void mapDefaultDelayOnDurationException() {
-    setupMocks(alterPartitionEvent);
-    when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
-    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_PATH);
-    when(alterPartitionEvent.getTableParameters())
-      .thenReturn(Collections.singletonMap(CLEANUP_DELAY_PROPERTY, "1"));
-    MessageEvent messageEvent = newMessageEvent(alterPartitionEvent);
-    Optional<PathEvent> pathEvent = mapper.map(messageEvent);
-    assertPath(messageEvent, pathEvent, DEFAULT_CLEANUP_DELAY);
-  }
-
+  /**
+   * Creates a new message event given a ListenerEvent
+   * @param event ListenerEvent to convert into a Message Event
+   * @return MessageEvent Returns a new message event
+   */
   private MessageEvent newMessageEvent(ListenerEvent event) {
     return new MessageEvent(event, newMessageProperties());
   }
 
+  /**
+   * Helper method to setup a new message
+   * @return Map<MessageProperty, String> Canned message
+   */
   private Map<MessageProperty, String> newMessageProperties() {
     return Collections.singletonMap(SqsMessageProperty.SQS_MESSAGE_RECEIPT_HANDLE, RECEIPT_HANDLE);
   }
 
-  private void setupMocks(ListenerEvent event, Boolean isUnreferenced, Boolean isExpired, Boolean delaysDefined) {
+  /**
+   * Setup a mock for our generic cases
+   * @param event Current listener event from Apiary SQS
+   * @param isUnreferenced Boolean to determine if the table is unreferenced
+   * @param isExpired Boolean to determine if the table is expired
+   * @param delaysDefined If we should set delays on the given table
+   */
+  private void setupMocks(ListenerEvent event, Boolean isUnreferenced, Boolean isExpired, Boolean delaysDefined ) {
     Map<String,String> tableParams = new HashMap<>();
 
     tableParams.put(UNREFERENCED.tableParameterName(),isUnreferenced.toString().toLowerCase());
