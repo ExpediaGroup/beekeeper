@@ -32,6 +32,7 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 
@@ -68,8 +69,7 @@ public class S3PathCleaner implements PathCleaner {
     } finally {
       long bytesDeleted = bytesDeletedCalculator.getBytesDeleted();
       if (bytesDeleted > 0) {
-        bytesDeletedReporter.report(bytesDeleted, String.join(".", housekeepingPath.getDatabaseName(),
-          housekeepingPath.getTableName()), FileSystemType.S3);
+        bytesDeletedReporter.reportTaggable(bytesDeleted, housekeepingPath, FileSystemType.S3);
       }
     }
   }

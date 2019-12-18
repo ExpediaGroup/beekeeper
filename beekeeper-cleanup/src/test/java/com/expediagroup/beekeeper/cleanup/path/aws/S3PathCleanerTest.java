@@ -68,7 +68,6 @@ class S3PathCleanerTest {
   private final String absolutePath = "s3://" + bucket + "/" + keyRoot;
   private final String tableName = "table";
   private final String databaseName = "database";
-  private final String fullyQualifiedTableName = databaseName + "." + tableName;
 
   private final S3Mock s3Mock = new S3Mock.Builder().withPort(0).withInMemoryBackend().build();
   private EntityHousekeepingPath housekeepingPath;
@@ -109,7 +108,7 @@ class S3PathCleanerTest {
 
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isFalse();
-    verify(bytesDeletedReporter).report(content.getBytes().length * 2, fullyQualifiedTableName, FileSystemType.S3);
+    verify(bytesDeletedReporter).reportTaggable(content.getBytes().length * 2, housekeepingPath, FileSystemType.S3);
   }
 
   @Test
@@ -123,7 +122,7 @@ class S3PathCleanerTest {
 
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isFalse();
-    verify(bytesDeletedReporter).report(content.getBytes().length * 2, fullyQualifiedTableName, FileSystemType.S3);
+    verify(bytesDeletedReporter).reportTaggable(content.getBytes().length * 2, housekeepingPath, FileSystemType.S3);
   }
 
   @Test
@@ -136,7 +135,7 @@ class S3PathCleanerTest {
     s3PathCleaner.cleanupPath(housekeepingPath);
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isTrue();
-    verify(bytesDeletedReporter).report(content.getBytes().length, fullyQualifiedTableName, FileSystemType.S3);
+    verify(bytesDeletedReporter).reportTaggable(content.getBytes().length, housekeepingPath, FileSystemType.S3);
   }
 
   @Test
@@ -150,7 +149,7 @@ class S3PathCleanerTest {
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, partition1Sentinel)).isFalse();
-    verify(bytesDeletedReporter).report(content.getBytes().length * 2, fullyQualifiedTableName, FileSystemType.S3);
+    verify(bytesDeletedReporter).reportTaggable(content.getBytes().length * 2, housekeepingPath, FileSystemType.S3);
   }
 
   @Test
@@ -213,7 +212,7 @@ class S3PathCleanerTest {
     assertThat(amazonS3.doesObjectExist(bucket, partition1Sentinel)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, parentSentinelFile)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, tableSentinelFile)).isFalse();
-    verify(bytesDeletedReporter).report(content.getBytes().length * 2, fullyQualifiedTableName, FileSystemType.S3);
+    verify(bytesDeletedReporter).reportTaggable(content.getBytes().length * 2, housekeepingPath, FileSystemType.S3);
   }
 
   @Test
@@ -373,7 +372,7 @@ class S3PathCleanerTest {
 
     assertThatExceptionOfType(BeekeeperException.class)
       .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
-    verify(bytesDeletedReporter).report(bytes, databaseName + "." + tableName, FileSystemType.S3);
+    verify(bytesDeletedReporter).reportTaggable(bytes, housekeepingPath, FileSystemType.S3);
   }
 
   @Test

@@ -18,7 +18,9 @@ package com.expediagroup.beekeeper.core.model;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-public interface HousekeepingPath {
+import com.expediagroup.beekeeper.core.monitoring.Taggable;
+
+public interface HousekeepingPath extends Taggable {
 
   Long getId();
 

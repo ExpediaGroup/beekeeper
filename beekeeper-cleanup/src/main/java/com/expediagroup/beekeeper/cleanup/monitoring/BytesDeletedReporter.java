@@ -23,9 +23,10 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
-import io.micrometer.core.instrument.search.Search;
 
 import com.expediagroup.beekeeper.core.config.FileSystemType;
+import com.expediagroup.beekeeper.core.monitoring.MetricTag;
+import com.expediagroup.beekeeper.core.monitoring.Taggable;
 
 @Service
 public class BytesDeletedReporter {
@@ -43,18 +44,18 @@ public class BytesDeletedReporter {
     this.metricName = dryRunEnabled ? DRY_RUN_METRIC_NAME : METRIC_NAME;
   }
 
-  public void report(long bytesDeleted, String fullyQualifiedTableName, FileSystemType fileSystemType) {
+  public void reportTaggable(long bytesDeleted, Taggable taggable, FileSystemType fileSystemType) {
     String fileSystemMetricName = String.join("-", fileSystemType.toString()
       .toLowerCase(), metricName);
     Counter counter = Counter
         .builder(fileSystemMetricName)
         .baseUnit("bytes")
-        .tags(tags(fullyQualifiedTableName))
+        .tags(tags(taggable.getMetricTag()))
         .register(meterRegistry);
     counter.increment(bytesDeleted);
   }
 
-  private Iterable<Tag> tags(String fullyQualifiedTableName) {
-    return Tags.of("table", fullyQualifiedTableName);
+  private Iterable<Tag> tags(MetricTag metricTag) {
+    return Tags.of(metricTag.getKey(), metricTag.getTag());
   }
 }

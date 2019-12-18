@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.cleanup.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter.DRY_RUN_METRIC_NAME;
 import static com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter.METRIC_NAME;
@@ -23,6 +24,8 @@ import static com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -37,6 +40,8 @@ import io.micrometer.core.instrument.search.RequiredSearch;
 
 import com.expediagroup.beekeeper.cleanup.TestApplication;
 import com.expediagroup.beekeeper.core.config.FileSystemType;
+import com.expediagroup.beekeeper.core.monitoring.MetricTag;
+import com.expediagroup.beekeeper.core.monitoring.Taggable;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -50,18 +55,20 @@ public class BytesDeletedReporterTest {
 
   @Autowired
   private MeterRegistry meterRegistry;
-
+  @Mock
+  private Taggable taggable;
   private BytesDeletedReporter bytesDeletedReporter;
 
   @BeforeEach
   public void init() {
+    when(taggable.getMetricTag()).thenReturn(new MetricTag("table", "database.table"));
     bytesDeletedReporter = new BytesDeletedReporter(meterRegistry, false);
   }
 
   @Test
   public void typical() {
-    bytesDeletedReporter.report(BYTES_DELETED, TABLE, FileSystemType.S3);
-    bytesDeletedReporter.report(BYTES_DELETED, TABLE, FileSystemType.S3);
+    bytesDeletedReporter.reportTaggable(BYTES_DELETED, taggable, FileSystemType.S3);
+    bytesDeletedReporter.reportTaggable(BYTES_DELETED, taggable, FileSystemType.S3);
     Counter counter = RequiredSearch.in(meterRegistry)
       .name("s3-" + METRIC_NAME)
       .tags("table", TABLE)
@@ -76,7 +83,7 @@ public class BytesDeletedReporterTest {
   @Test
   public void typicalDryRun() {
     bytesDeletedReporter = new BytesDeletedReporter(meterRegistry, true);
-    bytesDeletedReporter.report(BYTES_DELETED, TABLE, FileSystemType.S3);
+    bytesDeletedReporter.reportTaggable(BYTES_DELETED, taggable, FileSystemType.S3);
     Counter counter = RequiredSearch.in(meterRegistry)
       .name("s3-" + DRY_RUN_METRIC_NAME)
       .tags("table", TABLE)
@@ -90,16 +97,17 @@ public class BytesDeletedReporterTest {
 
   @Test
   public void multipleTablesCreateMultipleCounters() {
-    String table2 = "database.table2";
-    bytesDeletedReporter.report(BYTES_DELETED, TABLE, FileSystemType.S3);
-    bytesDeletedReporter.report(BYTES_DELETED * 2, table2, FileSystemType.S3);
+    Taggable taggable2 = Mockito.mock(Taggable.class);
+    when(taggable2.getMetricTag()).thenReturn(new MetricTag("table", "database2.table2"));
+    bytesDeletedReporter.reportTaggable(BYTES_DELETED, taggable, FileSystemType.S3);
+    bytesDeletedReporter.reportTaggable(BYTES_DELETED * 2, taggable2, FileSystemType.S3);
     Counter counter1 = RequiredSearch.in(meterRegistry)
       .name("s3-" + METRIC_NAME)
       .tags("table", TABLE)
       .counter();
     Counter counter2 = RequiredSearch.in(meterRegistry)
       .name("s3-" + METRIC_NAME)
-      .tags("table", table2)
+      .tags("table", "database2.table2")
       .counter();
     assertThat(counter1).isNotNull();
     assertThat(counter2).isNotNull();
