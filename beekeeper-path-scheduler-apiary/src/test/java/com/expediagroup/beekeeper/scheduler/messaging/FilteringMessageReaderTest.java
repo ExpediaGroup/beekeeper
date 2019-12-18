@@ -67,21 +67,30 @@ public class FilteringMessageReaderTest {
   }
 
   @Test
-  public void typicalReadFilters() {
-    when(messageEvent.getEvent()).thenReturn(alterPartitionEvent);
+  public void readEmptyMessageEvent() {
+    when(delegate.read()).thenReturn(Optional.empty());
+    Optional<MessageEvent> result = filteringMessageReader.read();
+    assertThat(result).isEmpty();
+    verify(delegate, times(0)).delete(any());
+  }
+
+  @Test
+  public void readNullListenerEvent() {
+    when(messageEvent.getEvent()).thenReturn(null);
     when(delegate.read()).thenReturn(Optional.of(messageEvent));
-    when(filter.filter(alterPartitionEvent)).thenReturn(true);
     Optional<MessageEvent> result = filteringMessageReader.read();
     assertThat(result).isEmpty();
     verify(delegate).delete(messageEvent);
   }
 
   @Test
-  public void typicalEmptyRead() {
-    when(delegate.read()).thenReturn(Optional.empty());
+  public void readListenerEventFilter() {
+    when(messageEvent.getEvent()).thenReturn(alterPartitionEvent);
+    when(delegate.read()).thenReturn(Optional.of(messageEvent));
+    when(filter.filter(alterPartitionEvent)).thenReturn(true);
     Optional<MessageEvent> result = filteringMessageReader.read();
     assertThat(result).isEmpty();
-    verify(delegate, times(0)).delete(any());
+    verify(delegate).delete(messageEvent);
   }
 
   @Test
