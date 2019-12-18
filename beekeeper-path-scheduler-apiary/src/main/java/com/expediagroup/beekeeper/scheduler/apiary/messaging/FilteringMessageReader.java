@@ -53,12 +53,8 @@ public class FilteringMessageReader implements MessageReader {
     if (listenerEvent == null) {
       return true;
     }
-    boolean isFiltered = filters.stream()
+    return filters.stream()
         .anyMatch(filter -> filter.filter(listenerEvent));
-    if (isFiltered) {
-      return true;
-    }
-    return false;
   }
 
   @Override
