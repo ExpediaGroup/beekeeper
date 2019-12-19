@@ -62,7 +62,7 @@ public class CommonBeans {
 
   @Bean(name = "filteringMessageReader")
   MessageReader filteringMessageReader(@Qualifier("retryingMessageReader") MessageReader messageReader,
-    TableParameterListenerEventFilter tableParameterFilter, EventTypeListenerEventFilter eventTypeFilter,
+    TableParameterListenerEventFilter tableParameterFilter, EventTypeTableListenerEventFilter eventTypeFilter,
     MetadataOnlyListenerEventFilter metadataOnlyListenerEventFilter,
     WhitelistedListenerEventFilter whitelistedListenerEventFilter) {
     List<ListenerEventFilter> filters = List.of(eventTypeFilter, tableParameterFilter,

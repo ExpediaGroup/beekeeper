@@ -15,23 +15,23 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
+import java.util.Map;
+
 import org.springframework.stereotype.Component;
 
-import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
-import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
-import com.expedia.apiary.extensions.receiver.common.event.DropPartitionEvent;
-import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
 @Component
-public class EventTypeListenerEventFilter implements ListenerEventFilter {
+public class TableParameterListenerEventFilter implements ListenerEventFilter {
+
+  private static final String BEEKEEPER_TABLE_PARAMETER = "beekeeper.remove.unreferenced.data";
 
   @Override
   public boolean filter(ListenerEvent listenerEvent) {
-    Class<? extends ListenerEvent> eventClass = listenerEvent.getEventType().eventClass();
-    return !(AlterPartitionEvent.class.equals(eventClass) ||
-        AlterTableEvent.class.equals(eventClass) ||
-        DropPartitionEvent.class.equals(eventClass) ||
-        DropTableEvent.class.equals(eventClass));
+    Map<String, String> tableParameters = listenerEvent.getTableParameters();
+    if (tableParameters == null) {
+      return true;
+    }
+    return !Boolean.valueOf(tableParameters.get(BEEKEEPER_TABLE_PARAMETER));
   }
 }
