@@ -17,8 +17,9 @@ package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
-import com.expediagroup.beekeeper.core.model.CleanupType;
 import org.springframework.stereotype.Component;
+import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
 
 import java.util.Map;
 
@@ -36,8 +37,8 @@ public class EventTypeTableListenerEventFilter implements ListenerEventFilter {
       return true;
     }
 
-    Boolean isUnreferenced = CleanupType.UNREFERENCED.getBoolean(tableParameters);
-    Boolean isExpired = CleanupType.EXPIRED.getBoolean(tableParameters);
+    Boolean isUnreferenced = UNREFERENCED.getBoolean(tableParameters);
+    Boolean isExpired = EXPIRED.getBoolean(tableParameters);
 
     EventType eventType = listenerEvent.getEventType();
     switch (eventType) {

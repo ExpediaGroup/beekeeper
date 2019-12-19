@@ -50,7 +50,6 @@ public enum ApiaryLifeCycleEvent {
             }
 
             if (isExpired) {
-
                 eventPaths.add(new EventModel(EXPIRED, alterTableEvent.getTableLocation()));
             }
 
@@ -62,7 +61,7 @@ public enum ApiaryLifeCycleEvent {
         @Override public ArrayList<EventModel> gatherEventPaths(ListenerEvent event, Boolean isUnreferenced, Boolean isExpired) {
             ArrayList<EventModel> eventPaths = new ArrayList<>();
             CreateTableEvent createTableEvent = (CreateTableEvent) event;
-            eventPaths.add(new EventModel(UNREFERENCED, createTableEvent.getTableLocation()));
+            eventPaths.add(new EventModel(EXPIRED, createTableEvent.getTableLocation()));
             return eventPaths;
         }
     },

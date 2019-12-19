@@ -31,9 +31,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.expediagroup.beekeeper.core.model.CleanupType;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PathStatus;
+
+import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
+import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFERENCED;
 
 public class MySqlTestUtils {
 
@@ -62,7 +64,7 @@ public class MySqlTestUtils {
 
   public void insertPath(String path, String table) throws SQLException {
     // TODO: for now, we'll just keep testing unreferenced paths only
-    String cleanupType = CleanupType.UNREFERENCED.toString().toLowerCase();
+    String cleanupType = UNREFERENCED.toString().toLowerCase();
 
     String fields = String.join(", ", PATH, PATH_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME, CLEANUP_TYPE);
     String values = Stream.of(path, PathStatus.SCHEDULED.toString(), "PT1S", Timestamp.valueOf(LocalDateTime.now(UTC)
@@ -76,11 +78,11 @@ public class MySqlTestUtils {
   }
 
   public int unreferencedRowsInTable(String table) throws SQLException {
-    return rowsInTable(table, CleanupType.UNREFERENCED.toString());
+    return rowsInTable(table, UNREFERENCED.toString());
   }
 
   public int expiredRowsInTable(String table) throws SQLException {
-    return rowsInTable(table, CleanupType.EXPIRED.toString());
+    return rowsInTable(table, EXPIRED.toString());
   }
 
   private int rowsInTable(String table, String cleanupType) throws SQLException {
@@ -101,11 +103,11 @@ public class MySqlTestUtils {
   }
 
   public List<EntityHousekeepingPath> getUnreferencedPaths() throws SQLException {
-    return getPaths(CleanupType.UNREFERENCED.toString());
+    return getPaths(UNREFERENCED.toString());
   }
 
   public List<EntityHousekeepingPath> getExpiredPaths() throws SQLException {
-    return getPaths(CleanupType.EXPIRED.toString());
+    return getPaths(EXPIRED.toString());
   }
 
   private List<EntityHousekeepingPath> getPaths(String cleanupType) throws SQLException {

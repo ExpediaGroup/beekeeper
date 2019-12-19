@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.expediagroup.beekeeper.core.model.CleanupType;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvents;
@@ -45,8 +44,10 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.PathEventReader;
-import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvents;
 import com.expediagroup.beekeeper.scheduler.apiary.service.PathSchedulerApiary;
+
+import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
 
 @ExtendWith(MockitoExtension.class)
 public class PathSchedulerApiaryTest {
@@ -76,7 +77,7 @@ public class PathSchedulerApiaryTest {
 
   @Test
   public void typicalSchedule() {
-    when(path.getCleanupType()).thenReturn(CleanupType.UNREFERENCED.toString());
+    when(path.getCleanupType()).thenReturn(UNREFERENCED.toString());
     Optional<PathEvents> event = Optional.of(newPathEvent(path));
     when(pathEventReader.read()).thenReturn(event);
     scheduler.schedulePath();
@@ -96,7 +97,7 @@ public class PathSchedulerApiaryTest {
   @Test
   public void repositorySchedulingThrowsException() {
     when(path.getPath()).thenReturn(PATH);
-    when(path.getCleanupType()).thenReturn(CleanupType.UNREFERENCED.toString());
+    when(path.getCleanupType()).thenReturn(UNREFERENCED.toString());
     Optional<PathEvents> event = Optional.of(newPathEvent(path));
     when(pathEventReader.read()).thenReturn(event);
     doThrow(new BeekeeperException("exception")).when(pathSchedulerService).scheduleForHousekeeping(path);
@@ -118,7 +119,7 @@ public class PathSchedulerApiaryTest {
     when(path.getPath()).thenReturn(PATH);
     when(path.getTableName()).thenReturn(TABLE);
     when(path.getDatabaseName()).thenReturn(DB);
-    when(path.getCleanupType()).thenReturn(CleanupType.EXPIRED.toString());
+    when(path.getCleanupType()).thenReturn(EXPIRED.toString());
     Optional<PathEvents> event = Optional.of(newPathEvent(path));
     when(pathEventReader.read()).thenReturn(event);
     doThrow(new BeekeeperException("exception")).when(housekeepingPathRepository).cleanupOldExpiredRows(anyString(),anyString());

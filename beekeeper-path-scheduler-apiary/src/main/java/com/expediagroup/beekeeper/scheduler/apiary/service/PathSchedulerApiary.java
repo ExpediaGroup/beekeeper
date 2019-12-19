@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-import com.expediagroup.beekeeper.core.model.CleanupType;
+import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,7 +53,7 @@ public class PathSchedulerApiary {
       List<HousekeepingPath> paths = pathEvent.getHousekeepingPaths();
 
       for (HousekeepingPath path : paths) {
-        if ( path.getCleanupType().equalsIgnoreCase(CleanupType.EXPIRED.toString()) ) {
+        if ( path.getCleanupType().equalsIgnoreCase(EXPIRED.toString()) ) {
           try {
             housekeepingPathRepository.cleanupOldExpiredRows(path.getDatabaseName(), path.getTableName());
           } catch (Exception e) {

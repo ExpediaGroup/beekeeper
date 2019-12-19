@@ -16,7 +16,8 @@
 package com.expediagroup.beekeeper.scheduler.filter;
 
 import com.expedia.apiary.extensions.receiver.common.event.*;
-import com.expediagroup.beekeeper.core.model.CleanupType;
+import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeTableListenerEventFilter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,8 +50,8 @@ public class EventTypeTableListenerEventFilterTest {
 
   private Map<String, String> getTableParameters(String isUnreferenced, String isExpired) {
     return Map.of(
-            CleanupType.UNREFERENCED.tableParameterName(),isUnreferenced,
-            CleanupType.EXPIRED.tableParameterName(),isExpired);
+            UNREFERENCED.getTableParameterName(),isUnreferenced,
+            EXPIRED.getTableParameterName(),isExpired);
   }
 
   // create table permutations

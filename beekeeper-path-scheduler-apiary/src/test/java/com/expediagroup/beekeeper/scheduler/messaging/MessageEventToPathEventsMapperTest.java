@@ -15,8 +15,8 @@
  */
 package com.expediagroup.beekeeper.scheduler.messaging;
 
-import static com.expediagroup.beekeeper.core.model.CleanupType.EXPIRED;
-import static com.expediagroup.beekeeper.core.model.CleanupType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
+import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFERENCED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -24,8 +24,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import com.expediagroup.beekeeper.core.model.CleanupType;
-import com.expediagroup.beekeeper.core.model.LifeCycle;
+import com.expediagroup.beekeeper.core.model.LifeCycleEventType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -158,11 +157,11 @@ public class MessageEventToPathEventsMapperTest {
   /**
    * Tests that the default deletion delay should be used if the table parameter is configured incorrectly
    * Flow: If parsing the Durati on throws a DateTimeParseException, return the default duration.
-   * @see com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToPathEventMapper#extractCleanupDelay(ListenerEvent listenerEvent, LifeCycle.EventType eventType)
+   * @see com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToPathEventMapper#extractCleanupDelay(ListenerEvent listenerEvent, LifeCycleEventType eventType)
    */
   @Test public void mapDefaultDelayOnDurationException() {
     Map<String,String> tableParams = new HashMap<>();
-    tableParams.put(UNREFERENCED.tableParameterName(), "true");
+    tableParams.put(UNREFERENCED.getTableParameterName(), "true");
     tableParams.put(CLEANUP_UNREFERENCED_DELAY_PROPERTY, "");
     when(alterPartitionEvent.getTableParameters()).thenReturn(tableParams);
     when(alterPartitionEvent.getDbName()).thenReturn(DATABASE);
@@ -187,7 +186,7 @@ public class MessageEventToPathEventsMapperTest {
   private void assertPath(MessageEvent messageEvent,
                           Optional<PathEvents> pathEventsOptional,
                           String cleanupDelay,
-                          CleanupType cleanupType,
+                          LifeCycleEventType cleanupType,
                           String pathToCleanup,
                           int index) {
     PathEvents pathEvents = pathEventsOptional.get();
@@ -236,8 +235,8 @@ public class MessageEventToPathEventsMapperTest {
   private void setupMocks(ListenerEvent event, Boolean isUnreferenced, Boolean isExpired, Boolean delaysDefined ) {
     Map<String,String> tableParams = new HashMap<>();
 
-    tableParams.put(UNREFERENCED.tableParameterName(),isUnreferenced.toString().toLowerCase());
-    tableParams.put(EXPIRED.tableParameterName(),isExpired.toString().toLowerCase());
+    tableParams.put(UNREFERENCED.getTableParameterName(),isUnreferenced.toString().toLowerCase());
+    tableParams.put(EXPIRED.getTableParameterName(),isExpired.toString().toLowerCase());
 
     if ( delaysDefined ) {
       tableParams.put(CLEANUP_UNREFERENCED_DELAY_PROPERTY, CLEANUP_UNREFERENCED_DELAY);
