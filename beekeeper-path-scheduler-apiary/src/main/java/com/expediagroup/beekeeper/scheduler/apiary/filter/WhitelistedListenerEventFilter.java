@@ -32,13 +32,9 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
 
   @Override
   public boolean filter(ListenerEvent listenerEvent) {
-    Class<? extends ListenerEvent> eventClass = listenerEvent.getEventType().eventClass();
-    if (AlterPartitionEvent.class.equals(eventClass) || AlterTableEvent.class.equals(eventClass)) {
-      return false;
-    }
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
     if (tableParameters == null) {
-      return true;
+      return false;
     }
     return !isWhitelisted(listenerEvent.getEventType(), tableParameters);
   }
@@ -46,7 +42,7 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
   private boolean isWhitelisted(EventType eventType, Map<String, String> tableParameters) {
     String whitelist = tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST);
     if (whitelist == null) {
-      return false;
+      return true;
     }
     return Arrays.stream(whitelist.split(","))
       .map(String::trim)

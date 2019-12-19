@@ -47,7 +47,7 @@ Beekeeper only actions on events which are marked with a specific parameter. Thi
 |:----|:----:|:----:|:----|
 | `beekeeper.remove.unreferenced.data=true`   | Yes |  `true` or `false`       | Set this parameter to ensure Beekeeper monitors your table for orphaned data. |
 | `beekeeper.unreferenced.data.retention.period=X` | No | e.g. `P7D` or `PT3H` (based on [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601)) | Set this parameter to control the delay between schedule and deletion by Beekeeper. If this is either not set, or configured incorrectly, the default will be used. Default is 3 days. |
-| `beekeeper.hive.event.whitelist=X` | No | Comma separated list of event types to whitelist. For example, `beekeeper.hive.event.whitelist=drop_table,drop_partition`.  | Beekeeper will always process `alter_partition` and `alter_table` events. Add other event types to this list to ensure Beekeeper does not ignore them. |
+| `beekeeper.hive.event.whitelist=X` | No | Comma separated list of event types to whitelist. For example, `beekeeper.hive.event.whitelist=alter_partition,alter_table,drop_table`. | Beekeeper will process `alter_partition` and `alter_table` events by default. However, when this parameter is used, the default behaviour will be overridden and this list will contain all events that Beekeeper can process. |
 
 This command can be used to add a parameter to a Hive Table:
 
