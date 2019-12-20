@@ -20,8 +20,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
-import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
+import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
 @Component
@@ -46,9 +45,8 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
   }
 
   private boolean isDefaultBehaviour(ListenerEvent listenerEvent) {
-    Class<? extends ListenerEvent> eventClass = listenerEvent.getEventType()
-      .eventClass();
-    if (AlterPartitionEvent.class.equals(eventClass) || AlterTableEvent.class.equals(eventClass)) {
+    EventType eventType = listenerEvent.getEventType();
+    if (eventType == EventType.ALTER_PARTITION || eventType == EventType.ALTER_TABLE) {
       return true;
     }
     return false;
