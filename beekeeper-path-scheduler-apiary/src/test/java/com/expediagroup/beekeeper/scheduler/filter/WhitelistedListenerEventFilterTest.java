@@ -24,6 +24,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -42,6 +43,27 @@ public class WhitelistedListenerEventFilterTest {
   private ListenerEvent listenerEvent;
 
   private WhitelistedListenerEventFilter listenerEventFilter = new WhitelistedListenerEventFilter();
+
+  @ParameterizedTest
+  @EnumSource(value = EventType.class, names = { "ALTER_PARTITION",
+                                                 "ALTER_TABLE" })
+  public void filterDefaultEvents(EventType eventType) {
+    when(listenerEvent.getEventType()).thenReturn(eventType);
+    boolean filter = listenerEventFilter.filter(listenerEvent);
+    assertThat(filter).isFalse();
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = EventType.class, names = { "CREATE_TABLE",
+                                                 "ADD_PARTITION",
+                                                 "INSERT",
+                                                 "DROP_PARTITION",
+                                                 "DROP_TABLE", })
+  public void filterNonDefaultEvents(EventType eventType) {
+    when(listenerEvent.getEventType()).thenReturn(eventType);
+    boolean filter = listenerEventFilter.filter(listenerEvent);
+    assertThat(filter).isTrue();
+  }
 
   @ParameterizedTest
   @ValueSource(strings = { "drop_table",
@@ -109,5 +131,4 @@ public class WhitelistedListenerEventFilterTest {
     boolean filter = listenerEventFilter.filter(listenerEvent);
     assertThat(filter).isTrue();
   }
-
 }
