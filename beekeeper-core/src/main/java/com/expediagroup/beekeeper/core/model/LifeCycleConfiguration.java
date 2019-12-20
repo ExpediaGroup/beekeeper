@@ -17,7 +17,6 @@ public class LifeCycleConfiguration {
     public String getHivePropertyKey() { return this.hivePropertyKey; };
     public String getDefaultDeletionDelay() { return this.defaultDeletionDelay; };
 
-
     public Boolean getBoolean(Map<String,String> tableParameters) {
         return Boolean.valueOf(tableParameters.get(this.type.getTableParameterName()));
     }

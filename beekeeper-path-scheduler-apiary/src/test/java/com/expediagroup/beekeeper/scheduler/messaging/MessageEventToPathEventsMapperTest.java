@@ -201,7 +201,7 @@ public class MessageEventToPathEventsMapperTest {
     assertThat(path.getDatabaseName()).isEqualTo(DATABASE);
     assertThat(path.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS);
     assertThat(path.getCleanupDelay()).isEqualTo(Duration.parse(cleanupDelay));
-    assertThat(path.getCleanupType()).isEqualToIgnoringCase(cleanupType.toString());
+    assertThat(path.getLifecycleType()).isEqualToIgnoringCase(cleanupType.toString());
     assertThat(path.getModifiedTimestamp()).isNull();
     assertThat(path.getCreationTimestamp()).isBetween(CREATION_TIMESTAMP, now);
     assertThat(path.getCleanupTimestamp()).isEqualTo(path.getCreationTimestamp().plus(Duration.parse(cleanupDelay)));

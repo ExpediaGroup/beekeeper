@@ -487,14 +487,14 @@ class BeekeeperPathSchedulerApiaryIntegrationTest {
   }
 
   private void assertExpiredPathFields(EntityHousekeepingPath savedPath) {
-    assertThat(savedPath.getCleanupType()).isEqualTo(EXPIRED.toString());
+    assertThat(savedPath.getLifecycleType()).isEqualTo(EXPIRED.toString());
     assertThat(savedPath.getCleanupDelay()).isEqualTo(java.time.Duration.parse(CLEANUP_DELAY_EXPIRED));
     assertPathFields(savedPath);
     assertMetrics();
   }
 
   private void assertUnreferencedPathFields(EntityHousekeepingPath savedPath) {
-    assertThat(savedPath.getCleanupType()).isEqualTo(UNREFERENCED.toString());
+    assertThat(savedPath.getLifecycleType()).isEqualTo(UNREFERENCED.toString());
     assertThat(savedPath.getCleanupDelay()).isEqualTo(java.time.Duration.parse(CLEANUP_DELAY_UNREFERENCED));
     assertPathFields(savedPath);
     assertMetrics();

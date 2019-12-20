@@ -19,6 +19,6 @@ import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 public interface PathCleaner {
 
-  void cleanupPath(HousekeepingPath housekeepingPath);
+  public boolean cleanupPath(HousekeepingPath housekeepingPath);
 
 }

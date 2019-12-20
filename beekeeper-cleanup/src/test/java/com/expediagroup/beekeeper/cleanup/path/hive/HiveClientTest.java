@@ -24,14 +24,6 @@ public class HiveClientTest {
 //    public @Rule ThriftHiveMetaStoreJUnitRule replicaCatalog = new ThriftHiveMetaStoreJUnitRule(DATABASE);
 //    public @Rule ServerSocketRule serverSocketRule = new ServerSocketRule();
 
-    @RegisterExtension
-    public HiveMetaStoreJUnitExtension hive = new HiveMetaStoreJUnitExtension("foo_db");
 
-    @Test
-    public void example() throws Exception {
-        HiveClient classUnderTest = new HiveClient(hive.client(), false);
-        List<String> dbs = classUnderTest.getAllDatabases();
-        assertEquals(2, dbs.size());
-    }
 
 }

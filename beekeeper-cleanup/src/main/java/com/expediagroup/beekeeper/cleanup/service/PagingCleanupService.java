@@ -20,8 +20,10 @@ import static java.lang.String.format;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.EnumMap;
 import java.util.List;
 
+import com.expediagroup.beekeeper.core.model.LifeCycleEventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -40,14 +42,18 @@ public class PagingCleanupService implements CleanupService {
 
   private final Logger log = LoggerFactory.getLogger(PagingCleanupService.class);
   private final HousekeepingPathRepository housekeepingPathRepository;
-  private final PathCleaner pathCleaner;
+  private final EnumMap<LifeCycleEventType,PathCleaner> pathCleanerMap;
   private final boolean dryRunEnabled;
   private final int pageSize;
 
-  public PagingCleanupService(HousekeepingPathRepository housekeepingPathRepository, PathCleaner pathCleaner,
-      int pageSize, boolean dryRunEnabled) {
+  public PagingCleanupService(
+          HousekeepingPathRepository housekeepingPathRepository,
+          EnumMap<LifeCycleEventType, PathCleaner> pathCleanerMap,
+          int pageSize,
+          boolean dryRunEnabled
+  ) {
     this.housekeepingPathRepository = housekeepingPathRepository;
-    this.pathCleaner = pathCleaner;
+    this.pathCleanerMap = pathCleanerMap;
     this.pageSize = pageSize;
     this.dryRunEnabled = dryRunEnabled;
   }
@@ -76,7 +82,7 @@ public class PagingCleanupService implements CleanupService {
 
   private void processPage(List<EntityHousekeepingPath> pageContent) {
     if (dryRunEnabled) {
-      pageContent.forEach(pathCleaner::cleanupPath);
+//      pageContent.forEach(pathCleaner::cleanupPath);
     } else {
       pageContent.forEach(this::cleanupContent);
     }
@@ -84,9 +90,16 @@ public class PagingCleanupService implements CleanupService {
 
   private void cleanupContent(EntityHousekeepingPath housekeepingPath) {
     try {
-      log.info("Cleaning up path \"{}\"", housekeepingPath.getPath());
-      pathCleaner.cleanupPath(housekeepingPath);
-      updateAttemptsAndStatus(housekeepingPath, PathStatus.DELETED);
+      LifeCycleEventType lifecycleType = LifeCycleEventType.valueOf(housekeepingPath.getLifecycleType());
+      PathCleaner pathCleaner = pathCleanerMap.get(lifecycleType);
+      log.info("Cleaning up path \"{}\" using \"{}\"", housekeepingPath.getPath(), pathCleaner.toString());
+
+      if (pathCleaner.cleanupPath(housekeepingPath)) {
+        log.info("Successfully deleted \"{}\" path.", housekeepingPath.getPath());
+        updateAttemptsAndStatus(housekeepingPath, PathStatus.DELETED);
+      } else {
+        log.info("Skip deletion of path \"{}\" path", housekeepingPath.getPath());
+      }
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingPath, PathStatus.FAILED);
       log.warn("Unexpected exception deleting \"{}\"", housekeepingPath.getPath(), e);

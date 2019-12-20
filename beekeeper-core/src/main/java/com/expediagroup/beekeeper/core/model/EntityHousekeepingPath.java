@@ -72,8 +72,8 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
   @Column(name = "cleanup_attempts", nullable = false)
   private int cleanupAttempts;
 
-  @Column(name = "cleanup_type", nullable = false)
-  private String cleanupType;
+  @Column(name = "lifecycle_type", nullable = false)
+  private String lifecycleType;
 
   @Column(name = "client_id")
   private String clientId;
@@ -84,7 +84,7 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
 
   private EntityHousekeepingPath(Long id, String path, String databaseName, String tableName,
       PathStatus pathStatus, LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,
-      LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts, String cleanupType,
+      LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts, String lifecycleType,
       String clientId) {
     this.id = id;
     this.path = path;
@@ -96,7 +96,7 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
     this.cleanupTimestamp = cleanupTimestamp;
     this.cleanupDelay = cleanupDelay;
     this.cleanupAttempts = cleanupAttempts;
-    this.cleanupType = cleanupType;
+    this.lifecycleType = lifecycleType;
     this.clientId = clientId;
   }
 
@@ -186,13 +186,13 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
   }
 
   @Override
-  public String getCleanupType() {
-    return cleanupType;
+  public String getLifecycleType() {
+    return lifecycleType;
   }
 
   @Override
-  public void setCleanupType(String cleanupType) {
-    this.cleanupType = cleanupType;
+  public void setLifecycleType(String lifecycleType) {
+    this.lifecycleType = lifecycleType;
   }
 
   @Override

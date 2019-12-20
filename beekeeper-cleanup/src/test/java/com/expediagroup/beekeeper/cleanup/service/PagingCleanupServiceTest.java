@@ -26,8 +26,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.EnumMap;
 import java.util.List;
 
+import com.expediagroup.beekeeper.core.model.LifeCycleEventType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,7 +78,9 @@ class PagingCleanupServiceTest {
     entityPath1 = createEntityHousekeepingPath(path1);
     entityPath2 = createEntityHousekeepingPath(path2);
     entityPath3 = createEntityHousekeepingPath(path3);
-    pagingCleanupService = new PagingCleanupService(housekeepingPathRepository, pathCleaner, 2, false);
+    EnumMap<LifeCycleEventType, PathCleaner> pcm = new EnumMap<>(LifeCycleEventType.class);
+    pcm.put(LifeCycleEventType.UNREFERENCED, pathCleaner);
+    pagingCleanupService = new PagingCleanupService(housekeepingPathRepository, pcm, 2, false);
   }
 
   @Test
@@ -188,7 +192,9 @@ class PagingCleanupServiceTest {
 
   @Test
   void typicalDryRunWithPaging() {
-    pagingCleanupService = new PagingCleanupService(housekeepingPathRepository, pathCleaner, 2, true);
+    EnumMap<LifeCycleEventType, PathCleaner> pcm = new EnumMap<>(LifeCycleEventType.class);
+    pcm.put(LifeCycleEventType.UNREFERENCED, pathCleaner);
+    pagingCleanupService = new PagingCleanupService(housekeepingPathRepository, pcm, 2, true);
     housekeepingPathRepository.save(entityPath1);
     housekeepingPathRepository.save(entityPath2);
     housekeepingPathRepository.save(entityPath3);

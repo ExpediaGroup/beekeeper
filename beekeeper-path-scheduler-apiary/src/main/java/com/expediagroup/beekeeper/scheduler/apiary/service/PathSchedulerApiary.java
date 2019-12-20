@@ -53,7 +53,7 @@ public class PathSchedulerApiary {
       List<HousekeepingPath> paths = pathEvent.getHousekeepingPaths();
 
       for (HousekeepingPath path : paths) {
-        if ( path.getCleanupType().equalsIgnoreCase(EXPIRED.toString()) ) {
+        if ( path.getLifecycleType().equalsIgnoreCase(EXPIRED.toString()) ) {
           try {
             housekeepingPathRepository.cleanupOldExpiredRows(path.getDatabaseName(), path.getTableName());
           } catch (Exception e) {

@@ -15,6 +15,13 @@
  */
 package com.expediagroup.beekeeper.cleanup.context;
 
+import com.expediagroup.beekeeper.cleanup.path.hive.HiveClient;
+import com.expediagroup.beekeeper.cleanup.path.hive.HivePathCleaner;
+import com.expediagroup.beekeeper.core.model.LifeCycleEventType;
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.HiveMetaException;
+import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +45,8 @@ import com.expediagroup.beekeeper.cleanup.path.aws.S3SentinelFilesCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.PagingCleanupService;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
+
+import java.util.EnumMap;
 
 @Configuration
 @EnableScheduling
@@ -76,14 +85,43 @@ public class CommonBeans {
   }
 
   @Bean
-  public PathCleaner pathCleaner(S3Client s3Client, S3BytesDeletedReporter s3BytesDeletedReporter) {
+  public S3PathCleaner s3PathCleaner(S3Client s3Client, S3BytesDeletedReporter s3BytesDeletedReporter) {
     return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), s3BytesDeletedReporter);
   }
 
   @Bean
-  public CleanupService cleanupService(HousekeepingPathRepository repository, PathCleaner pathCleaner,
-      @Value("${properties.cleanup-page-size}") int pageSize,
-      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new PagingCleanupService(repository, pathCleaner, pageSize, dryRunEnabled);
+  public HiveClient hiveClient(
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled
+  ) throws MetaException {
+    HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(new HiveConf());
+    return new HiveClient(hiveMetaStoreClient, dryRunEnabled);
+  }
+
+  @Bean
+  public HivePathCleaner hivePathCleaner(
+      HiveClient hiveClient
+  ) {
+    return new HivePathCleaner(hiveClient);
+  }
+
+  @Bean
+  public EnumMap<LifeCycleEventType, PathCleaner> pathCleanerMap(
+      S3PathCleaner s3PathCleaner,
+      HivePathCleaner hivePathCleaner
+  ) {
+    EnumMap<LifeCycleEventType, PathCleaner> pcMap = new EnumMap<>(LifeCycleEventType.class);
+    pcMap.put(LifeCycleEventType.UNREFERENCED, s3PathCleaner);
+    pcMap.put(LifeCycleEventType.EXPIRED, hivePathCleaner);
+    return pcMap;
+  }
+
+  @Bean
+  public CleanupService cleanupService(
+       HousekeepingPathRepository repository,
+       EnumMap<LifeCycleEventType, PathCleaner> pathCleanerMap,
+       @Value("${properties.cleanup-page-size}") int pageSize,
+       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled
+  ) {
+    return new PagingCleanupService(repository, pathCleanerMap, pageSize, dryRunEnabled);
   }
 }

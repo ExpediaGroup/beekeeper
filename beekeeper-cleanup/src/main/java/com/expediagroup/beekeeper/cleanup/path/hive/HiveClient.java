@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 
-import java.util.List;
 
 public class HiveClient {
 
@@ -18,8 +17,12 @@ public class HiveClient {
         this.dryRunEnabled = dryRunEnabled;
     }
 
-    public List<String> getAllDatabases() throws MetaException {
-        return this.metaStoreClient.getAllDatabases();
+
+    public boolean dropTable(String databaseName, String tableName) {
+        throw new UnsupportedOperationException("dropTable is unimplemented");
     }
 
+    public boolean dropPartition(String databaseName, String tableName, String partitionName) {
+        throw new UnsupportedOperationException("dropPartition is unimplemented");
+    }
 }

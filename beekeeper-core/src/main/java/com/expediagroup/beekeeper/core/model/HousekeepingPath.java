@@ -58,9 +58,9 @@ public interface HousekeepingPath {
 
   void setCleanupAttempts(int cleanupAttempts);
 
-  String getCleanupType();
+  String getLifecycleType();
 
-  void setCleanupType(String cleanupType);
+  void setLifecycleType(String lifecycleType);
 
   String getClientId();
 

@@ -1,42 +1,68 @@
 package com.expediagroup.beekeeper.cleanup.path.hive;
 
 
-import com.hotels.beeju.extensions.HiveMetaStoreJUnitExtension;
-import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
-import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.engine.Constants;
 
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
 public class HivePathCleanerTest {
 
-    private static final String TARGET_UNPARTITIONED_TABLE = "ct_table_u_copy";
-    private static final String TARGET_PARTITIONED_TABLE = "ct_table_p_copy";
-    private static final String TARGET_UNPARTITIONED_MANAGED_TABLE = "ct_table_u_managed_copy";
-    private static final String TARGET_PARTITIONED_MANAGED_TABLE = "ct_table_p_managed_copy";
-    private static final String TARGET_PARTITIONED_VIEW = "ct_view_p_copy";
-    private static final String TARGET_UNPARTITIONED_VIEW = "ct_view_u_copy";
+    private static final String HMS_DB = "foo_db";
+    private static final String HMS_TABLE = "foobar";
 
-//    public @Rule ExpectedSystemExit exit = ExpectedSystemExit.none();
-//    public @Rule TemporaryFolder temporaryFolder = new TemporaryFolder();
-//    public @Rule DataFolder dataFolder = new ClassDataFolder();
-//    public @Rule ThriftHiveMetaStoreJUnitRule sourceCatalog = new ThriftHiveMetaStoreJUnitRule(DATABASE);
-//    public @Rule ThriftHiveMetaStoreJUnitRule replicaCatalog = new ThriftHiveMetaStoreJUnitRule(DATABASE);
-//    public @Rule ServerSocketRule serverSocketRule = new ServerSocketRule();
+    @Mock public HiveClient hiveClient;
 
-    @RegisterExtension
-    public HiveMetaStoreJUnitExtension hive = new HiveMetaStoreJUnitExtension("foo_db");
-
-    @Test
-    public void example() throws Exception {
-        HiveClient classUnderTest = new HiveClient(hive.client(), false);
-        List<String> dbs = classUnderTest.getAllDatabases();
-        assertEquals(2, dbs.size());
+    @Test public void shouldExpireTableAfterTimeUp() {
+        HivePathCleaner pathCleaner = new HivePathCleaner(hiveClient);
+        EntityHousekeepingPath housekeepingPath = new EntityHousekeepingPath();
+        housekeepingPath.setPath("s3://foo/bar.baz");
+        housekeepingPath.setCleanupTimestamp(LocalDateTime.MIN);
+        housekeepingPath.setDatabaseName(HMS_DB);
+        housekeepingPath.setTableName(HMS_TABLE);
+        when(hiveClient.dropTable(HMS_DB, HMS_TABLE)).thenReturn(true);
+        assertTrue(pathCleaner.cleanupPath(housekeepingPath));
     }
 
+    @Test public void shouldNotExpireTableBeforeTimeUp() {
+        HivePathCleaner pathCleaner = new HivePathCleaner(hiveClient);
+        EntityHousekeepingPath housekeepingPath = new EntityHousekeepingPath();
+        housekeepingPath.setPath("s3://foo/bar.baz");
+        housekeepingPath.setCleanupTimestamp(LocalDateTime.MAX);
+        housekeepingPath.setDatabaseName(HMS_DB);
+        housekeepingPath.setTableName(HMS_TABLE);
+        assertFalse(pathCleaner.cleanupPath(housekeepingPath));
+        verify(hiveClient, never()).dropTable(HMS_DB, HMS_TABLE);
+    }
+
+    @Test public void shouldExpirePartitionAfterTimeUp() {
+        // TODO: Determine what makes a housekeeping path a partition
+        HivePathCleaner pathCleaner = new HivePathCleaner(hiveClient);
+        EntityHousekeepingPath housekeepingPath = new EntityHousekeepingPath();
+        housekeepingPath.setPath("s3://foo/bar.baz");
+        housekeepingPath.setCleanupTimestamp(LocalDateTime.MIN);
+        housekeepingPath.setDatabaseName(HMS_DB);
+        housekeepingPath.setTableName(HMS_TABLE);
+        fail();
+    }
+
+    @Test public void shouldNotPartitionTableBeforeTimeUp() {
+        // TODO: Determine what makes a housekeeping path a partition
+        HivePathCleaner pathCleaner = new HivePathCleaner(hiveClient);
+        EntityHousekeepingPath housekeepingPath = new EntityHousekeepingPath();
+        housekeepingPath.setPath("s3://foo/bar.baz");
+        housekeepingPath.setCleanupTimestamp(LocalDateTime.MAX);
+        housekeepingPath.setDatabaseName(HMS_DB);
+        housekeepingPath.setTableName(HMS_TABLE);
+        fail();
+    }
 }

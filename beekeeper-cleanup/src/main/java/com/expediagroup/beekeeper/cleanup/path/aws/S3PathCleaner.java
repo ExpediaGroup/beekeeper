@@ -49,7 +49,7 @@ public class S3PathCleaner implements PathCleaner {
 
   @Override
   @TimedTaggable("s3-paths-deleted")
-  public void cleanupPath(HousekeepingPath housekeepingPath) {
+  public boolean cleanupPath(HousekeepingPath housekeepingPath) {
     S3SchemeURI s3SchemeURI = extractURI(housekeepingPath.getPath());
     String key = s3SchemeURI.getKey();
     String bucket = s3SchemeURI.getBucket();
@@ -77,8 +77,10 @@ public class S3PathCleaner implements PathCleaner {
         }
       } catch (Exception e) {
         log.warn("Sentinel file(s) could not be deleted", e);
+        return false;
       }
     }
+    return true;
   }
 
   private S3SchemeURI extractURI(String housekeepingPath) {
