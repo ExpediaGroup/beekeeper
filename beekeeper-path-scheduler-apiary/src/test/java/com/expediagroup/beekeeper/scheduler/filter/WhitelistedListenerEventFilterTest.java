@@ -54,10 +54,7 @@ public class WhitelistedListenerEventFilterTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = EventType.class, names = { "CREATE_TABLE",
-                                                 "ADD_PARTITION",
-                                                 "INSERT",
-                                                 "DROP_PARTITION",
+  @EnumSource(value = EventType.class, names = { "DROP_PARTITION",
                                                  "DROP_TABLE", })
   public void filterNonDefaultEvents(EventType eventType) {
     when(listenerEvent.getEventType()).thenReturn(eventType);
