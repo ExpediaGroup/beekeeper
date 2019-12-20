@@ -46,9 +46,6 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
 
   private boolean isDefaultBehaviour(ListenerEvent listenerEvent) {
     EventType eventType = listenerEvent.getEventType();
-    if (eventType == EventType.ALTER_PARTITION || eventType == EventType.ALTER_TABLE) {
-      return true;
-    }
-    return false;
+    return eventType == EventType.ALTER_PARTITION || eventType == EventType.ALTER_TABLE;
   }
 }
