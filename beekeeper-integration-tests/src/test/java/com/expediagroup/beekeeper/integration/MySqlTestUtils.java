@@ -40,12 +40,13 @@ import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFEREN
 public class MySqlTestUtils {
 
   private static final String DROP_TABLE = "DROP TABLE IF EXISTS beekeeper.%s;";
-  private static final String SELECT_TABLE = "SELECT * FROM beekeeper.%s where cleanup_type = '%s' order by path;";
+  private static final String SELECT_TABLE = "SELECT * FROM beekeeper.%s where lifecycle_type = '%s' order by path;";
   private static final String INSERT_PATH = "INSERT INTO beekeeper.path (%s) VALUES (%s);";
 
   private static final String CLEANUP_ATTEMPTS = "cleanup_attempts";
   private static final String CLEANUP_DELAY = "cleanup_delay";
-  private static final String CLEANUP_TYPE = "cleanup_type";
+  private static final String LIFECYCLE_TYPE = "lifecycle_type";
+  private static final String APIARY_EVENT_TYPE = "apiary_event_type";
   private static final String CLEANUP_TIMESTAMP = "cleanup_timestamp";
   private static final String CLIENT_ID = "client_id";
   private static final String CREATION_TIMESTAMP = "creation_timestamp";
@@ -64,12 +65,12 @@ public class MySqlTestUtils {
 
   public void insertPath(String path, String table) throws SQLException {
     // TODO: for now, we'll just keep testing unreferenced paths only
-    String cleanupType = UNREFERENCED.toString().toLowerCase();
+    String lifecycleType = UNREFERENCED.toString().toLowerCase();
 
-    String fields = String.join(", ", PATH, PATH_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME, CLEANUP_TYPE);
+    String fields = String.join(", ", PATH, PATH_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME, LIFECYCLE_TYPE, APIARY_EVENT_TYPE);
     String values = Stream.of(path, PathStatus.SCHEDULED.toString(), "PT1S", Timestamp.valueOf(LocalDateTime.now(UTC)
         .minus(1L, ChronoUnit.DAYS))
-        .toString(), table, cleanupType)
+        .toString(), table, lifecycleType)
         .map(s -> "\"" + s + "\"")
         .collect(Collectors.joining(", "));
 
@@ -134,7 +135,8 @@ public class MySqlTestUtils {
             .toLocalDateTime())
         .cleanupDelay(Duration.parse(resultSet.getString(CLEANUP_DELAY)))
         .clientId(resultSet.getString(CLIENT_ID))
-        .cleanupType(resultSet.getString(CLEANUP_TYPE))
+        .lifeCycleType(resultSet.getString(LIFECYCLE_TYPE))
+        .apiaryEventType(resultSet.getString(APIARY_EVENT_TYPE))
         .build();
     path.setCleanupTimestamp(Timestamp.valueOf(resultSet.getString(CLEANUP_TIMESTAMP))
         .toLocalDateTime());

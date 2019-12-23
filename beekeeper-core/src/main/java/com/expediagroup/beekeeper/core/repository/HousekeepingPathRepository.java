@@ -43,7 +43,7 @@ public interface HousekeepingPathRepository extends JpaRepository<EntityHousekee
   @Query("delete from EntityHousekeepingPath p where "
       + " p.databaseName=:databaseName and "
       + " p.tableName=:tableName and "
-      + " p.cleanupType = 'EXPIRED'")
+      + " p.lifecycleType = 'EXPIRED'")
   void cleanupOldExpiredRows(
           @Param("databaseName") String databaseName,
           @Param("tableName") String tableName);

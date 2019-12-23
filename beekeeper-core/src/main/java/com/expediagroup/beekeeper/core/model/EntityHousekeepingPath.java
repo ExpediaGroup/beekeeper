@@ -75,6 +75,9 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
   @Column(name = "lifecycle_type", nullable = false)
   private String lifecycleType;
 
+  @Column(name = "apiary_event_type", nullable = false)
+  private String apiaryEventType;
+
   @Column(name = "client_id")
   private String clientId;
 
@@ -85,7 +88,7 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
   private EntityHousekeepingPath(Long id, String path, String databaseName, String tableName,
       PathStatus pathStatus, LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,
       LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts, String lifecycleType,
-      String clientId) {
+      String apiaryEventType, String clientId) {
     this.id = id;
     this.path = path;
     this.databaseName = databaseName;
@@ -97,6 +100,7 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
     this.cleanupDelay = cleanupDelay;
     this.cleanupAttempts = cleanupAttempts;
     this.lifecycleType = lifecycleType;
+    this.apiaryEventType = apiaryEventType;
     this.clientId = clientId;
   }
 
@@ -196,6 +200,12 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
   }
 
   @Override
+  public String getApiaryEventType() { return apiaryEventType; }
+
+  @Override
+  public void setApiaryEventType(String apiaryEventType) { this.apiaryEventType = apiaryEventType;  }
+
+  @Override
   public String getClientId() {
     return clientId;
   }
@@ -233,7 +243,8 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
     private LocalDateTime cleanupTimestamp;
     private Duration cleanupDelay;
     private int cleanupAttempts;
-    private String cleanupType;
+    private String lifeCycleType;
+    private String apiaryEventType;
     private String clientId;
 
     public Builder() { }
@@ -283,8 +294,13 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
       return this;
     }
 
-    public Builder cleanupType(String cleanupType) {
-      this.cleanupType = cleanupType;
+    public Builder lifeCycleType(String cleanupType) {
+      this.lifeCycleType = cleanupType;
+      return this;
+    }
+
+    public Builder apiaryEventType(String apiaryEventType) {
+      this.apiaryEventType = apiaryEventType;
       return this;
     }
 
@@ -298,7 +314,7 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
 
       return new EntityHousekeepingPath(id, path, databaseName, tableName, pathStatus,
           creationTimestamp, modifiedTimestamp,
-          cleanupTimestamp, cleanupDelay, cleanupAttempts, cleanupType, clientId);
+          cleanupTimestamp, cleanupDelay, cleanupAttempts, lifeCycleType, apiaryEventType, clientId);
     }
 
     private LocalDateTime configureCleanupTimestamp() {

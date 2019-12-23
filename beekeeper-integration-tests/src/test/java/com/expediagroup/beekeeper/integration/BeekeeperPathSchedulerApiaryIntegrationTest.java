@@ -152,24 +152,6 @@ class BeekeeperPathSchedulerApiaryIntegrationTest {
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.expiredRowsInTable(PATH_TABLE) == 0);
   }
 
-  // TODO: Consider removing this test as it doesn't seem like a feasible case
-  @Test @Ignore
-  void createTableRaceCondition() throws SQLException, IOException {
-    CreateTableSqsMessage createTableSqsMessage = new CreateTableSqsMessage(
-            "s3://expiredTableLocation",true,true);
-    amazonSQS.sendMessage(sendMessageRequest(createTableSqsMessage.getFormattedString()));
-    createTableSqsMessage.setTableLocation("s3://expiredTableLocation2");
-    amazonSQS.sendMessage(sendMessageRequest(createTableSqsMessage.getFormattedString()));
-    createTableSqsMessage.setTableLocation("s3://expiredTableLocation3");
-    amazonSQS.sendMessage(sendMessageRequest(createTableSqsMessage.getFormattedString()));
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.expiredRowsInTable(PATH_TABLE) == 1);
-    List<EntityHousekeepingPath> expiredPaths = mySqlTestUtils.getExpiredPaths();
-
-    // todo: would this ever happen? same table created multiple times in quick succession for race case?
-    assertExpiredPathFields(expiredPaths.get(0));
-    assertThat(expiredPaths.get(0).getPath()).isEqualTo("s3://expiredTableLocation3");
-  }
-
   private Callable<Boolean> createTableRaceConditionLambda(Long equalValue) throws SQLException {
     List<EntityHousekeepingPath> expiredPaths = mySqlTestUtils.getExpiredPaths();
     Long retVal = Long.valueOf(0);
