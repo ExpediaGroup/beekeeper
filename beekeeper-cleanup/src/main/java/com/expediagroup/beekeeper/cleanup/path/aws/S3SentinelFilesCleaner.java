@@ -32,7 +32,7 @@ public class S3SentinelFilesCleaner implements SentinelFilesCleaner {
 
   @Override
   public void deleteSentinelFiles(String absolutePath) {
-    AmazonS3URI s3Path = new AmazonS3URI(absolutePath, false);
+    AmazonS3URI s3Path = new AmazonS3URI(absolutePath, true);
     String bucket = s3Path.getBucket();
     String key = s3Path.getKey();
 

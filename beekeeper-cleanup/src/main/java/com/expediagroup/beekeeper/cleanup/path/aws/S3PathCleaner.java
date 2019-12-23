@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.base.Strings;
 
@@ -32,7 +31,6 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 
@@ -54,7 +52,7 @@ public class S3PathCleaner implements PathCleaner {
   @Override
   @TimedTaggable("s3-paths-deleted")
   public void cleanupPath(HousekeepingPath housekeepingPath) {
-    S3SchemeURI s3SchemeURI = extractURI(housekeepingPath.getPath());
+    S3SchemeURI s3SchemeURI = new S3SchemeURI(housekeepingPath.getPath());
     String key = s3SchemeURI.getKey();
     String bucket = s3SchemeURI.getBucket();
     S3BytesDeletedCalculator bytesDeletedCalculator = new S3BytesDeletedCalculator(s3Client);
@@ -74,16 +72,6 @@ public class S3PathCleaner implements PathCleaner {
     }
   }
 
-  private S3SchemeURI extractURI(String housekeepingPath) {
-    S3SchemeURI s3SchemeURI;
-    try {
-      s3SchemeURI = new S3SchemeURI(housekeepingPath);
-    } catch (Exception e) {
-      throw new BeekeeperException(format("Could not create URI from path: '%s'", housekeepingPath), e);
-    }
-    return s3SchemeURI;
-  }
-
   private void deleteFile(String bucket, String key, S3BytesDeletedCalculator bytesDeletedCalculator) {
     bytesDeletedCalculator.storeFileSizes(bucket, List.of(key));
     s3Client.deleteObject(bucket, key);
@@ -99,7 +87,7 @@ public class S3PathCleaner implements PathCleaner {
       .map(S3ObjectSummary::getKey)
       .collect(Collectors.toList());
     bytesDeletedCalculator.storeFileSizes(bucket, keys);
-    List<String> deletedKeys = deleteFiles(bucket, keys);
+    List<String> deletedKeys = s3Client.deleteObjects(bucket, keys);
     bytesDeletedCalculator.calculateBytesDeleted(deletedKeys);
     int totalFiles = keys.size();
     int successfulDeletes = deletedKeys.size();
@@ -112,12 +100,6 @@ public class S3PathCleaner implements PathCleaner {
           format("Not all files could be deleted at path \"%s/%s\"; deleted %s/%s objects. Objects not deleted: %s.",
             bucket, key, successfulDeletes, totalFiles, failedDeletions));
     }
-  }
-
-  private List<String> deleteFiles(String bucket, List<String> keys) {
-    DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket)
-      .withKeys(keys.toArray(String[]::new));
-    return s3Client.deleteObjects(deleteObjectsRequest);
   }
 
   private void deleteSentinelFiles(S3SchemeURI s3SchemeURI, String key, String bucket, String tableName) {
