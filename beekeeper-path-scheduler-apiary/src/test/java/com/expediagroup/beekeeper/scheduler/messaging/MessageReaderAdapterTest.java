@@ -33,10 +33,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToPathEventMapper;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToBeekeeperEventMapper;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
-import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvents;
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 
 @ExtendWith(MockitoExtension.class)
 public class MessageReaderAdapterTest {
@@ -44,7 +43,7 @@ public class MessageReaderAdapterTest {
   private MessageReader delegate;
 
   @Mock
-  private MessageEventToPathEventMapper mapper;
+  private MessageEventToBeekeeperEventMapper mapper;
 
   @Mock
   private MessageEvent messageEvent;
@@ -62,8 +61,8 @@ public class MessageReaderAdapterTest {
   @Test
   public void typicalRead() {
     when(delegate.read()).thenReturn(Optional.of(messageEvent));
-    when(mapper.map(messageEvent)).thenReturn(Optional.of(new PathEvents(path, messageEvent)));
-    Optional<PathEvents> read = messageReaderAdapter.read();
+    when(mapper.map(messageEvent)).thenReturn(Optional.of(new BeekeeperEvent(path, messageEvent)));
+    Optional<BeekeeperEvent> read = messageReaderAdapter.read();
     assertThat(read).isPresent();
     assertThat(read.get().getMessageEvent()).isEqualTo(messageEvent);
     assertThat(read.get().getHousekeepingPaths()).isEqualTo(path);
@@ -73,20 +72,20 @@ public class MessageReaderAdapterTest {
   public void typicalReadWithEmptyMappedEvent() {
     when(delegate.read()).thenReturn(Optional.of(messageEvent));
     when(mapper.map(messageEvent)).thenReturn(Optional.empty());
-    Optional<PathEvents> read = messageReaderAdapter.read();
+    Optional<BeekeeperEvent> read = messageReaderAdapter.read();
     assertThat(read).isEmpty();
   }
 
   @Test
   public void typicalEmptyRead() {
     when(delegate.read()).thenReturn(Optional.empty());
-    Optional<PathEvents> read = messageReaderAdapter.read();
+    Optional<BeekeeperEvent> read = messageReaderAdapter.read();
     assertThat(read).isEmpty();
   }
 
   @Test
   public void typicalDelete() {
-    PathEvents pathEvent = new PathEvents(path, messageEvent);
+    BeekeeperEvent pathEvent = new BeekeeperEvent(path, messageEvent);
     messageReaderAdapter.delete(pathEvent);
     verify(delegate).delete(pathEvent.getMessageEvent());
   }

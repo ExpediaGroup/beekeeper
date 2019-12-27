@@ -24,28 +24,28 @@ import org.slf4j.LoggerFactory;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 
-import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvents;
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 
-public class MessageReaderAdapter implements PathEventReader {
+public class MessageReaderAdapter implements BeekeeperEventReader {
 
   private static final Logger log = LoggerFactory.getLogger(MessageReaderAdapter.class);
 
   private final MessageReader delegate;
-  private final MessageEventToPathEventMapper mapper;
+  private final MessageEventToBeekeeperEventMapper mapper;
 
-  public MessageReaderAdapter(MessageReader delegate, MessageEventToPathEventMapper mapper) {
+  public MessageReaderAdapter(MessageReader delegate, MessageEventToBeekeeperEventMapper mapper) {
     this.delegate = delegate;
     this.mapper = mapper;
   }
 
   @Override
-  public Optional<PathEvents> read() {
+  public Optional<BeekeeperEvent> read() {
     Optional<MessageEvent> messageEvent = delegate.read();
     return messageEvent.flatMap(mapper::map);
   }
 
   @Override
-  public void delete(PathEvents pathEvent) {
+  public void delete(BeekeeperEvent pathEvent) {
     try {
       delegate.delete(pathEvent.getMessageEvent());
       log.debug("Message deleted successfully");

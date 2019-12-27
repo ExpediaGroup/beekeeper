@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
-import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvents;
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 
 import javax.annotation.PostConstruct;
 
@@ -38,9 +38,9 @@ import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
 import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFERENCED;
 
 @Component
-public class MessageEventToPathEventMapper {
+public class MessageEventToBeekeeperEventMapper {
 
-  private static final Logger log = LoggerFactory.getLogger(MessageEventToPathEventMapper.class);
+  private static final Logger log = LoggerFactory.getLogger(MessageEventToBeekeeperEventMapper.class);
   private static final String CLIENT_ID = "apiary-metastore-event";
   private static final String FOREVER = "P356D";
 
@@ -59,7 +59,7 @@ public class MessageEventToPathEventMapper {
   private HashMap<LifeCycleEventType, LifeCycleConfiguration> lifeCycleMap;
 
   @Autowired
-  public MessageEventToPathEventMapper() {
+  public MessageEventToBeekeeperEventMapper() {
     lifeCycleMap = new HashMap<LifeCycleEventType, LifeCycleConfiguration>();
   }
 
@@ -74,7 +74,7 @@ public class MessageEventToPathEventMapper {
    * @param messageEvent Current message event from Apiary SQS
    * @return Optional<PathEvents> Optional return of list of PathEvents
    */
-  public Optional<PathEvents> map(MessageEvent messageEvent) {
+  public Optional<BeekeeperEvent> map(MessageEvent messageEvent) {
     ListenerEvent listenerEvent = messageEvent.getEvent();
 
     // Get ApiaryEvent Type and map it to the corresponding ApiaryLifeCycleEvent in Beekeeper
@@ -95,8 +95,8 @@ public class MessageEventToPathEventMapper {
     eventPaths.forEach(event -> paths.add(generatePath(event.lifeCycleEvent, listenerEvent, event.cleanupPath)));
 
     // If we have HouseKeepingPaths, return new PathEvents else - null
-    PathEvents pathEvents = paths.size() > 0 ? new PathEvents(paths, messageEvent) : null;
-    return Optional.ofNullable(pathEvents);
+    BeekeeperEvent beekeeperEvent = paths.size() > 0 ? new BeekeeperEvent(paths, messageEvent) : null;
+    return Optional.ofNullable(beekeeperEvent);
   }
 
   /**

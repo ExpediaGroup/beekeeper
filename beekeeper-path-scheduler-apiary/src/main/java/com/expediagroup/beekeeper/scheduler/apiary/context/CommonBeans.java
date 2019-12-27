@@ -31,9 +31,9 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.FilteringMessageReader;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToPathEventMapper;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToBeekeeperEventMapper;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.PathEventReader;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
 
 @Configuration
@@ -75,8 +75,8 @@ public class CommonBeans {
   }
 
   @Bean
-  PathEventReader pathEventReader(@Qualifier("filteringMessageReader") MessageReader messageReader,
-    MessageEventToPathEventMapper mapper) {
+  BeekeeperEventReader pathEventReader(@Qualifier("filteringMessageReader") MessageReader messageReader,
+                                       MessageEventToBeekeeperEventMapper mapper) {
     return new MessageReaderAdapter(messageReader, mapper);
   }
 }

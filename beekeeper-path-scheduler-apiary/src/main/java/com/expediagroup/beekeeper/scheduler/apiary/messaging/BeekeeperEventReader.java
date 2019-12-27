@@ -18,12 +18,12 @@ package com.expediagroup.beekeeper.scheduler.apiary.messaging;
 import java.io.Closeable;
 import java.util.Optional;
 
-import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvents;
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 
-public interface PathEventReader extends Closeable {
+public interface BeekeeperEventReader extends Closeable {
 
-  Optional<PathEvents> read();
+  Optional<BeekeeperEvent> read();
 
-  void delete(PathEvents pathEvent);
+  void delete(BeekeeperEvent pathEvent);
 
 }

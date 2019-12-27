@@ -28,28 +28,28 @@ import org.springframework.stereotype.Component;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.PathEventReader;
-import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvents;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 
 @Component
 public class PathSchedulerApiary {
 
-  private final PathEventReader pathEventReader;
+  private final BeekeeperEventReader beekeeperEventReader;
   private final SchedulerService pathSchedulerService;
   private final HousekeepingPathRepository housekeepingPathRepository;
 
   @Autowired
-  public PathSchedulerApiary(PathEventReader pathEventReader, SchedulerService pathSchedulerService, HousekeepingPathRepository housekeepingPathRepository) {
-    this.pathEventReader = pathEventReader;
+  public PathSchedulerApiary(BeekeeperEventReader beekeeperEventReader, SchedulerService pathSchedulerService, HousekeepingPathRepository housekeepingPathRepository) {
+    this.beekeeperEventReader = beekeeperEventReader;
     this.pathSchedulerService = pathSchedulerService;
     this.housekeepingPathRepository = housekeepingPathRepository;
   }
 
   public void schedulePath() {
-    Optional<PathEvents> pathToBeScheduled = pathEventReader.read();
+    Optional<BeekeeperEvent> pathToBeScheduled = beekeeperEventReader.read();
     if (pathToBeScheduled.isPresent()) {
-      PathEvents pathEvent = pathToBeScheduled.get();
+      BeekeeperEvent pathEvent = pathToBeScheduled.get();
       List<HousekeepingPath> paths = pathEvent.getHousekeepingPaths();
 
       for (HousekeepingPath path : paths) {
@@ -70,11 +70,11 @@ public class PathSchedulerApiary {
             "Unable to schedule path '%s' for deletion, this message will go back on the queue", path.getPath()), e);
         }
       }
-      pathEventReader.delete(pathEvent);
+      beekeeperEventReader.delete(pathEvent);
     }
   }
 
   public void close() throws IOException {
-    pathEventReader.close();
+    beekeeperEventReader.close();
   }
 }

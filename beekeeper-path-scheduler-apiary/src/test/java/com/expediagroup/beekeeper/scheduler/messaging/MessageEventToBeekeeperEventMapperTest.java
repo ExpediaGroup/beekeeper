@@ -47,8 +47,8 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageProperty;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageProperty;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToPathEventMapper;
-import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvents;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToBeekeeperEventMapper;
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SpringExtension.class)
@@ -59,10 +59,10 @@ import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvents;
         "properties.apiary.expired-cleanup-delay-property-key=beekeeper.expired.data.retention.period"
 })
 @ContextConfiguration(
-        classes = { MessageEventToPathEventMapper.class },
+        classes = { MessageEventToBeekeeperEventMapper.class },
         loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class MessageEventToPathEventsMapperTest {
+public class MessageEventToBeekeeperEventMapperTest {
 
   private static final String RECEIPT_HANDLE = "receiptHandle";
   private static final String DATABASE = "database";
@@ -84,7 +84,7 @@ public class MessageEventToPathEventsMapperTest {
   private @Mock DropTableEvent dropTableEvent;
 
   @Autowired
-  private MessageEventToPathEventMapper mapper;
+  private MessageEventToBeekeeperEventMapper mapper;
 
   /**
    * Tests the Happy Path AlterPartition Event
@@ -96,7 +96,7 @@ public class MessageEventToPathEventsMapperTest {
     when(alterPartitionEvent.getPartitionLocation()).thenReturn(PATH);
     when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_PATH);
     MessageEvent messageEvent = newMessageEvent(alterPartitionEvent);
-    Optional<PathEvents> pathEvent = mapper.map(messageEvent);
+    Optional<BeekeeperEvent> pathEvent = mapper.map(messageEvent);
     assertPath(messageEvent, pathEvent, CLEANUP_UNREFERENCED_DELAY, UNREFERENCED, OLD_PATH, 0);
     assertPath(messageEvent, pathEvent, CLEANUP_EXPIRED_DELAY, EXPIRED, PATH,1);
   }
@@ -110,7 +110,7 @@ public class MessageEventToPathEventsMapperTest {
     when(alterTableEvent.getTableLocation()).thenReturn(OLD_PATH);
     when(alterTableEvent.getOldTableLocation()).thenReturn(PATH);
     MessageEvent messageEvent = newMessageEvent(alterTableEvent);
-    Optional<PathEvents> pathEvent = mapper.map(messageEvent);
+    Optional<BeekeeperEvent> pathEvent = mapper.map(messageEvent);
     assertPath(messageEvent, pathEvent, CLEANUP_UNREFERENCED_DELAY, UNREFERENCED, PATH, 0);
     assertPath(messageEvent, pathEvent, CLEANUP_EXPIRED_DELAY, EXPIRED, OLD_PATH, 1);
   }
@@ -123,7 +123,7 @@ public class MessageEventToPathEventsMapperTest {
     when(dropPartitionEvent.getEventType()).thenReturn(EventType.DROP_PARTITION);
     when(dropPartitionEvent.getPartitionLocation()).thenReturn(OLD_PATH);
     MessageEvent messageEvent = newMessageEvent(dropPartitionEvent);
-    Optional<PathEvents> pathEvent = mapper.map(messageEvent);
+    Optional<BeekeeperEvent> pathEvent = mapper.map(messageEvent);
     assertPath(messageEvent, pathEvent, CLEANUP_UNREFERENCED_DELAY, UNREFERENCED, OLD_PATH, 0);
   }
 
@@ -135,7 +135,7 @@ public class MessageEventToPathEventsMapperTest {
     when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
     when(dropTableEvent.getTableLocation()).thenReturn(OLD_PATH);
     MessageEvent messageEvent = newMessageEvent(dropTableEvent);
-    Optional<PathEvents> pathEvent = mapper.map(messageEvent);
+    Optional<BeekeeperEvent> pathEvent = mapper.map(messageEvent);
     assertPath(messageEvent, pathEvent, CLEANUP_UNREFERENCED_DELAY, UNREFERENCED, OLD_PATH, 0);
   }
 
@@ -149,7 +149,7 @@ public class MessageEventToPathEventsMapperTest {
     when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_PATH);
     when(alterPartitionEvent.getTableLocation()).thenReturn(PATH);
     MessageEvent messageEvent = newMessageEvent(alterPartitionEvent);
-    Optional<PathEvents> pathEvent = mapper.map(messageEvent);
+    Optional<BeekeeperEvent> pathEvent = mapper.map(messageEvent);
     assertPath(messageEvent, pathEvent, DEFAULT_UNREFERENCED_CLEANUP_DELAY, UNREFERENCED, OLD_PATH,0);
     assertPath(messageEvent, pathEvent, DEFAULT_EXPIRED_CLEANUP_DELAY, EXPIRED, PATH, 1);
   }
@@ -157,7 +157,7 @@ public class MessageEventToPathEventsMapperTest {
   /**
    * Tests that the default deletion delay should be used if the table parameter is configured incorrectly
    * Flow: If parsing the Durati on throws a DateTimeParseException, return the default duration.
-   * @see com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToPathEventMapper#extractCleanupDelay(ListenerEvent listenerEvent, LifeCycleEventType eventType)
+   * @see MessageEventToBeekeeperEventMapper#extractCleanupDelay(ListenerEvent listenerEvent, LifeCycleEventType eventType)
    */
   @Test public void mapDefaultDelayOnDurationException() {
     Map<String,String> tableParams = new HashMap<>();
@@ -170,7 +170,7 @@ public class MessageEventToPathEventsMapperTest {
     when(alterPartitionEvent.getPartitionLocation()).thenReturn(PATH);
     when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_PATH);
     MessageEvent messageEvent = newMessageEvent(alterPartitionEvent);
-    Optional<PathEvents> pathEvent = mapper.map(messageEvent);
+    Optional<BeekeeperEvent> pathEvent = mapper.map(messageEvent);
     assertPath(messageEvent, pathEvent, DEFAULT_UNREFERENCED_CLEANUP_DELAY, UNREFERENCED, OLD_PATH,0);
   }
 
@@ -184,15 +184,15 @@ public class MessageEventToPathEventsMapperTest {
    * @param index Index to look at in the pathEvents List
    */
   private void assertPath(MessageEvent messageEvent,
-                          Optional<PathEvents> pathEventsOptional,
+                          Optional<BeekeeperEvent> pathEventsOptional,
                           String cleanupDelay,
                           LifeCycleEventType cleanupType,
                           String pathToCleanup,
                           int index) {
-    PathEvents pathEvents = pathEventsOptional.get();
-    assertThat(pathEvents.getMessageEvent()).isEqualTo(messageEvent);
+    BeekeeperEvent beekeeperEvent = pathEventsOptional.get();
+    assertThat(beekeeperEvent.getMessageEvent()).isEqualTo(messageEvent);
 
-    List<HousekeepingPath> houseKeepingPaths = pathEvents.getHousekeepingPaths();
+    List<HousekeepingPath> houseKeepingPaths = beekeeperEvent.getHousekeepingPaths();
     HousekeepingPath path = houseKeepingPaths.get(index);
 
     LocalDateTime now = LocalDateTime.now();
@@ -205,7 +205,7 @@ public class MessageEventToPathEventsMapperTest {
     assertThat(path.getModifiedTimestamp()).isNull();
     assertThat(path.getCreationTimestamp()).isBetween(CREATION_TIMESTAMP, now);
     assertThat(path.getCleanupTimestamp()).isEqualTo(path.getCreationTimestamp().plus(Duration.parse(cleanupDelay)));
-    assertThat(pathEvents.getMessageEvent().getMessageProperties()).isEqualTo(newMessageProperties());
+    assertThat(beekeeperEvent.getMessageEvent().getMessageProperties()).isEqualTo(newMessageProperties());
   }
 
   /**

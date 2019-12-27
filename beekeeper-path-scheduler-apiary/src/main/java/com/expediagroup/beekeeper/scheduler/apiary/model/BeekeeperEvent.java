@@ -21,11 +21,11 @@ import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 import java.util.List;
 
-public class PathEvents {
+public class BeekeeperEvent {
   private final List<HousekeepingPath> housekeepingPaths;
   private final MessageEvent messageEvent;
 
-  public PathEvents(List<HousekeepingPath> housekeepingPaths, MessageEvent messageEvent) {
+  public BeekeeperEvent(List<HousekeepingPath> housekeepingPaths, MessageEvent messageEvent) {
     this.housekeepingPaths = housekeepingPaths;
     this.messageEvent = messageEvent;
   }
