@@ -18,10 +18,10 @@ package com.expediagroup.beekeeper.cleanup.context;
 import com.expediagroup.beekeeper.cleanup.path.hive.HiveClient;
 import com.expediagroup.beekeeper.cleanup.path.hive.HivePathCleaner;
 import com.expediagroup.beekeeper.core.model.LifeCycleEventType;
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.HiveMetaException;
-import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
-import org.apache.hadoop.hive.metastore.api.MetaException;
+//import org.apache.hadoop.hive.conf.HiveConf;
+//import org.apache.hadoop.hive.metastore.HiveMetaException;
+//import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+//import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -89,20 +89,20 @@ public class CommonBeans {
     return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), s3BytesDeletedReporter);
   }
 
-  @Bean
-  public HiveClient hiveClient(
-      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled
-  ) throws MetaException {
-    HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(new HiveConf());
-    return new HiveClient(hiveMetaStoreClient, dryRunEnabled);
-  }
+//  @Bean
+//  public HiveClient hiveClient(
+//      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled
+//  ) throws MetaException {
+//    HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(new HiveConf());
+//    return new HiveClient(hiveMetaStoreClient, dryRunEnabled);
+//  }
 
-  @Bean
-  public HivePathCleaner hivePathCleaner(
-      HiveClient hiveClient
-  ) {
-    return new HivePathCleaner(hiveClient);
-  }
+//  @Bean
+//  public HivePathCleaner hivePathCleaner(
+//      HiveClient hiveClient
+//  ) {
+//    return new HivePathCleaner(hiveClient);
+//  }
 
   @Bean
   public EnumMap<LifeCycleEventType, PathCleaner> pathCleanerMap(
@@ -111,7 +111,7 @@ public class CommonBeans {
   ) {
     EnumMap<LifeCycleEventType, PathCleaner> pcMap = new EnumMap<>(LifeCycleEventType.class);
     pcMap.put(LifeCycleEventType.UNREFERENCED, s3PathCleaner);
-    pcMap.put(LifeCycleEventType.EXPIRED, hivePathCleaner);
+//    pcMap.put(LifeCycleEventType.EXPIRED, hivePathCleaner);
     return pcMap;
   }
 

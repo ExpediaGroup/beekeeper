@@ -17,6 +17,7 @@ package com.expediagroup.beekeeper.scheduler.apiary.context;
 
 import java.util.List;
 
+import com.expediagroup.beekeeper.scheduler.apiary.filter.*;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -29,11 +30,6 @@ import org.springframework.retry.annotation.EnableRetry;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
-import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeTableListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.MetadataOnlyListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.FilteringMessageReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToPathEventMapper;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
@@ -61,12 +57,20 @@ public class CommonBeans {
   }
 
   @Bean(name = "filteringMessageReader")
-  MessageReader filteringMessageReader(@Qualifier("retryingMessageReader") MessageReader messageReader,
-    TableParameterListenerEventFilter tableParameterFilter, EventTypeTableListenerEventFilter eventTypeFilter,
+  MessageReader filteringMessageReader(
+    @Qualifier("retryingMessageReader") MessageReader messageReader,
+    TableParameterListenerEventFilter tableParameterFilter,
+    EventTypeTableListenerEventFilter eventTypeFilter,
     MetadataOnlyListenerEventFilter metadataOnlyListenerEventFilter,
-    WhitelistedListenerEventFilter whitelistedListenerEventFilter) {
-    List<ListenerEventFilter> filters = List.of(eventTypeFilter, tableParameterFilter,
-      metadataOnlyListenerEventFilter, whitelistedListenerEventFilter);
+    WhitelistedListenerEventFilter whitelistedListenerEventFilter
+  ) {
+    List<ListenerEventFilter> filters = List.of(
+      eventTypeFilter,
+      tableParameterFilter,
+      metadataOnlyListenerEventFilter,
+      whitelistedListenerEventFilter
+    );
+
     return new FilteringMessageReader(messageReader, filters);
   }
 
