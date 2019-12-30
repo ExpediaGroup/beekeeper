@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PreDestroy;
 
+import com.expediagroup.beekeeper.scheduler.apiary.service.PathSchedulerApiary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,6 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
-import com.expediagroup.beekeeper.scheduler.apiary.service.PathSchedulerApiary;
 
 @Component
 public class PathSchedulerApiaryRunner implements ApplicationRunner {

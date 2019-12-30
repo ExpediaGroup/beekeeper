@@ -23,14 +23,13 @@ import java.util.Optional;
 
 import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
-import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
-import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 
 @Component
 public class PathSchedulerApiary {

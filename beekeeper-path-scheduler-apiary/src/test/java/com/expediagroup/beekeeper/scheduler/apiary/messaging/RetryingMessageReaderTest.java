@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.scheduler.messaging;
+package com.expediagroup.beekeeper.scheduler.apiary.messaging;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -45,8 +45,7 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageProperty;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
-import com.expediagroup.beekeeper.scheduler.TestConfig;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
+import com.expediagroup.beekeeper.scheduler.apiary.TestConfig;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)

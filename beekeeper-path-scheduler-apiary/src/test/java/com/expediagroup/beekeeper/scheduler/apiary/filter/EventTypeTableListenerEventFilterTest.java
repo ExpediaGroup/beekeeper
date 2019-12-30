@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.scheduler.filter;
+package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
 import com.expedia.apiary.extensions.receiver.common.event.*;
 import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFERENCED;
 import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeTableListenerEventFilter;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

@@ -17,6 +17,7 @@ package com.expediagroup.beekeeper.scheduler.apiary;
 
 import java.util.TimeZone;
 
+import com.expediagroup.beekeeper.scheduler.apiary.app.PathSchedulerApiaryRunner;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -28,8 +29,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import io.micrometer.core.instrument.MeterRegistry;
 
 import com.google.common.annotations.VisibleForTesting;
-
-import com.expediagroup.beekeeper.scheduler.apiary.app.PathSchedulerApiaryRunner;
 
 @SpringBootApplication
 @EnableConfigurationProperties

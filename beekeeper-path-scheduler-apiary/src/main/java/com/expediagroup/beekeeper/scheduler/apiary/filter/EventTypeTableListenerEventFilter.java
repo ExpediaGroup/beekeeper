@@ -29,6 +29,10 @@ public class EventTypeTableListenerEventFilter implements ListenerEventFilter {
   @Override
   public boolean filter(ListenerEvent listenerEvent) {
 
+    if (listenerEvent == null) {
+      return true;
+    }
+
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
     if (tableParameters == null) {
       return true;

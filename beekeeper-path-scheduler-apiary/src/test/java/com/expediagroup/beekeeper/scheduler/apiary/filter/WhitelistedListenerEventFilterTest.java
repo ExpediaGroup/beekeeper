@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.scheduler.filter;
+package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -33,8 +33,6 @@ import com.expedia.apiary.extensions.receiver.common.event.AddPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
-
-import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
 
 @ExtendWith(MockitoExtension.class)
 public class WhitelistedListenerEventFilterTest {

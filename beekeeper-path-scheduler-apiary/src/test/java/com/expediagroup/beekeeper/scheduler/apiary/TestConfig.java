@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.scheduler;
+package com.expediagroup.beekeeper.scheduler.apiary;
 
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.annotation.EnableRetry;
 
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
-
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
 
 @Configuration
 @EnableRetry(proxyTargetClass=true)

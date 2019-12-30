@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.scheduler.messaging;
+package com.expediagroup.beekeeper.scheduler.apiary.messaging;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,9 +35,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.expedia.apiary.extensions.receiver.common.event.AddPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
-
-import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.FilteringMessageReader;
 
 @ExtendWith(MockitoExtension.class)
 public class FilteringMessageReaderTest {

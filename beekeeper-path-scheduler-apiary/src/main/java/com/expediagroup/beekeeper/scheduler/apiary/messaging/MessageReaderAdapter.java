@@ -16,32 +16,47 @@
 package com.expediagroup.beekeeper.scheduler.apiary.messaging;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.scheduler.apiary.mapper.MessageEventMapper;
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 
-import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
-
 public class MessageReaderAdapter implements BeekeeperEventReader {
 
   private static final Logger log = LoggerFactory.getLogger(MessageReaderAdapter.class);
 
   private final MessageReader delegate;
-  private final MessageEventToBeekeeperEventMapper mapper;
+  private final List<MessageEventMapper> eventMappers;
 
-  public MessageReaderAdapter(MessageReader delegate, MessageEventToBeekeeperEventMapper mapper) {
+  public MessageReaderAdapter(MessageReader delegate, List<MessageEventMapper> eventMappers) {
     this.delegate = delegate;
-    this.mapper = mapper;
+    this.eventMappers = eventMappers;
   }
 
   @Override
   public Optional<BeekeeperEvent> read() {
     Optional<MessageEvent> messageEvent = delegate.read();
-    return messageEvent.flatMap(mapper::map);
+
+    if (!messageEvent.isPresent()) {
+      return Optional.empty();
+    }
+
+    MessageEvent event = messageEvent.get();
+    List<HousekeepingPath> housekeepingPaths = eventMappers.parallelStream()
+            .map(eventMapper -> eventMapper.generateHouseKeepingPaths(event.getEvent()))
+            .flatMap(x -> x.stream())
+            .collect(Collectors.toList());
+
+    BeekeeperEvent beekeeperEvent = housekeepingPaths.size() > 0 ? new BeekeeperEvent(housekeepingPaths, event) : null;
+    return Optional.ofNullable(beekeeperEvent);
   }
 
   @Override

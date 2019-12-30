@@ -18,6 +18,12 @@ package com.expediagroup.beekeeper.scheduler.apiary.context;
 import java.util.List;
 
 import com.expediagroup.beekeeper.scheduler.apiary.filter.*;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.FilteringMessageReader;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
+import com.expediagroup.beekeeper.scheduler.apiary.mapper.MessageEventMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -30,18 +36,15 @@ import org.springframework.retry.annotation.EnableRetry;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.FilteringMessageReader;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToBeekeeperEventMapper;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
-
 @Configuration
 @ComponentScan(basePackages = { "com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.scheduler" })
 @EntityScan(basePackages = { "com.expediagroup.beekeeper.core" })
 @EnableJpaRepositories(basePackages = { "com.expediagroup.beekeeper.core.repository" })
 @EnableRetry(proxyTargetClass = true)
 public class CommonBeans {
+
+  @Autowired List<MessageEventMapper> eventMappers;
+  @Autowired List<ListenerEventFilter> eventFilters;
 
   @Value("${properties.apiary.queue-url}")
   private String queueUrl;
@@ -57,26 +60,12 @@ public class CommonBeans {
   }
 
   @Bean(name = "filteringMessageReader")
-  MessageReader filteringMessageReader(
-    @Qualifier("retryingMessageReader") MessageReader messageReader,
-    TableParameterListenerEventFilter tableParameterFilter,
-    EventTypeTableListenerEventFilter eventTypeFilter,
-    MetadataOnlyListenerEventFilter metadataOnlyListenerEventFilter,
-    WhitelistedListenerEventFilter whitelistedListenerEventFilter
-  ) {
-    List<ListenerEventFilter> filters = List.of(
-      eventTypeFilter,
-      tableParameterFilter,
-      metadataOnlyListenerEventFilter,
-      whitelistedListenerEventFilter
-    );
-
-    return new FilteringMessageReader(messageReader, filters);
+  MessageReader filteringMessageReader(@Qualifier("retryingMessageReader") MessageReader messageReader) {
+    return new FilteringMessageReader(messageReader, eventFilters);
   }
 
   @Bean
-  BeekeeperEventReader pathEventReader(@Qualifier("filteringMessageReader") MessageReader messageReader,
-                                       MessageEventToBeekeeperEventMapper mapper) {
-    return new MessageReaderAdapter(messageReader, mapper);
+  BeekeeperEventReader pathEventReader(@Qualifier("filteringMessageReader") MessageReader messageReader) {
+    return new MessageReaderAdapter(messageReader, eventMappers);
   }
 }

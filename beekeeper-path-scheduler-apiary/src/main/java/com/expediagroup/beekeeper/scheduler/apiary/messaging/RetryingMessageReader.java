@@ -20,6 +20,8 @@ import static java.lang.String.format;
 import java.io.IOException;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -31,6 +33,7 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageProperty;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import org.springframework.stereotype.Component;
 
 public class RetryingMessageReader implements MessageReader {
 
