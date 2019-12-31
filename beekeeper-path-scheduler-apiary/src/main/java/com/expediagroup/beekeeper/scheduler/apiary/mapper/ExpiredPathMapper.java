@@ -37,16 +37,16 @@ public class ExpiredPathMapper extends MessageEventMapper {
 
         switch (listenerEvent.getEventType()) {
             case ALTER_PARTITION:
-                eventPaths.add(new EventModel(lifeCycleEventType, ((AlterPartitionEvent) listenerEvent).getOldPartitionLocation()));
+                eventPaths.add(new EventModel(lifeCycleEventType, ((AlterPartitionEvent) listenerEvent).getTableLocation()));
                 break;
             case ALTER_TABLE:
-                eventPaths.add(new EventModel(lifeCycleEventType, ((AlterTableEvent) listenerEvent).getOldTableLocation()));
+                eventPaths.add(new EventModel(lifeCycleEventType, ((AlterTableEvent) listenerEvent).getTableLocation()));
                 break;
             case CREATE_TABLE:
                 eventPaths.add(new EventModel(lifeCycleEventType, ((CreateTableEvent) listenerEvent).getTableLocation()));
                 break;
             case ADD_PARTITION:
-                eventPaths.add(new EventModel(lifeCycleEventType, ((AddPartitionEvent) listenerEvent).getPartitionLocation()));
+                eventPaths.add(new EventModel(lifeCycleEventType, ((AddPartitionEvent) listenerEvent).getTableLocation()));
                 break;
         }
 

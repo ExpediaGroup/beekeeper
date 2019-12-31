@@ -15,9 +15,26 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
+import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import com.google.gson.*;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.net.URL;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public abstract class SqsMessageFile {
+    protected String message;
+    protected String partitionLocation = "DELETEME";
+    protected String oldPartitionLocation = "DELETEME";
+    protected String tableLocation = "DELETEME";
+    protected String oldTableLocation = "DELETEME";
+    protected String isUnreferenced = "false";
+    protected String isExpired = "false";
+    protected String isWhitelisted = "";
+
+
     public abstract String getFormattedString();
 
     public JsonObject getNestedJsonObject()  {
@@ -34,4 +51,65 @@ public abstract class SqsMessageFile {
         String prettyJson = gson.toJson(getNestedJsonObject());
         return prettyJson;
     }
+
+    public void setMessageFromFile(URL filePath) throws IOException {
+        this.message = new String(IOUtils.toByteArray(filePath), UTF_8);
+    }
+
+    public void setWhitelisted(EventType eventType, Boolean isWhitelisted) {
+        this.isWhitelisted = isWhitelisted ? eventType.toString() : "";
+    }
+
+    public void setExpired(Boolean isExpired) {
+        this.isExpired = isExpired.toString().toLowerCase();
+    }
+
+    public void setUnreferenced(Boolean isUnreferenced) {
+        this.isUnreferenced = isUnreferenced.toString().toLowerCase();
+    }
+
+    public void setPartitionLocation(String partitionLocation) {
+        this.partitionLocation = partitionLocation;
+    }
+
+    public void setOldPartitionLocation(String oldPartitionLocation) {
+        this.oldPartitionLocation = oldPartitionLocation;
+    }
+
+    public void setTableLocation(String tableLocation) {
+        this.tableLocation = tableLocation;
+    }
+
+    public void setOldTableLocation(String oldTableLocation) {
+        this.oldTableLocation = oldTableLocation;
+    }
+
+    public String getPartitionLocation() {
+        return partitionLocation;
+    }
+
+    public String getOldPartitionLocation() {
+        return oldPartitionLocation;
+    }
+
+    public String getTableLocation() {
+        return tableLocation;
+    }
+
+    public String getOldTableLocation() {
+        return oldTableLocation;
+    }
+
+    public String getIsUnreferenced() {
+        return isUnreferenced;
+    }
+
+    public String getIsExpired() {
+        return isExpired;
+    }
+
+    public String getIsWhitelisted() {
+        return isWhitelisted;
+    }
+
 }

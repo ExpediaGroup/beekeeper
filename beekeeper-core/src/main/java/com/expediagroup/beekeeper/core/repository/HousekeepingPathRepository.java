@@ -38,6 +38,9 @@ public interface HousekeepingPathRepository extends JpaRepository<EntityHousekee
   Page<EntityHousekeepingPath> findRecordsForCleanupByModifiedTimestamp(@Param("instant") LocalDateTime instant,
       Pageable pageable);
 
+//  @Transactional
+//  void updateExpiredRows(@Param("databaseName") String databaseName, @Param("tableName") String tableName);
+
   @Modifying
   @Transactional
   @Query("delete from EntityHousekeepingPath p where "

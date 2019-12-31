@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class PathSchedulerApiary {

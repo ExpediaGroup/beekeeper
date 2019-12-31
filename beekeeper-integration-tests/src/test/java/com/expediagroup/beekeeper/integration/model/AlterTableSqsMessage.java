@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
+import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -25,42 +26,20 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class AlterTableSqsMessage extends SqsMessageFile {
     private static URL ALTER_TABLE_FILE = SqsMessageFile.class.getResource("/alter_table.json");
 
-    private String message;
-    private String tableLocation = "DELETEME";
-    private String oldTableLocation = "DELETEME";
-    private String isUnreferenced = "false";
-    private String isExpired = "false";
-
     public AlterTableSqsMessage() throws IOException {
-        message = new String(IOUtils.toByteArray(ALTER_TABLE_FILE), UTF_8);
+        this.setMessageFromFile(ALTER_TABLE_FILE);
     }
 
-    public AlterTableSqsMessage(String tableLocation, String oldTableLocation, Boolean isUnreferenced, Boolean isExpired) throws IOException {
-        message = new String(IOUtils.toByteArray(ALTER_TABLE_FILE), UTF_8);
-
-        this.tableLocation = tableLocation;
-        this.oldTableLocation = oldTableLocation;
-        this.isUnreferenced = isUnreferenced.toString().toLowerCase();
-        this.isExpired = isExpired.toString().toLowerCase();
+    public AlterTableSqsMessage(String tableLocation, String oldTableLocation, Boolean isUnreferenced, Boolean isExpired, Boolean isWhitelisted) throws IOException {
+        this.setMessageFromFile(ALTER_TABLE_FILE);
+        this.setTableLocation(tableLocation);
+        this.setOldTableLocation(oldTableLocation);
+        this.setUnreferenced(isUnreferenced);
+        this.setExpired(isExpired);
+        this.setWhitelisted(EventType.ALTER_TABLE, isWhitelisted);
     }
 
     public String getFormattedString() {
-        return String.format(message, tableLocation, oldTableLocation, isUnreferenced, isExpired);
-    }
-
-    public void setTableLocation(String tableLocation) {
-        this.tableLocation = tableLocation;
-    }
-
-    public void setOldTableLocation(String oldTableLocation) {
-        this.oldTableLocation = oldTableLocation;
-    }
-
-    public void setUnreferenced(Boolean isUnreferenced) {
-        this.isUnreferenced = isUnreferenced.toString().toLowerCase();
-    }
-
-    public void setExpired(Boolean isExpired) {
-        this.isExpired = isExpired.toString().toLowerCase();
+        return String.format(message, tableLocation, oldTableLocation, isUnreferenced, isExpired, isWhitelisted);
     }
 }

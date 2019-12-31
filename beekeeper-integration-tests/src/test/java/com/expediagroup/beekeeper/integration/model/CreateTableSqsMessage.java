@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
+import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -25,36 +26,19 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class CreateTableSqsMessage extends SqsMessageFile {
     private static URL CREATE_TABLE_FILE = SqsMessageFile.class.getResource("/create_table.json");
 
-    private String message;
-    private String tableLocation = "DELETEME";
-    private String isUnreferenced = "false";
-    private String isExpired = "false";
-
     public CreateTableSqsMessage() throws IOException {
-        message = new String(IOUtils.toByteArray(CREATE_TABLE_FILE), UTF_8);
+        this.setMessageFromFile(CREATE_TABLE_FILE);
     }
 
-    public CreateTableSqsMessage(String tableLocation, Boolean isUnreferenced, Boolean isExpired) throws IOException {
-        message = new String(IOUtils.toByteArray(CREATE_TABLE_FILE), UTF_8);
-
-        this.tableLocation = tableLocation;
-        this.isUnreferenced = isUnreferenced.toString().toLowerCase();
-        this.isExpired = isExpired.toString().toLowerCase();
+    public CreateTableSqsMessage(String tableLocation, Boolean isUnreferenced, Boolean isExpired, Boolean isWhitelisted) throws IOException {
+        this.setMessageFromFile(CREATE_TABLE_FILE);
+        this.setTableLocation(tableLocation);
+        this.setUnreferenced(isUnreferenced);
+        this.setExpired(isExpired);
+        this.setWhitelisted(EventType.CREATE_TABLE, isWhitelisted);
     }
 
     public String getFormattedString() {
-        return String.format(message, tableLocation, isUnreferenced, isExpired);
-    }
-
-    public void setTableLocation(String tableLocation) {
-        this.tableLocation = tableLocation;
-    }
-
-    public void setUnreferenced(Boolean isUnreferenced) {
-        this.isUnreferenced = isUnreferenced.toString().toLowerCase();
-    }
-
-    public void setExpired(Boolean isExpired) {
-        this.isExpired = isExpired.toString().toLowerCase();
+        return String.format(message, tableLocation, isUnreferenced, isExpired, isWhitelisted);
     }
 }

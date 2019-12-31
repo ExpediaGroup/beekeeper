@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
+import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -25,36 +26,18 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class DropPartitionSqsMessage extends SqsMessageFile {
     private static URL DROP_PARTITION_FILE = SqsMessageFile.class.getResource("/drop_partition.json");
 
-    private String contents;
-    private String partitionLocation = "DELETEME";
-    private String isUnreferenced = "false";
-    private String isExpired = "false";
-
     public DropPartitionSqsMessage() throws IOException {
-        contents = new String(IOUtils.toByteArray(DROP_PARTITION_FILE), UTF_8);
+        this.setMessageFromFile(DROP_PARTITION_FILE);
     }
 
-    public DropPartitionSqsMessage(String partitionLocation, Boolean isUnreferenced, Boolean isExpired) throws IOException {
-        contents = new String(IOUtils.toByteArray(DROP_PARTITION_FILE), UTF_8);
-
-        this.partitionLocation = partitionLocation;
-        this.isUnreferenced = isUnreferenced.toString().toLowerCase();
-        this.isExpired = isExpired.toString().toLowerCase();
+    public DropPartitionSqsMessage(String partitionLocation, Boolean isUnreferenced, Boolean isExpired, Boolean isWhitelisted) throws IOException {
+        this.setMessageFromFile(DROP_PARTITION_FILE);
+        this.setPartitionLocation(partitionLocation);
+        this.setUnreferenced(isUnreferenced);
+        this.setExpired(isExpired);
+        this.setWhitelisted(EventType.DROP_PARTITION, isWhitelisted);
     }
 
-    public String getFormattedString() {
-        return String.format(contents, partitionLocation, isUnreferenced, isExpired);
-    }
+    public String getFormattedString() { return String.format(message, partitionLocation, isUnreferenced, isExpired, isWhitelisted); }
 
-    public void setPartitionLocation(String partitionLocation) {
-        this.partitionLocation = partitionLocation;
-    }
-
-    public void setUnreferenced(Boolean isUnreferenced) {
-        this.isUnreferenced = isUnreferenced.toString().toLowerCase();
-    }
-
-    public void setExpired(Boolean isExpired) {
-        this.isExpired = isExpired.toString().toLowerCase();
-    }
 }

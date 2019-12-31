@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
+import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -25,15 +26,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class AlterPartitionSqsMessage extends SqsMessageFile {
     private static URL ALTER_PARTITION_FILE = SqsMessageFile.class.getResource("/alter_partition.json");
 
-    private String message;
-    private String tableLocation = "DELETEME";
-    private String partitionLocation = "DELETEME";
-    private String oldPartitionLocation = "DELETEME";
-    private String isUnreferenced = "false";
-    private String isExpired = "false";
-
     public AlterPartitionSqsMessage() throws IOException {
-        message = new String(IOUtils.toByteArray(ALTER_PARTITION_FILE), UTF_8);
+        this.setMessageFromFile(ALTER_PARTITION_FILE);
     }
 
     public AlterPartitionSqsMessage(
@@ -41,14 +35,16 @@ public class AlterPartitionSqsMessage extends SqsMessageFile {
             String partitionLocation,
             String oldPartitionLocation,
             Boolean isUnreferenced,
-            Boolean isExpired) throws IOException {
-        message = new String(IOUtils.toByteArray(ALTER_PARTITION_FILE), UTF_8);
-
-        this.tableLocation = tableLocation;
-        this.partitionLocation = partitionLocation;
-        this.oldPartitionLocation = oldPartitionLocation;
-        this.isUnreferenced = isUnreferenced.toString().toLowerCase();
-        this.isExpired = isExpired.toString().toLowerCase();
+            Boolean isExpired,
+            Boolean isWhitelisted
+    ) throws IOException {
+        this.setMessageFromFile(ALTER_PARTITION_FILE);
+        this.setTableLocation(tableLocation);
+        this.setPartitionLocation(partitionLocation);
+        this.setOldPartitionLocation(oldPartitionLocation);
+        this.setUnreferenced(isUnreferenced);
+        this.setExpired(isExpired);
+        this.setWhitelisted(EventType.ALTER_PARTITION, isWhitelisted);
     }
 
     public String getFormattedString() {
@@ -56,26 +52,7 @@ public class AlterPartitionSqsMessage extends SqsMessageFile {
                 tableLocation,
                 partitionLocation,
                 oldPartitionLocation,
-                isUnreferenced, isExpired);
+                isUnreferenced, isExpired, isWhitelisted);
     }
 
-    public void setTableLocation(String tableLocation) {
-        this.tableLocation = tableLocation;
-    }
-
-    public void setPartitionLocation(String partitionLocation) {
-        this.partitionLocation = partitionLocation;
-    }
-
-    public void setOldPartitionLocation(String oldPartitionLocation) {
-        this.oldPartitionLocation = oldPartitionLocation;
-    }
-
-    public void setUnreferenced(Boolean isUnreferenced) {
-        this.isUnreferenced = isUnreferenced.toString().toLowerCase();
-    }
-
-    public void setExpired(Boolean isExpired) {
-        this.isExpired = isExpired.toString().toLowerCase();
-    }
 }

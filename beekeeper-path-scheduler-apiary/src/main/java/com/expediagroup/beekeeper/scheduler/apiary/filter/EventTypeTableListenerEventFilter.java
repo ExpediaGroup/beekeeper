@@ -29,10 +29,6 @@ public class EventTypeTableListenerEventFilter implements ListenerEventFilter {
   @Override
   public boolean filter(ListenerEvent listenerEvent) {
 
-    if (listenerEvent == null) {
-      return true;
-    }
-
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
     if (tableParameters == null) {
       return true;
@@ -43,20 +39,17 @@ public class EventTypeTableListenerEventFilter implements ListenerEventFilter {
 
     EventType eventType = listenerEvent.getEventType();
     switch (eventType) {
-    case CREATE_TABLE:
-      return !(isExpired);
-    case ADD_PARTITION:
-      return !(isExpired);
-    case ALTER_PARTITION:
-      return !(isExpired || isUnreferenced);
-    case ALTER_TABLE:
-      return !(isExpired || isUnreferenced);
-    case DROP_PARTITION:
-      return !(isUnreferenced);
-    case DROP_TABLE:
-      return !(isUnreferenced);
-    default:
-      return true;
+      case CREATE_TABLE:
+      case ADD_PARTITION:
+        return !(isExpired);
+      case ALTER_PARTITION:
+      case ALTER_TABLE:
+        return !(isExpired || isUnreferenced);
+      case DROP_PARTITION:
+      case DROP_TABLE:
+        return !(isUnreferenced);
+      default:
+        return true;
     }
   }
 }

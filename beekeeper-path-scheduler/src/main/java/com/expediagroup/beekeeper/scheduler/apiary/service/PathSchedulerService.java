@@ -25,6 +25,7 @@ import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PathSchedulerService implements SchedulerService {
@@ -45,4 +46,21 @@ public class PathSchedulerService implements SchedulerService {
       throw new BeekeeperException(format("Unable to schedule path '%s' for deletion", cleanUpPath.getPath()), e);
     }
   }
+
+  @TimedTaggable("path-expiration")
+  public void scheduleExpiration(HousekeepingPath expirationPath) {
+    try {
+
+    } catch (Exception e) {
+
+    }
+  }
+
+  private void scheduleExpiredPath() {}
+
+
+  private void scheduleOrphanedPath() {
+
+  }
+
 }

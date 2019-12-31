@@ -7,5 +7,5 @@
   "Signature" : "signature",
   "SigningCertURL" : "https://sns.us-west-2.amazonaws.com/SimpleNotificationService-xxxx",
   "UnsubscribeURL" : "https://sns.us-west-2.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-west-2:440407435941:sns-topic",
-  "Message" : "{ \"protocolVersion\": \"1.0\", \"eventType\": \"CREATE_TABLE\", \"dbName\": \"some_db\", \"tableName\": \"some_table\", \"tableLocation\": \"%s\", \"tableParameters\": { \"beekeeper.unreferenced.data.retention.period\": \"P7D\", \"beekeeper.remove.unreferenced.data\": \"%s\", \"beekeeper.expired.data.retention.period\": \"P14D\", \"beekeeper.remove.expired.data\": \"%s\" }}"
+  "Message" : "{ \"protocolVersion\": \"1.0\", \"eventType\": \"CREATE_TABLE\", \"dbName\": \"some_db\", \"tableName\": \"some_table\", \"tableLocation\": \"%s\", \"tableParameters\": { \"beekeeper.unreferenced.data.retention.period\": \"P7D\", \"beekeeper.remove.unreferenced.data\": \"%s\", \"beekeeper.expired.data.retention.period\": \"P14D\", \"beekeeper.remove.expired.data\": \"%s\", \"beekeeper.hive.event.whitelist\":\"%s\" }}"
 }

@@ -282,12 +282,6 @@ public class EventTypeTableListenerEventFilterTest {
             true);
   }
 
-  @Test
-  public void typicalFilterNullEvent() {
-    boolean filter = listenerEventFilter.filter(null);
-    assertThat(filter).isTrue();
-  }
-
   void assertFilterState(ListenerEvent listenerEvent,
       EventType eventType,
       String isUnreferenced,
