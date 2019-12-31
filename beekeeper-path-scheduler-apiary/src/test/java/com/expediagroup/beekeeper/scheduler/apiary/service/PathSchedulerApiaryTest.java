@@ -52,26 +52,16 @@ import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
 public class PathSchedulerApiaryTest {
 
   private static final String PATH = "path";
-  private static final String DB = "db";
-  private static final String TABLE = "table";
 
-  @Mock
-  private SchedulerService pathSchedulerService;
-
-  @Mock
-  private BeekeeperEventReader beekeeperEventReader;
-
-  @Mock
-  private HousekeepingPathRepository housekeepingPathRepository;
-
-  @Mock
-  private EntityHousekeepingPath path;
+  @Mock private SchedulerService pathSchedulerService;
+  @Mock private BeekeeperEventReader beekeeperEventReader;
+  @Mock private EntityHousekeepingPath path;
 
   private PathSchedulerApiary scheduler;
 
   @BeforeEach
   public void init() {
-    scheduler = new PathSchedulerApiary(beekeeperEventReader, pathSchedulerService, housekeepingPathRepository);
+    scheduler = new PathSchedulerApiary(beekeeperEventReader, pathSchedulerService);
   }
 
   @Test
@@ -109,29 +99,27 @@ public class PathSchedulerApiaryTest {
       verify(beekeeperEventReader, times(0)).delete(any());
       assertThat(e).isInstanceOf(BeekeeperException.class);
       assertThat(e.getMessage()).isEqualTo(
-              "Unable to schedule path 'path' for deletion, this message will go back on the queue");
+              "Unable to schedule/update path 'path' for deletion, this message will go back on the queue");
     }
   }
 
   @Test
   public void repositoryCleanupExpiredThrowsException() {
     when(path.getPath()).thenReturn(PATH);
-    when(path.getTableName()).thenReturn(TABLE);
-    when(path.getDatabaseName()).thenReturn(DB);
     when(path.getLifecycleType()).thenReturn(EXPIRED.toString());
     Optional<BeekeeperEvent> event = Optional.of(newPathEvent(path));
     when(beekeeperEventReader.read()).thenReturn(event);
-    doThrow(new BeekeeperException("exception")).when(housekeepingPathRepository).cleanupOldExpiredRows(anyString(),anyString());
+    doThrow(new BeekeeperException("exception")).when(pathSchedulerService).scheduleExpiration(any(HousekeepingPath.class));
 
     try {
       scheduler.schedulePath();
       fail("Should have thrown exception");
     } catch (Exception e) {
-      verify(housekeepingPathRepository).cleanupOldExpiredRows(anyString(),anyString());
+      verify(pathSchedulerService).scheduleExpiration(any(HousekeepingPath.class));
       verify(beekeeperEventReader, times(0)).delete(any());
       assertThat(e).isInstanceOf(BeekeeperException.class);
       assertThat(e.getMessage()).isEqualTo(
-              "Unable to cleanup before scheduling 'path' for deletion");
+              "Unable to schedule/update path 'path' for deletion, this message will go back on the queue");
     }
   }
 

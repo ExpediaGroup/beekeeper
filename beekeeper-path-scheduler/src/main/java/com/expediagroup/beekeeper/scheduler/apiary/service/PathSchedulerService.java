@@ -47,20 +47,19 @@ public class PathSchedulerService implements SchedulerService {
     }
   }
 
+  @Override
   @TimedTaggable("path-expiration")
   public void scheduleExpiration(HousekeepingPath expirationPath) {
     try {
-
+      housekeepingPathRepository.updateExpiredRows(
+          expirationPath.getDatabaseName(),
+          expirationPath.getTableName(),
+          expirationPath.getCleanupDelay(),
+          expirationPath.getCleanupTimestamp()
+      );
     } catch (Exception e) {
-
+      throw new BeekeeperException(format("Unable to schedule path '%s' for expiration", expirationPath.getPath()), e);
     }
-  }
-
-  private void scheduleExpiredPath() {}
-
-
-  private void scheduleOrphanedPath() {
-
   }
 
 }

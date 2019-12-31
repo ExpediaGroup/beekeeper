@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.core.repository;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 import org.springframework.data.domain.Page;
@@ -38,11 +39,20 @@ public interface HousekeepingPathRepository extends JpaRepository<EntityHousekee
   Page<EntityHousekeepingPath> findRecordsForCleanupByModifiedTimestamp(@Param("instant") LocalDateTime instant,
       Pageable pageable);
 
-//  @Transactional
-//  void updateExpiredRows(@Param("databaseName") String databaseName, @Param("tableName") String tableName);
 
   @Modifying
-  @Transactional
+  @Query("update EntityHousekeepingPath p "
+      + "set p.cleanupDelay=:cleanupDelay, p.cleanupTimestamp=:cleanupTimestamp "
+      + "where p.databaseName=:databaseName and p.tableName=:tableName and p.lifecycleType ='EXPIRED'"
+  )
+  void updateExpiredRows(
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName,
+      @Param("cleanupDelay") Duration cleanupDelay,
+      @Param("cleanupTimestamp") LocalDateTime cleanupTimestamp
+  );
+
+  @Modifying
   @Query("delete from EntityHousekeepingPath p where "
       + " p.databaseName=:databaseName and "
       + " p.tableName=:tableName and "

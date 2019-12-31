@@ -26,4 +26,6 @@ public interface SchedulerService {
    */
   void scheduleForHousekeeping(HousekeepingPath cleanUpPath);
 
+  void scheduleExpiration(HousekeepingPath expirationPath);
+
 }
