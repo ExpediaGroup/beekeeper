@@ -15,11 +15,11 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.model;
 
+import java.util.List;
+
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-
-import java.util.List;
 
 public class BeekeeperEvent {
   private final List<HousekeepingPath> housekeepingPaths;

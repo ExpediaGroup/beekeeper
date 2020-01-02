@@ -15,14 +15,19 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
-import com.expedia.apiary.extensions.receiver.common.event.EventType;
-import com.google.gson.*;
-import org.apache.commons.io.IOUtils;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.IOException;
 import java.net.URL;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import org.apache.commons.io.IOUtils;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import com.expedia.apiary.extensions.receiver.common.event.EventType;
 
 public abstract class SqsMessageFile {
     protected String message;

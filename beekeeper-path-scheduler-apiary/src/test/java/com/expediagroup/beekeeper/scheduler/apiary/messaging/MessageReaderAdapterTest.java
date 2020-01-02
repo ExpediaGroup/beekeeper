@@ -25,9 +25,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.scheduler.apiary.mapper.ExpiredPathMapper;
-import com.expediagroup.beekeeper.scheduler.apiary.mapper.OrphanedPathMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +34,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
+import com.expediagroup.beekeeper.scheduler.apiary.mapper.ExpiredPathMapper;
+import com.expediagroup.beekeeper.scheduler.apiary.mapper.OrphanedPathMapper;
 
 @ExtendWith(MockitoExtension.class)
 public class MessageReaderAdapterTest {

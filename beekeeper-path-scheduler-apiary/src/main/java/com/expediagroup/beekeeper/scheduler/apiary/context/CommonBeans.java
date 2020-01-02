@@ -17,12 +17,6 @@ package com.expediagroup.beekeeper.scheduler.apiary.context;
 
 import java.util.List;
 
-import com.expediagroup.beekeeper.scheduler.apiary.filter.*;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.FilteringMessageReader;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
-import com.expediagroup.beekeeper.scheduler.apiary.mapper.MessageEventMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +29,14 @@ import org.springframework.retry.annotation.EnableRetry;
 
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
+
+import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.mapper.MessageEventMapper;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.FilteringMessageReader;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
+
 
 @Configuration
 @ComponentScan(basePackages = { "com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.scheduler" })

@@ -15,10 +15,11 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
-import com.expedia.apiary.extensions.receiver.common.event.EventType;
-
 import java.io.IOException;
 import java.net.URL;
+
+import com.expedia.apiary.extensions.receiver.common.event.EventType;
+
 
 public class AddPartitionSqsMessage extends SqsMessageFile {
     private static URL ADD_PARTITION_FILE = SqsMessageFile.class.getResource("/add_partition.json");

@@ -18,6 +18,9 @@ package com.expediagroup.beekeeper.integration;
 import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
 
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -33,9 +36,6 @@ import java.util.stream.Stream;
 
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PathStatus;
-
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 public class MySqlTestUtils {
 

@@ -17,19 +17,20 @@ package com.expediagroup.beekeeper.scheduler.apiary.service;
 
 import static java.lang.String.format;
 
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
-import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import org.springframework.transaction.annotation.Transactional;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 
 @Component
 public class PathSchedulerApiary {

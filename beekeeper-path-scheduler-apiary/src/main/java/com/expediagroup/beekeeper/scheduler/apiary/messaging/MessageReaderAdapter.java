@@ -20,14 +20,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.scheduler.apiary.mapper.MessageEventMapper;
-import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
+
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.scheduler.apiary.mapper.MessageEventMapper;
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 
 public class MessageReaderAdapter implements BeekeeperEventReader {
 

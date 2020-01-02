@@ -15,13 +15,15 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
-import com.expedia.apiary.extensions.receiver.common.event.EventType;
-import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
-import org.springframework.stereotype.Component;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.util.Map;
+
+import org.springframework.stereotype.Component;
+
+import com.expedia.apiary.extensions.receiver.common.event.EventType;
+import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
 @Component
 public class EventTypeTableListenerEventFilter implements ListenerEventFilter {

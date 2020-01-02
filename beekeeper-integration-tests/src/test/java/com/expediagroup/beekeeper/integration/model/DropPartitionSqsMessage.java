@@ -15,13 +15,10 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
-import com.expedia.apiary.extensions.receiver.common.event.EventType;
-import org.apache.commons.io.IOUtils;
-
 import java.io.IOException;
 import java.net.URL;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import com.expedia.apiary.extensions.receiver.common.event.EventType;
 
 public class DropPartitionSqsMessage extends SqsMessageFile {
     private static URL DROP_PARTITION_FILE = SqsMessageFile.class.getResource("/drop_partition.json");

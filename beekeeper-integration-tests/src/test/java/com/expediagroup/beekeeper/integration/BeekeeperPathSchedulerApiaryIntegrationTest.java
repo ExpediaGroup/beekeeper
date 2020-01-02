@@ -21,6 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -34,9 +37,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
-import com.expediagroup.beekeeper.integration.model.*;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -59,6 +59,12 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PathStatus;
+import com.expediagroup.beekeeper.integration.model.AddPartitionSqsMessage;
+import com.expediagroup.beekeeper.integration.model.AlterPartitionSqsMessage;
+import com.expediagroup.beekeeper.integration.model.AlterTableSqsMessage;
+import com.expediagroup.beekeeper.integration.model.CreateTableSqsMessage;
+import com.expediagroup.beekeeper.integration.model.DropPartitionSqsMessage;
+import com.expediagroup.beekeeper.integration.model.DropTableSqsMessage;
 import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperPathSchedulerApiary;
 
 class BeekeeperPathSchedulerApiaryIntegrationTest {

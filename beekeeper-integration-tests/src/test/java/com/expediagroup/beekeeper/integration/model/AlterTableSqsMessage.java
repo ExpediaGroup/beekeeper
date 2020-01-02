@@ -15,13 +15,10 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
-import com.expedia.apiary.extensions.receiver.common.event.EventType;
-import org.apache.commons.io.IOUtils;
-
 import java.io.IOException;
 import java.net.URL;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import com.expedia.apiary.extensions.receiver.common.event.EventType;
 
 public class AlterTableSqsMessage extends SqsMessageFile {
     private static URL ALTER_TABLE_FILE = SqsMessageFile.class.getResource("/alter_table.json");
