@@ -62,10 +62,6 @@ public interface HousekeepingPath {
 
   void setLifecycleType(String lifecycleType);
 
-  String getApiaryEventType();
-
-  void setApiaryEventType(String apiaryEventType);
-
   String getClientId();
 
   void setClientId(String clientId);

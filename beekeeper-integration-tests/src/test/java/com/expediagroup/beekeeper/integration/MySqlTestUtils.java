@@ -46,7 +46,6 @@ public class MySqlTestUtils {
   private static final String CLEANUP_ATTEMPTS = "cleanup_attempts";
   private static final String CLEANUP_DELAY = "cleanup_delay";
   private static final String LIFECYCLE_TYPE = "lifecycle_type";
-  private static final String APIARY_EVENT_TYPE = "apiary_event_type";
   private static final String CLEANUP_TIMESTAMP = "cleanup_timestamp";
   private static final String CLIENT_ID = "client_id";
   private static final String CREATION_TIMESTAMP = "creation_timestamp";
@@ -67,7 +66,7 @@ public class MySqlTestUtils {
     // TODO: for now, we'll just keep testing unreferenced paths only
     String lifecycleType = UNREFERENCED.toString().toLowerCase();
 
-    String fields = String.join(", ", PATH, PATH_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME, LIFECYCLE_TYPE, APIARY_EVENT_TYPE);
+    String fields = String.join(", ", PATH, PATH_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME, LIFECYCLE_TYPE);
     String values = Stream.of(path, PathStatus.SCHEDULED.toString(), "PT1S", Timestamp.valueOf(LocalDateTime.now(UTC)
         .minus(1L, ChronoUnit.DAYS))
         .toString(), table, lifecycleType)
@@ -136,7 +135,6 @@ public class MySqlTestUtils {
         .cleanupDelay(Duration.parse(resultSet.getString(CLEANUP_DELAY)))
         .clientId(resultSet.getString(CLIENT_ID))
         .lifeCycleType(resultSet.getString(LIFECYCLE_TYPE))
-        .apiaryEventType(resultSet.getString(APIARY_EVENT_TYPE))
         .build();
     path.setCleanupTimestamp(Timestamp.valueOf(resultSet.getString(CLEANUP_TIMESTAMP))
         .toLocalDateTime());

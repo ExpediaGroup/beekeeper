@@ -74,7 +74,6 @@ public abstract class MessageEventMapper {
                 .creationTimestamp(LocalDateTime.now())
                 .cleanupDelay(extractCleanupDelay(listenerEvent))
                 .lifeCycleType(lifeCycleType.name())
-                .apiaryEventType(listenerEvent.getEventType().name())
                 .clientId(CLIENT_ID)
                 .tableName(listenerEvent.getTableName())
                 .databaseName(listenerEvent.getDbName())
