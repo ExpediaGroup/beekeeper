@@ -23,7 +23,6 @@
   </appender>
 
   <logger name="com.expediagroup.beekeeper" level="DEBUG"/>
-  <logger name="io.findify" level="ERROR"/>
 
   <root level="INFO">
     <appender-ref ref="STDOUT"/>
