@@ -10,10 +10,6 @@
 
   <artifactId>beekeeper-integration-tests</artifactId>
 
-  <properties>
-    <testcontainers.version>1.11.1</testcontainers.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>com.expediagroup</groupId>

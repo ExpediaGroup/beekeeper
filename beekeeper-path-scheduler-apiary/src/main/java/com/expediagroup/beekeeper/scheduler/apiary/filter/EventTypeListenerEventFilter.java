@@ -28,9 +28,6 @@ public class EventTypeListenerEventFilter implements ListenerEventFilter {
 
   @Override
   public boolean filter(ListenerEvent listenerEvent) {
-    if (listenerEvent == null) {
-      return true;
-    }
     Class<? extends ListenerEvent> eventClass = listenerEvent.getEventType().eventClass();
     return !(AlterPartitionEvent.class.equals(eventClass) ||
         AlterTableEvent.class.equals(eventClass) ||

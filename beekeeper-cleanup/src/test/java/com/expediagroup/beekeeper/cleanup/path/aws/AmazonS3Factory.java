@@ -15,27 +15,24 @@
  */
 package com.expediagroup.beekeeper.cleanup.path.aws;
 
-import akka.http.scaladsl.Http;
-import io.findify.s3mock.S3Mock;
+import org.testcontainers.containers.localstack.LocalStackContainer;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.AnonymousAWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 class AmazonS3Factory {
 
-  static AmazonS3 newInstance(S3Mock s3Mock) {
-    Http.ServerBinding serverBinding = s3Mock.start();
-    int port = serverBinding.localAddress().getPort();
-    AwsClientBuilder.EndpointConfiguration endpointConfiguration = new AwsClientBuilder.EndpointConfiguration(
-        "http://localhost:" + port, "us-west-2");
+  static AmazonS3 newInstance(LocalStackContainer s3Container) {
+    AwsClientBuilder.EndpointConfiguration endpointConfiguration = s3Container.getEndpointConfiguration(
+      LocalStackContainer.Service.S3);
+    AWSCredentialsProvider defaultCredentialsProvider = s3Container.getDefaultCredentialsProvider();
     return AmazonS3ClientBuilder.standard()
-        .withPathStyleAccessEnabled(true)
-        .withEndpointConfiguration(endpointConfiguration)
-        .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))
-        .build();
+      .disableChunkedEncoding()
+      .withEndpointConfiguration(endpointConfiguration)
+      .withCredentials(defaultCredentialsProvider)
+      .build();
   }
 
 }

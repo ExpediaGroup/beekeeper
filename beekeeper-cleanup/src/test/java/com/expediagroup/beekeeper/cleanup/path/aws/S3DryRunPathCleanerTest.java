@@ -21,14 +21,13 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import io.findify.s3mock.S3Mock;
+import org.testcontainers.containers.localstack.LocalStackContainer;
 
 import com.amazonaws.services.s3.AmazonS3;
 
@@ -37,6 +36,8 @@ import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 
 @ExtendWith(MockitoExtension.class)
 class S3DryRunPathCleanerTest {
+
+  private static LocalStackContainer s3Container;
 
   private final String content = "Some content";
   private final String bucket = "bucket";
@@ -48,7 +49,6 @@ class S3DryRunPathCleanerTest {
   private final String tableName = "table";
   private final String databaseName = "database";
 
-  private final S3Mock s3Mock = new S3Mock.Builder().withPort(0).withInMemoryBackend().build();
   private EntityHousekeepingPath housekeepingPath;
   private AmazonS3 amazonS3;
   private S3Client s3Client;
@@ -56,10 +56,19 @@ class S3DryRunPathCleanerTest {
 
   private S3PathCleaner s3DryRunPathCleaner;
 
+  @BeforeAll
+  public static void s3() {
+    s3Container = new LocalStackContainer().withServices(LocalStackContainer.Service.S3);
+    s3Container.start();
+  }
+
   @BeforeEach
   void setUp() {
-    amazonS3 = AmazonS3Factory.newInstance(s3Mock);
+    amazonS3 = AmazonS3Factory.newInstance(s3Container);
     amazonS3.createBucket(bucket);
+    amazonS3.listObjectsV2(bucket)
+      .getObjectSummaries()
+      .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     s3Client = new S3Client(amazonS3, true);
     s3DryRunPathCleaner = new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
     housekeepingPath = new EntityHousekeepingPath.Builder()
@@ -69,11 +78,6 @@ class S3DryRunPathCleanerTest {
       .creationTimestamp(LocalDateTime.now())
       .cleanupDelay(Duration.ofDays(1))
       .build();
-  }
-
-  @AfterEach
-  void tearDown() {
-    s3Mock.shutdown();
   }
 
   @Test
