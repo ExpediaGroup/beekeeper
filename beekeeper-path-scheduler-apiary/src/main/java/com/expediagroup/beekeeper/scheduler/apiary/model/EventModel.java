@@ -1,12 +1,12 @@
 package com.expediagroup.beekeeper.scheduler.apiary.model;
 
-import com.expediagroup.beekeeper.core.model.LifeCycleEventType;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 public class EventModel {
-    public LifeCycleEventType lifeCycleEvent;
+    public LifecycleEventType lifeCycleEvent;
     public String cleanupPath;
 
-    public EventModel(LifeCycleEventType lifeCycleEvent, String cleanup) {
+    public EventModel(LifecycleEventType lifeCycleEvent, String cleanup) {
         this.lifeCycleEvent = lifeCycleEvent;
         this.cleanupPath = cleanup;
     }

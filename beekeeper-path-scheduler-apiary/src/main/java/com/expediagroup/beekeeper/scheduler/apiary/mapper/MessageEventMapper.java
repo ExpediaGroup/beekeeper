@@ -3,7 +3,7 @@ package com.expediagroup.beekeeper.scheduler.apiary.mapper;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.core.model.LifeCycleEventType;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.model.PathStatus;
 import com.expediagroup.beekeeper.scheduler.apiary.model.EventModel;
 import org.slf4j.Logger;
@@ -26,9 +26,9 @@ public abstract class MessageEventMapper {
 
     protected final String cleanupDelay;
     protected final String hivePropertyKey;
-    protected final LifeCycleEventType lifeCycleEventType;
+    protected final LifecycleEventType lifeCycleEventType;
 
-    public MessageEventMapper(String cleanupDelay, String hivePropertyKey, LifeCycleEventType eventType) {
+    public MessageEventMapper(String cleanupDelay, String hivePropertyKey, LifecycleEventType eventType) {
         this.cleanupDelay = cleanupDelay;
         this.hivePropertyKey = hivePropertyKey;
         this.lifeCycleEventType = eventType;
@@ -47,7 +47,7 @@ public abstract class MessageEventMapper {
 
     protected final String getHivePropertyKey() { return this.hivePropertyKey; }
     protected final String getCleanupDelay() { return this.cleanupDelay; }
-    protected final LifeCycleEventType getLifeCycleEventType() { return this.lifeCycleEventType; }
+    protected final LifecycleEventType getLifeCycleEventType() { return this.lifeCycleEventType; }
 
 
     /**
@@ -63,17 +63,17 @@ public abstract class MessageEventMapper {
 
     /**
      * Generates a path to clean up via EntityHousekeepingPath.Builder
-     * @param lifeCycleType The type of lifecycle cleanup event this path is
+     * @param lifecycleType The type of lifecycle cleanup event this path is
      * @param listenerEvent The current event we're generating this path for
      * @param cleanupLocation The path of the current item to cleanup
      * @return EntityHouseKeepingPath Path object for the given parameters
      */
-    protected final EntityHousekeepingPath generatePath(LifeCycleEventType lifeCycleType, ListenerEvent listenerEvent, String cleanupLocation) {
+    protected final EntityHousekeepingPath generatePath(LifecycleEventType lifecycleType, ListenerEvent listenerEvent, String cleanupLocation) {
         EntityHousekeepingPath.Builder builder = new EntityHousekeepingPath.Builder()
                 .pathStatus(PathStatus.SCHEDULED)
                 .creationTimestamp(LocalDateTime.now())
                 .cleanupDelay(extractCleanupDelay(listenerEvent))
-                .lifeCycleType(lifeCycleType.name())
+                .lifecycleType(lifecycleType.name())
                 .clientId(CLIENT_ID)
                 .tableName(listenerEvent.getTableName())
                 .databaseName(listenerEvent.getDbName())
@@ -89,7 +89,7 @@ public abstract class MessageEventMapper {
      * @return boolean
      */
     protected final Boolean checkIfTablePropertyExists(Map<String,String> tableParameters) {
-        LifeCycleEventType type = this.getLifeCycleEventType();
+        LifecycleEventType type = this.getLifeCycleEventType();
         return Boolean.valueOf(tableParameters.get(type.getTableParameterName()));
     }
 

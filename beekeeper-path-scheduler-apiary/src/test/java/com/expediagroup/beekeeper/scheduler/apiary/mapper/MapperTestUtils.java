@@ -5,7 +5,7 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageProperty;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageProperty;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.core.model.LifeCycleEventType;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -34,7 +34,7 @@ public class MapperTestUtils {
       Integer cleanupAttempts,
       LocalDateTime creationTimestamp,
       String pathToCleanup,
-      LifeCycleEventType lifeCycleEventType
+      LifecycleEventType lifeCycleEventType
   ) {
     LocalDateTime now = LocalDateTime.now();
     assertThat(path.getPath()).isEqualTo(pathToCleanup);

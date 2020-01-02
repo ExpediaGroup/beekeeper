@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -15,9 +15,8 @@
  */
 package com.expediagroup.beekeeper.cleanup.context;
 
-import com.expediagroup.beekeeper.cleanup.path.hive.HiveClient;
 import com.expediagroup.beekeeper.cleanup.path.hive.HivePathCleaner;
-import com.expediagroup.beekeeper.core.model.LifeCycleEventType;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 //import org.apache.hadoop.hive.conf.HiveConf;
 //import org.apache.hadoop.hive.metastore.HiveMetaException;
 //import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
@@ -105,12 +104,12 @@ public class CommonBeans {
 //  }
 
   @Bean
-  public EnumMap<LifeCycleEventType, PathCleaner> pathCleanerMap(
+  public EnumMap<LifecycleEventType, PathCleaner> pathCleanerMap(
       S3PathCleaner s3PathCleaner,
       HivePathCleaner hivePathCleaner
   ) {
-    EnumMap<LifeCycleEventType, PathCleaner> pcMap = new EnumMap<>(LifeCycleEventType.class);
-    pcMap.put(LifeCycleEventType.UNREFERENCED, s3PathCleaner);
+    EnumMap<LifecycleEventType, PathCleaner> pcMap = new EnumMap<>(LifecycleEventType.class);
+    pcMap.put(LifecycleEventType.UNREFERENCED, s3PathCleaner);
 //    pcMap.put(LifeCycleEventType.EXPIRED, hivePathCleaner);
     return pcMap;
   }
@@ -118,7 +117,7 @@ public class CommonBeans {
   @Bean
   public CleanupService cleanupService(
        HousekeepingPathRepository repository,
-       EnumMap<LifeCycleEventType, PathCleaner> pathCleanerMap,
+       EnumMap<LifecycleEventType, PathCleaner> pathCleanerMap,
        @Value("${properties.cleanup-page-size}") int pageSize,
        @Value("${properties.dry-run-enabled}") boolean dryRunEnabled
   ) {

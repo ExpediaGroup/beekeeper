@@ -34,14 +34,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFERENCED;
-import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import com.expediagroup.beekeeper.integration.model.*;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.HttpCoreContext;
-import org.apache.tomcat.jni.Local;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;

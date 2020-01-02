@@ -23,7 +23,7 @@ import java.time.ZoneOffset;
 import java.util.EnumMap;
 import java.util.List;
 
-import com.expediagroup.beekeeper.core.model.LifeCycleEventType;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -42,13 +42,13 @@ public class PagingCleanupService implements CleanupService {
 
   private final Logger log = LoggerFactory.getLogger(PagingCleanupService.class);
   private final HousekeepingPathRepository housekeepingPathRepository;
-  private final EnumMap<LifeCycleEventType,PathCleaner> pathCleanerMap;
+  private final EnumMap<LifecycleEventType,PathCleaner> pathCleanerMap;
   private final boolean dryRunEnabled;
   private final int pageSize;
 
   public PagingCleanupService(
           HousekeepingPathRepository housekeepingPathRepository,
-          EnumMap<LifeCycleEventType, PathCleaner> pathCleanerMap,
+          EnumMap<LifecycleEventType, PathCleaner> pathCleanerMap,
           int pageSize,
           boolean dryRunEnabled
   ) {
@@ -90,7 +90,7 @@ public class PagingCleanupService implements CleanupService {
 
   private void cleanupContent(EntityHousekeepingPath housekeepingPath) {
     try {
-      LifeCycleEventType lifecycleType = LifeCycleEventType.valueOf(housekeepingPath.getLifecycleType());
+      LifecycleEventType lifecycleType = LifecycleEventType.valueOf(housekeepingPath.getLifecycleType());
       PathCleaner pathCleaner = pathCleanerMap.get(lifecycleType);
       log.info("Cleaning up path \"{}\" using \"{}\"", housekeepingPath.getPath(), pathCleaner.toString());
 

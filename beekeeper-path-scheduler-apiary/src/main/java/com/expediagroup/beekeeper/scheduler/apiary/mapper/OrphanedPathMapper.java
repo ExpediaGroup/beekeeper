@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 @Component
 public class OrphanedPathMapper extends MessageEventMapper {

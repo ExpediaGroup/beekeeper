@@ -18,7 +18,6 @@ package com.expediagroup.beekeeper.scheduler.apiary.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,7 +29,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,8 +43,8 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 
-import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFERENCED;
-import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 @ExtendWith(MockitoExtension.class)
 public class PathSchedulerApiaryTest {

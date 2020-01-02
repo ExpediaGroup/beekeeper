@@ -29,7 +29,7 @@ import java.time.ZoneOffset;
 import java.util.EnumMap;
 import java.util.List;
 
-import com.expediagroup.beekeeper.core.model.LifeCycleEventType;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -78,8 +78,8 @@ class PagingCleanupServiceTest {
     entityPath1 = createEntityHousekeepingPath(path1);
     entityPath2 = createEntityHousekeepingPath(path2);
     entityPath3 = createEntityHousekeepingPath(path3);
-    EnumMap<LifeCycleEventType, PathCleaner> pcm = new EnumMap<>(LifeCycleEventType.class);
-    pcm.put(LifeCycleEventType.UNREFERENCED, pathCleaner);
+    EnumMap<LifecycleEventType, PathCleaner> pcm = new EnumMap<>(LifecycleEventType.class);
+    pcm.put(LifecycleEventType.UNREFERENCED, pathCleaner);
     pagingCleanupService = new PagingCleanupService(housekeepingPathRepository, pcm, 2, false);
   }
 
@@ -192,8 +192,8 @@ class PagingCleanupServiceTest {
 
   @Test
   void typicalDryRunWithPaging() {
-    EnumMap<LifeCycleEventType, PathCleaner> pcm = new EnumMap<>(LifeCycleEventType.class);
-    pcm.put(LifeCycleEventType.UNREFERENCED, pathCleaner);
+    EnumMap<LifecycleEventType, PathCleaner> pcm = new EnumMap<>(LifecycleEventType.class);
+    pcm.put(LifecycleEventType.UNREFERENCED, pathCleaner);
     pagingCleanupService = new PagingCleanupService(housekeepingPathRepository, pcm, 2, true);
     housekeepingPathRepository.save(entityPath1);
     housekeepingPathRepository.save(entityPath2);

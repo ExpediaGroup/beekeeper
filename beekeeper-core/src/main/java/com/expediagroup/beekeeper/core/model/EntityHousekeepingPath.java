@@ -233,7 +233,7 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
     private LocalDateTime cleanupTimestamp;
     private Duration cleanupDelay;
     private int cleanupAttempts;
-    private String lifeCycleType;
+    private String lifecycleType;
     private String clientId;
 
     public Builder() { }
@@ -283,8 +283,8 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
       return this;
     }
 
-    public Builder lifeCycleType(String cleanupType) {
-      this.lifeCycleType = cleanupType;
+    public Builder lifecycleType(String lifecycleType) {
+      this.lifecycleType = lifecycleType;
       return this;
     }
 
@@ -298,7 +298,7 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
 
       return new EntityHousekeepingPath(id, path, databaseName, tableName, pathStatus,
           creationTimestamp, modifiedTimestamp,
-          cleanupTimestamp, cleanupDelay, cleanupAttempts, lifeCycleType, clientId);
+          cleanupTimestamp, cleanupDelay, cleanupAttempts, lifecycleType, clientId);
     }
 
     private LocalDateTime configureCleanupTimestamp() {

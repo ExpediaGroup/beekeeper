@@ -16,8 +16,8 @@
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
 import com.expedia.apiary.extensions.receiver.common.event.*;
-import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFERENCED;
-import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

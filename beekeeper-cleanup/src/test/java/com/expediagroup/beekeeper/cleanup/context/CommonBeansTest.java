@@ -21,10 +21,9 @@ import static org.mockito.Mockito.mock;
 import java.net.URL;
 import java.util.EnumMap;
 
-import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3SentinelFilesCleaner;
 import com.expediagroup.beekeeper.cleanup.path.hive.HivePathCleaner;
-import com.expediagroup.beekeeper.core.model.LifeCycleEventType;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,7 +57,7 @@ class CommonBeansTest {
   private final CommonBeans commonBeans = new CommonBeans();
 
   private @Mock HousekeepingPathRepository repository;
-  private @Mock EnumMap<LifeCycleEventType, PathCleaner> pathCleanerMap;
+  private @Mock EnumMap<LifecycleEventType, PathCleaner> pathCleanerMap;
   private @Mock S3SentinelFilesCleaner s3SentinelFilesCleaner;
   private @Mock S3BytesDeletedReporter s3BytesDeletedReporter;
   private @Mock HivePathCleaner hivePathCleaner;
@@ -112,15 +111,15 @@ class CommonBeansTest {
   void pathCleanerMap() {
     S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), false);
     S3PathCleaner s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, s3BytesDeletedReporter);
-    EnumMap<LifeCycleEventType, PathCleaner> pathCleanerMap = commonBeans.pathCleanerMap(s3PathCleaner, hivePathCleaner);
+    EnumMap<LifecycleEventType, PathCleaner> pathCleanerMap = commonBeans.pathCleanerMap(s3PathCleaner, hivePathCleaner);
     assertThat(pathCleanerMap).isInstanceOf(EnumMap.class);
-    assertThat(pathCleanerMap.get(LifeCycleEventType.UNREFERENCED)).isInstanceOf(S3PathCleaner.class);
-    assertThat(pathCleanerMap.get(LifeCycleEventType.EXPIRED)).isInstanceOf(HivePathCleaner.class);
+    assertThat(pathCleanerMap.get(LifecycleEventType.UNREFERENCED)).isInstanceOf(S3PathCleaner.class);
+    assertThat(pathCleanerMap.get(LifecycleEventType.EXPIRED)).isInstanceOf(HivePathCleaner.class);
   }
 
   @Test
   void cleanupService() {
-    EnumMap<LifeCycleEventType, PathCleaner> pcMap = new EnumMap<>(LifeCycleEventType.class);
+    EnumMap<LifecycleEventType, PathCleaner> pcMap = new EnumMap<>(LifecycleEventType.class);
     CleanupService cleanupService = commonBeans.cleanupService(repository, pcMap, 2, false);
     assertThat(cleanupService).isInstanceOf(PagingCleanupService.class);
   }

@@ -16,13 +16,9 @@
 package com.expediagroup.beekeeper.integration.model;
 
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
-import com.expediagroup.beekeeper.core.model.LifeCycleEventType;
-import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.net.URL;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class AddPartitionSqsMessage extends SqsMessageFile {
     private static URL ADD_PARTITION_FILE = SqsMessageFile.class.getResource("/add_partition.json");

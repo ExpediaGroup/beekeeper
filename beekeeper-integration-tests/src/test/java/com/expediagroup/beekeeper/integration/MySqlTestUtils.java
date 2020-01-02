@@ -34,8 +34,8 @@ import java.util.stream.Stream;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PathStatus;
 
-import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
-import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 public class MySqlTestUtils {
 
@@ -134,7 +134,7 @@ public class MySqlTestUtils {
             .toLocalDateTime())
         .cleanupDelay(Duration.parse(resultSet.getString(CLEANUP_DELAY)))
         .clientId(resultSet.getString(CLIENT_ID))
-        .lifeCycleType(resultSet.getString(LIFECYCLE_TYPE))
+        .lifecycleType(resultSet.getString(LIFECYCLE_TYPE))
         .build();
     path.setCleanupTimestamp(Timestamp.valueOf(resultSet.getString(CLEANUP_TIMESTAMP))
         .toLocalDateTime());
