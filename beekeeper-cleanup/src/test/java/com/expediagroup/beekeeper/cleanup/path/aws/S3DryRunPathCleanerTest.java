@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,6 +79,11 @@ class S3DryRunPathCleanerTest {
       .creationTimestamp(LocalDateTime.now())
       .cleanupDelay(Duration.ofDays(1))
       .build();
+  }
+
+  @AfterAll
+  static void teardown() {
+    s3Container.stop();
   }
 
   @Test

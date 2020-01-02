@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -102,6 +103,11 @@ class S3PathCleanerTest {
       .creationTimestamp(LocalDateTime.now())
       .cleanupDelay(Duration.ofDays(1))
       .build();
+  }
+
+  @AfterAll
+  static void teardown() {
+    s3Container.stop();
   }
 
   @Test

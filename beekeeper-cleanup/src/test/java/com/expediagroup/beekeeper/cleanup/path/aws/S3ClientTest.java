@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,11 @@ class S3ClientTest {
       .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     s3Client = new S3Client(amazonS3, false);
     s3ClientDryRun = new S3Client(amazonS3, true);
+  }
+
+  @AfterAll
+  static void teardown() {
+    s3Container.stop();
   }
 
   @Test

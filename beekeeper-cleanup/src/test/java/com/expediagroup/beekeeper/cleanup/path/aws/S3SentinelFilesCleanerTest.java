@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,11 @@ class S3SentinelFilesCleanerTest {
       .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     s3Client = new S3Client(amazonS3, false);
     s3SentinelFilesCleaner = new S3SentinelFilesCleaner(s3Client);
+  }
+
+  @AfterAll
+  static void teardown() {
+    s3Container.stop();
   }
 
   @Test
