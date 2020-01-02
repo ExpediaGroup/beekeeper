@@ -20,8 +20,6 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
-import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
@@ -32,24 +30,22 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
 
   @Override
   public boolean filter(ListenerEvent listenerEvent) {
-    Class<? extends ListenerEvent> eventClass = listenerEvent.getEventType().eventClass();
-    if (AlterPartitionEvent.class.equals(eventClass) || AlterTableEvent.class.equals(eventClass)) {
-      return false;
-    }
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
-    if (tableParameters == null) {
-      return true;
+    if (tableParameters != null && tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST) != null) {
+      return !isWhitelisted(listenerEvent, tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST));
     }
-    return !isWhitelisted(listenerEvent.getEventType(), tableParameters);
+    return !isDefaultBehaviour(listenerEvent);
   }
 
-  private boolean isWhitelisted(EventType eventType, Map<String, String> tableParameters) {
-    String whitelist = tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST);
-    if (whitelist == null) {
-      return false;
-    }
+  private boolean isWhitelisted(ListenerEvent listenerEvent, String whitelist) {
     return Arrays.stream(whitelist.split(","))
       .map(String::trim)
-      .anyMatch(whitelistedEvent -> whitelistedEvent.equalsIgnoreCase(eventType.toString()));
+      .anyMatch(whitelistedEvent -> whitelistedEvent.equalsIgnoreCase(listenerEvent.getEventType()
+        .toString()));
+  }
+
+  private boolean isDefaultBehaviour(ListenerEvent listenerEvent) {
+    EventType eventType = listenerEvent.getEventType();
+    return eventType == EventType.ALTER_PARTITION || eventType == EventType.ALTER_TABLE;
   }
 }

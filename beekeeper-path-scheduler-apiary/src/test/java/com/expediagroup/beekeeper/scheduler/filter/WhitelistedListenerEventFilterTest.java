@@ -16,7 +16,6 @@
 package com.expediagroup.beekeeper.scheduler.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -25,14 +24,13 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.expedia.apiary.extensions.receiver.common.event.AddPartitionEvent;
-import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
-import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
+import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
 import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
 
@@ -42,28 +40,26 @@ public class WhitelistedListenerEventFilterTest {
   private static final String BEEKEEPER_HIVE_EVENT_WHITELIST = "beekeeper.hive.event.whitelist";
 
   @Mock
-  private AddPartitionEvent alterPartitionEvent;
-  @Mock
-  private AlterTableEvent alterTableEvent;
-  @Mock
-  private DropTableEvent dropTableEvent;
+  private ListenerEvent listenerEvent;
 
   private WhitelistedListenerEventFilter listenerEventFilter = new WhitelistedListenerEventFilter();
 
-  @Test
-  public void filterAlterPartitionEvent() {
-    when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
-    boolean filter = listenerEventFilter.filter(alterPartitionEvent);
+  @ParameterizedTest
+  @EnumSource(value = EventType.class, names = { "ALTER_PARTITION",
+                                                 "ALTER_TABLE" })
+  public void filterDefaultEvents(EventType eventType) {
+    when(listenerEvent.getEventType()).thenReturn(eventType);
+    boolean filter = listenerEventFilter.filter(listenerEvent);
     assertThat(filter).isFalse();
-    verifyNoMoreInteractions(alterPartitionEvent);
   }
 
-  @Test
-  public void filterAlterTableEvent() {
-    when(alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
-    boolean filter = listenerEventFilter.filter(alterTableEvent);
-    assertThat(filter).isFalse();
-    verifyNoMoreInteractions(alterTableEvent);
+  @ParameterizedTest
+  @EnumSource(value = EventType.class, names = { "DROP_PARTITION",
+                                                 "DROP_TABLE", })
+  public void filterNonDefaultEvents(EventType eventType) {
+    when(listenerEvent.getEventType()).thenReturn(eventType);
+    boolean filter = listenerEventFilter.filter(listenerEvent);
+    assertThat(filter).isTrue();
   }
 
   @ParameterizedTest
@@ -75,10 +71,10 @@ public class WhitelistedListenerEventFilterTest {
                            "DROP_TABLE",
                            "Alter_Table , Create_Table, Drop_table" })
   public void filterWhitelistedEvent(String whitelist) {
-    when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
-    when(dropTableEvent.getTableParameters())
+    when(listenerEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
+    when(listenerEvent.getTableParameters())
       .thenReturn(Map.of(BEEKEEPER_HIVE_EVENT_WHITELIST, whitelist));
-    boolean filter = listenerEventFilter.filter(dropTableEvent);
+    boolean filter = listenerEventFilter.filter(listenerEvent);
     assertThat(filter).isFalse();
   }
 
@@ -90,29 +86,46 @@ public class WhitelistedListenerEventFilterTest {
                            "drop table,create_table",
                            "drop-table" })
   public void filterNotWhitelistedEvent(String whitelist) {
-    when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
-    when(dropTableEvent.getTableParameters())
+    when(listenerEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
+    when(listenerEvent.getTableParameters())
       .thenReturn(Map.of(BEEKEEPER_HIVE_EVENT_WHITELIST, whitelist));
-    boolean filter = listenerEventFilter.filter(dropTableEvent);
+    boolean filter = listenerEventFilter.filter(listenerEvent);
     assertThat(filter).isTrue();
   }
 
   @Test
-  public void filterNullTableParameters() {
-    when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
-    when(dropTableEvent.getTableParameters())
+  public void filterNullTableParametersDefaultEvent() {
+    when(listenerEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
+    when(listenerEvent.getTableParameters())
       .thenReturn(null);
-    boolean filter = listenerEventFilter.filter(dropTableEvent);
+    boolean filter = listenerEventFilter.filter(listenerEvent);
+    assertThat(filter).isFalse();
+  }
+
+  @Test
+  public void filterEmptyTableParametersDefaultEvent() {
+    when(listenerEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
+    when(listenerEvent.getTableParameters())
+      .thenReturn(Collections.emptyMap());
+    boolean filter = listenerEventFilter.filter(listenerEvent);
+    assertThat(filter).isFalse();
+  }
+
+  @Test
+  public void filterNullTableParametersNonDefaultEvent() {
+    when(listenerEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
+    when(listenerEvent.getTableParameters())
+      .thenReturn(null);
+    boolean filter = listenerEventFilter.filter(listenerEvent);
     assertThat(filter).isTrue();
   }
 
   @Test
-  public void filterEmptyTableParameters() {
-    when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
-    when(dropTableEvent.getTableParameters())
+  public void filterEmptyTableParametersNonDefaultEvent() {
+    when(listenerEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
+    when(listenerEvent.getTableParameters())
       .thenReturn(Collections.emptyMap());
-    boolean filter = listenerEventFilter.filter(dropTableEvent);
+    boolean filter = listenerEventFilter.filter(listenerEvent);
     assertThat(filter).isTrue();
   }
-
 }
