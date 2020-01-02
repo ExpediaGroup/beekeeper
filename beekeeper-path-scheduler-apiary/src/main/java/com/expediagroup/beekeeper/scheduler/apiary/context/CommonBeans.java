@@ -33,6 +33,7 @@ import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEvent
 import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.MetadataOnlyListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.FilteringMessageReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToPathEventMapper;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
@@ -62,8 +63,10 @@ public class CommonBeans {
   @Bean(name = "filteringMessageReader")
   MessageReader filteringMessageReader(@Qualifier("retryingMessageReader") MessageReader messageReader,
     TableParameterListenerEventFilter tableParameterFilter, EventTypeListenerEventFilter eventTypeFilter,
-    MetadataOnlyListenerEventFilter metadataOnlyListenerEventFilter) {
-    List<ListenerEventFilter> filters = List.of(eventTypeFilter, tableParameterFilter, metadataOnlyListenerEventFilter);
+    MetadataOnlyListenerEventFilter metadataOnlyListenerEventFilter,
+    WhitelistedListenerEventFilter whitelistedListenerEventFilter) {
+    List<ListenerEventFilter> filters = List.of(eventTypeFilter, tableParameterFilter,
+      metadataOnlyListenerEventFilter, whitelistedListenerEventFilter);
     return new FilteringMessageReader(messageReader, filters);
   }
 

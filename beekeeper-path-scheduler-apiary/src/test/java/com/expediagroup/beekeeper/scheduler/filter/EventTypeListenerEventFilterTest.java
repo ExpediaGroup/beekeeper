@@ -81,9 +81,4 @@ public class EventTypeListenerEventFilterTest {
     assertThat(filter).isTrue();
   }
 
-  @Test
-  public void typicalFilterNullEvent() {
-    boolean filter = listenerEventFilter.filter(null);
-    assertThat(filter).isTrue();
-  }
 }

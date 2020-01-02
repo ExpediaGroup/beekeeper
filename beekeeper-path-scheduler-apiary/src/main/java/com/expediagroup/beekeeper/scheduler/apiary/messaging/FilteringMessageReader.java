@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 
@@ -40,13 +41,20 @@ public class FilteringMessageReader implements MessageReader {
     if (messageEvent.isEmpty()) {
       return Optional.empty();
     }
-    boolean isFiltered = filters.stream()
-        .anyMatch(filter -> filter.filter(messageEvent.get().getEvent()));
-    if (isFiltered) {
+    if (isFiltered(messageEvent.get())) {
       delete(messageEvent.get());
       return Optional.empty();
     }
     return messageEvent;
+  }
+
+  private boolean isFiltered(MessageEvent messageEvent) {
+    ListenerEvent listenerEvent = messageEvent.getEvent();
+    if (listenerEvent == null) {
+      return true;
+    }
+    return filters.stream()
+        .anyMatch(filter -> filter.filter(listenerEvent));
   }
 
   @Override
