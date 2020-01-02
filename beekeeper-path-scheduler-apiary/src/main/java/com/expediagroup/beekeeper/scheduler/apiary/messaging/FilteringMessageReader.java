@@ -50,23 +50,12 @@ public class FilteringMessageReader implements MessageReader {
 
   private boolean isFiltered(MessageEvent messageEvent) {
     ListenerEvent listenerEvent = messageEvent.getEvent();
+
     if (listenerEvent == null) {
       return true;
     }
 
-    Boolean shouldFilter = false;
-
-    for(ListenerEventFilter f : filters) {
-      Boolean result = f.filter(listenerEvent);
-      if (result) {
-        shouldFilter = result;
-      }
-    }
-
-    return shouldFilter;
-//
-//    return filters.stream()
-//        .anyMatch(filter -> filter.filter(listenerEvent));
+    return filters.stream().anyMatch(filter -> filter.filter(listenerEvent));
   }
 
   @Override
