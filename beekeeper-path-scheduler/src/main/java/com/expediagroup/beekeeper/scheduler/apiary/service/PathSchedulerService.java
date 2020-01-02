@@ -18,19 +18,22 @@ package com.expediagroup.beekeeper.scheduler.apiary.service;
 import static java.lang.String.format;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import java.util.stream.Collectors;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PathSchedulerService implements SchedulerService {
 
   private HousekeepingPathRepository housekeepingPathRepository;
+  private static final PageRequest SINGLE_RECORD = PageRequest.of(0,1);
 
   @Autowired
   public PathSchedulerService(HousekeepingPathRepository housekeepingPathRepository) {
@@ -48,18 +51,25 @@ public class PathSchedulerService implements SchedulerService {
   }
 
   @Override
-  @TimedTaggable("path-expiration")
+  @TimedTaggable("paths-scheduled-expiration")
   public void scheduleExpiration(HousekeepingPath expirationPath) {
     try {
-      housekeepingPathRepository.updateExpiredRows(
-          expirationPath.getDatabaseName(),
-          expirationPath.getTableName(),
-          expirationPath.getCleanupDelay(),
-          expirationPath.getCleanupTimestamp()
-      );
+      Page<EntityHousekeepingPath> existingPath = housekeepingPathRepository.findExpiredRecordByDatabaseAndTableName(
+          expirationPath.getDatabaseName(), expirationPath.getTableName(), SINGLE_RECORD);
+
+      EntityHousekeepingPath pathToSave = (EntityHousekeepingPath) expirationPath;
+
+      if (!existingPath.isEmpty()) {
+        EntityHousekeepingPath existing = existingPath.get().collect(Collectors.toList()).get(0);
+        existing.setPath(expirationPath.getPath());
+        existing.setCleanupDelay(expirationPath.getCleanupDelay());
+        existing.setCleanupTimestamp(expirationPath.getCleanupTimestamp());
+        pathToSave = existing;
+      }
+
+      housekeepingPathRepository.save(pathToSave);
     } catch (Exception e) {
       throw new BeekeeperException(format("Unable to schedule path '%s' for expiration", expirationPath.getPath()), e);
     }
   }
-
 }

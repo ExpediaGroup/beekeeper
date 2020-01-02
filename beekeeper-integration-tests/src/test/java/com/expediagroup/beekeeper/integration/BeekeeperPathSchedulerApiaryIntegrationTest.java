@@ -32,6 +32,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.UNREFERENCED;
 import static com.expediagroup.beekeeper.core.model.LifeCycleEventType.EXPIRED;
@@ -40,6 +41,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.HttpCoreContext;
+import org.apache.tomcat.jni.Local;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -74,11 +76,13 @@ class BeekeeperPathSchedulerApiaryIntegrationTest {
   private static final String CLEANUP_DELAY_EXPIRED = "P14D";
   private static final int CLEANUP_ATTEMPTS = 0;
   private static final String CLIENT_ID = "apiary-metastore-event";
-  private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(UTC)
-          .minus(1L, ChronoUnit.MINUTES);
+  private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(UTC).minus(1L, ChronoUnit.MINUTES);
   private static final String DATABASE = "some_db";
   private static final String TABLE = "some_table";
   private static final String HEALTHCHECK_URI = "http://localhost:8080/actuator/health";
+
+  private static final String SCHEDULED_EXPIRATION_METRIC = "paths-scheduled-expiration";
+  private static final String SCHEDULED_ORPHANED_METRIC = "paths-scheduled";
 
   private static AmazonSQS amazonSQS;
   private static LocalStackContainer sqsContainer;
@@ -276,33 +280,23 @@ class BeekeeperPathSchedulerApiaryIntegrationTest {
 
   @Test
   void alterPartitionUnreferencedAndExpired() throws IOException, SQLException {
-    AlterPartitionSqsMessage alterPartitionSqsMessage = new AlterPartitionSqsMessage(
-            "s3://expiredTableLocation",
-            "s3://partitionLocation",
-            "s3://unreferencedPartitionLocation",
-            true, true,true);
-    amazonSQS.sendMessage(sendMessageRequest(alterPartitionSqsMessage.getFormattedString()));
-    AlterPartitionSqsMessage alterPartitionSqsMessage2 = new AlterPartitionSqsMessage(
-            "s3://expiredTableLocation2",
-            "s3://partitionLocation2",
-            "s3://partitionLocation",
-            true, true,true);
-    amazonSQS.sendMessage(sendMessageRequest(alterPartitionSqsMessage2.getFormattedString()));
+    List.of(
+        new AlterPartitionSqsMessage("s3://expiredTableLocation", "s3://partitionLocation", "s3://unreferencedPartitionLocation", true, true, true),
+        new AlterPartitionSqsMessage("s3://expiredTableLocation2", "s3://partitionLocation2", "s3://partitionLocation", true, true, true)
+    ).stream().forEach(msg -> amazonSQS.sendMessage(sendMessageRequest(msg.getFormattedString())));
+
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.unreferencedRowsInTable(PATH_TABLE) == 2);
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.expiredRowsInTable(PATH_TABLE) == 1);
+
     List<EntityHousekeepingPath> unreferencedPaths = mySqlTestUtils.getUnreferencedPaths();
     List<EntityHousekeepingPath> expiredPaths = mySqlTestUtils.getExpiredPaths();
 
-    assertUnreferencedPathFields(unreferencedPaths.get(0));
-    assertUnreferencedPathFields(unreferencedPaths.get(1));
-    assertThat(Set.of(
-      unreferencedPaths.get(0).getPath(),
-      unreferencedPaths.get(1).getPath())).isEqualTo(
-               Set.of(
-      "s3://unreferencedPartitionLocation",
-      "s3://partitionLocation"));
+    unreferencedPaths.stream().forEach(hkPath -> assertUnreferencedPathFields(hkPath));
+    Set<String> unreferencedPathSet = unreferencedPaths.stream().map(hkPath -> hkPath.getPath()).collect(Collectors.toSet());
+    assertThat(unreferencedPathSet).isEqualTo(Set.of("s3://unreferencedPartitionLocation","s3://partitionLocation"));
 
-    assertExpiredPathFields(expiredPaths.get(0));
+    expiredPaths.stream().forEach(hkPath -> assertExpiredPathFields(hkPath));
+    assertThat(expiredPaths.size()).isEqualTo(1);
     assertThat(expiredPaths.get(0).getPath()).isEqualTo("s3://expiredTableLocation2");
   }
 
@@ -403,26 +397,22 @@ class BeekeeperPathSchedulerApiaryIntegrationTest {
 
   @Test
   void dropTableUnreferencedAndExpired() throws SQLException, IOException {
-    DropTableSqsMessage dropTableSqsMessage = new DropTableSqsMessage(
-            "s3://tableLocation",
-            true, true, true);
+    DropTableSqsMessage dropTableSqsMessage = new DropTableSqsMessage("s3://tableLocation",true, true, true);
     amazonSQS.sendMessage(sendMessageRequest(dropTableSqsMessage.getFormattedString()));
     dropTableSqsMessage.setTableLocation("s3://tableLocation2");
     amazonSQS.sendMessage(sendMessageRequest(dropTableSqsMessage.getFormattedString()));
-    await().atMost(TIMEOUT, TimeUnit.HOURS).until(() -> mySqlTestUtils.unreferencedRowsInTable(PATH_TABLE) == 2);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.unreferencedRowsInTable(PATH_TABLE) == 2);
     List<EntityHousekeepingPath> unreferencedPaths = mySqlTestUtils.getUnreferencedPaths();
 
     assertUnreferencedPathFields(unreferencedPaths.get(0));
     assertUnreferencedPathFields(unreferencedPaths.get(1));
     assertThat(Set.of(unreferencedPaths.get(0).getPath(),unreferencedPaths.get(1).getPath()))
-            .isEqualTo(Set.of("s3://tableLocation","s3://tableLocation2"));
+        .isEqualTo(Set.of("s3://tableLocation","s3://tableLocation2"));
   }
 
   @Test
   void dropTableUnreferencedOnly() throws SQLException, IOException {
-    DropTableSqsMessage dropTableSqsMessage = new DropTableSqsMessage(
-            "s3://tableLocation",
-            true, false, true);
+    DropTableSqsMessage dropTableSqsMessage = new DropTableSqsMessage("s3://tableLocation",true, false, true);
     amazonSQS.sendMessage(sendMessageRequest(dropTableSqsMessage.getFormattedString()));
     dropTableSqsMessage.setTableLocation("s3://tableLocation2");
     amazonSQS.sendMessage(sendMessageRequest(dropTableSqsMessage.getFormattedString()));
@@ -436,14 +426,11 @@ class BeekeeperPathSchedulerApiaryIntegrationTest {
   }
 
   @Test
-  void dropTableExpiredOnly() throws IOException {
-    DropTableSqsMessage dropTableSqsMessage = new DropTableSqsMessage(
-            "s3://tableLocation",
-            false, true, true);
-    amazonSQS.sendMessage(sendMessageRequest(dropTableSqsMessage.getFormattedString()));
-    amazonSQS.sendMessage(sendMessageRequest(dropTableSqsMessage.getFormattedString()));
+  void ignoreDropTableEventsIfExpiredOnly() throws IOException, SQLException {
+    DropTableSqsMessage dropTableSqsMessage = new DropTableSqsMessage("s3://tableLocation", false, true, true);
     amazonSQS.sendMessage(sendMessageRequest(dropTableSqsMessage.getFormattedString()));
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.unreferencedRowsInTable(PATH_TABLE) == 0);
+    assertThat(mySqlTestUtils.getExpiredPaths().size()).isEqualTo(0);
   }
 
   @Test
@@ -455,11 +442,15 @@ class BeekeeperPathSchedulerApiaryIntegrationTest {
       .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
   }
 
-  private void assertMetrics() {
+  private void assertMetrics(boolean isExpired) {
+    String pathMetric = isExpired ? SCHEDULED_EXPIRATION_METRIC : SCHEDULED_ORPHANED_METRIC;
     MeterRegistry meterRegistry = BeekeeperPathSchedulerApiary.meterRegistry();
+
     List<Meter> meters = meterRegistry.getMeters();
-    assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-      .contains("paths-scheduled");
+    assertThat(meters)
+        .extracting("id", Meter.Id.class)
+        .extracting("name")
+        .contains(pathMetric);
   }
 
   private SendMessageRequest sendMessageRequest(String payload) {
@@ -470,14 +461,14 @@ class BeekeeperPathSchedulerApiaryIntegrationTest {
     assertThat(savedPath.getLifecycleType()).isEqualTo(EXPIRED.toString());
     assertThat(savedPath.getCleanupDelay()).isEqualTo(java.time.Duration.parse(CLEANUP_DELAY_EXPIRED));
     assertPathFields(savedPath);
-    assertMetrics();
+    assertMetrics(true);
   }
 
   private void assertUnreferencedPathFields(EntityHousekeepingPath savedPath) {
     assertThat(savedPath.getLifecycleType()).isEqualTo(UNREFERENCED.toString());
     assertThat(savedPath.getCleanupDelay()).isEqualTo(java.time.Duration.parse(CLEANUP_DELAY_UNREFERENCED));
     assertPathFields(savedPath);
-    assertMetrics();
+    assertMetrics(false);
   }
 
   private void assertPathFields(EntityHousekeepingPath savedPath) {
@@ -486,9 +477,18 @@ class BeekeeperPathSchedulerApiaryIntegrationTest {
     assertThat(savedPath.getPathStatus()).isEqualTo(PathStatus.SCHEDULED);
     assertThat(savedPath.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP);
     assertThat(savedPath.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP);
-    assertThat(savedPath.getCleanupTimestamp()).isEqualTo(savedPath.getCreationTimestamp()
-            .plus(savedPath.getCleanupDelay()));
+
+    assertThat(timestampWithinRangeInclusive(
+        savedPath.getCleanupTimestamp(),
+        savedPath.getCreationTimestamp().plus(savedPath.getCleanupDelay()).minusSeconds(5),
+        savedPath.getCreationTimestamp().plus(savedPath.getCleanupDelay()).plusSeconds(5)
+    )).isTrue();
+
     assertThat(savedPath.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS);
     assertThat(savedPath.getClientId()).isEqualTo(CLIENT_ID);
+  }
+
+  private boolean timestampWithinRangeInclusive(LocalDateTime timestamp, LocalDateTime lowerBound, LocalDateTime upperBound) {
+    return !timestamp.isBefore(lowerBound) && !timestamp.isAfter(upperBound);
   }
 }

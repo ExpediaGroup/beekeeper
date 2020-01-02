@@ -40,24 +40,11 @@ public interface HousekeepingPathRepository extends JpaRepository<EntityHousekee
       Pageable pageable);
 
 
-  @Modifying
-  @Query("update EntityHousekeepingPath p "
-      + "set p.cleanupDelay=:cleanupDelay, p.cleanupTimestamp=:cleanupTimestamp "
-      + "where p.databaseName=:databaseName and p.tableName=:tableName and p.lifecycleType ='EXPIRED'"
-  )
-  void updateExpiredRows(
+  @Query("from EntityHousekeepingPath p where p.databaseName=:databaseName and p.tableName=:tableName and p.lifecycleType='EXPIRED'")
+  Page<EntityHousekeepingPath> findExpiredRecordByDatabaseAndTableName(
       @Param("databaseName") String databaseName,
       @Param("tableName") String tableName,
-      @Param("cleanupDelay") Duration cleanupDelay,
-      @Param("cleanupTimestamp") LocalDateTime cleanupTimestamp
+      Pageable pageable
   );
 
-  @Modifying
-  @Query("delete from EntityHousekeepingPath p where "
-      + " p.databaseName=:databaseName and "
-      + " p.tableName=:tableName and "
-      + " p.lifecycleType = 'EXPIRED'")
-  void cleanupOldExpiredRows(
-          @Param("databaseName") String databaseName,
-          @Param("tableName") String tableName);
 }
