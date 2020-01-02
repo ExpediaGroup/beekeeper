@@ -273,6 +273,21 @@ class S3ClientTest {
   }
 
   @Test
+  void doesObjectExist() {
+    amazonS3.putObject(BUCKET, key1, content);
+    boolean result = s3Client.doesObjectExist(BUCKET, key1);
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  void doesObjectExistWithSpacedKey() {
+    String spacedKey = key1 + "/ /file";
+    amazonS3.putObject(BUCKET, spacedKey, content);
+    boolean result = s3Client.doesObjectExist(BUCKET, spacedKey);
+    assertThat(result).isTrue();
+  }
+
+  @Test
   void isEmptyDryRunForCommonFolderName() {
     String otherPartition = "table/test/test/partition10";
     String folder1 = "table";
