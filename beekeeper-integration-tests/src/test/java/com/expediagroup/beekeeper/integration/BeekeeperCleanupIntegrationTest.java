@@ -38,7 +38,6 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 
@@ -46,7 +45,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 
 import com.expediagroup.beekeeper.cleanup.BeekeeperCleanup;
-import com.expediagroup.beekeeper.cleanup.path.aws.S3BytesDeletedReporter;
+import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.core.model.PathStatus;
 
 public class BeekeeperCleanupIntegrationTest {
@@ -249,34 +248,7 @@ public class BeekeeperCleanupIntegrationTest {
     MeterRegistry meterRegistry = BeekeeperCleanup.meterRegistry();
     List<Meter> meters = meterRegistry.getMeters();
     assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-        .contains("cleanup-job", "s3-paths-deleted", S3BytesDeletedReporter.METRIC_NAME);
-  }
-
-  @Test
-  void assertGaugeMetrics() throws SQLException {
-    String doubleContent = CONTENT + CONTENT;
-    amazonS3.putObject(BUCKET, OBJECT_KEY1, doubleContent);
-    mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
-
-    String partition11File = "database/table/id1/partition11/file";
-    amazonS3.putObject(BUCKET, partition11File, CONTENT);
-    mySqlTestUtils.insertPath("s3://" + BUCKET + "/" + partition11File, TABLE_NAME);
-
-    await().atMost(1, TimeUnit.MINUTES)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
-
-    // assert that the first value appears in the metrics
-    Counter counter = BeekeeperCleanup.meterRegistry().get(S3BytesDeletedReporter.METRIC_NAME).counter();
-
-    assertThat(counter.measure().iterator().next().getValue()).isEqualTo(doubleContent.getBytes().length);
-
-    await().atMost(1, TimeUnit.MINUTES)
-        .until(() -> mySqlTestUtils.getPaths().get(1).getPathStatus() == PathStatus.DELETED);
-
-    // assert that the second value appears in the metrics, and that values are not added together
-    counter = BeekeeperCleanup.meterRegistry().get(S3BytesDeletedReporter.METRIC_NAME).counter();
-    assertThat(counter.measure().iterator().next().getValue()).isEqualTo(
-        CONTENT.getBytes().length + doubleContent.getBytes().length);
+        .contains("cleanup-job", "s3-paths-deleted", "s3-" + BytesDeletedReporter.METRIC_NAME);
   }
 
   @Test

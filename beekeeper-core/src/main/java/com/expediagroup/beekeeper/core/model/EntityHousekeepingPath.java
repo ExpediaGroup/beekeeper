@@ -32,11 +32,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.monitoring.MetricTag;
-import com.expediagroup.beekeeper.core.monitoring.Taggable;
 
 @Entity
 @Table(name = "path")
-public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
+public class EntityHousekeepingPath implements HousekeepingPath {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

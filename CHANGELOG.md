@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - TBD
 ### Adding
 - `TimedTaggable` annotation to time and report table level metrics.
+- `BytesDeletedReporter` to report bytes deleted at a table level.
 - `WhitelistedListenerEventFilter` to filter events unless listed in `beekeeper.hive.events.whitelist`.
 
 ## [1.1.6] - 2019-11-27

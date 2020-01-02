@@ -24,14 +24,12 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import io.micrometer.core.instrument.MeterRegistry;
-
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
+import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
-import com.expediagroup.beekeeper.cleanup.path.aws.S3BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3Client;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3SentinelFilesCleaner;
@@ -70,14 +68,8 @@ public class CommonBeans {
   }
 
   @Bean
-  public S3BytesDeletedReporter s3BytesDeletedReporter(S3Client s3Client, MeterRegistry meterRegistry,
-      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new S3BytesDeletedReporter(s3Client, meterRegistry, dryRunEnabled);
-  }
-
-  @Bean
-  public PathCleaner pathCleaner(S3Client s3Client, S3BytesDeletedReporter s3BytesDeletedReporter) {
-    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), s3BytesDeletedReporter);
+  public PathCleaner pathCleaner(S3Client s3Client, BytesDeletedReporter bytesDeletedReporter) {
+    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
   }
 
   @Bean

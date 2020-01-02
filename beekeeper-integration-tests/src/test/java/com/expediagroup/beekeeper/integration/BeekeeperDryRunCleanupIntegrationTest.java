@@ -48,7 +48,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 
 import com.expediagroup.beekeeper.cleanup.BeekeeperCleanup;
-import com.expediagroup.beekeeper.cleanup.path.aws.S3BytesDeletedReporter;
+import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 
 @ExtendWith(MockitoExtension.class)
 class BeekeeperDryRunCleanupIntegrationTest {
@@ -244,7 +244,7 @@ class BeekeeperDryRunCleanupIntegrationTest {
     MeterRegistry meterRegistry = BeekeeperCleanup.meterRegistry();
     List<Meter> meters = meterRegistry.getMeters();
     assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-        .contains("cleanup-job", "s3-paths-deleted", S3BytesDeletedReporter.DRY_RUN_METRIC_NAME);
+        .contains("cleanup-job", "s3-paths-deleted", "s3-" + BytesDeletedReporter.DRY_RUN_METRIC_NAME);
     return true;
   }
 

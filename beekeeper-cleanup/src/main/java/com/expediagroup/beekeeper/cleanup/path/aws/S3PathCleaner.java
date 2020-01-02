@@ -27,24 +27,28 @@ import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.base.Strings;
 
+import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
+import com.expediagroup.beekeeper.core.config.FileSystemType;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 
 public class S3PathCleaner implements PathCleaner {
 
   private static final Logger log = LoggerFactory.getLogger(S3PathCleaner.class);
-  private final S3Client s3Client;
-  private final SentinelFilesCleaner sentinelFilesCleaner;
-  private final S3BytesDeletedReporter s3BytesDeletedReporter;
+
+  private S3Client s3Client;
+  private SentinelFilesCleaner sentinelFilesCleaner;
+  private BytesDeletedReporter bytesDeletedReporter;
 
   public S3PathCleaner(S3Client s3Client, SentinelFilesCleaner sentinelFilesCleaner,
-      S3BytesDeletedReporter s3BytesDeletedReporter) {
+      BytesDeletedReporter bytesDeletedReporter) {
     this.s3Client = s3Client;
     this.sentinelFilesCleaner = sentinelFilesCleaner;
-    this.s3BytesDeletedReporter = s3BytesDeletedReporter;
+    this.bytesDeletedReporter = bytesDeletedReporter;
   }
 
   @Override
@@ -53,30 +57,19 @@ public class S3PathCleaner implements PathCleaner {
     S3SchemeURI s3SchemeURI = extractURI(housekeepingPath.getPath());
     String key = s3SchemeURI.getKey();
     String bucket = s3SchemeURI.getBucket();
-
-    // doesObjectExists returns true only when the key is a file
+    S3BytesDeletedCalculator bytesDeletedCalculator = new S3BytesDeletedCalculator(s3Client);
     boolean isFile = s3Client.doesObjectExist(bucket, key);
-
-    if (isFile) {
-      long size = s3Client.getObjectMetadata(bucket, key).getContentLength();
-      s3Client.deleteObject(bucket, key);
-      s3BytesDeletedReporter.reportSize(size);
-    } else {
-      deleteFilesInDirectory(bucket, key);
-
-      try {
-        String path = s3SchemeURI.getPath();
-        if (path.endsWith("/")) {
-          path = path.substring(0, path.length() - 1);
-        }
-        sentinelFilesCleaner.deleteSentinelFiles(path);
-
-        // attempt to delete parents if there is at least one parent
-        if (key.contains("/")) {
-          deleteParentSentinelFiles(bucket, key, path, housekeepingPath.getTableName());
-        }
-      } catch (Exception e) {
-        log.warn("Sentinel file(s) could not be deleted", e);
+    try {
+      if (isFile) {
+        deleteFile(bucket, key, bytesDeletedCalculator);
+      } else {
+        deleteFilesInDirectory(bucket, key, bytesDeletedCalculator);
+        deleteSentinelFiles(s3SchemeURI, key, bucket, housekeepingPath.getTableName());
+      }
+    } finally {
+      long bytesDeleted = bytesDeletedCalculator.getBytesDeleted();
+      if (bytesDeleted > 0) {
+        bytesDeletedReporter.reportTaggable(bytesDeleted, housekeepingPath, FileSystemType.S3);
       }
     }
   }
@@ -91,39 +84,57 @@ public class S3PathCleaner implements PathCleaner {
     return s3SchemeURI;
   }
 
-  private void deleteFilesInDirectory(String bucket, String key) {
+  private void deleteFile(String bucket, String key, S3BytesDeletedCalculator bytesDeletedCalculator) {
+    bytesDeletedCalculator.storeFileSizes(bucket, List.of(key));
+    s3Client.deleteObject(bucket, key);
+    bytesDeletedCalculator.calculateBytesDeleted(List.of(key));
+  }
+
+  private void deleteFilesInDirectory(String bucket, String key, S3BytesDeletedCalculator bytesDeletedCalculator) {
     if (!key.endsWith("/")) {
       key += "/";
     }
-
-    List<S3ObjectSummary> objectsWithKeyAsPrefix = s3Client.listObjects(bucket, key);
-    int totalFiles = objectsWithKeyAsPrefix.size();
-    int successfulDeletes = deleteAllObjectsAtKey(bucket, objectsWithKeyAsPrefix);
-
-    if (totalFiles != successfulDeletes) {
+    List<String> keys = s3Client.listObjects(bucket, key)
+      .stream()
+      .map(S3ObjectSummary::getKey)
+      .collect(Collectors.toList());
+    bytesDeletedCalculator.storeFileSizes(bucket, keys);
+    List<String> deletedKeys = deleteFiles(bucket, keys);
+    bytesDeletedCalculator.calculateBytesDeleted(deletedKeys);
+    int totalFiles = keys.size();
+    int successfulDeletes = deletedKeys.size();
+    if (successfulDeletes != totalFiles) {
+      keys.removeAll(deletedKeys);
+      String failedDeletions = keys.stream()
+        .map(k -> format("'%s'", k))
+        .collect(Collectors.joining(", "));
       throw new BeekeeperException(
-          format("Not all files could be deleted at path \"%s/%s\"; deleted %s/%s objects", bucket, key,
-              successfulDeletes, totalFiles));
+          format("Not all files could be deleted at path \"%s/%s\"; deleted %s/%s objects. Objects not deleted: %s.",
+            bucket, key, successfulDeletes, totalFiles, failedDeletions));
     }
   }
 
-  private int deleteAllObjectsAtKey(String bucket, List<S3ObjectSummary> objectsWithKeyAsPrefix) {
-    List<DeleteObjectsRequest.KeyVersion> deleteObjectsRequestKeys = getKeysToDelete(objectsWithKeyAsPrefix);
-
-    DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket);
-    deleteObjectsRequest.setKeys(deleteObjectsRequestKeys);
-
-    s3BytesDeletedReporter.cacheFileSizes(deleteObjectsRequest);
-    List<String> deletedKeys = s3Client.deleteObjects(deleteObjectsRequest);
-    s3BytesDeletedReporter.reportDeletedFiles(deletedKeys);
-
-    return deletedKeys.size();
+  private List<String> deleteFiles(String bucket, List<String> keys) {
+    DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket)
+      .withKeys(keys.toArray(String[]::new));
+    return s3Client.deleteObjects(deleteObjectsRequest);
   }
 
-  private List<DeleteObjectsRequest.KeyVersion> getKeysToDelete(List<S3ObjectSummary> objectSummaries) {
-    return objectSummaries.stream()
-        .map(objectSummary -> new DeleteObjectsRequest.KeyVersion(objectSummary.getKey()))
-        .collect(Collectors.toList());
+  private void deleteSentinelFiles(S3SchemeURI s3SchemeURI, String key, String bucket, String tableName) {
+    try {
+      String path = s3SchemeURI.getPath();
+      if (path.endsWith("/")) {
+        path = path.substring(0, path.length() - 1);
+      }
+      sentinelFilesCleaner.deleteSentinelFiles(path);
+
+      // attempt to delete parents if there is at least one parent
+      if (key.contains("/")) {
+        deleteParentSentinelFiles(bucket, key, path, tableName);
+      }
+    } catch (Exception e) {
+      log.warn("Sentinel file(s) could not be deleted", e);
+    }
   }
 
   private void deleteParentSentinelFiles(String bucket, String key, String absolutePath, String tableName) {

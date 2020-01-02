@@ -32,8 +32,8 @@ import io.micrometer.graphite.GraphiteMeterRegistry;
 
 import com.amazonaws.services.s3.AmazonS3;
 
+import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
-import com.expediagroup.beekeeper.cleanup.path.aws.S3BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3Client;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
@@ -53,7 +53,6 @@ class CommonBeansTest {
   private final CommonBeans commonBeans = new CommonBeans();
   private @Mock HousekeepingPathRepository repository;
   private @Mock PathCleaner pathCleaner;
-  private @Mock S3BytesDeletedReporter s3BytesDeletedReporter;
 
   @AfterAll
   static void teardown() {
@@ -91,19 +90,10 @@ class CommonBeansTest {
   }
 
   @Test
-  void s3BytesDeletedReporter() {
-    S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), false);
-    MeterRegistry meterRegistry = mock(GraphiteMeterRegistry.class);
-    S3BytesDeletedReporter s3BytesDeletedReporter = new S3BytesDeletedReporter(s3Client, meterRegistry, false);
-    S3BytesDeletedReporter beansS3BytesDeletedReporter = commonBeans.s3BytesDeletedReporter(s3Client, meterRegistry,
-        false);
-    assertThat(s3BytesDeletedReporter).isEqualToComparingFieldByField(beansS3BytesDeletedReporter);
-  }
-
-  @Test
   void pathCleaner() {
     S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), false);
-    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, s3BytesDeletedReporter);
+    MeterRegistry meterRegistry = mock(GraphiteMeterRegistry.class);
+    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, new BytesDeletedReporter(meterRegistry, false));
     assertThat(pathCleaner).isInstanceOf(S3PathCleaner.class);
   }
 
