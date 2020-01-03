@@ -96,7 +96,7 @@ public class ExpiredPathMapperTest {
   public void shouldProperlyDefaultIfEventExpirationInvalid() {
     ExpiredPathMapper mapper = new ExpiredPathMapper(DEFAULT_EXPIRED_CLEANUP_DELAY, CLEANUP_EXPIRED_DELAY_PROPERTY);
     when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
-    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_PATH);
+    when(alterPartitionEvent.getTableLocation()).thenReturn(OLD_PATH);
     when(alterPartitionEvent.getTableName()).thenReturn(TABLE);
     when(alterPartitionEvent.getDbName()).thenReturn(DATABASE);
     when(alterPartitionEvent.getTableParameters()).thenReturn(Map.of(
@@ -118,7 +118,7 @@ public class ExpiredPathMapperTest {
 
     setupTableParams(alterPartitionEvent, true, true);
     when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
-    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_PATH);
+    when(alterPartitionEvent.getTableLocation()).thenReturn(OLD_PATH);
     when(alterPartitionEvent.getTableName()).thenReturn(TABLE);
     when(alterPartitionEvent.getDbName()).thenReturn(DATABASE);
 
@@ -137,7 +137,7 @@ public class ExpiredPathMapperTest {
     when(alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
     when(alterTableEvent.getDbName()).thenReturn(DATABASE);
     when(alterTableEvent.getTableName()).thenReturn(TABLE);
-    when(alterTableEvent.getOldTableLocation()).thenReturn(OLD_PATH);
+    when(alterTableEvent.getTableLocation()).thenReturn(OLD_PATH);
 
     List<HousekeepingPath> houseKeepingPaths = mapper.generateHouseKeepingPaths(alterTableEvent);
     assertThat(houseKeepingPaths.size()).isEqualTo(1);
@@ -172,7 +172,7 @@ public class ExpiredPathMapperTest {
     when(addPartitionEvent.getEventType()).thenReturn(EventType.ADD_PARTITION);
     when(addPartitionEvent.getTableName()).thenReturn(TABLE);
     when(addPartitionEvent.getDbName()).thenReturn(DATABASE);
-    when(addPartitionEvent.getPartitionLocation()).thenReturn(PATH);
+    when(addPartitionEvent.getTableLocation()).thenReturn(PATH);
 
     List<HousekeepingPath> houseKeepingPaths = mapper.generateHouseKeepingPaths(addPartitionEvent);
     assertThat(houseKeepingPaths.size()).isEqualTo(1);
