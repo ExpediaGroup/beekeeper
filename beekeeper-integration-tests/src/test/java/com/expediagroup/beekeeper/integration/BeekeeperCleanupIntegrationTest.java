@@ -170,7 +170,7 @@ public class BeekeeperCleanupIntegrationTest {
   @Test
   void cleanupPathsForDirectoryWithSpace() throws SQLException {
     String objectKeyRoot = "database/table/ /id1/partition1";
-    String objectKey1 = objectKeyRoot+ "/file1";
+    String objectKey1 = objectKeyRoot + "/file1";
     String objectKey2 = objectKeyRoot + "/file2";
     String objectKeySentinel = objectKeyRoot + "_$folder$";
     String absolutePath = "s3://" + BUCKET + "/" + objectKeyRoot;
