@@ -25,7 +25,7 @@ import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
 
 @Configuration
-@EnableRetry(proxyTargetClass=true)
+@EnableRetry(proxyTargetClass = true)
 public class TestConfig {
 
   private static final String URL = "url";

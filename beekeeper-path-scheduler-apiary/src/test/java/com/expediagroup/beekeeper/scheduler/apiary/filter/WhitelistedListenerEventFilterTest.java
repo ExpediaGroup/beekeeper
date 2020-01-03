@@ -38,15 +38,10 @@ import com.expedia.apiary.extensions.receiver.common.event.EventType;
 public class WhitelistedListenerEventFilterTest {
 
   private static final String BEEKEEPER_HIVE_EVENT_WHITELIST = "beekeeper.hive.event.whitelist";
-
-  @Mock
-  private AddPartitionEvent alterPartitionEvent;
-  @Mock
-  private AlterTableEvent alterTableEvent;
-  @Mock
-  private DropTableEvent dropTableEvent;
-
-  private WhitelistedListenerEventFilter listenerEventFilter = new WhitelistedListenerEventFilter();
+  private final WhitelistedListenerEventFilter listenerEventFilter = new WhitelistedListenerEventFilter();
+  @Mock private AddPartitionEvent alterPartitionEvent;
+  @Mock private AlterTableEvent alterTableEvent;
+  @Mock private DropTableEvent dropTableEvent;
 
   @Test
   public void filterAlterPartitionEvent() {
@@ -74,8 +69,7 @@ public class WhitelistedListenerEventFilterTest {
                            "Alter_Table , Create_Table, Drop_table" })
   public void filterWhitelistedEvent(String whitelist) {
     when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
-    when(dropTableEvent.getTableParameters())
-      .thenReturn(Map.of(BEEKEEPER_HIVE_EVENT_WHITELIST, whitelist));
+    when(dropTableEvent.getTableParameters()).thenReturn(Map.of(BEEKEEPER_HIVE_EVENT_WHITELIST, whitelist));
     boolean filter = listenerEventFilter.filter(dropTableEvent);
     assertThat(filter).isFalse();
   }
@@ -89,8 +83,7 @@ public class WhitelistedListenerEventFilterTest {
                            "drop-table" })
   public void filterNotWhitelistedEvent(String whitelist) {
     when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
-    when(dropTableEvent.getTableParameters())
-      .thenReturn(Map.of(BEEKEEPER_HIVE_EVENT_WHITELIST, whitelist));
+    when(dropTableEvent.getTableParameters()).thenReturn(Map.of(BEEKEEPER_HIVE_EVENT_WHITELIST, whitelist));
     boolean filter = listenerEventFilter.filter(dropTableEvent);
     assertThat(filter).isTrue();
   }
@@ -98,8 +91,7 @@ public class WhitelistedListenerEventFilterTest {
   @Test
   public void filterNullTableParameters() {
     when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
-    when(dropTableEvent.getTableParameters())
-      .thenReturn(null);
+    when(dropTableEvent.getTableParameters()).thenReturn(null);
     boolean filter = listenerEventFilter.filter(dropTableEvent);
     assertThat(filter).isTrue();
   }
@@ -107,10 +99,8 @@ public class WhitelistedListenerEventFilterTest {
   @Test
   public void filterEmptyTableParameters() {
     when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
-    when(dropTableEvent.getTableParameters())
-      .thenReturn(Collections.emptyMap());
+    when(dropTableEvent.getTableParameters()).thenReturn(Collections.emptyMap());
     boolean filter = listenerEventFilter.filter(dropTableEvent);
     assertThat(filter).isTrue();
   }
-
 }

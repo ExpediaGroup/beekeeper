@@ -18,17 +18,18 @@ package com.expediagroup.beekeeper.scheduler.apiary.filter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 import java.util.Map;
 
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expedia.apiary.extensions.receiver.common.event.AddPartitionEvent;
+import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.CreateTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropPartitionEvent;
@@ -39,268 +40,168 @@ import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 @ExtendWith(MockitoExtension.class)
 public class EventTypeTableListenerEventFilterTest {
 
-  @Mock
-  private CreateTableEvent createTableEvent;
-  @Mock
-  private AddPartitionEvent addPartitionEvent;
-  @Mock
-  private AddPartitionEvent alterPartitionEvent;
-  @Mock
-  private AlterTableEvent alterTableEvent;
-  @Mock
-  private DropPartitionEvent dropPartitionEvent;
-  @Mock
-  private DropTableEvent dropTableEvent;
-
-  private EventTypeTableListenerEventFilter listenerEventFilter = new EventTypeTableListenerEventFilter();
+  private static final String TRUE_STR = "true";
+  private static final String FALSE_STR = "false";
+  private final EventTypeTableListenerEventFilter listenerEventFilter = new EventTypeTableListenerEventFilter();
+  @Mock private CreateTableEvent createTableEvent;
+  @Mock private AddPartitionEvent addPartitionEvent;
+  @Mock private AlterPartitionEvent alterPartitionEvent;
+  @Mock private AlterTableEvent alterTableEvent;
+  @Mock private DropPartitionEvent dropPartitionEvent;
+  @Mock private DropTableEvent dropTableEvent;
 
   private Map<String, String> getTableParameters(String isUnreferenced, String isExpired) {
     return Map.of(
-            UNREFERENCED.getTableParameterName(),isUnreferenced,
-            EXPIRED.getTableParameterName(),isExpired);
+        UNREFERENCED.getTableParameterName(), isUnreferenced,
+        EXPIRED.getTableParameterName(), isExpired);
   }
 
   // create table permutations
 
   @Test
   public void filterWithUnreferencedOnlyCreateTableEvent() {
-    assertFilterState(createTableEvent,
-            EventType.CREATE_TABLE,
-            "true",
-            "false",
-            true);
+    assertFilterState(createTableEvent, EventType.CREATE_TABLE, TRUE_STR, FALSE_STR, true);
   }
 
   @Test
   public void filterWithExpiredOnlyCreateTableEvent() {
-    assertFilterState(createTableEvent,
-            EventType.CREATE_TABLE,
-            "false",
-            "true",
-            false);
+    assertFilterState(createTableEvent, EventType.CREATE_TABLE, FALSE_STR, TRUE_STR, false);
   }
 
   @Test
   public void filterWithUnreferencedAndExpiredCreateTableEvent() {
-    assertFilterState(createTableEvent,
-            EventType.CREATE_TABLE,
-            "true",
-            "true",
-            false);
+    assertFilterState(createTableEvent, EventType.CREATE_TABLE, TRUE_STR, TRUE_STR, false);
   }
 
   @Test
   public void filterWithNoTableParamsCreateTableEvent() {
-    assertFilterState(createTableEvent,
-            EventType.CREATE_TABLE,
-            "false",
-            "false",
-            true);
+    assertFilterState(createTableEvent, EventType.CREATE_TABLE, FALSE_STR, FALSE_STR, true);
   }
 
   // add partition permutations
 
   @Test
   public void filterWithUnreferencedOnlyAddPartitionEvent() {
-    assertFilterState(addPartitionEvent,
-            EventType.ADD_PARTITION,
-            "true",
-            "false",
-            true);
+    assertFilterState(addPartitionEvent, EventType.ADD_PARTITION, TRUE_STR, FALSE_STR, true);
   }
 
   @Test
   public void filterWithExpiredOnlyAddPartitionEvent() {
-    assertFilterState(addPartitionEvent,
-            EventType.ADD_PARTITION,
-            "false",
-            "true",
-            false);
+    assertFilterState(addPartitionEvent, EventType.ADD_PARTITION, FALSE_STR, TRUE_STR, false);
   }
 
   @Test
   public void filterWithUnreferencedAndExpiredAddPartitionEvent() {
-    assertFilterState(addPartitionEvent,
-            EventType.ADD_PARTITION,
-            "true",
-            "true",
-            false);
+    assertFilterState(addPartitionEvent, EventType.ADD_PARTITION, TRUE_STR, TRUE_STR, false);
   }
 
   @Test
   public void filterWithNoTableParamsAddPartitionEvent() {
-    assertFilterState(addPartitionEvent,
-            EventType.ADD_PARTITION,
-            "false",
-            "false",
-            true);
+    assertFilterState(addPartitionEvent, EventType.ADD_PARTITION, FALSE_STR, FALSE_STR, true);
   }
 
   // alter partition permutations
 
   @Test
   public void filterWithUnreferencedOnlyAlterPartitionEvent() {
-    assertFilterState(alterPartitionEvent,
-            EventType.ALTER_PARTITION,
-            "true",
-            "false",
-            false);
+    assertFilterState(alterPartitionEvent, EventType.ALTER_PARTITION, TRUE_STR, FALSE_STR, false);
   }
 
   @Test
   public void filterWithExpiredOnlyAlterPartitionEvent() {
-    assertFilterState(alterPartitionEvent,
-            EventType.ALTER_PARTITION,
-            "false",
-            "true",
-            false);
+    assertFilterState(alterPartitionEvent, EventType.ALTER_PARTITION, FALSE_STR, TRUE_STR, false);
   }
 
   @Test
   public void filterWithUnreferencedAndExpiredAlterPartitionEvent() {
-    assertFilterState(alterPartitionEvent,
-            EventType.ALTER_PARTITION,
-            "true",
-            "true",
-            false);
+    assertFilterState(alterPartitionEvent, EventType.ALTER_PARTITION, TRUE_STR, TRUE_STR, false);
   }
 
   @Test
   public void filterWithNoTableParamsAlterPartitionEvent() {
-    assertFilterState(alterPartitionEvent,
-            EventType.ALTER_PARTITION,
-            "false",
-            "false",
-            true);
+    assertFilterState(alterPartitionEvent, EventType.ALTER_PARTITION, FALSE_STR, FALSE_STR, true);
   }
 
   // alter table permutations
 
   @Test
-  public void filterWithUnreferencedOnlyAlterTablevent() {
-    assertFilterState(alterTableEvent,
-            EventType.ALTER_TABLE,
-            "true",
-            "false",
-            false);
+  public void filterWithUnreferencedOnlyAlterTableEvent() {
+    assertFilterState(alterTableEvent, EventType.ALTER_TABLE, TRUE_STR, FALSE_STR, false);
   }
 
   @Test
   public void filterWithExpiredOnlyAlterTableEvent() {
-    assertFilterState(alterTableEvent,
-            EventType.ALTER_TABLE,
-            "false",
-            "true",
-            false);
+    assertFilterState(alterTableEvent, EventType.ALTER_TABLE, FALSE_STR, TRUE_STR, false);
   }
 
   @Test
   public void filterWithUnreferencedAndExpiredAlterTableEvent() {
-    assertFilterState(alterTableEvent,
-            EventType.ALTER_TABLE,
-            "true",
-            "true",
-            false);
+    assertFilterState(alterTableEvent, EventType.ALTER_TABLE, TRUE_STR, TRUE_STR, false);
   }
 
   @Test
   public void filterWithNoTableParamsAlterTableEvent() {
-    assertFilterState(alterTableEvent,
-            EventType.ALTER_TABLE,
-            "false",
-            "false",
-            true);
+    assertFilterState(alterTableEvent, EventType.ALTER_TABLE, FALSE_STR, FALSE_STR, true);
   }
 
   // drop partition permutations
 
   @Test
   public void filterWithExpiredOnlyDropPartitionEvent() {
-    assertFilterState(dropPartitionEvent,
-            EventType.DROP_PARTITION,
-            "false",
-            "true",
-            true);
+    assertFilterState(dropPartitionEvent, EventType.DROP_PARTITION, FALSE_STR, TRUE_STR, true);
   }
 
   @Test
   public void filterWithUnreferencedOnlyDropPartitionEvent() {
-    assertFilterState(dropPartitionEvent,
-            EventType.DROP_PARTITION,
-            "true",
-            "false",
-            false);
+    assertFilterState(dropPartitionEvent, EventType.DROP_PARTITION, TRUE_STR, FALSE_STR, false);
   }
 
   @Test
   public void filterWithUnreferencedAndExpiredDropPartitionEvent() {
-    assertFilterState(dropPartitionEvent,
-            EventType.DROP_PARTITION,
-            "true",
-            "true",
-            false);
+    assertFilterState(dropPartitionEvent, EventType.DROP_PARTITION, TRUE_STR, TRUE_STR, false);
   }
 
   @Test
   public void filterWithNoTableParamsDropPartitionEvent() {
-    assertFilterState(dropPartitionEvent,
-            EventType.DROP_PARTITION,
-            "false",
-            "false",
-            true);
+    assertFilterState(dropPartitionEvent, EventType.DROP_PARTITION, FALSE_STR, FALSE_STR, true);
   }
 
   // drop table permutations
 
   @Test
   public void filterWithExpiredOnlyDropTableEvent() {
-    assertFilterState(dropTableEvent,
-            EventType.DROP_TABLE,
-            "false",
-            "true",
-            true);
+    assertFilterState(dropTableEvent, EventType.DROP_TABLE, FALSE_STR, TRUE_STR, true);
   }
 
   @Test
   public void filterWithUnreferencedOnlyDropTableEvent() {
-    assertFilterState(dropTableEvent,
-            EventType.DROP_TABLE,
-            "true",
-            "false",
-            false);
+    assertFilterState(dropTableEvent, EventType.DROP_TABLE, TRUE_STR, FALSE_STR, false);
   }
 
   @Test
   public void filterWithUnreferencedAndExpiredDropTableEvent() {
-    assertFilterState(dropTableEvent,
-            EventType.DROP_TABLE,
-            "true",
-            "true",
-            false);
+    assertFilterState(dropTableEvent, EventType.DROP_TABLE, TRUE_STR, TRUE_STR, false);
   }
 
   @Test
   public void filterWithNoTableParamsDropTableEvent() {
-    assertFilterState(dropPartitionEvent,
-            EventType.DROP_TABLE,
-            "false",
-            "false",
-            true);
+    assertFilterState(dropPartitionEvent, EventType.DROP_TABLE, FALSE_STR, FALSE_STR, true);
   }
 
-  void assertFilterState(ListenerEvent listenerEvent,
+  private void assertFilterState(
+      ListenerEvent listenerEvent,
       EventType eventType,
       String isUnreferenced,
       String isExpired,
-      Boolean isFilteredOut) {
+      Boolean isFilteredOut
+  ) {
     when(listenerEvent.getEventType()).thenReturn(eventType);
-    Map<String,String> tableParams = getTableParameters(isUnreferenced,isExpired);
+    Map<String, String> tableParams = getTableParameters(isUnreferenced, isExpired);
     when(listenerEvent.getTableParameters()).thenReturn(tableParams);
     boolean filter = listenerEventFilter.filter(listenerEvent);
-    if ( isFilteredOut ) {
+    if (isFilteredOut) {
       assertThat(filter).isTrue();
-    }
-    else {
+    } else {
       assertThat(filter).isFalse();
     }
   }

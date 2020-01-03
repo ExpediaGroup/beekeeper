@@ -22,8 +22,8 @@ import static org.mockito.Mockito.when;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
@@ -94,7 +94,8 @@ public class OrphanedPathMapperTest {
 
   @Test
   public void shouldProperlyDefaultIfEventTimestampInvalid() {
-    OrphanedPathMapper mapper = new OrphanedPathMapper(DEFAULT_UNREFERENCED_CLEANUP_DELAY, CLEANUP_UNREFERENCED_DELAY_PROPERTY);
+    OrphanedPathMapper mapper = new OrphanedPathMapper(DEFAULT_UNREFERENCED_CLEANUP_DELAY,
+        CLEANUP_UNREFERENCED_DELAY_PROPERTY);
     when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
     when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_PATH);
     when(alterPartitionEvent.getPartitionLocation()).thenReturn(PATH);
@@ -109,7 +110,8 @@ public class OrphanedPathMapperTest {
     assertThat(houseKeepingPaths.size()).isEqualTo(1);
     HousekeepingPath path = houseKeepingPaths.get(0);
 
-    MapperTestUtils.assertPath(path, DEFAULT_UNREFERENCED_CLEANUP_DELAY, TABLE, DATABASE, CLEANUP_ATTEMPTS, CREATION_TIMESTAMP, OLD_PATH, UNREFERENCED);
+    MapperTestUtils.assertPath(path, DEFAULT_UNREFERENCED_CLEANUP_DELAY, TABLE, DATABASE, CLEANUP_ATTEMPTS,
+        CREATION_TIMESTAMP, OLD_PATH, UNREFERENCED);
   }
 
   @Test
@@ -126,7 +128,8 @@ public class OrphanedPathMapperTest {
     assertThat(houseKeepingPaths.size()).isEqualTo(1);
     HousekeepingPath path = houseKeepingPaths.get(0);
 
-    MapperTestUtils.assertPath(path, CLEANUP_UNREFERENCED_DELAY, TABLE, DATABASE, CLEANUP_ATTEMPTS, CREATION_TIMESTAMP, OLD_PATH, UNREFERENCED);
+    MapperTestUtils.assertPath(path, CLEANUP_UNREFERENCED_DELAY, TABLE, DATABASE, CLEANUP_ATTEMPTS, CREATION_TIMESTAMP,
+        OLD_PATH, UNREFERENCED);
   }
 
   @Test
@@ -155,7 +158,8 @@ public class OrphanedPathMapperTest {
     assertThat(houseKeepingPaths.size()).isEqualTo(1);
     HousekeepingPath path = houseKeepingPaths.get(0);
 
-    MapperTestUtils.assertPath(path, CLEANUP_UNREFERENCED_DELAY, TABLE, DATABASE, CLEANUP_ATTEMPTS, CREATION_TIMESTAMP, OLD_PATH, UNREFERENCED);
+    MapperTestUtils.assertPath(path, CLEANUP_UNREFERENCED_DELAY, TABLE, DATABASE, CLEANUP_ATTEMPTS, CREATION_TIMESTAMP,
+        OLD_PATH, UNREFERENCED);
   }
 
   @Test
@@ -183,7 +187,8 @@ public class OrphanedPathMapperTest {
     assertThat(houseKeepingPaths.size()).isEqualTo(1);
     HousekeepingPath path = houseKeepingPaths.get(0);
 
-    MapperTestUtils.assertPath(path, CLEANUP_UNREFERENCED_DELAY, TABLE, DATABASE, CLEANUP_ATTEMPTS, CREATION_TIMESTAMP, PATH, UNREFERENCED);
+    MapperTestUtils.assertPath(path, CLEANUP_UNREFERENCED_DELAY, TABLE, DATABASE, CLEANUP_ATTEMPTS, CREATION_TIMESTAMP,
+        PATH, UNREFERENCED);
   }
 
   @Test
@@ -200,13 +205,14 @@ public class OrphanedPathMapperTest {
     assertThat(houseKeepingPaths.size()).isEqualTo(1);
     HousekeepingPath path = houseKeepingPaths.get(0);
 
-    MapperTestUtils.assertPath(path, CLEANUP_UNREFERENCED_DELAY, TABLE, DATABASE, CLEANUP_ATTEMPTS, CREATION_TIMESTAMP, PATH, UNREFERENCED);
+    MapperTestUtils.assertPath(path, CLEANUP_UNREFERENCED_DELAY, TABLE, DATABASE, CLEANUP_ATTEMPTS, CREATION_TIMESTAMP,
+        PATH, UNREFERENCED);
   }
 
   private void setupTableParams(ListenerEvent event, Boolean isUnreferenced, Boolean delaysDefined) {
-    Map<String,String> tableParams = new HashMap<>();
+    Map<String, String> tableParams = new HashMap<>();
     tableParams.put(UNREFERENCED.getTableParameterName(), isUnreferenced.toString().toLowerCase());
-    if ( delaysDefined ) {
+    if (delaysDefined) {
       tableParams.put(CLEANUP_UNREFERENCED_DELAY_PROPERTY, CLEANUP_UNREFERENCED_DELAY);
     }
     when(event.getTableParameters()).thenReturn(tableParams);

@@ -37,7 +37,6 @@ import com.expediagroup.beekeeper.scheduler.apiary.messaging.FilteringMessageRea
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
 
-
 @Configuration
 @ComponentScan(basePackages = { "com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.scheduler" })
 @EntityScan(basePackages = { "com.expediagroup.beekeeper.core" })
@@ -45,8 +44,8 @@ import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageRead
 @EnableRetry(proxyTargetClass = true)
 public class CommonBeans {
 
-  @Autowired List<MessageEventMapper> eventMappers;
-  @Autowired List<ListenerEventFilter> eventFilters;
+  @Autowired private List<MessageEventMapper> eventMappers;
+  @Autowired private List<ListenerEventFilter> eventFilters;
 
   @Value("${properties.apiary.queue-url}")
   private String queueUrl;

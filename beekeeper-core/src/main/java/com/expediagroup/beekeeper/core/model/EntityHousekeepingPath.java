@@ -310,6 +310,5 @@ public class EntityHousekeepingPath implements HousekeepingPath, Taggable {
       }
       return creationTimestamp.plus(cleanupDelay);
     }
-
   }
 }

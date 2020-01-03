@@ -39,7 +39,7 @@ public class PathSchedulerApiary {
   private final SchedulerService pathSchedulerService;
 
   @Autowired
-  public PathSchedulerApiary(BeekeeperEventReader beekeeperEventReader, SchedulerService pathSchedulerService) {
+  PathSchedulerApiary(BeekeeperEventReader beekeeperEventReader, SchedulerService pathSchedulerService) {
     this.beekeeperEventReader = beekeeperEventReader;
     this.pathSchedulerService = pathSchedulerService;
   }
@@ -55,7 +55,7 @@ public class PathSchedulerApiary {
     BeekeeperEvent pathEvent = pathToBeScheduled.get();
     List<HousekeepingPath> paths = pathEvent.getHousekeepingPaths();
 
-    for(HousekeepingPath path: paths) {
+    for (HousekeepingPath path : paths) {
       try {
         if (path.getLifecycleType().equalsIgnoreCase(EXPIRED.toString())) {
           pathSchedulerService.scheduleExpiration(path);
@@ -63,7 +63,9 @@ public class PathSchedulerApiary {
           pathSchedulerService.scheduleForHousekeeping(path);
         }
       } catch (Exception e) {
-        throw new BeekeeperException(format("Unable to schedule/update path '%s' for deletion, this message will go back on the queue", path.getPath()), e);
+        throw new BeekeeperException(
+            format("Unable to schedule/update path '%s' for deletion, this message will go back on the queue",
+                path.getPath()), e);
       }
     }
     beekeeperEventReader.delete(pathEvent);

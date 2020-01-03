@@ -15,8 +15,8 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 import java.util.Map;
 
@@ -41,17 +41,17 @@ public class EventTypeTableListenerEventFilter implements ListenerEventFilter {
 
     EventType eventType = listenerEvent.getEventType();
     switch (eventType) {
-      case CREATE_TABLE:
-      case ADD_PARTITION:
-        return !(isExpired);
-      case ALTER_PARTITION:
-      case ALTER_TABLE:
-        return !(isExpired || isUnreferenced);
-      case DROP_PARTITION:
-      case DROP_TABLE:
-        return !(isUnreferenced);
-      default:
-        return true;
+    case CREATE_TABLE:
+    case ADD_PARTITION:
+      return !(isExpired);
+    case ALTER_PARTITION:
+    case ALTER_TABLE:
+      return !(isExpired || isUnreferenced);
+    case DROP_PARTITION:
+    case DROP_TABLE:
+      return !(isUnreferenced);
+    default:
+      return true;
     }
   }
 }

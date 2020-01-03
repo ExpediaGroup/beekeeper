@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PathStatus;
 
-public class MySqlTestUtils {
+class MySqlTestUtils {
 
   private static final String DROP_TABLE = "DROP TABLE IF EXISTS beekeeper.%s;";
   private static final String SELECT_TABLE = "SELECT * FROM beekeeper.%s where lifecycle_type = '%s' order by path;";
@@ -56,13 +56,13 @@ public class MySqlTestUtils {
   private static final String PATH_STATUS = "path_status";
   private static final String TABLE_NAME = "table_name";
 
-  private Connection connection;
+  private final Connection connection;
 
-  public MySqlTestUtils(String jdbcUrl, String username, String password) throws SQLException {
+  MySqlTestUtils(String jdbcUrl, String username, String password) throws SQLException {
     connection = DriverManager.getConnection(jdbcUrl, username, password);
   }
 
-  public void insertPath(String path, String table) throws SQLException {
+  void insertPath(String path, String table) throws SQLException {
     // TODO: for now, we'll just keep testing unreferenced paths only
     String lifecycleType = UNREFERENCED.toString().toLowerCase();
 
@@ -77,11 +77,11 @@ public class MySqlTestUtils {
         .executeUpdate(format(INSERT_PATH, fields, values));
   }
 
-  public int unreferencedRowsInTable(String table) throws SQLException {
+  int unreferencedRowsInTable(String table) throws SQLException {
     return rowsInTable(table, UNREFERENCED.toString());
   }
 
-  public int expiredRowsInTable(String table) throws SQLException {
+  int expiredRowsInTable(String table) throws SQLException {
     return rowsInTable(table, EXPIRED.toString());
   }
 
@@ -93,20 +93,20 @@ public class MySqlTestUtils {
     return rowsInTable;
   }
 
-  public void dropTable(String tableName) throws SQLException {
+  void dropTable(String tableName) throws SQLException {
     connection.createStatement()
         .executeUpdate(format(DROP_TABLE, tableName));
   }
 
-  public void close() throws SQLException {
+  void close() throws SQLException {
     connection.close();
   }
 
-  public List<EntityHousekeepingPath> getUnreferencedPaths() throws SQLException {
+  List<EntityHousekeepingPath> getUnreferencedPaths() throws SQLException {
     return getPaths(UNREFERENCED.toString());
   }
 
-  public List<EntityHousekeepingPath> getExpiredPaths() throws SQLException {
+  List<EntityHousekeepingPath> getExpiredPaths() throws SQLException {
     return getPaths(EXPIRED.toString());
   }
 

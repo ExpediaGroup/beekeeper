@@ -48,7 +48,7 @@ public class PathSchedulerApiaryRunnerTest {
   private PathSchedulerApiary pathSchedulerApiary;
 
   private PathSchedulerApiaryRunner pathSchedulerApiaryRunner;
-  private ExecutorService executor = Executors.newFixedThreadPool(1);
+  private final ExecutorService executor = Executors.newFixedThreadPool(1);
 
   @BeforeEach
   public void init() {

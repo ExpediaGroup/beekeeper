@@ -21,22 +21,30 @@ import java.net.URL;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 
 public class AlterTableSqsMessage extends SqsMessageFile {
-    private static URL ALTER_TABLE_FILE = SqsMessageFile.class.getResource("/alter_table.json");
 
-    public AlterTableSqsMessage() throws IOException {
-        this.setMessageFromFile(ALTER_TABLE_FILE);
-    }
+  private static final URL ALTER_TABLE_FILE = SqsMessageFile.class.getResource("/alter_table.json");
 
-    public AlterTableSqsMessage(String tableLocation, String oldTableLocation, Boolean isUnreferenced, Boolean isExpired, Boolean isWhitelisted) throws IOException {
-        this.setMessageFromFile(ALTER_TABLE_FILE);
-        this.setTableLocation(tableLocation);
-        this.setOldTableLocation(oldTableLocation);
-        this.setUnreferenced(isUnreferenced);
-        this.setExpired(isExpired);
-        this.setWhitelisted(EventType.ALTER_TABLE, isWhitelisted);
-    }
+  AlterTableSqsMessage() throws IOException {
+    setMessageFromFile(ALTER_TABLE_FILE);
+  }
 
-    public String getFormattedString() {
-        return String.format(message, tableLocation, oldTableLocation, isUnreferenced, isExpired, isWhitelisted);
-    }
+  public AlterTableSqsMessage(
+      String tableLocation,
+      String oldTableLocation,
+      Boolean isUnreferenced,
+      Boolean isExpired,
+      Boolean isWhitelisted
+  ) throws IOException {
+    setMessageFromFile(ALTER_TABLE_FILE);
+    setTableLocation(tableLocation);
+    setOldTableLocation(oldTableLocation);
+    setUnreferenced(isUnreferenced);
+    setExpired(isExpired);
+    setWhitelisted(EventType.ALTER_TABLE, isWhitelisted);
+  }
+
+  @Override
+  public String getFormattedString() {
+    return String.format(message, tableLocation, oldTableLocation, isUnreferenced, isExpired, isWhitelisted);
+  }
 }

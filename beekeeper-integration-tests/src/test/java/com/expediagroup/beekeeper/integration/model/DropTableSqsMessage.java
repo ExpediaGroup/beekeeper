@@ -21,22 +21,28 @@ import java.net.URL;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 
 public class DropTableSqsMessage extends SqsMessageFile {
-    private static URL DROP_TABLE_FILE = SqsMessageFile.class.getResource("/drop_table.json");
 
-    public DropTableSqsMessage() throws IOException {
-        this.setMessageFromFile(DROP_TABLE_FILE);
-    }
+  private static final URL DROP_TABLE_FILE = SqsMessageFile.class.getResource("/drop_table.json");
 
-    public DropTableSqsMessage(String tableLocation, Boolean isUnreferenced, Boolean isExpired, Boolean isWhitelisted) throws IOException {
-        this.setMessageFromFile(DROP_TABLE_FILE);
-        this.setTableLocation(tableLocation);
-        this.setUnreferenced(isUnreferenced);
-        this.setExpired(isExpired);
-        this.setWhitelisted(EventType.DROP_TABLE, isWhitelisted);
-    }
+  DropTableSqsMessage() throws IOException {
+    setMessageFromFile(DROP_TABLE_FILE);
+  }
 
-    public String getFormattedString() {
-        return String.format(message, tableLocation, isUnreferenced, isExpired, isWhitelisted);
-    }
+  public DropTableSqsMessage(
+      String tableLocation,
+      Boolean isUnreferenced,
+      Boolean isExpired,
+      Boolean isWhitelisted
+  ) throws IOException {
+    setMessageFromFile(DROP_TABLE_FILE);
+    setTableLocation(tableLocation);
+    setUnreferenced(isUnreferenced);
+    setExpired(isExpired);
+    setWhitelisted(EventType.DROP_TABLE, isWhitelisted);
+  }
 
+  @Override
+  public String getFormattedString() {
+    return String.format(message, tableLocation, isUnreferenced, isExpired, isWhitelisted);
+  }
 }

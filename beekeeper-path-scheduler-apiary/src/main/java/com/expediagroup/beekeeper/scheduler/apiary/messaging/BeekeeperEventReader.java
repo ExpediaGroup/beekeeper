@@ -25,5 +25,4 @@ public interface BeekeeperEventReader extends Closeable {
   Optional<BeekeeperEvent> read();
 
   void delete(BeekeeperEvent pathEvent);
-
 }

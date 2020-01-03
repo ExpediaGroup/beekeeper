@@ -52,9 +52,9 @@ public class MessageReaderAdapter implements BeekeeperEventReader {
 
     MessageEvent event = messageEvent.get();
     List<HousekeepingPath> housekeepingPaths = eventMappers.parallelStream()
-            .map(eventMapper -> eventMapper.generateHouseKeepingPaths(event.getEvent()))
-            .flatMap(x -> x.stream())
-            .collect(Collectors.toList());
+        .map(eventMapper -> eventMapper.generateHouseKeepingPaths(event.getEvent()))
+        .flatMap(x -> x.stream())
+        .collect(Collectors.toList());
 
     BeekeeperEvent beekeeperEvent = housekeepingPaths.size() > 0 ? new BeekeeperEvent(housekeepingPaths, event) : null;
     return Optional.ofNullable(beekeeperEvent);

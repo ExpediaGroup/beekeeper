@@ -18,18 +18,18 @@ package com.expediagroup.beekeeper.core.model;
 import java.util.Map;
 
 public enum LifecycleEventType {
-    UNREFERENCED("beekeeper.remove.unreferenced.data"),
-    EXPIRED("beekeeper.remove.expired.data");
+  UNREFERENCED("beekeeper.remove.unreferenced.data"),
+  EXPIRED("beekeeper.remove.expired.data");
 
-    private String tableParameterName;
+  private final String tableParameterName;
 
-    public String getTableParameterName() {
-        return this.tableParameterName;
-    }
+  LifecycleEventType(String tableParameterName) { this.tableParameterName = tableParameterName; }
 
-    LifecycleEventType(String tableParameterName) { this.tableParameterName = tableParameterName; }
+  public String getTableParameterName() {
+    return tableParameterName;
+  }
 
-    public Boolean getBoolean(Map<String,String> tableParameters) {
-        return Boolean.valueOf(tableParameters.get(getTableParameterName()));
-    }
+  public Boolean getBoolean(Map<String, String> tableParameters) {
+    return Boolean.valueOf(tableParameters.get(getTableParameterName()));
+  }
 }

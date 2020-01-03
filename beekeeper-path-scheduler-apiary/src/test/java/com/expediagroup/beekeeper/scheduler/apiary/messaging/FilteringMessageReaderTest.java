@@ -39,14 +39,11 @@ import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
 
 @ExtendWith(MockitoExtension.class)
 public class FilteringMessageReaderTest {
-  @Mock
-  private AddPartitionEvent alterPartitionEvent;
-  @Mock
-  private MessageEvent messageEvent;
-  @Mock
-  private ListenerEventFilter filter;
-  @Mock
-  private MessageReader delegate;
+
+  @Mock private AddPartitionEvent alterPartitionEvent;
+  @Mock private MessageEvent messageEvent;
+  @Mock private ListenerEventFilter filter;
+  @Mock private MessageReader delegate;
 
   private FilteringMessageReader filteringMessageReader;
 

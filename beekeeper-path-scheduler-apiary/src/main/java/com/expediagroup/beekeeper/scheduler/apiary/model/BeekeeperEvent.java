@@ -22,6 +22,7 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 public class BeekeeperEvent {
+
   private final List<HousekeepingPath> housekeepingPaths;
   private final MessageEvent messageEvent;
 

@@ -49,7 +49,7 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
       return false;
     }
     return Arrays.stream(whitelist.split(","))
-      .map(String::trim)
-      .anyMatch(whitelistedEvent -> whitelistedEvent.equalsIgnoreCase(eventType.toString()));
+        .map(String::trim)
+        .anyMatch(whitelistedEvent -> whitelistedEvent.equalsIgnoreCase(eventType.toString()));
   }
 }

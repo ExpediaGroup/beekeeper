@@ -26,6 +26,7 @@ import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageProperty;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageProperty;
+
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
@@ -37,11 +38,11 @@ public class MapperTestUtils {
     return new MessageEvent(event, MapperTestUtils.newMessageProperties());
   }
 
-  public static Map<MessageProperty, String> newMessageProperties() {
+  private static Map<MessageProperty, String> newMessageProperties() {
     return Collections.singletonMap(SqsMessageProperty.SQS_MESSAGE_RECEIPT_HANDLE, RECEIPT_HANDLE);
   }
 
-  public static void assertPath(
+  static void assertPath(
       HousekeepingPath path,
       String cleanupDelay,
       String tableName,
@@ -62,29 +63,4 @@ public class MapperTestUtils {
     assertThat(path.getCreationTimestamp()).isBetween(creationTimestamp, now);
     assertThat(path.getCleanupTimestamp()).isEqualTo(path.getCreationTimestamp().plus(Duration.parse(cleanupDelay)));
   }
-
-//
-//  public static void setupMocks(
-//      ListenerEvent event,
-//      Boolean isUnreferenced,
-//      Boolean isExpired,
-//      Boolean delaysDefined,
-//      String DATABASE,
-//      String TABLE
-//  ) {
-//    Map<String,String> tableParams = new HashMap<>();
-//
-//    tableParams.put(UNREFERENCED.getTableParameterName(),isUnreferenced.toString().toLowerCase());
-//    tableParams.put(EXPIRED.getTableParameterName(),isExpired.toString().toLowerCase());
-//
-//    if ( delaysDefined ) {
-////            tableParams.put(CLEANUP_UNREFERENCED_DELAY_PROPERTY, CLEANUP_UNREFERENCED_DELAY);
-//      tableParams.put(CLEANUP_EXPIRED_DELAY_PROPERTY, CLEANUP_EXPIRED_DELAY);
-//    }
-//
-//    when(event.getTableParameters()).thenReturn(tableParams);
-//    when(event.getDbName()).thenReturn(DATABASE);
-//    when(event.getTableName()).thenReturn(TABLE);
-//  }
-
 }

@@ -30,91 +30,90 @@ import com.google.gson.JsonParser;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 
 public abstract class SqsMessageFile {
-    protected String message;
-    protected String partitionLocation = "DELETEME";
-    protected String oldPartitionLocation = "DELETEME";
-    protected String tableLocation = "DELETEME";
-    protected String oldTableLocation = "DELETEME";
-    protected String isUnreferenced = "false";
-    protected String isExpired = "false";
-    protected String isWhitelisted = "";
 
+  protected String message;
+  String partitionLocation = "DELETEME";
+  String oldPartitionLocation = "DELETEME";
+  protected String tableLocation = "DELETEME";
+  String oldTableLocation = "DELETEME";
+  String isUnreferenced = "false";
+  String isExpired = "false";
+  String isWhitelisted = "";
 
-    public abstract String getFormattedString();
+  public abstract String getFormattedString();
 
-    public JsonObject getNestedJsonObject()  {
-        JsonParser parser = new JsonParser();
-        JsonObject json = parser.parse(getFormattedString()).getAsJsonObject();
+  JsonObject getNestedJsonObject() {
+    JsonParser parser = new JsonParser();
+    JsonObject json = parser.parse(getFormattedString()).getAsJsonObject();
 
-        String message = json.get("Message").getAsString();
-        JsonObject nestedMessageJsonObject = parser.parse(message).getAsJsonObject();
-        return nestedMessageJsonObject;
-    }
+    String message = json.get("Message").getAsString();
+    JsonObject nestedMessageJsonObject = parser.parse(message).getAsJsonObject();
+    return nestedMessageJsonObject;
+  }
 
-    public String prettyPrintedMessageContents() {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String prettyJson = gson.toJson(getNestedJsonObject());
-        return prettyJson;
-    }
+  String prettyPrintedMessageContents() {
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    String prettyJson = gson.toJson(getNestedJsonObject());
+    return prettyJson;
+  }
 
-    public void setMessageFromFile(URL filePath) throws IOException {
-        this.message = new String(IOUtils.toByteArray(filePath), UTF_8);
-    }
+  void setMessageFromFile(URL filePath) throws IOException {
+      message = new String(IOUtils.toByteArray(filePath), UTF_8);
+  }
 
-    public void setWhitelisted(EventType eventType, Boolean isWhitelisted) {
-        this.isWhitelisted = isWhitelisted ? eventType.toString() : "";
-    }
+  void setWhitelisted(EventType eventType, Boolean isWhitelisted) {
+    this.isWhitelisted = isWhitelisted ? eventType.toString() : "";
+  }
 
-    public void setExpired(Boolean isExpired) {
-        this.isExpired = isExpired.toString().toLowerCase();
-    }
+  void setExpired(Boolean isExpired) {
+    this.isExpired = isExpired.toString().toLowerCase();
+  }
 
-    public void setUnreferenced(Boolean isUnreferenced) {
-        this.isUnreferenced = isUnreferenced.toString().toLowerCase();
-    }
+  void setUnreferenced(Boolean isUnreferenced) {
+    this.isUnreferenced = isUnreferenced.toString().toLowerCase();
+  }
 
-    public void setPartitionLocation(String partitionLocation) {
-        this.partitionLocation = partitionLocation;
-    }
+  public String getPartitionLocation() {
+    return partitionLocation;
+  }
 
-    public void setOldPartitionLocation(String oldPartitionLocation) {
-        this.oldPartitionLocation = oldPartitionLocation;
-    }
+  public void setPartitionLocation(String partitionLocation) {
+    this.partitionLocation = partitionLocation;
+  }
 
-    public void setTableLocation(String tableLocation) {
-        this.tableLocation = tableLocation;
-    }
+  public String getOldPartitionLocation() {
+    return oldPartitionLocation;
+  }
 
-    public void setOldTableLocation(String oldTableLocation) {
-        this.oldTableLocation = oldTableLocation;
-    }
+  void setOldPartitionLocation(String oldPartitionLocation) {
+    this.oldPartitionLocation = oldPartitionLocation;
+  }
 
-    public String getPartitionLocation() {
-        return partitionLocation;
-    }
+  public String getTableLocation() {
+    return tableLocation;
+  }
 
-    public String getOldPartitionLocation() {
-        return oldPartitionLocation;
-    }
+  public void setTableLocation(String tableLocation) {
+    this.tableLocation = tableLocation;
+  }
 
-    public String getTableLocation() {
-        return tableLocation;
-    }
+  public String getOldTableLocation() {
+    return oldTableLocation;
+  }
 
-    public String getOldTableLocation() {
-        return oldTableLocation;
-    }
+  public void setOldTableLocation(String oldTableLocation) {
+    this.oldTableLocation = oldTableLocation;
+  }
 
-    public String getIsUnreferenced() {
-        return isUnreferenced;
-    }
+  public String getIsUnreferenced() {
+    return isUnreferenced;
+  }
 
-    public String getIsExpired() {
-        return isExpired;
-    }
+  public String getIsExpired() {
+    return isExpired;
+  }
 
-    public String getIsWhitelisted() {
-        return isWhitelisted;
-    }
-
+  public String getIsWhitelisted() {
+    return isWhitelisted;
+  }
 }

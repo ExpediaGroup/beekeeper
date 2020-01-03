@@ -21,20 +21,28 @@ import java.net.URL;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 
 public class DropPartitionSqsMessage extends SqsMessageFile {
-    private static URL DROP_PARTITION_FILE = SqsMessageFile.class.getResource("/drop_partition.json");
 
-    public DropPartitionSqsMessage() throws IOException {
-        this.setMessageFromFile(DROP_PARTITION_FILE);
-    }
+  private static final URL DROP_PARTITION_FILE = SqsMessageFile.class.getResource("/drop_partition.json");
 
-    public DropPartitionSqsMessage(String partitionLocation, Boolean isUnreferenced, Boolean isExpired, Boolean isWhitelisted) throws IOException {
-        this.setMessageFromFile(DROP_PARTITION_FILE);
-        this.setPartitionLocation(partitionLocation);
-        this.setUnreferenced(isUnreferenced);
-        this.setExpired(isExpired);
-        this.setWhitelisted(EventType.DROP_PARTITION, isWhitelisted);
-    }
+  DropPartitionSqsMessage() throws IOException {
+    setMessageFromFile(DROP_PARTITION_FILE);
+  }
 
-    public String getFormattedString() { return String.format(message, partitionLocation, isUnreferenced, isExpired, isWhitelisted); }
+  public DropPartitionSqsMessage(
+      String partitionLocation,
+      Boolean isUnreferenced,
+      Boolean isExpired,
+      Boolean isWhitelisted
+  ) throws IOException {
+    setMessageFromFile(DROP_PARTITION_FILE);
+    setPartitionLocation(partitionLocation);
+    setUnreferenced(isUnreferenced);
+    setExpired(isExpired);
+    setWhitelisted(EventType.DROP_PARTITION, isWhitelisted);
+  }
 
+  @Override
+  public String getFormattedString() {
+    return String.format(message, partitionLocation, isUnreferenced, isExpired, isWhitelisted);
+  }
 }

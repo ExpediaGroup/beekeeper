@@ -21,35 +21,36 @@ import java.net.URL;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 
 public class AlterPartitionSqsMessage extends SqsMessageFile {
-    private static URL ALTER_PARTITION_FILE = SqsMessageFile.class.getResource("/alter_partition.json");
 
-    public AlterPartitionSqsMessage() throws IOException {
-        this.setMessageFromFile(ALTER_PARTITION_FILE);
-    }
+  private static final URL ALTER_PARTITION_FILE = SqsMessageFile.class.getResource("/alter_partition.json");
 
-    public AlterPartitionSqsMessage(
-            String tableLocation,
-            String partitionLocation,
-            String oldPartitionLocation,
-            Boolean isUnreferenced,
-            Boolean isExpired,
-            Boolean isWhitelisted
-    ) throws IOException {
-        this.setMessageFromFile(ALTER_PARTITION_FILE);
-        this.setTableLocation(tableLocation);
-        this.setPartitionLocation(partitionLocation);
-        this.setOldPartitionLocation(oldPartitionLocation);
-        this.setUnreferenced(isUnreferenced);
-        this.setExpired(isExpired);
-        this.setWhitelisted(EventType.ALTER_PARTITION, isWhitelisted);
-    }
+  AlterPartitionSqsMessage() throws IOException {
+      setMessageFromFile(ALTER_PARTITION_FILE);
+  }
 
-    public String getFormattedString() {
-        return String.format(message,
-                tableLocation,
-                partitionLocation,
-                oldPartitionLocation,
-                isUnreferenced, isExpired, isWhitelisted);
-    }
+  public AlterPartitionSqsMessage(
+      String tableLocation,
+      String partitionLocation,
+      String oldPartitionLocation,
+      Boolean isUnreferenced,
+      Boolean isExpired,
+      Boolean isWhitelisted
+  ) throws IOException {
+      setMessageFromFile(ALTER_PARTITION_FILE);
+      setTableLocation(tableLocation);
+      setPartitionLocation(partitionLocation);
+      setOldPartitionLocation(oldPartitionLocation);
+      setUnreferenced(isUnreferenced);
+      setExpired(isExpired);
+      setWhitelisted(EventType.ALTER_PARTITION, isWhitelisted);
+  }
 
+  @Override
+  public String getFormattedString() {
+    return String.format(message,
+        tableLocation,
+        partitionLocation,
+        oldPartitionLocation,
+        isUnreferenced, isExpired, isWhitelisted);
+  }
 }

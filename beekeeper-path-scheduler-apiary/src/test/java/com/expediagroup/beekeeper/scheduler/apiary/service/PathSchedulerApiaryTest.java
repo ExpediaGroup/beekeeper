@@ -80,7 +80,6 @@ public class PathSchedulerApiaryTest {
     verify(beekeeperEventReader, times(0)).delete(any());
   }
 
-
   @Test
   public void repositorySchedulingThrowsException() {
     when(path.getPath()).thenReturn(PATH);
@@ -97,7 +96,7 @@ public class PathSchedulerApiaryTest {
       verify(beekeeperEventReader, times(0)).delete(any());
       assertThat(e).isInstanceOf(BeekeeperException.class);
       assertThat(e.getMessage()).isEqualTo(
-              "Unable to schedule/update path 'path' for deletion, this message will go back on the queue");
+          "Unable to schedule/update path 'path' for deletion, this message will go back on the queue");
     }
   }
 
@@ -107,7 +106,8 @@ public class PathSchedulerApiaryTest {
     when(path.getLifecycleType()).thenReturn(EXPIRED.toString());
     Optional<BeekeeperEvent> event = Optional.of(newPathEvent(path));
     when(beekeeperEventReader.read()).thenReturn(event);
-    doThrow(new BeekeeperException("exception")).when(pathSchedulerService).scheduleExpiration(any(HousekeepingPath.class));
+    doThrow(new BeekeeperException("exception")).when(pathSchedulerService)
+        .scheduleExpiration(any(HousekeepingPath.class));
 
     try {
       scheduler.schedulePath();
@@ -117,7 +117,7 @@ public class PathSchedulerApiaryTest {
       verify(beekeeperEventReader, times(0)).delete(any());
       assertThat(e).isInstanceOf(BeekeeperException.class);
       assertThat(e.getMessage()).isEqualTo(
-              "Unable to schedule/update path 'path' for deletion, this message will go back on the queue");
+          "Unable to schedule/update path 'path' for deletion, this message will go back on the queue");
     }
   }
 

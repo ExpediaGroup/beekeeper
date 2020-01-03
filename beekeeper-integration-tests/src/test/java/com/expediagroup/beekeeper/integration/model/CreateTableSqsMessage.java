@@ -21,21 +21,28 @@ import java.net.URL;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 
 public class CreateTableSqsMessage extends SqsMessageFile {
-    private static URL CREATE_TABLE_FILE = SqsMessageFile.class.getResource("/create_table.json");
 
-    public CreateTableSqsMessage() throws IOException {
-        this.setMessageFromFile(CREATE_TABLE_FILE);
-    }
+  private static final URL CREATE_TABLE_FILE = SqsMessageFile.class.getResource("/create_table.json");
 
-    public CreateTableSqsMessage(String tableLocation, Boolean isUnreferenced, Boolean isExpired, Boolean isWhitelisted) throws IOException {
-        this.setMessageFromFile(CREATE_TABLE_FILE);
-        this.setTableLocation(tableLocation);
-        this.setUnreferenced(isUnreferenced);
-        this.setExpired(isExpired);
-        this.setWhitelisted(EventType.CREATE_TABLE, isWhitelisted);
-    }
+  CreateTableSqsMessage() throws IOException {
+    setMessageFromFile(CREATE_TABLE_FILE);
+  }
 
-    public String getFormattedString() {
-        return String.format(message, tableLocation, isUnreferenced, isExpired, isWhitelisted);
-    }
+  public CreateTableSqsMessage(
+      String tableLocation,
+      Boolean isUnreferenced,
+      Boolean isExpired,
+      Boolean isWhitelisted
+  ) throws IOException {
+    setMessageFromFile(CREATE_TABLE_FILE);
+    setTableLocation(tableLocation);
+    setUnreferenced(isUnreferenced);
+    setExpired(isExpired);
+    setWhitelisted(EventType.CREATE_TABLE, isWhitelisted);
+  }
+
+  @Override
+  public String getFormattedString() {
+    return String.format(message, tableLocation, isUnreferenced, isExpired, isWhitelisted);
+  }
 }

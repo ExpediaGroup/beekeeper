@@ -27,28 +27,28 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 
-public class ContainerTestUtils {
-
-  public static MySQLContainer mySqlContainer() {
+class ContainerTestUtils {
+ 
+  static MySQLContainer mySqlContainer() {
     MySQLContainer container = new MySQLContainer("mysql:8.0.15").withDatabaseName("beekeeper");
     container.withCommand("--default-authentication-plugin=mysql_native_password");
     return container;
   }
 
-  public static LocalStackContainer awsContainer(LocalStackContainer.Service service) {
+  static LocalStackContainer awsContainer(LocalStackContainer.Service service) {
     return new LocalStackContainer().withServices(service);
   }
 
-  public static String awsServiceEndpoint(LocalStackContainer awsContainer, LocalStackContainer.Service service) {
+  static String awsServiceEndpoint(LocalStackContainer awsContainer, LocalStackContainer.Service service) {
     return awsContainer.getEndpointConfiguration(service)
         .getServiceEndpoint();
   }
 
-  public static String queueUrl(LocalStackContainer awsContainer, String queue) {
+  static String queueUrl(LocalStackContainer awsContainer, String queue) {
     return awsServiceEndpoint(awsContainer, SQS) + "/queue/" + queue;
   }
 
-  public static AmazonSQS sqsClient(LocalStackContainer awsContainer, String region) {
+  static AmazonSQS sqsClient(LocalStackContainer awsContainer, String region) {
     EndpointConfiguration endpointConfiguration = new EndpointConfiguration(awsServiceEndpoint(awsContainer, SQS),
         region);
     return AmazonSQSClientBuilder.standard()
@@ -56,7 +56,7 @@ public class ContainerTestUtils {
         .build();
   }
 
-  public static AmazonS3 s3Client(LocalStackContainer awsContainer, String region) {
+  static AmazonS3 s3Client(LocalStackContainer awsContainer, String region) {
     EndpointConfiguration endpointConfiguration = new EndpointConfiguration(awsServiceEndpoint(awsContainer, S3),
         region);
 

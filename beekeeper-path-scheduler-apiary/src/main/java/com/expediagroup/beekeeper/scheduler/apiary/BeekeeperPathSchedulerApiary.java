@@ -48,13 +48,6 @@ public class BeekeeperPathSchedulerApiary implements ApplicationContextAware {
         .run(args);
   }
 
-  @Override
-  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-    context = (ConfigurableApplicationContext) applicationContext;
-    runner = (PathSchedulerApiaryRunner) context.getBean("pathSchedulerApiaryRunner");
-    meterRegistry = (MeterRegistry) context.getBean("meterRegistry");
-  }
-
   @VisibleForTesting
   public static boolean isRunning() {
     return context != null && context.isRunning();
@@ -75,5 +68,12 @@ public class BeekeeperPathSchedulerApiary implements ApplicationContextAware {
   @VisibleForTesting
   public static MeterRegistry meterRegistry() {
     return meterRegistry;
+  }
+
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    context = (ConfigurableApplicationContext) applicationContext;
+    runner = (PathSchedulerApiaryRunner) context.getBean("pathSchedulerApiaryRunner");
+    meterRegistry = (MeterRegistry) context.getBean("meterRegistry");
   }
 }

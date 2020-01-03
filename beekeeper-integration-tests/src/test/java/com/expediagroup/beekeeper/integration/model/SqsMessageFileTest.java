@@ -30,76 +30,78 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
 
 public class SqsMessageFileTest {
-    private static final Logger log = LoggerFactory.getLogger(SqsMessageFileTest.class);
-    Set<String> commonKeys = Set.of("protocolVersion", "eventType","tableParameters",
-            "dbName","tableName","tableLocation");
 
-    @Test
-    public void testCreateTableFormat() throws IOException {
-        Set<String> specificKeys = new HashSet<>();
-        CreateTableSqsMessage message = new CreateTableSqsMessage();
-        assertKeys(message, specificKeys, "CREATE_TABLE");
-    }
+  private static final Logger log = LoggerFactory.getLogger(SqsMessageFileTest.class);
+  private Set<String> commonKeys = Set.of("protocolVersion", "eventType", "tableParameters",
+      "dbName", "tableName", "tableLocation");
 
-    @Test
-    public void testAddPartitionFormat() throws IOException {
-        Set<String> specificKeys = Set.of(
-                "partitionKeys",
-                "partitionValues",
-                "partitionLocation",
-                "tableParameters");
-        AddPartitionSqsMessage message = new AddPartitionSqsMessage();
-        assertKeys(message, specificKeys, "ADD_PARTITION");
-    }
+  @Test
+  public void testCreateTableFormat() throws IOException {
+    Set<String> specificKeys = new HashSet<>();
+    CreateTableSqsMessage message = new CreateTableSqsMessage();
+    assertKeys(message, specificKeys, "CREATE_TABLE");
+  }
 
-    @Test
-    public void testAlterPartitionFormat() throws IOException {
-        Set<String> specificKeys = Set.of(
-                "partitionKeys",
-                "partitionValues",
-                "partitionLocation",
-                "oldPartitionValues",
-                "oldPartitionLocation");
-        AlterPartitionSqsMessage message = new AlterPartitionSqsMessage();
-        assertKeys(message, specificKeys, "ALTER_PARTITION");
-    }
+  @Test
+  public void testAddPartitionFormat() throws IOException {
+    Set<String> specificKeys = Set.of(
+        "partitionKeys",
+        "partitionValues",
+        "partitionLocation",
+        "tableParameters");
+    AddPartitionSqsMessage message = new AddPartitionSqsMessage();
+    assertKeys(message, specificKeys, "ADD_PARTITION");
+  }
 
-    @Test
-    public void testAlterTableFormat() throws IOException {
-        Set<String> specificKeys = Set.of(
-                "oldTableName",
-                "oldTableLocation");
-        AlterTableSqsMessage message = new AlterTableSqsMessage();
-        assertKeys(message, specificKeys, "ALTER_TABLE");
-    }
+  @Test
+  public void testAlterPartitionFormat() throws IOException {
+    Set<String> specificKeys = Set.of(
+        "partitionKeys",
+        "partitionValues",
+        "partitionLocation",
+        "oldPartitionValues",
+        "oldPartitionLocation");
+    AlterPartitionSqsMessage message = new AlterPartitionSqsMessage();
+    assertKeys(message, specificKeys, "ALTER_PARTITION");
+  }
 
-    @Test
-    public void testDropPartitionFormat() throws IOException {
-        Set<String> specificKeys = Set.of(
-                "partitionKeys",
-                "partitionValues",
-                "partitionLocation",
-                "tableParameters");
-        DropPartitionSqsMessage message = new DropPartitionSqsMessage();
-        assertKeys(message, specificKeys, "DROP_PARTITION");
-    }
+  @Test
+  public void testAlterTableFormat() throws IOException {
+    Set<String> specificKeys = Set.of(
+        "oldTableName",
+        "oldTableLocation");
+    AlterTableSqsMessage message = new AlterTableSqsMessage();
+    assertKeys(message, specificKeys, "ALTER_TABLE");
+  }
 
-    @Test
-    public void testDropTableFormat() throws IOException {
-        Set<String> specificKeys = new HashSet<>();
-        DropTableSqsMessage message = new DropTableSqsMessage();
-        assertKeys(message, specificKeys, "DROP_TABLE");
-    }
+  @Test
+  public void testDropPartitionFormat() throws IOException {
+    Set<String> specificKeys = Set.of(
+        "partitionKeys",
+        "partitionValues",
+        "partitionLocation",
+        "tableParameters");
+    DropPartitionSqsMessage message = new DropPartitionSqsMessage();
+    assertKeys(message, specificKeys, "DROP_PARTITION");
+  }
 
-    void assertKeys(SqsMessageFile sqsMessageFile, Set<String> specificKeys, String eventType) {
-        SortedSet<String> mergedSet = new TreeSet<>() {{
-            addAll(specificKeys); addAll(commonKeys);
-        }};
+  @Test
+  public void testDropTableFormat() throws IOException {
+    Set<String> specificKeys = new HashSet<>();
+    DropTableSqsMessage message = new DropTableSqsMessage();
+    assertKeys(message, specificKeys, "DROP_TABLE");
+  }
 
-        log.info("\n" + sqsMessageFile.prettyPrintedMessageContents());
-        JsonObject object = sqsMessageFile.getNestedJsonObject();
+  private void assertKeys(SqsMessageFile sqsMessageFile, Set<String> specificKeys, String eventType) {
+    SortedSet<String> mergedSet = new TreeSet<>() {{
+      addAll(specificKeys);
+      addAll(commonKeys);
+    }};
 
-        assertThat(object.get("eventType").getAsString()).isEqualTo(eventType);
-        assertThat(object.keySet()).isEqualTo(mergedSet);
-    }
+    log.info("\n" + sqsMessageFile.prettyPrintedMessageContents());
+    JsonObject object = sqsMessageFile.getNestedJsonObject();
+
+    assertThat(object.get("eventType").getAsString()).isEqualTo(eventType);
+    assertThat(object.keySet()).isEqualTo(mergedSet);
+  }
 }

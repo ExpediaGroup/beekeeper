@@ -33,8 +33,8 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 @Service
 public class PathSchedulerService implements SchedulerService {
 
-  private HousekeepingPathRepository housekeepingPathRepository;
-  private static final PageRequest SINGLE_RECORD = PageRequest.of(0,1);
+  private static final PageRequest SINGLE_RECORD = PageRequest.of(0, 1);
+  private final HousekeepingPathRepository housekeepingPathRepository;
 
   @Autowired
   public PathSchedulerService(HousekeepingPathRepository housekeepingPathRepository) {

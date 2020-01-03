@@ -35,98 +35,106 @@ import com.expediagroup.beekeeper.scheduler.apiary.model.EventModel;
 
 public abstract class MessageEventMapper {
 
-    protected final String CLIENT_ID = "apiary-metastore-event";
-    protected final String FOREVER = "P356D";
-    private static final Logger log = LoggerFactory.getLogger(MessageEventMapper.class);
+  private static final Logger log = LoggerFactory.getLogger(MessageEventMapper.class);
+  protected final String FOREVER = "P356D";
+  final LifecycleEventType lifecycleEventType;
+  private final String CLIENT_ID = "apiary-metastore-event";
+  private final String cleanupDelay;
+  private final String hivePropertyKey;
 
-    protected abstract List<EventModel> generateEventModels(ListenerEvent listenerEvent);
+  MessageEventMapper(String cleanupDelay, String hivePropertyKey, LifecycleEventType eventType) {
+    this.cleanupDelay = cleanupDelay;
+    this.hivePropertyKey = hivePropertyKey;
+    lifecycleEventType = eventType;
+  }
 
-    protected final String cleanupDelay;
-    protected final String hivePropertyKey;
-    protected final LifecycleEventType lifeCycleEventType;
+  protected abstract List<EventModel> generateEventModels(ListenerEvent listenerEvent);
 
-    public MessageEventMapper(String cleanupDelay, String hivePropertyKey, LifecycleEventType eventType) {
-        this.cleanupDelay = cleanupDelay;
-        this.hivePropertyKey = hivePropertyKey;
-        this.lifeCycleEventType = eventType;
+  /**
+   * Generates housekeeping paths for a given event.
+   *
+   * @param listenerEvent Listener event from the current message
+   * @return list of housekeeping paths. This can be an empty list if there are no valid paths.
+   */
+  public List<HousekeepingPath> generateHouseKeepingPaths(ListenerEvent listenerEvent) {
+    return generateEventModels(listenerEvent).stream()
+        .map(event -> generatePath(event.lifeCycleEvent, listenerEvent, event.cleanupPath))
+        .collect(Collectors.toList());
+  }
+
+  private final String getHivePropertyKey() { return hivePropertyKey; }
+
+  private final String getCleanupDelay() { return cleanupDelay; }
+
+  private final LifecycleEventType getLifecycleEventType() { return lifecycleEventType; }
+
+  /**
+   * Checks if the current event is a metadata event.
+   * This is determined if the old location string is the same as the new location string.
+   *
+   * @param oldLocation Old event location
+   * @param location New Event location
+   * @return boolean True if old == new event location. False otherwise.
+   */
+  final boolean isMetadataUpdate(String oldLocation, String location) {
+    return location == null || oldLocation == null || oldLocation.equals(location);
+  }
+
+  /**
+   * Generates a path to clean up via EntityHousekeepingPath.Builder
+   *
+   * @param lifecycleType The type of lifecycle cleanup event this path is
+   * @param listenerEvent The current event we're generating this path for
+   * @param cleanupLocation The path of the current item to cleanup
+   * @return EntityHouseKeepingPath Path object for the given parameters
+   */
+  private final EntityHousekeepingPath generatePath(
+      LifecycleEventType lifecycleType,
+      ListenerEvent listenerEvent,
+      String cleanupLocation
+  ) {
+    EntityHousekeepingPath.Builder builder = new EntityHousekeepingPath.Builder()
+        .pathStatus(PathStatus.SCHEDULED)
+        .creationTimestamp(LocalDateTime.now())
+        .cleanupDelay(extractCleanupDelay(listenerEvent))
+        .lifecycleType(lifecycleType.name())
+        .clientId(CLIENT_ID)
+        .tableName(listenerEvent.getTableName())
+        .databaseName(listenerEvent.getDbName())
+        .path(cleanupLocation);
+
+    return builder.build();
+  }
+
+  /**
+   * Get's a boolean flag if the given tableparameters exist for this mapper
+   *
+   * @param tableParameters
+   * @return boolean
+   */
+  final Boolean checkIfTablePropertyExists(Map<String, String> tableParameters) {
+    LifecycleEventType type = getLifecycleEventType();
+    return Boolean.valueOf(tableParameters.get(type.getTableParameterName()));
+  }
+
+  /**
+   * Extracts the cleanup delay from the given event.
+   * If the cleanupDelay on the event cannot be parsed, use the predefined default value.
+   *
+   * @param listenerEvent Current event from Apiary
+   * @return Duration Parsed Duration object from the event or the default value.
+   */
+  private final Duration extractCleanupDelay(ListenerEvent listenerEvent) {
+    String propertyKey = getHivePropertyKey();
+    String defaultValue = getCleanupDelay();
+    String tableCleanupDelay = listenerEvent.getTableParameters().getOrDefault(propertyKey, defaultValue);
+
+    try {
+      return Duration.parse(tableCleanupDelay);
+    } catch (DateTimeParseException e) {
+      log.error("Text '{}' cannot be parsed to a Duration for table '{}.{}'. Using default setting.",
+          tableCleanupDelay, listenerEvent.getDbName(), listenerEvent.getTableName());
+      return Duration.parse(defaultValue);
     }
-
-    /**
-     * Generates housekeeping paths for a given event.
-     * @param listenerEvent Listener event from the current message
-     * @return list of housekeeping paths. This can be an empty list if there are no valid paths.
-     */
-    public List<HousekeepingPath> generateHouseKeepingPaths(ListenerEvent listenerEvent) {
-        return this.generateEventModels(listenerEvent).stream()
-                .map(event -> generatePath(event.lifeCycleEvent, listenerEvent, event.cleanupPath))
-                .collect(Collectors.toList());
-    }
-
-    protected final String getHivePropertyKey() { return this.hivePropertyKey; }
-    protected final String getCleanupDelay() { return this.cleanupDelay; }
-    protected final LifecycleEventType getLifeCycleEventType() { return this.lifeCycleEventType; }
-
-
-    /**
-     * Checks if the current event is a metadata event.
-     * This is determined if the old location string is the same as the new location string.
-     * @param oldLocation Old event location
-     * @param location New Event location
-     * @return boolean True if old == new event location. False otherwise.
-     */
-    protected final boolean isMetadataUpdate(String oldLocation, String location) {
-        return location == null || oldLocation == null || oldLocation.equals(location);
-    }
-
-    /**
-     * Generates a path to clean up via EntityHousekeepingPath.Builder
-     * @param lifecycleType The type of lifecycle cleanup event this path is
-     * @param listenerEvent The current event we're generating this path for
-     * @param cleanupLocation The path of the current item to cleanup
-     * @return EntityHouseKeepingPath Path object for the given parameters
-     */
-    protected final EntityHousekeepingPath generatePath(LifecycleEventType lifecycleType, ListenerEvent listenerEvent, String cleanupLocation) {
-        EntityHousekeepingPath.Builder builder = new EntityHousekeepingPath.Builder()
-                .pathStatus(PathStatus.SCHEDULED)
-                .creationTimestamp(LocalDateTime.now())
-                .cleanupDelay(extractCleanupDelay(listenerEvent))
-                .lifecycleType(lifecycleType.name())
-                .clientId(CLIENT_ID)
-                .tableName(listenerEvent.getTableName())
-                .databaseName(listenerEvent.getDbName())
-                .path(cleanupLocation);
-
-        return builder.build();
-    }
-
-
-    /**
-     * Get's a boolean flag if the given tableparameters exist for this mapper
-     * @param tableParameters
-     * @return boolean
-     */
-    protected final Boolean checkIfTablePropertyExists(Map<String,String> tableParameters) {
-        LifecycleEventType type = this.getLifeCycleEventType();
-        return Boolean.valueOf(tableParameters.get(type.getTableParameterName()));
-    }
-
-    /**
-     * Extracts the cleanup delay from the given event.
-     * If the cleanupDelay on the event cannot be parsed, use the predefined default value.
-     * @param listenerEvent Current event from Apiary
-     * @return Duration Parsed Duration object from the event or the default value.
-     */
-    private final Duration extractCleanupDelay(ListenerEvent listenerEvent) {
-        String propertyKey = this.getHivePropertyKey();
-        String defaultValue = this.getCleanupDelay();
-        String tableCleanupDelay = listenerEvent.getTableParameters().getOrDefault(propertyKey, defaultValue);
-
-        try {
-            return Duration.parse(tableCleanupDelay);
-        } catch (DateTimeParseException e) {
-            log.error("Text '{}' cannot be parsed to a Duration for table '{}.{}'. Using default setting.",
-                    tableCleanupDelay, listenerEvent.getDbName(), listenerEvent.getTableName());
-            return Duration.parse(defaultValue);
-        }
-    }
+  }
 }

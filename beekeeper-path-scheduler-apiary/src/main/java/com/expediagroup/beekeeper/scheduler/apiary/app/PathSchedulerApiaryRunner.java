@@ -34,7 +34,7 @@ import com.expediagroup.beekeeper.scheduler.apiary.service.PathSchedulerApiary;
 
 @Component
 public class PathSchedulerApiaryRunner implements ApplicationRunner {
-
+ 
   private static final Logger log = LoggerFactory.getLogger(PathSchedulerApiaryRunner.class);
   private static final long RUNNER_DESTROY_TIMEOUT_SECONDS = 11L;
 
@@ -44,7 +44,7 @@ public class PathSchedulerApiaryRunner implements ApplicationRunner {
   private final AtomicBoolean running = new AtomicBoolean(false);
 
   @Autowired
-  public PathSchedulerApiaryRunner(PathSchedulerApiary pathSchedulerApiary) {
+  PathSchedulerApiaryRunner(PathSchedulerApiary pathSchedulerApiary) {
     this.pathSchedulerApiary = pathSchedulerApiary;
     lock = new ReentrantLock();
   }

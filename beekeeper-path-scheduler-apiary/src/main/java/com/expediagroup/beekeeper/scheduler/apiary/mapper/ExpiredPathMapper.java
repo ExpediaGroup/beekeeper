@@ -26,52 +26,51 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
+import com.expedia.apiary.extensions.receiver.common.event.AddPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.CreateTableEvent;
-import com.expedia.apiary.extensions.receiver.common.event.AddPartitionEvent;
+import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
 import com.expediagroup.beekeeper.scheduler.apiary.model.EventModel;
 
 @Component
 public class ExpiredPathMapper extends MessageEventMapper {
 
-    private static final Logger log = LoggerFactory.getLogger(ExpiredPathMapper.class);
+  private static final Logger log = LoggerFactory.getLogger(ExpiredPathMapper.class);
 
-    @Autowired
-    public ExpiredPathMapper(
-        @Value("${properties.beekeeper.default-expired-cleanup-delay}") String cleanupDelay,
-        @Value("${properties.apiary.expired-cleanup-delay-property-key}") String hivePropertyKey
-    ) {
-        super(cleanupDelay, hivePropertyKey, EXPIRED);
+  @Autowired
+  ExpiredPathMapper(
+      @Value("${properties.beekeeper.default-expired-cleanup-delay}") String cleanupDelay,
+      @Value("${properties.apiary.expired-cleanup-delay-property-key}") String hivePropertyKey
+  ) {
+    super(cleanupDelay, hivePropertyKey, EXPIRED);
+  }
+
+  @Override
+  protected List<EventModel> generateEventModels(ListenerEvent listenerEvent) {
+    Boolean tableWatchingExpired = checkIfTablePropertyExists(listenerEvent.getTableParameters());
+    List<EventModel> eventPaths = new ArrayList<>();
+
+    if (!tableWatchingExpired) {
+      return eventPaths;
     }
 
-    @Override
-    protected List<EventModel> generateEventModels(ListenerEvent listenerEvent) {
-        Boolean tableWatchingExpired = this.checkIfTablePropertyExists(listenerEvent.getTableParameters());
-        List<EventModel> eventPaths = new ArrayList<>();
-
-        if (!tableWatchingExpired) {
-            return eventPaths;
-        }
-
-        switch (listenerEvent.getEventType()) {
-            case ALTER_PARTITION:
-                eventPaths.add(new EventModel(lifeCycleEventType, ((AlterPartitionEvent) listenerEvent).getTableLocation()));
-                break;
-            case ALTER_TABLE:
-                eventPaths.add(new EventModel(lifeCycleEventType, ((AlterTableEvent) listenerEvent).getTableLocation()));
-                break;
-            case CREATE_TABLE:
-                eventPaths.add(new EventModel(lifeCycleEventType, ((CreateTableEvent) listenerEvent).getTableLocation()));
-                break;
-            case ADD_PARTITION:
-                eventPaths.add(new EventModel(lifeCycleEventType, ((AddPartitionEvent) listenerEvent).getTableLocation()));
-                break;
-        }
-
-
-        return eventPaths;
+    switch (listenerEvent.getEventType()) {
+    case ALTER_PARTITION:
+      eventPaths.add(new EventModel(lifecycleEventType, ((AlterPartitionEvent) listenerEvent).getTableLocation()));
+      break;
+    case ALTER_TABLE:
+      eventPaths.add(new EventModel(lifecycleEventType, ((AlterTableEvent) listenerEvent).getTableLocation()));
+      break;
+    case CREATE_TABLE:
+      eventPaths.add(new EventModel(lifecycleEventType, ((CreateTableEvent) listenerEvent).getTableLocation()));
+      break;
+    case ADD_PARTITION:
+      eventPaths.add(new EventModel(lifecycleEventType, ((AddPartitionEvent) listenerEvent).getTableLocation()));
+      break;
     }
+
+    return eventPaths;
+  }
 }

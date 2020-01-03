@@ -35,24 +35,21 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 import com.expediagroup.beekeeper.scheduler.apiary.mapper.ExpiredPathMapper;
 import com.expediagroup.beekeeper.scheduler.apiary.mapper.OrphanedPathMapper;
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 
 @ExtendWith(MockitoExtension.class)
 public class MessageReaderAdapterTest {
-  @Mock private MessageReader delegate;
-  @Mock private MessageEvent messageEvent;
-
-  @Mock private OrphanedPathMapper orphanMapper;
-  @Mock private HousekeepingPath orphanedPath;
-
-  @Mock private ExpiredPathMapper expireMapper;
-  @Mock private HousekeepingPath expiredPath;
-
-  private MessageReaderAdapter messageReaderAdapter;
 
   private static final List<HousekeepingPath> EMPTY_LIST = Collections.emptyList();
+  @Mock private MessageReader delegate;
+  @Mock private MessageEvent messageEvent;
+  @Mock private OrphanedPathMapper orphanMapper;
+  @Mock private HousekeepingPath orphanedPath;
+  @Mock private ExpiredPathMapper expireMapper;
+  @Mock private HousekeepingPath expiredPath;
+  private MessageReaderAdapter messageReaderAdapter;
 
   @BeforeEach
   public void init() {
@@ -106,5 +103,4 @@ public class MessageReaderAdapterTest {
     messageReaderAdapter.close();
     verify(delegate).close();
   }
-
 }
