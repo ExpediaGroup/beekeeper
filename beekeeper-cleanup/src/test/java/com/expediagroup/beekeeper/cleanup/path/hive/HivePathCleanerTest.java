@@ -15,52 +15,54 @@
  */
 package com.expediagroup.beekeeper.cleanup.path.hive;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.Test;
-
-
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 
 @ExtendWith(MockitoExtension.class)
 public class HivePathCleanerTest {
 
-    private static final String HMS_DB = "foo_db";
-    private static final String HMS_TABLE = "foobar";
+  private static final String HMS_DB = "foo_db";
+  private static final String HMS_TABLE = "foobar";
 
-    @Mock public HiveClient hiveClient;
+  @Mock private HiveClient hiveClient;
 
-    @Test public void shouldExpireTableAfterTimeUp() {
-        HivePathCleaner pathCleaner = new HivePathCleaner(hiveClient);
-        EntityHousekeepingPath housekeepingPath = new EntityHousekeepingPath();
-        housekeepingPath.setPath("s3://foo/bar.baz");
-        housekeepingPath.setCleanupTimestamp(LocalDateTime.MIN);
-        housekeepingPath.setDatabaseName(HMS_DB);
-        housekeepingPath.setTableName(HMS_TABLE);
-        when(hiveClient.dropTable(HMS_DB, HMS_TABLE)).thenReturn(true);
-        assertTrue(pathCleaner.cleanupPath(housekeepingPath));
-    }
+  @Test
+  public void shouldExpireTableAfterTimeUp() {
+    HivePathCleaner pathCleaner = new HivePathCleaner(hiveClient);
+    EntityHousekeepingPath housekeepingPath = new EntityHousekeepingPath();
+    housekeepingPath.setPath("s3://foo/bar.baz");
+    housekeepingPath.setCleanupTimestamp(LocalDateTime.MIN);
+    housekeepingPath.setDatabaseName(HMS_DB);
+    housekeepingPath.setTableName(HMS_TABLE);
+    when(hiveClient.dropTable(HMS_DB, HMS_TABLE)).thenReturn(true);
+    assertTrue(pathCleaner.cleanupPath(housekeepingPath));
+  }
 
-    @Test public void shouldNotExpireTableBeforeTimeUp() {
-        HivePathCleaner pathCleaner = new HivePathCleaner(hiveClient);
-        EntityHousekeepingPath housekeepingPath = new EntityHousekeepingPath();
-        housekeepingPath.setPath("s3://foo/bar.baz");
-        housekeepingPath.setCleanupTimestamp(LocalDateTime.MAX);
-        housekeepingPath.setDatabaseName(HMS_DB);
-        housekeepingPath.setTableName(HMS_TABLE);
-        assertFalse(pathCleaner.cleanupPath(housekeepingPath));
-        verify(hiveClient, never()).dropTable(HMS_DB, HMS_TABLE);
-    }
+  @Test
+  public void shouldNotExpireTableBeforeTimeUp() {
+    HivePathCleaner pathCleaner = new HivePathCleaner(hiveClient);
+    EntityHousekeepingPath housekeepingPath = new EntityHousekeepingPath();
+    housekeepingPath.setPath("s3://foo/bar.baz");
+    housekeepingPath.setCleanupTimestamp(LocalDateTime.MAX);
+    housekeepingPath.setDatabaseName(HMS_DB);
+    housekeepingPath.setTableName(HMS_TABLE);
+    assertFalse(pathCleaner.cleanupPath(housekeepingPath));
+    verify(hiveClient, never()).dropTable(HMS_DB, HMS_TABLE);
+  }
 
 //    @Test public void shouldExpirePartitionAfterTimeUp() {
-//        // TODO: Determine what makes a housekeeping path a partition
 //        HivePathCleaner pathCleaner = new HivePathCleaner(hiveClient);
 //        EntityHousekeepingPath housekeepingPath = new EntityHousekeepingPath();
 //        housekeepingPath.setPath("s3://foo/bar.baz");
@@ -71,7 +73,6 @@ public class HivePathCleanerTest {
 //    }
 //
 //    @Test public void shouldNotPartitionTableBeforeTimeUp() {
-//        // TODO: Determine what makes a housekeeping path a partition
 //        HivePathCleaner pathCleaner = new HivePathCleaner(hiveClient);
 //        EntityHousekeepingPath housekeepingPath = new EntityHousekeepingPath();
 //        housekeepingPath.setPath("s3://foo/bar.baz");

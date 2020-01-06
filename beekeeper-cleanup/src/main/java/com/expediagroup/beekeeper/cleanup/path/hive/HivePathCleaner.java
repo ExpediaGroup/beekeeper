@@ -15,37 +15,37 @@
  */
 package com.expediagroup.beekeeper.cleanup.path.hive;
 
-import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
+import java.time.LocalDateTime;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
+import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 
 public class HivePathCleaner implements PathCleaner {
-    private static final Logger log = LoggerFactory.getLogger(HivePathCleaner.class);
-    private HiveClient hiveClient;
 
-    public HivePathCleaner(HiveClient hiveClient) {
-        this.hiveClient = hiveClient;
+  private static final Logger log = LoggerFactory.getLogger(HivePathCleaner.class);
+  private final HiveClient hiveClient;
+
+  public HivePathCleaner(HiveClient hiveClient) {
+    this.hiveClient = hiveClient;
+  }
+
+  @Override
+  @TimedTaggable("hive-paths-deleted")
+  public boolean cleanupPath(HousekeepingPath housekeepingPath) {
+    if (LocalDateTime.now().isBefore(housekeepingPath.getCleanupTimestamp())) {
+      log.debug("Not deleting path \"{}\", expiration timestamp not met yet.", housekeepingPath.getPath());
+      return false;
     }
 
-    @Override
-    @TimedTaggable("hive-paths-deleted")
-    public boolean cleanupPath(HousekeepingPath housekeepingPath) {
-        if (LocalDateTime.now().isBefore(housekeepingPath.getCleanupTimestamp())) {
-            log.debug("Not deleting path \"{}\", expiration timestamp not met yet.", housekeepingPath.getPath());
-            return false;
-        }
+    boolean result = hiveClient.dropTable(
+        housekeepingPath.getDatabaseName(),
+        housekeepingPath.getTableName()
+    );
 
-        // TODO: Determine difference between partition / table from houseKeepingPath and drop accordingly
-        boolean result = this.hiveClient.dropTable(
-            housekeepingPath.getDatabaseName(),
-            housekeepingPath.getTableName()
-        );
-
-
-        return result;
-    }
+    return result;
+  }
 }

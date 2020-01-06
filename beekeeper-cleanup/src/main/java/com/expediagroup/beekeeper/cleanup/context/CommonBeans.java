@@ -15,12 +15,11 @@
  */
 package com.expediagroup.beekeeper.cleanup.context;
 
-import com.expediagroup.beekeeper.cleanup.path.hive.HivePathCleaner;
-import com.expediagroup.beekeeper.core.model.LifecycleEventType;
-//import org.apache.hadoop.hive.conf.HiveConf;
-//import org.apache.hadoop.hive.metastore.HiveMetaException;
-//import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
-//import org.apache.hadoop.hive.metastore.api.MetaException;
+import java.util.EnumMap;
+
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -41,11 +40,12 @@ import com.expediagroup.beekeeper.cleanup.path.aws.S3BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3Client;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3SentinelFilesCleaner;
+import com.expediagroup.beekeeper.cleanup.path.hive.HiveClient;
+import com.expediagroup.beekeeper.cleanup.path.hive.HivePathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.PagingCleanupService;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
-
-import java.util.EnumMap;
 
 @Configuration
 @EnableScheduling
@@ -62,7 +62,7 @@ public class CommonBeans {
 
   @Bean
   @Profile("test")
-  public AmazonS3 amazonS3Test() {
+  AmazonS3 amazonS3Test() {
     String s3Endpoint = System.getProperty("aws.s3.endpoint");
     String region = System.getProperty("aws.region");
 
@@ -78,7 +78,7 @@ public class CommonBeans {
   }
 
   @Bean
-  public S3BytesDeletedReporter s3BytesDeletedReporter(S3Client s3Client, MeterRegistry meterRegistry,
+  S3BytesDeletedReporter s3BytesDeletedReporter(S3Client s3Client, MeterRegistry meterRegistry,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
     return new S3BytesDeletedReporter(s3Client, meterRegistry, dryRunEnabled);
   }
@@ -88,38 +88,38 @@ public class CommonBeans {
     return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), s3BytesDeletedReporter);
   }
 
-//  @Bean
-//  public HiveClient hiveClient(
-//      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled
-//  ) throws MetaException {
-//    HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(new HiveConf());
-//    return new HiveClient(hiveMetaStoreClient, dryRunEnabled);
-//  }
-
-//  @Bean
-//  public HivePathCleaner hivePathCleaner(
-//      HiveClient hiveClient
-//  ) {
-//    return new HivePathCleaner(hiveClient);
-//  }
+  @Bean
+  public HiveClient hiveClient(
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled
+  ) throws MetaException {
+    HiveMetaStoreClient hiveMetaStoreClient = new HiveMetaStoreClient(new HiveConf());
+    return new HiveClient(hiveMetaStoreClient, dryRunEnabled);
+  }
 
   @Bean
-  public EnumMap<LifecycleEventType, PathCleaner> pathCleanerMap(
+  public HivePathCleaner hivePathCleaner(
+      HiveClient hiveClient
+  ) {
+    return new HivePathCleaner(hiveClient);
+  }
+
+  @Bean
+  EnumMap<LifecycleEventType, PathCleaner> pathCleanerMap(
       S3PathCleaner s3PathCleaner,
       HivePathCleaner hivePathCleaner
   ) {
     EnumMap<LifecycleEventType, PathCleaner> pcMap = new EnumMap<>(LifecycleEventType.class);
     pcMap.put(LifecycleEventType.UNREFERENCED, s3PathCleaner);
-//    pcMap.put(LifeCycleEventType.EXPIRED, hivePathCleaner);
+    pcMap.put(LifecycleEventType.EXPIRED, hivePathCleaner);
     return pcMap;
   }
 
   @Bean
-  public CleanupService cleanupService(
-       HousekeepingPathRepository repository,
-       EnumMap<LifecycleEventType, PathCleaner> pathCleanerMap,
-       @Value("${properties.cleanup-page-size}") int pageSize,
-       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled
+  CleanupService cleanupService(
+      HousekeepingPathRepository repository,
+      EnumMap<LifecycleEventType, PathCleaner> pathCleanerMap,
+      @Value("${properties.cleanup-page-size}") int pageSize,
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled
   ) {
     return new PagingCleanupService(repository, pathCleanerMap, pageSize, dryRunEnabled);
   }

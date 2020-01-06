@@ -285,6 +285,6 @@ public class BeekeeperCleanupIntegrationTest {
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
     HttpCoreContext context = new HttpCoreContext();
     await().atMost(30, TimeUnit.SECONDS)
-      .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
+        .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
   }
 }
