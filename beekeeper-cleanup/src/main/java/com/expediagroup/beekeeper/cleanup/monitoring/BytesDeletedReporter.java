@@ -34,7 +34,6 @@ import com.expediagroup.beekeeper.core.monitoring.Taggable;
 public class BytesDeletedReporter {
 
   private static final Logger log = LoggerFactory.getLogger(BytesDeletedReporter.class);
-
   public static final String METRIC_NAME = "bytes-deleted";
   public static final String DRY_RUN_METRIC_NAME = "dry-run-" + METRIC_NAME;
 
