@@ -33,19 +33,20 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import io.findify.s3mock.S3Mock;
+import org.testcontainers.containers.localstack.LocalStackContainer;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
@@ -58,6 +59,8 @@ import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 @ExtendWith(MockitoExtension.class)
 class S3PathCleanerTest {
 
+  private static LocalStackContainer s3Container;
+
   private final String content = "Some content";
   private final String bucket = "bucket";
   private final String keyRoot = "table/id1/partition_1";
@@ -69,7 +72,6 @@ class S3PathCleanerTest {
   private final String tableName = "table";
   private final String databaseName = "database";
 
-  private final S3Mock s3Mock = new S3Mock.Builder().withPort(0).withInMemoryBackend().build();
   private EntityHousekeepingPath housekeepingPath;
   private AmazonS3 amazonS3;
   private S3Client s3Client;
@@ -78,10 +80,19 @@ class S3PathCleanerTest {
 
   private S3PathCleaner s3PathCleaner;
 
+  @BeforeAll
+  public static void s3() {
+    s3Container = new LocalStackContainer().withServices(LocalStackContainer.Service.S3);
+    s3Container.start();
+  }
+
   @BeforeEach
   void setUp() {
-    amazonS3 = AmazonS3Factory.newInstance(s3Mock);
+    amazonS3 = AmazonS3Factory.newInstance(s3Container);
     amazonS3.createBucket(bucket);
+    amazonS3.listObjectsV2(bucket)
+      .getObjectSummaries()
+      .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     s3Client = new S3Client(amazonS3, false);
     s3SentinelFilesCleaner = new S3SentinelFilesCleaner(s3Client);
     s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
@@ -94,9 +105,9 @@ class S3PathCleanerTest {
       .build();
   }
 
-  @AfterEach
-  void tearDown() {
-    s3Mock.shutdown();
+  @AfterAll
+  static void teardown() {
+    s3Container.stop();
   }
 
   @Test
@@ -109,6 +120,18 @@ class S3PathCleanerTest {
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isFalse();
     verify(bytesDeletedReporter).reportTaggable(content.getBytes().length * 2, housekeepingPath, FileSystemType.S3);
+  }
+
+  @Test
+  void directoryWithSpace() {
+    String directoryPath = absolutePath + "/ /";
+    housekeepingPath.setPath(directoryPath);
+    amazonS3.putObject(bucket, keyRoot + "/ /file1", content);
+    amazonS3.putObject(bucket, keyRoot + "/ /file2", content);
+
+    s3PathCleaner.cleanupPath(housekeepingPath);
+
+    assertThat(amazonS3.listObjects(bucket).getObjectSummaries()).isEmpty();
   }
 
   @Test
@@ -260,7 +283,7 @@ class S3PathCleanerTest {
 
     ListObjectsV2Result objectsAtPath = mock(ListObjectsV2Result.class);
     when(objectsAtPath.getObjectSummaries()).thenReturn(Arrays.asList(s3ObjectSummary1, s3ObjectSummary2));
-    when(mockAmazonS3.listObjectsV2(bucket, key)).thenReturn(objectsAtPath);
+    when(mockAmazonS3.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(objectsAtPath);
 
     DeleteObjectsResult.DeletedObject deletedObject1 = new DeleteObjectsResult.DeletedObject();
     deletedObject1.setKey(key1);
@@ -368,7 +391,7 @@ class S3PathCleanerTest {
     objectMetadata.setContentLength(bytes);
     when(mockS3Client.getObjectMetadata(bucket, key1)).thenReturn(objectMetadata);
     when(mockS3Client.getObjectMetadata(bucket, key2)).thenReturn(objectMetadata);
-    when(mockS3Client.deleteObjects(any())).thenReturn(List.of(key1));
+    when(mockS3Client.deleteObjects(bucket, List.of(key1, key2))).thenReturn(List.of(key1));
 
     assertThatExceptionOfType(BeekeeperException.class)
       .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
@@ -381,6 +404,6 @@ class S3PathCleanerTest {
     housekeepingPath.setPath(path);
     assertThatExceptionOfType(BeekeeperException.class)
       .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath))
-      .withMessage(format("Could not create URI from path: '%s'", path));
+      .withMessage(format("'%s' is not an S3 path.", path));
   }
 }

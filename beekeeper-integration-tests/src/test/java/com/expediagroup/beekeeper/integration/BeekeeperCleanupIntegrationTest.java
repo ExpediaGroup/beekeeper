@@ -168,6 +168,26 @@ public class BeekeeperCleanupIntegrationTest {
   }
 
   @Test
+  void cleanupPathsForDirectoryWithSpace() throws SQLException {
+    String objectKeyRoot = "database/table/ /id1/partition1";
+    String objectKey1 = objectKeyRoot + "/file1";
+    String objectKey2 = objectKeyRoot + "/file2";
+    String objectKeySentinel = objectKeyRoot + "_$folder$";
+    String absolutePath = "s3://" + BUCKET + "/" + objectKeyRoot;
+    amazonS3.putObject(BUCKET, objectKey1, CONTENT);
+    amazonS3.putObject(BUCKET, objectKey2, CONTENT);
+    amazonS3.putObject(BUCKET, objectKeySentinel, "");
+
+    mySqlTestUtils.insertPath(absolutePath, TABLE_NAME);
+    await().atMost(30, TimeUnit.SECONDS)
+      .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+
+    assertThat(amazonS3.doesObjectExist(BUCKET, objectKey1)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, objectKey2)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, objectKeySentinel)).isFalse();
+  }
+
+  @Test
   void cleanupPathsForDirectoryWithTrailingSlash() throws SQLException {
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);

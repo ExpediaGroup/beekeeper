@@ -19,44 +19,63 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import io.findify.s3mock.S3Mock;
+import org.testcontainers.containers.localstack.LocalStackContainer;
 
 import com.amazonaws.services.s3.AmazonS3;
 
 @ExtendWith(MockitoExtension.class)
 class S3SentinelFilesCleanerTest {
 
-  private final String bucket = "bucket";
+  private static LocalStackContainer s3Container;
+
   private final String partition1Sentinel = "table/partition_1_$folder$";
   private final String partition1AbsolutePath = "s3://bucket/table/partition_1";
+  private final String bucket = "bucket";
   private final String tableName = "table";
 
-  private final S3Mock s3Mock = new S3Mock.Builder().withPort(0).withInMemoryBackend().build();
-  private AmazonS3 amazonS3;
   private S3Client s3Client;
   private S3SentinelFilesCleaner s3SentinelFilesCleaner;
+  private AmazonS3 amazonS3;
 
+  @BeforeAll
+  public static void s3() {
+    s3Container = new LocalStackContainer().withServices(LocalStackContainer.Service.S3);
+    s3Container.start();
+  }
+  
   @BeforeEach
   void setUp() {
-    amazonS3 = AmazonS3Factory.newInstance(s3Mock);
+    amazonS3 = AmazonS3Factory.newInstance(s3Container);
     amazonS3.createBucket(bucket);
+    amazonS3.listObjectsV2(bucket)
+      .getObjectSummaries()
+      .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     s3Client = new S3Client(amazonS3, false);
     s3SentinelFilesCleaner = new S3SentinelFilesCleaner(s3Client);
   }
 
-  @AfterEach
-  void tearDown() {
-    s3Mock.shutdown();
+  @AfterAll
+  static void teardown() {
+    s3Container.stop();
   }
 
   @Test
   void typical() {
+    amazonS3.putObject(bucket, partition1Sentinel, "");
+    s3SentinelFilesCleaner.deleteSentinelFiles(partition1AbsolutePath);
+    assertThat(amazonS3.doesObjectExist(bucket, partition1Sentinel)).isFalse();
+  }
+
+  @Test
+  void sentinelFileWithSpaceInKey() {
+    String partition1Sentinel = "table/ /partition_1_$folder$";
+    String partition1AbsolutePath = "s3://bucket/table/ /partition_1";
     amazonS3.putObject(bucket, partition1Sentinel, "");
     s3SentinelFilesCleaner.deleteSentinelFiles(partition1AbsolutePath);
     assertThat(amazonS3.doesObjectExist(bucket, partition1Sentinel)).isFalse();

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
@@ -49,27 +50,29 @@ public class S3Client {
   }
 
   List<S3ObjectSummary> listObjects(String bucket, String key) {
-    return amazonS3.listObjectsV2(bucket, key).getObjectSummaries();
+    ListObjectsV2Request request = new ListObjectsV2Request()
+      .withBucketName(bucket)
+      .withPrefix(key)
+      .withEncodingType("url");
+    return amazonS3.listObjectsV2(request).getObjectSummaries();
   }
 
-  List<String> deleteObjects(DeleteObjectsRequest deleteObjectsRequest) {
-    List<DeleteObjectsRequest.KeyVersion> keyVersions = deleteObjectsRequest.getKeys();
-    if (keyVersions.isEmpty()) {
+  List<String> deleteObjects(String bucket, List<String> keys) {
+    if (keys.isEmpty()) {
       return Collections.emptyList();
     }
-    String bucket = deleteObjectsRequest.getBucketName();
     if (!dryRunEnabled) {
-      keyVersions.forEach(keyVersion -> log.info("Deleting: \"{}/{}\"", bucket, keyVersion.getKey()));
+      keys.forEach(key -> log.info("Deleting: \"{}/{}\"", bucket, key));
+      DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket)
+        .withKeys(keys.toArray(new String[]{}));
       DeleteObjectsResult deleteObjectsResult = amazonS3.deleteObjects(deleteObjectsRequest);
       return deleteObjectsResult.getDeletedObjects()
           .stream()
           .map(DeleteObjectsResult.DeletedObject::getKey)
           .collect(Collectors.toList());
     } else {
-      return keyVersions
-          .stream()
-          .map(DeleteObjectsRequest.KeyVersion::getKey)
-          .peek(key -> log.info("Dry run - deleting \"{}/{}\"", bucket, key))
+      return keys.stream()
+          .peek(key -> log.info("Dry run - deleting: \"{}/{}\"", bucket, key))
           .collect(Collectors.toList());
     }
   }

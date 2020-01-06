@@ -17,29 +17,27 @@ package com.expediagroup.beekeeper.cleanup.path.aws;
 
 import static java.lang.String.format;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import com.amazonaws.services.s3.AmazonS3URI;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 
 public class S3SchemeURI {
 
+  private static final String S3_SCHEME = "s3://";
+  private static final String S3_SCHEME_REGEX = "^s3(a|n):\\/\\/";
+
   private AmazonS3URI amazonS3URI;
 
-  public S3SchemeURI(String housekeepingPath) throws URISyntaxException {
+  public S3SchemeURI(String housekeepingPath) {
     if (!housekeepingPath.startsWith("s3")) {
       throw new BeekeeperException(format("'%s' is not an S3 path.", housekeepingPath));
     }
-    URI uri = URI.create(housekeepingPath);
-    URI s3Uri = new URI("s3", uri.getHost(), uri.getPath(), null);
-    this.amazonS3URI = new AmazonS3URI(s3Uri);
+    String s3Path = housekeepingPath.replaceFirst(S3_SCHEME_REGEX, S3_SCHEME);
+    this.amazonS3URI = new AmazonS3URI(s3Path);
   }
 
   public String getPath() {
-    return amazonS3URI.getURI()
-      .toString();
+    return "s3://" + amazonS3URI.getBucket() + "/" + amazonS3URI.getKey();
   }
 
   public String getKey() {

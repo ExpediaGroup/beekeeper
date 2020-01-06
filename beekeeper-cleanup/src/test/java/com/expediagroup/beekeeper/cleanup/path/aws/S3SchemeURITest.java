@@ -18,8 +18,6 @@ package com.expediagroup.beekeeper.cleanup.path.aws;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import java.net.URISyntaxException;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -36,7 +34,7 @@ class S3SchemeURITest {
   private static final String S3N_PATH = "s3n://" + BUCKET + "/" + KEY;
 
   @Test
-  void typicalPath() throws URISyntaxException {
+  void typicalPath() {
     S3SchemeURI uri = new S3SchemeURI(S3_PATH);
     assertThat(uri.getPath()).isEqualTo(S3_PATH);
     assertThat(uri.getBucket()).isEqualTo(BUCKET);
@@ -44,7 +42,16 @@ class S3SchemeURITest {
   }
 
   @Test
-  void s3aPath() throws URISyntaxException {
+  void pathWithSpace() {
+    String pathWithSpace = S3_PATH + "/ /file";
+    S3SchemeURI uri = new S3SchemeURI(pathWithSpace);
+    assertThat(uri.getPath()).isEqualTo(pathWithSpace);
+    assertThat(uri.getBucket()).isEqualTo(BUCKET);
+    assertThat(uri.getKey()).isEqualTo(KEY + "/ /file");
+  }
+
+  @Test
+  void s3aPath() {
     S3SchemeURI uri = new S3SchemeURI(S3A_PATH);
     assertThat(uri.getPath()).isEqualTo(S3_PATH);
     assertThat(uri.getBucket()).isEqualTo(BUCKET);
@@ -52,7 +59,7 @@ class S3SchemeURITest {
   }
 
   @Test
-  void s3nPath() throws URISyntaxException {
+  void s3nPath() {
     S3SchemeURI uri = new S3SchemeURI(S3N_PATH);
     assertThat(uri.getPath()).isEqualTo(S3_PATH);
     assertThat(uri.getBucket()).isEqualTo(BUCKET);
