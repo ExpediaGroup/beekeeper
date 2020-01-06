@@ -26,6 +26,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
@@ -49,12 +50,17 @@ public class S3Client {
     }
   }
 
-  List<S3ObjectSummary> listObjects(String bucket, String key) {
+  ListObjectsV2Result listObjects(String bucket, String key) {
+    return listBatchObjects(bucket, key, null);
+  }
+
+  ListObjectsV2Result listBatchObjects(String bucket, String key, String continuationToken) {
     ListObjectsV2Request request = new ListObjectsV2Request()
       .withBucketName(bucket)
       .withPrefix(key)
-      .withEncodingType("url");
-    return amazonS3.listObjectsV2(request).getObjectSummaries();
+      .withEncodingType("url")
+      .withContinuationToken(continuationToken);
+    return amazonS3.listObjectsV2(request);
   }
 
   List<String> deleteObjects(String bucket, List<String> keys) {

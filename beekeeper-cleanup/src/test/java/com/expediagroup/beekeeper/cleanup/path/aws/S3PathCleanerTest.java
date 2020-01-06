@@ -385,7 +385,8 @@ class S3PathCleanerTest {
     S3ObjectSummary s3ObjectSummary2 = new S3ObjectSummary();
     s3ObjectSummary2.setBucketName(bucket);
     s3ObjectSummary2.setKey(key2);
-    when(mockS3Client.listObjects(bucket, keyRoot + "/")).thenReturn(List.of(s3ObjectSummary, s3ObjectSummary2));
+//    when(mockS3Client.listObjects(bucket, keyRoot + "/")).thenReturn(listObjectsV2Resultist.of(s3ObjectSummary
+//      , s3ObjectSummary2));
     int bytes = 10;
     ObjectMetadata objectMetadata = new ObjectMetadata();
     objectMetadata.setContentLength(bytes);

@@ -106,7 +106,7 @@ class S3ClientTest {
     amazonS3.putObject(bucket, key1, content);
     amazonS3.putObject(bucket, key2, content);
 
-    List<S3ObjectSummary> result = s3Client.listObjects(bucket, keyRoot);
+    List<S3ObjectSummary> result = s3Client.listObjects(bucket, keyRoot).getObjectSummaries();
 
     assertThat(result.size()).isEqualTo(2);
     assertThat(result.get(0).getBucketName()).isEqualTo(bucket);
@@ -122,7 +122,7 @@ class S3ClientTest {
     amazonS3.putObject(bucket, spacedKey1, content);
     amazonS3.putObject(bucket, spacedKey2, content);
 
-    List<S3ObjectSummary> result = s3Client.listObjects(bucket, keyRoot);
+    List<S3ObjectSummary> result = s3Client.listObjects(bucket, keyRoot).getObjectSummaries();
 
     assertThat(result.size()).isEqualTo(2);
     assertThat(result.get(0).getBucketName()).isEqualTo(bucket);
@@ -139,7 +139,7 @@ class S3ClientTest {
     amazonS3.putObject(bucket, spacedKey1, content);
     amazonS3.putObject(bucket, spacedKey2, content);
 
-    List<S3ObjectSummary> result = s3Client.listObjects(bucket, spacedKeyRoot);
+    List<S3ObjectSummary> result = s3Client.listObjects(bucket, spacedKeyRoot).getObjectSummaries();
 
     assertThat(result.size()).isEqualTo(2);
     assertThat(result.get(0).getBucketName()).isEqualTo(bucket);
