@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.cleanup.path.aws;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,17 +51,21 @@ public class S3Client {
     }
   }
 
-  ListObjectsV2Result listObjects(String bucket, String key) {
-    return listBatchObjects(bucket, key, null);
-  }
-
-  ListObjectsV2Result listBatchObjects(String bucket, String key, String continuationToken) {
-    ListObjectsV2Request request = new ListObjectsV2Request()
-      .withBucketName(bucket)
-      .withPrefix(key)
-      .withEncodingType("url")
-      .withContinuationToken(continuationToken);
-    return amazonS3.listObjectsV2(request);
+  List<S3ObjectSummary> listObjects(String bucket, String key) {
+    List<S3ObjectSummary> objectSummaries = new ArrayList<>();
+    ListObjectsV2Result listObjectsV2Result;
+    String continuationToken = null;
+    do {
+      ListObjectsV2Request request = new ListObjectsV2Request()
+        .withBucketName(bucket)
+        .withPrefix(key)
+        .withEncodingType("url")
+        .withContinuationToken(continuationToken);
+      listObjectsV2Result = amazonS3.listObjectsV2(request);
+      objectSummaries.addAll(listObjectsV2Result.getObjectSummaries());
+      continuationToken = listObjectsV2Result.getNextContinuationToken();
+    } while (listObjectsV2Result.isTruncated());
+    return objectSummaries;
   }
 
   List<String> deleteObjects(String bucket, List<String> keys) {

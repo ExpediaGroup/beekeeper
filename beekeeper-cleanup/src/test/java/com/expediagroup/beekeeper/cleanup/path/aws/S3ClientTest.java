@@ -18,6 +18,7 @@ package com.expediagroup.beekeeper.cleanup.path.aws;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -106,7 +107,7 @@ class S3ClientTest {
     amazonS3.putObject(bucket, key1, content);
     amazonS3.putObject(bucket, key2, content);
 
-    List<S3ObjectSummary> result = s3Client.listObjects(bucket, keyRoot).getObjectSummaries();
+    List<S3ObjectSummary> result = s3Client.listObjects(bucket, keyRoot);
 
     assertThat(result.size()).isEqualTo(2);
     assertThat(result.get(0).getBucketName()).isEqualTo(bucket);
@@ -122,7 +123,7 @@ class S3ClientTest {
     amazonS3.putObject(bucket, spacedKey1, content);
     amazonS3.putObject(bucket, spacedKey2, content);
 
-    List<S3ObjectSummary> result = s3Client.listObjects(bucket, keyRoot).getObjectSummaries();
+    List<S3ObjectSummary> result = s3Client.listObjects(bucket, keyRoot);
 
     assertThat(result.size()).isEqualTo(2);
     assertThat(result.get(0).getBucketName()).isEqualTo(bucket);
@@ -139,13 +140,29 @@ class S3ClientTest {
     amazonS3.putObject(bucket, spacedKey1, content);
     amazonS3.putObject(bucket, spacedKey2, content);
 
-    List<S3ObjectSummary> result = s3Client.listObjects(bucket, spacedKeyRoot).getObjectSummaries();
+    List<S3ObjectSummary> result = s3Client.listObjects(bucket, spacedKeyRoot);
 
     assertThat(result.size()).isEqualTo(2);
     assertThat(result.get(0).getBucketName()).isEqualTo(bucket);
     assertThat(result.get(0).getKey()).isEqualTo(spacedKey1);
     assertThat(result.get(1).getBucketName()).isEqualTo(bucket);
     assertThat(result.get(1).getKey()).isEqualTo(spacedKey2);
+  }
+
+  @Test
+  void listBatchObjects() {
+    int s3BatchSize = 1000;
+    int extraKeys = 100;
+    List<String> keys = new ArrayList<>();
+    for (int i = 1; i <= s3BatchSize + extraKeys; i++) {
+      keys.add(keyRoot + "/file" + i);
+    }
+    keys.parallelStream()
+      .forEach(key -> amazonS3.putObject(bucket, key, content));
+
+    List<S3ObjectSummary> result = s3Client.listObjects(bucket, keyRoot);
+
+    assertThat(result.size()).isEqualTo(s3BatchSize + extraKeys);
   }
 
   @Test

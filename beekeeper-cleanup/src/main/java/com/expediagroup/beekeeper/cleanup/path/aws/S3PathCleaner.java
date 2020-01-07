@@ -84,8 +84,11 @@ public class S3PathCleaner implements PathCleaner {
     if (!key.endsWith("/")) {
       key += "/";
     }
-    List<String> keys = batchGetKeys(bucket, key);
-    bytesDeletedCalculator.storeFileSizes(bucket, keys);
+    List<S3ObjectSummary> objectSummaries = s3Client.listObjects(bucket, key);
+    bytesDeletedCalculator.storeFileSizes(objectSummaries);
+    List<String> keys = objectSummaries.stream()
+      .map(S3ObjectSummary::getKey)
+      .collect(Collectors.toList());
     List<String> deletedKeys = s3Client.deleteObjects(bucket, keys);
     bytesDeletedCalculator.calculateBytesDeleted(deletedKeys);
     int totalFiles = keys.size();
@@ -99,21 +102,6 @@ public class S3PathCleaner implements PathCleaner {
           format("Not all files could be deleted at path \"%s/%s\"; deleted %s/%s objects. Objects not deleted: %s.",
             bucket, key, successfulDeletes, totalFiles, failedDeletions));
     }
-  }
-
-  private List<String> batchGetKeys(String bucket, String key) {
-    List<String> keys = new ArrayList<>();
-    ListObjectsV2Result listObjectsV2Result;
-    String nextContinuationToken = null;
-    do {
-      listObjectsV2Result = s3Client.listBatchObjects(bucket, key, nextContinuationToken);
-      keys.addAll(listObjectsV2Result.getObjectSummaries()
-        .stream()
-        .map(S3ObjectSummary::getKey)
-        .collect(Collectors.toList()));
-      nextContinuationToken = listObjectsV2Result.getNextContinuationToken();
-    } while (listObjectsV2Result.isTruncated());
-    return keys;
   }
 
   private void deleteSentinelFiles(S3SchemeURI s3SchemeURI, String key, String bucket, String tableName) {

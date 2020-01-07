@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.amazonaws.services.s3.model.S3ObjectSummary;
+
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 
 public class S3BytesDeletedCalculator {
@@ -38,6 +40,16 @@ public class S3BytesDeletedCalculator {
     keys.forEach(key -> {
       long bytes = s3Client.getObjectMetadata(bucket, key).getContentLength();
       keyToSize.put(key, bytes);
+    });
+  }
+
+  public void storeFileSizes(List<S3ObjectSummary> objectSummaries) {
+    if (!keyToSize.isEmpty()) {
+      throw new BeekeeperException("Should not cache files twice.");
+    }
+    objectSummaries.forEach(objectSummary -> {
+      long bytes = objectSummary.getSize();
+      keyToSize.put(objectSummary.getKey(), bytes);
     });
   }
 
