@@ -58,7 +58,7 @@ class S3BytesDeletedCalculatorTest {
     objectMetadata.setContentLength(contentBytes);
     when(s3Client.getObjectMetadata(any(), any())).thenReturn(objectMetadata);
     s3BytesDeletedCalculator.storeFileSize(bucket, key1);
-    s3BytesDeletedCalculator.calculateBytesDeleted(key1);
+    s3BytesDeletedCalculator.calculateBytesDeleted(List.of(key1));
     assertThat(s3BytesDeletedCalculator.getBytesDeleted()).isEqualTo(contentBytes);
   }
 
@@ -67,7 +67,7 @@ class S3BytesDeletedCalculatorTest {
     objectMetadata.setContentLength(contentBytes);
     when(s3Client.getObjectMetadata(any(), any())).thenReturn(objectMetadata);
     s3BytesDeletedCalculator.storeFileSize(bucket, key1);
-    s3BytesDeletedCalculator.calculateBytesDeleted(key2);
+    s3BytesDeletedCalculator.calculateBytesDeleted(List.of(key2));
     assertThat(s3BytesDeletedCalculator.getBytesDeleted()).isEqualTo(0);
   }
 

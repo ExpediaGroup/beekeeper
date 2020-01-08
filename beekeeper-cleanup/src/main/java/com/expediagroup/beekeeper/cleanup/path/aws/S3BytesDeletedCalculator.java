@@ -47,12 +47,6 @@ public class S3BytesDeletedCalculator {
     });
   }
 
-  public void calculateBytesDeleted(String keyDeleted) {
-    if (!keyToSize.isEmpty() && keyToSize.containsKey(keyDeleted)) {
-      bytesDeleted = keyToSize.get(keyDeleted);
-    }
-  }
-
   public void calculateBytesDeleted(List<String> keysDeleted) {
     if (!keyToSize.isEmpty()) {
       keysDeleted.forEach(key -> {

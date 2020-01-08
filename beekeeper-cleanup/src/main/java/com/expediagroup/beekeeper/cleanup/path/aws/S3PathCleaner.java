@@ -75,7 +75,7 @@ public class S3PathCleaner implements PathCleaner {
   private void deleteFile(String bucket, String key, S3BytesDeletedCalculator bytesDeletedCalculator) {
     bytesDeletedCalculator.storeFileSize(bucket, key);
     s3Client.deleteObject(bucket, key);
-    bytesDeletedCalculator.calculateBytesDeleted(key);
+    bytesDeletedCalculator.calculateBytesDeleted(List.of(key));
   }
 
   private void deleteFilesInDirectory(String bucket, String key, S3BytesDeletedCalculator bytesDeletedCalculator) {
