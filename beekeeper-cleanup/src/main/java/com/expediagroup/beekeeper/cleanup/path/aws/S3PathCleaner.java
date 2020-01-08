@@ -17,14 +17,12 @@ package com.expediagroup.beekeeper.cleanup.path.aws;
 
 import static java.lang.String.format;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.base.Strings;
 
@@ -75,9 +73,9 @@ public class S3PathCleaner implements PathCleaner {
   }
 
   private void deleteFile(String bucket, String key, S3BytesDeletedCalculator bytesDeletedCalculator) {
-    bytesDeletedCalculator.storeFileSizes(bucket, List.of(key));
+    bytesDeletedCalculator.storeFileSize(bucket, key);
     s3Client.deleteObject(bucket, key);
-    bytesDeletedCalculator.calculateBytesDeleted(List.of(key));
+    bytesDeletedCalculator.calculateBytesDeleted(key);
   }
 
   private void deleteFilesInDirectory(String bucket, String key, S3BytesDeletedCalculator bytesDeletedCalculator) {

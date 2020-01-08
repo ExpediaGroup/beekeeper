@@ -33,24 +33,24 @@ public class S3BytesDeletedCalculator {
     this.s3Client = s3Client;
   }
 
-  public void storeFileSizes(String bucket, List<String> keys) {
-    if (!keyToSize.isEmpty()) {
-      throw new BeekeeperException("Should not cache files twice.");
-    }
-    keys.forEach(key -> {
-      long bytes = s3Client.getObjectMetadata(bucket, key).getContentLength();
-      keyToSize.put(key, bytes);
-    });
+  public void storeFileSize(String bucket, String key) {
+    checkKeysAreEmpty();
+    long bytes = s3Client.getObjectMetadata(bucket, key).getContentLength();
+    keyToSize.put(key, bytes);
   }
 
   public void storeFileSizes(List<S3ObjectSummary> objectSummaries) {
-    if (!keyToSize.isEmpty()) {
-      throw new BeekeeperException("Should not cache files twice.");
-    }
+    checkKeysAreEmpty();
     objectSummaries.forEach(objectSummary -> {
       long bytes = objectSummary.getSize();
       keyToSize.put(objectSummary.getKey(), bytes);
     });
+  }
+
+  public void calculateBytesDeleted(String keyDeleted) {
+    if (!keyToSize.isEmpty() && keyToSize.containsKey(keyDeleted)) {
+      bytesDeleted = keyToSize.get(keyDeleted);
+    }
   }
 
   public void calculateBytesDeleted(List<String> keysDeleted) {
@@ -65,6 +65,12 @@ public class S3BytesDeletedCalculator {
 
   public long getBytesDeleted() {
     return bytesDeleted;
+  }
+
+  private void checkKeysAreEmpty() {
+    if (!keyToSize.isEmpty()) {
+      throw new BeekeeperException("Should not store file sizes twice.");
+    }
   }
 
 }
