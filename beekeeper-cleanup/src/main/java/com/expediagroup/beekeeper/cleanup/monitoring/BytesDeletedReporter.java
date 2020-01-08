@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.cleanup.monitoring;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,7 @@ import com.expediagroup.beekeeper.core.monitoring.Taggable;
 @Service
 public class BytesDeletedReporter {
 
+  private static final Logger log = LoggerFactory.getLogger(BytesDeletedReporter.class);
   public static final String METRIC_NAME = "bytes-deleted";
   public static final String DRY_RUN_METRIC_NAME = "dry-run-" + METRIC_NAME;
 
@@ -45,6 +48,7 @@ public class BytesDeletedReporter {
   }
 
   public void reportTaggable(long bytesDeleted, Taggable taggable, FileSystemType fileSystemType) {
+    log.info("Bytes deleted: {}", bytesDeleted);
     String fileSystemMetricName = String.join("-", fileSystemType.toString()
       .toLowerCase(), metricName);
     Counter counter = Counter
