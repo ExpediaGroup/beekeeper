@@ -16,7 +16,6 @@
 package com.expediagroup.beekeeper.cleanup.path.aws;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -33,8 +32,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-
-import com.expediagroup.beekeeper.core.error.BeekeeperException;
 
 @ExtendWith(MockitoExtension.class)
 class S3BytesDeletedCalculatorTest {
@@ -93,24 +90,6 @@ class S3BytesDeletedCalculatorTest {
     s3BytesDeletedCalculator.storeFileSizes(objectSummaries);
     s3BytesDeletedCalculator.calculateBytesDeleted(Collections.emptyList());
     assertThat(s3BytesDeletedCalculator.getBytesDeleted()).isEqualTo(0);
-  }
-
-  @Test
-  void multipleStoreKeySizeThrowsException() {
-    objectMetadata.setContentLength(contentBytes);
-    when(s3Client.getObjectMetadata(any(), any())).thenReturn(objectMetadata);
-    s3BytesDeletedCalculator.storeFileSize(bucket, key1);
-    assertThatThrownBy(() -> s3BytesDeletedCalculator.storeFileSize(bucket, key1))
-      .isInstanceOf(BeekeeperException.class)
-      .hasMessage("Should not store file sizes twice.");
-  }
-
-  @Test
-  void multipleStoreObjectSummarySizeThrowsException() {
-    s3BytesDeletedCalculator.storeFileSizes(objectSummaries(key1, key2, key3));
-    assertThatThrownBy(() -> s3BytesDeletedCalculator.storeFileSizes(objectSummaries(key1, key2, key3)))
-      .isInstanceOf(BeekeeperException.class)
-      .hasMessage("Should not store file sizes twice.");
   }
 
   private List<S3ObjectSummary> objectSummaries(String... keys) {
