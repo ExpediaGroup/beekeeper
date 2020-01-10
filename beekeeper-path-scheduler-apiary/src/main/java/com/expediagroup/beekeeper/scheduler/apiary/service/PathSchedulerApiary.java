@@ -24,6 +24,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
@@ -47,6 +48,7 @@ public class PathSchedulerApiary {
     this.schedulerServiceMap = schedulerServiceMap;
   }
 
+  @Transactional
   public void scheduleBeekeeperEvent() {
     Optional<BeekeeperEvent> pathToBeScheduled = beekeeperEventReader.read();
 

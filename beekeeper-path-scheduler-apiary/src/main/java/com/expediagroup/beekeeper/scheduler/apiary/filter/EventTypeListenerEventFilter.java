@@ -26,6 +26,11 @@ import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 @Component
 public class EventTypeListenerEventFilter implements ListenerEventFilter {
 
+  private final FilterType TYPE = FilterType.EVENT_TYPE;
+
+  @Override
+  public FilterType getFilterType() { return TYPE; }
+
   @Override
   public boolean filter(ListenerEvent listenerEvent) {
     Class<? extends ListenerEvent> eventClass = listenerEvent.getEventType().eventClass();

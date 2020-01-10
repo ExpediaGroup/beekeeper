@@ -25,6 +25,11 @@ import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 @Component
 public class MetadataOnlyListenerEventFilter implements ListenerEventFilter {
 
+  private final FilterType TYPE = FilterType.METADATA_ONLY;
+
+  @Override
+  public FilterType getFilterType() { return TYPE; }
+
   @Override
   public boolean filter(ListenerEvent listenerEvent) {
     EventType eventType = listenerEvent.getEventType();
@@ -32,7 +37,7 @@ public class MetadataOnlyListenerEventFilter implements ListenerEventFilter {
     case ALTER_PARTITION:
       AlterPartitionEvent alterPartitionEvent = (AlterPartitionEvent) listenerEvent;
       return isMetadataUpdate(alterPartitionEvent.getOldPartitionLocation(),
-        alterPartitionEvent.getPartitionLocation());
+          alterPartitionEvent.getPartitionLocation());
     case ALTER_TABLE:
       AlterTableEvent alterTableEvent = (AlterTableEvent) listenerEvent;
       return isMetadataUpdate(alterTableEvent.getOldTableLocation(), alterTableEvent.getTableLocation());

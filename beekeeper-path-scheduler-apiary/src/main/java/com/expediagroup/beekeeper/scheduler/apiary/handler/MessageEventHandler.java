@@ -19,8 +19,10 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -35,6 +37,7 @@ import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.model.PathStatus;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.model.EventModel;
 
@@ -46,14 +49,14 @@ public abstract class MessageEventHandler {
   private final LifecycleEventType lifecycleEventType;
   private final String cleanupDelay;
   private final String hivePropertyKey;
-  private final List<Class<? extends ListenerEventFilter>> validFilterClasses;
-  @Autowired private List<ListenerEventFilter> allFilters;
+  private final List<FilterType> validFilterClasses;
+  @Autowired private EnumMap<FilterType, ListenerEventFilter> filterTypeMap;
 
   MessageEventHandler(
       String cleanupDelay,
       String hivePropertyKey,
       LifecycleEventType lifecycleEventType,
-      List<Class<? extends ListenerEventFilter>> validFilterClasses
+      List<FilterType> validFilterClasses
   ) {
     this.cleanupDelay = cleanupDelay;
     this.hivePropertyKey = hivePropertyKey;
@@ -64,7 +67,7 @@ public abstract class MessageEventHandler {
   public List<HousekeepingPath> handleMessage(MessageEvent event) {
     ListenerEvent listenerEvent = event.getEvent();
 
-    if (!shouldFilterMessage(listenerEvent)) {
+    if (shouldFilterMessage(listenerEvent)) {
       return Collections.emptyList();
     }
 
@@ -85,8 +88,9 @@ public abstract class MessageEventHandler {
   abstract List<EventModel> generateEventModels(ListenerEvent listenerEvent);
 
   private List<ListenerEventFilter> getValidFilters() {
-    return allFilters.stream()
-        .filter(filter -> validFilterClasses.contains(filter.getClass()))
+    return validFilterClasses.stream()
+        .map(filterType -> filterTypeMap.get(filterType))
+        .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
 

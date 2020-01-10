@@ -19,6 +19,7 @@ import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
 public interface ListenerEventFilter {
 
-  boolean filter(ListenerEvent listenerEvent);
+  FilterType getFilterType();
 
+  boolean filter(ListenerEvent listenerEvent);
 }

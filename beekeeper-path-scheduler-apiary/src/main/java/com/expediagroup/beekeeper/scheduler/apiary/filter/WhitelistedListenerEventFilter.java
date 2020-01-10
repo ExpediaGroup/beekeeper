@@ -27,6 +27,10 @@ import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 public class WhitelistedListenerEventFilter implements ListenerEventFilter {
 
   private static final String BEEKEEPER_HIVE_EVENT_WHITELIST = "beekeeper.hive.event.whitelist";
+  private final FilterType TYPE = FilterType.WHITELISTED;
+
+  @Override
+  public FilterType getFilterType() { return TYPE; }
 
   @Override
   public boolean filter(ListenerEvent listenerEvent) {
@@ -39,9 +43,9 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
 
   private boolean isWhitelisted(ListenerEvent listenerEvent, String whitelist) {
     return Arrays.stream(whitelist.split(","))
-      .map(String::trim)
-      .anyMatch(whitelistedEvent -> whitelistedEvent.equalsIgnoreCase(listenerEvent.getEventType()
-        .toString()));
+        .map(String::trim)
+        .anyMatch(whitelistedEvent -> whitelistedEvent.equalsIgnoreCase(listenerEvent.getEventType()
+            .toString()));
   }
 
   private boolean isDefaultBehaviour(ListenerEvent listenerEvent) {
