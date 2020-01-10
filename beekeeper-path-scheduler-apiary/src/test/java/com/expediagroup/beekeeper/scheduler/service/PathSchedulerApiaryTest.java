@@ -24,6 +24,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+
+import java.util.EnumMap;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -37,8 +41,9 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.PathEventReader;
-import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvent;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 import com.expediagroup.beekeeper.scheduler.apiary.service.PathSchedulerApiary;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,52 +51,49 @@ public class PathSchedulerApiaryTest {
 
   private static final String PATH = "path";
 
-  @Mock
-  private SchedulerService pathSchedulerService;
-
-  @Mock
-  private PathEventReader pathEventReader;
-
-  @Mock
-  private EntityHousekeepingPath path;
+  @Mock private SchedulerService pathSchedulerService;
+  @Mock private BeekeeperEventReader beekeeperEventReader;
+  @Mock private EntityHousekeepingPath path;
 
   private PathSchedulerApiary scheduler;
 
   @BeforeEach
   public void init() {
-    scheduler = new PathSchedulerApiary(pathEventReader, pathSchedulerService);
+    EnumMap schedulerMap = new EnumMap(LifecycleEventType.class);
+    schedulerMap.put(UNREFERENCED, pathSchedulerService);
+    scheduler = new PathSchedulerApiary(beekeeperEventReader, schedulerMap);
   }
 
   @Test
   public void typicalSchedule() {
-    Optional<PathEvent> event = Optional.of(newPathEvent(path));
-    when(pathEventReader.read()).thenReturn(event);
-    scheduler.schedulePath();
+    Optional<BeekeeperEvent> event = Optional.of(newPathEvent(path, UNREFERENCED));
+    when(beekeeperEventReader.read()).thenReturn(event);
+    scheduler.scheduleBeekeeperEvent();
     verify(pathSchedulerService).scheduleForHousekeeping(path);
-    verify(pathEventReader).delete(event.get());
+    verify(beekeeperEventReader).delete(event.get());
   }
 
   @Test
   public void typicalNoSchedule() {
-    when(pathEventReader.read()).thenReturn(Optional.empty());
-    scheduler.schedulePath();
+    when(beekeeperEventReader.read()).thenReturn(Optional.empty());
+    scheduler.scheduleBeekeeperEvent();
     verifyZeroInteractions(pathSchedulerService);
-    verify(pathEventReader, times(0)).delete(any());
+    verify(beekeeperEventReader, times(0)).delete(any());
   }
 
   @Test
   public void repositoryThrowsException() {
     when(path.getPath()).thenReturn(PATH);
-    Optional<PathEvent> event = Optional.of(newPathEvent(path));
-    when(pathEventReader.read()).thenReturn(event);
+    Optional<BeekeeperEvent> event = Optional.of(newPathEvent(path, UNREFERENCED));
+    when(beekeeperEventReader.read()).thenReturn(event);
     doThrow(new BeekeeperException("exception")).when(pathSchedulerService).scheduleForHousekeeping(path);
 
     try {
-      scheduler.schedulePath();
+      scheduler.scheduleBeekeeperEvent();
       fail("Should have thrown exception");
     } catch (Exception e) {
       verify(pathSchedulerService).scheduleForHousekeeping(path);
-      verify(pathEventReader, times(0)).delete(any());
+      verify(beekeeperEventReader, times(0)).delete(any());
       assertThat(e).isInstanceOf(BeekeeperException.class);
       assertThat(e.getMessage()).isEqualTo(
           "Unable to schedule path 'path' for deletion, this message will go back on the queue");
@@ -101,10 +103,11 @@ public class PathSchedulerApiaryTest {
   @Test
   public void typicalClose() throws Exception {
     scheduler.close();
-    verify(pathEventReader, times(1)).close();
+    verify(beekeeperEventReader, times(1)).close();
   }
 
-  private PathEvent newPathEvent(EntityHousekeepingPath path) {
-    return new PathEvent(path, Mockito.mock(MessageEvent.class));
+  private BeekeeperEvent newPathEvent(EntityHousekeepingPath path, LifecycleEventType lifecycleEventType) {
+    when(path.getLifecycleType()).thenReturn(lifecycleEventType.name());
+    return new BeekeeperEvent(List.of(path), Mockito.mock(MessageEvent.class));
   }
 }

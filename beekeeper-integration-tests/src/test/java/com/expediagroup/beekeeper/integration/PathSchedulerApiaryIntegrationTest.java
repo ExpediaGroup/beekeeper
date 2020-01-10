@@ -57,7 +57,7 @@ import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PathStatus;
 import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperPathSchedulerApiary;
 
-public class BeekeeperPathSchedulerApiaryIntegrationTest {
+public class PathSchedulerApiaryIntegrationTest {
 
   private static final String QUEUE = "apiary-receiver-queue";
   private static final String REGION = "us-west-2";
@@ -109,7 +109,7 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
     mySqlTestUtils = new MySqlTestUtils(jdbcUrl, username, password);
 
     alterPartitionEvent = new String(
-        IOUtils.toByteArray(BeekeeperPathSchedulerApiaryIntegrationTest.class.getResource("/alter_partition.json")),
+        IOUtils.toByteArray(PathSchedulerApiaryIntegrationTest.class.getResource("/alter_partition.json")),
         UTF_8);
   }
 
@@ -175,14 +175,14 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
     HttpCoreContext context = new HttpCoreContext();
     await().atMost(30, TimeUnit.SECONDS)
-      .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
+        .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
   }
 
   private void assertMetrics() {
     MeterRegistry meterRegistry = BeekeeperPathSchedulerApiary.meterRegistry();
     List<Meter> meters = meterRegistry.getMeters();
     assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-      .contains("paths-scheduled");
+        .contains("paths-scheduled");
   }
 
   private SendMessageRequest sendMessageRequest(String payload) {

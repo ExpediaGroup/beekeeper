@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.scheduler.service;
+package com.expediagroup.beekeeper.scheduler.apiary.messaging;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import java.io.Closeable;
+import java.util.Optional;
 
-public interface SchedulerService {
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 
-  LifecycleEventType getLifecycleEventType();
+public interface BeekeeperEventReader extends Closeable {
 
-  /**
-   * Schedules a file system path for deletion.
-   *
-   * @param cleanUpPath file system path encapsulation
-   */
-  void scheduleForHousekeeping(HousekeepingPath cleanUpPath);
+  Optional<BeekeeperEvent> read();
+
+  void delete(BeekeeperEvent beekeeperEvent);
 }

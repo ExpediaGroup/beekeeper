@@ -33,13 +33,13 @@ import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class PathSchedulerServiceTest {
+public class UnreferencedPathSchedulerServiceTest {
 
   @Mock
   private HousekeepingPathRepository housekeepingPathRepository;
 
   @InjectMocks
-  private PathSchedulerService pathSchedulerService;
+  private UnreferencedPathSchedulerService unreferencedPathSchedulerService;
 
   @Test
   public void typicalScheduleForHousekeeping() {
@@ -47,7 +47,7 @@ public class PathSchedulerServiceTest {
         .creationTimestamp(LocalDateTime.now())
         .cleanupDelay(Duration.parse("P3D"))
         .build();
-    pathSchedulerService.scheduleForHousekeeping(path);
+    unreferencedPathSchedulerService.scheduleForHousekeeping(path);
     verify(housekeepingPathRepository).save(path);
   }
 
@@ -62,7 +62,7 @@ public class PathSchedulerServiceTest {
     when(housekeepingPathRepository.save(path)).thenThrow(new RuntimeException());
 
     assertThatExceptionOfType(BeekeeperException.class)
-        .isThrownBy(() -> pathSchedulerService.scheduleForHousekeeping(path))
+        .isThrownBy(() -> unreferencedPathSchedulerService.scheduleForHousekeeping(path))
         .withMessage("Unable to schedule path 'path_to_schedule' for deletion");
     verify(housekeepingPathRepository).save(path);
   }

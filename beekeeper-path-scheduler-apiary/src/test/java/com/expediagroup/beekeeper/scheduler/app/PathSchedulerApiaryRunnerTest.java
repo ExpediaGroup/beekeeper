@@ -42,14 +42,12 @@ import com.expediagroup.beekeeper.scheduler.apiary.service.PathSchedulerApiary;
 @ExtendWith(MockitoExtension.class)
 public class PathSchedulerApiaryRunnerTest {
 
+  private final ExecutorService executor = Executors.newFixedThreadPool(1);
   @Mock
   private ApplicationArguments args;
-
   @Mock
   private PathSchedulerApiary pathSchedulerApiary;
-
   private PathSchedulerApiaryRunner pathSchedulerApiaryRunner;
-  private ExecutorService executor = Executors.newFixedThreadPool(1);
 
   @BeforeEach
   public void init() {
@@ -60,7 +58,7 @@ public class PathSchedulerApiaryRunnerTest {
   public void typicalRun() throws Exception {
     runRunner();
     await().atMost(Duration.FIVE_SECONDS)
-        .untilAsserted(() -> verify(pathSchedulerApiary, atLeast(1)).schedulePath());
+        .untilAsserted(() -> verify(pathSchedulerApiary, atLeast(1)).scheduleBeekeeperEvent());
     destroy();
     verify(pathSchedulerApiary).close();
   }
@@ -70,10 +68,10 @@ public class PathSchedulerApiaryRunnerTest {
     doThrow(new RuntimeException())
         .doNothing()
         .when(pathSchedulerApiary)
-        .schedulePath();
+        .scheduleBeekeeperEvent();
     runRunner();
     await().atMost(Duration.FIVE_SECONDS)
-        .untilAsserted(() -> verify(pathSchedulerApiary, atLeast(2)).schedulePath());
+        .untilAsserted(() -> verify(pathSchedulerApiary, atLeast(2)).scheduleBeekeeperEvent());
     destroy();
     verify(pathSchedulerApiary).close();
   }
@@ -84,12 +82,12 @@ public class PathSchedulerApiaryRunnerTest {
       Thread.sleep(15000L);
       return null;
     }).when(pathSchedulerApiary)
-        .schedulePath();
+        .scheduleBeekeeperEvent();
 
     try {
       runRunner();
       await().atMost(Duration.FIVE_SECONDS)
-          .untilAsserted(() -> verify(pathSchedulerApiary, atLeast(1)).schedulePath());
+          .untilAsserted(() -> verify(pathSchedulerApiary, atLeast(1)).scheduleBeekeeperEvent());
       destroy();
       fail("Runner should have thrown exception");
     } catch (Exception e) {

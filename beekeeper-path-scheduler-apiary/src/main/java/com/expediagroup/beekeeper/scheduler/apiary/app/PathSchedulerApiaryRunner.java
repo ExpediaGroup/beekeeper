@@ -56,7 +56,7 @@ public class PathSchedulerApiaryRunner implements ApplicationRunner {
     log.info("Starting application runner");
     while (running.get()) {
       try {
-        pathSchedulerApiary.schedulePath();
+        pathSchedulerApiary.scheduleBeekeeperEvent();
       } catch (Exception e) {
         log.error("Error while scheduling path", e);
       }

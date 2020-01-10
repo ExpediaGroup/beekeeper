@@ -15,8 +15,10 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.context;
 
+import java.util.EnumMap;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -29,16 +31,12 @@ import org.springframework.retry.annotation.EnableRetry;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
-import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.MetadataOnlyListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.FilteringMessageReader;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageEventToPathEventMapper;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.scheduler.apiary.handler.MessageEventHandler;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
-import com.expediagroup.beekeeper.scheduler.apiary.messaging.PathEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
+import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 
 @Configuration
 @ComponentScan(basePackages = { "com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.scheduler" })
@@ -47,8 +45,16 @@ import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageRead
 @EnableRetry(proxyTargetClass = true)
 public class CommonBeans {
 
-  @Value("${properties.apiary.queue-url}")
-  private String queueUrl;
+  @Autowired private List<SchedulerService> schedulerServices;
+  @Autowired private List<MessageEventHandler> handlers;
+  @Value("${properties.apiary.queue-url}") private String queueUrl;
+
+  @Bean
+  EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap() {
+    EnumMap<LifecycleEventType, SchedulerService> schedulerMap = new EnumMap<>(LifecycleEventType.class);
+    schedulerServices.stream().forEach(scheduler -> schedulerMap.put(scheduler.getLifecycleEventType(), scheduler));
+    return schedulerMap;
+  }
 
   @Bean(name = "sqsMessageReader")
   MessageReader messageReader() {
@@ -60,19 +66,8 @@ public class CommonBeans {
     return new RetryingMessageReader(messageReader);
   }
 
-  @Bean(name = "filteringMessageReader")
-  MessageReader filteringMessageReader(@Qualifier("retryingMessageReader") MessageReader messageReader,
-    TableParameterListenerEventFilter tableParameterFilter, EventTypeListenerEventFilter eventTypeFilter,
-    MetadataOnlyListenerEventFilter metadataOnlyListenerEventFilter,
-    WhitelistedListenerEventFilter whitelistedListenerEventFilter) {
-    List<ListenerEventFilter> filters = List.of(eventTypeFilter, tableParameterFilter,
-      metadataOnlyListenerEventFilter, whitelistedListenerEventFilter);
-    return new FilteringMessageReader(messageReader, filters);
-  }
-
   @Bean
-  PathEventReader pathEventReader(@Qualifier("filteringMessageReader") MessageReader messageReader,
-    MessageEventToPathEventMapper mapper) {
-    return new MessageReaderAdapter(messageReader, mapper);
+  BeekeeperEventReader pathEventReader(@Qualifier("retryingMessageReader") MessageReader messageReader) {
+    return new MessageReaderAdapter(messageReader, handlers);
   }
 }
