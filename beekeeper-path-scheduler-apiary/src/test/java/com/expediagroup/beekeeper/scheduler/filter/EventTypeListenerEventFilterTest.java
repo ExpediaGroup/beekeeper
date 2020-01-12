@@ -24,27 +24,29 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expedia.apiary.extensions.receiver.common.event.AddPartitionEvent;
+import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 
 import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType;
 
 @ExtendWith(MockitoExtension.class)
 public class EventTypeListenerEventFilterTest {
-  @Mock
-  private AddPartitionEvent addPartitionEvent;
-  @Mock
-  private AddPartitionEvent alterPartitionEvent;
-  @Mock
-  private AlterTableEvent alterTableEvent;
-  @Mock
-  private DropPartitionEvent dropPartitionEvent;
-  @Mock
-  private DropTableEvent dropTableEvent;
 
-  private EventTypeListenerEventFilter listenerEventFilter = new EventTypeListenerEventFilter();
+  private final EventTypeListenerEventFilter listenerEventFilter = new EventTypeListenerEventFilter();
+  @Mock private AddPartitionEvent addPartitionEvent;
+  @Mock private AlterPartitionEvent alterPartitionEvent;
+  @Mock private AlterTableEvent alterTableEvent;
+  @Mock private DropPartitionEvent dropPartitionEvent;
+  @Mock private DropTableEvent dropTableEvent;
+
+  @Test
+  public void checkTypeDeclaration() {
+    assertThat(listenerEventFilter.getFilterType()).isEqualTo(FilterType.EVENT_TYPE);
+  }
 
   @Test
   public void typicalFilterAlterPartitionEvent() {
@@ -80,5 +82,4 @@ public class EventTypeListenerEventFilterTest {
     boolean filter = listenerEventFilter.filter(addPartitionEvent);
     assertThat(filter).isTrue();
   }
-
 }

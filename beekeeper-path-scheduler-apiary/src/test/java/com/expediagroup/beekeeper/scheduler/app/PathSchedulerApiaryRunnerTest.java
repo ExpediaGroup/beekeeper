@@ -43,10 +43,8 @@ import com.expediagroup.beekeeper.scheduler.apiary.service.PathSchedulerApiary;
 public class PathSchedulerApiaryRunnerTest {
 
   private final ExecutorService executor = Executors.newFixedThreadPool(1);
-  @Mock
-  private ApplicationArguments args;
-  @Mock
-  private PathSchedulerApiary pathSchedulerApiary;
+  @Mock private ApplicationArguments args;
+  @Mock private PathSchedulerApiary pathSchedulerApiary;
   private PathSchedulerApiaryRunner pathSchedulerApiaryRunner;
 
   @BeforeEach

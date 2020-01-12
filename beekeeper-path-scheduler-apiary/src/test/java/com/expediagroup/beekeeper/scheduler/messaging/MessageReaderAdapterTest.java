@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.scheduler.messaging;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +30,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.amazonaws.AmazonClientException;
 
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
@@ -50,7 +53,7 @@ public class MessageReaderAdapterTest {
   private List<HousekeepingPath> pathsList;
 
   @BeforeEach
-  public void init() {
+  public void beforeEach() {
     pathsList = List.of(path);
     messageReaderAdapter = new MessageReaderAdapter(delegate, List.of(handler));
   }
@@ -84,6 +87,14 @@ public class MessageReaderAdapterTest {
   @Test
   public void typicalDelete() {
     BeekeeperEvent beekeeperEvent = new BeekeeperEvent(pathsList, messageEvent);
+    messageReaderAdapter.delete(beekeeperEvent);
+    verify(delegate).delete(beekeeperEvent.getMessageEvent());
+  }
+
+  @Test
+  public void deletionFailure() {
+    BeekeeperEvent beekeeperEvent = new BeekeeperEvent(pathsList, messageEvent);
+    doThrow(AmazonClientException.class).when(delegate).delete(beekeeperEvent.getMessageEvent());
     messageReaderAdapter.delete(beekeeperEvent);
     verify(delegate).delete(beekeeperEvent.getMessageEvent());
   }

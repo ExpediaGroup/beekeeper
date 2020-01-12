@@ -50,34 +50,35 @@ public class CommonBeans {
   @Autowired private List<SchedulerService> schedulerServices;
   @Autowired private List<MessageEventHandler> handlers;
   @Autowired private List<ListenerEventFilter> filters;
-  @Value("${properties.apiary.queue-url}") private String queueUrl;
 
   @Bean
-  EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap(List<SchedulerService> schedulerServices) {
+  public EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap(List<SchedulerService> schedulerServices) {
     EnumMap<LifecycleEventType, SchedulerService> schedulerMap = new EnumMap<>(LifecycleEventType.class);
     schedulerServices.stream().forEach(scheduler -> schedulerMap.put(scheduler.getLifecycleEventType(), scheduler));
     return schedulerMap;
   }
 
   @Bean
-  EnumMap<FilterType, ListenerEventFilter> filterTypeMap(List<ListenerEventFilter> filters) {
+  public EnumMap<FilterType, ListenerEventFilter> filterTypeMap(List<ListenerEventFilter> filters) {
     EnumMap<FilterType, ListenerEventFilter> filterTypeMap = new EnumMap<>(FilterType.class);
     filters.stream().forEach(filter -> filterTypeMap.put(filter.getFilterType(), filter));
     return filterTypeMap;
   }
 
   @Bean(name = "sqsMessageReader")
-  MessageReader messageReader() {
+  public MessageReader messageReader(
+      @Value("${properties.apiary.queue-url}") String queueUrl
+  ) {
     return new SqsMessageReader.Builder(queueUrl).build();
   }
 
   @Bean(name = "retryingMessageReader")
-  MessageReader retryingMessageReader(@Qualifier("sqsMessageReader") MessageReader messageReader) {
+  public MessageReader retryingMessageReader(@Qualifier("sqsMessageReader") MessageReader messageReader) {
     return new RetryingMessageReader(messageReader);
   }
 
   @Bean
-  BeekeeperEventReader pathEventReader(
+  public BeekeeperEventReader pathEventReader(
       @Qualifier("retryingMessageReader") MessageReader messageReader,
       List<MessageEventHandler> handlers
   ) {

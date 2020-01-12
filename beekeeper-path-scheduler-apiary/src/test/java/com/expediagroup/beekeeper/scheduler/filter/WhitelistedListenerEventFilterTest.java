@@ -32,17 +32,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
+import com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
 
 @ExtendWith(MockitoExtension.class)
 public class WhitelistedListenerEventFilterTest {
 
   private static final String BEEKEEPER_HIVE_EVENT_WHITELIST = "beekeeper.hive.event.whitelist";
+  private final WhitelistedListenerEventFilter listenerEventFilter = new WhitelistedListenerEventFilter();
+  @Mock private ListenerEvent listenerEvent;
 
-  @Mock
-  private ListenerEvent listenerEvent;
-
-  private WhitelistedListenerEventFilter listenerEventFilter = new WhitelistedListenerEventFilter();
+  @Test
+  public void checkTypeDeclaration() {
+    assertThat(listenerEventFilter.getFilterType()).isEqualTo(FilterType.WHITELISTED);
+  }
 
   @ParameterizedTest
   @EnumSource(value = EventType.class, names = { "ALTER_PARTITION",
@@ -73,7 +76,7 @@ public class WhitelistedListenerEventFilterTest {
   public void filterWhitelistedEvent(String whitelist) {
     when(listenerEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
     when(listenerEvent.getTableParameters())
-      .thenReturn(Map.of(BEEKEEPER_HIVE_EVENT_WHITELIST, whitelist));
+        .thenReturn(Map.of(BEEKEEPER_HIVE_EVENT_WHITELIST, whitelist));
     boolean filter = listenerEventFilter.filter(listenerEvent);
     assertThat(filter).isFalse();
   }
@@ -88,7 +91,7 @@ public class WhitelistedListenerEventFilterTest {
   public void filterNotWhitelistedEvent(String whitelist) {
     when(listenerEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
     when(listenerEvent.getTableParameters())
-      .thenReturn(Map.of(BEEKEEPER_HIVE_EVENT_WHITELIST, whitelist));
+        .thenReturn(Map.of(BEEKEEPER_HIVE_EVENT_WHITELIST, whitelist));
     boolean filter = listenerEventFilter.filter(listenerEvent);
     assertThat(filter).isTrue();
   }
@@ -97,7 +100,7 @@ public class WhitelistedListenerEventFilterTest {
   public void filterNullTableParametersDefaultEvent() {
     when(listenerEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
     when(listenerEvent.getTableParameters())
-      .thenReturn(null);
+        .thenReturn(null);
     boolean filter = listenerEventFilter.filter(listenerEvent);
     assertThat(filter).isFalse();
   }
@@ -106,7 +109,7 @@ public class WhitelistedListenerEventFilterTest {
   public void filterEmptyTableParametersDefaultEvent() {
     when(listenerEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
     when(listenerEvent.getTableParameters())
-      .thenReturn(Collections.emptyMap());
+        .thenReturn(Collections.emptyMap());
     boolean filter = listenerEventFilter.filter(listenerEvent);
     assertThat(filter).isFalse();
   }
@@ -115,7 +118,7 @@ public class WhitelistedListenerEventFilterTest {
   public void filterNullTableParametersNonDefaultEvent() {
     when(listenerEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
     when(listenerEvent.getTableParameters())
-      .thenReturn(null);
+        .thenReturn(null);
     boolean filter = listenerEventFilter.filter(listenerEvent);
     assertThat(filter).isTrue();
   }
@@ -124,7 +127,7 @@ public class WhitelistedListenerEventFilterTest {
   public void filterEmptyTableParametersNonDefaultEvent() {
     when(listenerEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
     when(listenerEvent.getTableParameters())
-      .thenReturn(Collections.emptyMap());
+        .thenReturn(Collections.emptyMap());
     boolean filter = listenerEventFilter.filter(listenerEvent);
     assertThat(filter).isTrue();
   }
