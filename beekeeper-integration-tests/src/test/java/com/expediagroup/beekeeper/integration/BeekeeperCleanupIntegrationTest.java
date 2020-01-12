@@ -197,7 +197,7 @@ public class BeekeeperCleanupIntegrationTest {
     amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH + "/", TABLE_NAME);
-    await().atMost(30, TimeUnit.SECONDS)
+    await().atMost(30, TimeUnit.HOURS)
         .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();

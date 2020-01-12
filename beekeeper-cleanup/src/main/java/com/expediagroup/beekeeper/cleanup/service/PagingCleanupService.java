@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.micrometer.core.annotation.Timed;
 
@@ -42,11 +43,7 @@ public class PagingCleanupService implements CleanupService {
   private final boolean dryRunEnabled;
   private final int pageSize;
 
-  public PagingCleanupService(
-      List<GenericHandler> pathHandlers,
-      int pageSize,
-      boolean dryRunEnabled
-  ) {
+  public PagingCleanupService(List<GenericHandler> pathHandlers, int pageSize, boolean dryRunEnabled) {
     this.pathHandlers = pathHandlers;
     this.pageSize = pageSize;
     this.dryRunEnabled = dryRunEnabled;
@@ -65,6 +62,7 @@ public class PagingCleanupService implements CleanupService {
     }
   }
 
+  @Transactional
   private List<PageHelper> getAllPagesForHandler(GenericHandler handler, Instant referenceTime) {
     List<PageHelper> paths = new ArrayList<>();
     Pageable pageable = PageRequest.of(0, pageSize).first();
