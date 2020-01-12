@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +32,7 @@ import com.google.gson.JsonObject;
 public class SqsMessageFileTest {
 
   private static final Logger log = LoggerFactory.getLogger(SqsMessageFileTest.class);
-  private Set<String> commonKeys = Set.of("protocolVersion", "eventType", "tableParameters",
+  private final Set<String> commonKeys = Set.of("protocolVersion", "eventType", "tableParameters",
       "dbName", "tableName", "tableLocation");
 
   @Test

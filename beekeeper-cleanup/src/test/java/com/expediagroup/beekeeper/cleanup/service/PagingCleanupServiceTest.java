@@ -21,6 +21,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -33,9 +34,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -43,6 +46,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import com.expediagroup.beekeeper.cleanup.TestApplication;
+import com.expediagroup.beekeeper.cleanup.handler.GenericHandler;
+import com.expediagroup.beekeeper.cleanup.handler.UnreferencedHandler;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PathStatus;
@@ -68,16 +73,20 @@ class PagingCleanupServiceTest {
   private EntityHousekeepingPath entityPath2;
   private EntityHousekeepingPath entityPath3;
   private @MockBean PathCleaner pathCleaner;
-  private @Autowired HousekeepingPathRepository housekeepingPathRepository;
   private @Captor ArgumentCaptor<EntityHousekeepingPath> pathCaptor;
   private PagingCleanupService pagingCleanupService;
 
+  @Mock private UnreferencedHandler handler;
+  @Autowired private HousekeepingPathRepository housekeepingPathRepository;
+  private List<GenericHandler> handlers;
+
   @BeforeEach
   void setUp() {
+    handlers = List.of(handler);
     entityPath1 = createEntityHousekeepingPath(path1);
     entityPath2 = createEntityHousekeepingPath(path2);
     entityPath3 = createEntityHousekeepingPath(path3);
-    pagingCleanupService = new PagingCleanupService(housekeepingPathRepository, pathCleaner, 2, false);
+    pagingCleanupService = new PagingCleanupService(handlers, 2, false);
   }
 
   @Test
@@ -90,8 +99,8 @@ class PagingCleanupServiceTest {
 
     verify(pathCleaner, times(3)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
-      .extracting("path")
-      .containsExactly(path1, path2, path3);
+        .extracting("path")
+        .containsExactly(path1, path2, path3);
     assertOriginalObjectsAreUpdated();
 
     pagingCleanupService.cleanUp(Instant.now());
@@ -120,8 +129,8 @@ class PagingCleanupServiceTest {
 
     verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
-      .extracting("path")
-      .containsExactly(path1, path2);
+        .extracting("path")
+        .containsExactly(path1, path2);
   }
 
   @Test
@@ -135,8 +144,8 @@ class PagingCleanupServiceTest {
 
     verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
-      .extracting("path")
-      .containsExactly(path1, path2);
+        .extracting("path")
+        .containsExactly(path1, path2);
   }
 
   @Test
@@ -152,17 +161,17 @@ class PagingCleanupServiceTest {
 
     verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
-      .extracting("path")
-      .containsExactly(path1, path2);
+        .extracting("path")
+        .containsExactly(path1, path2);
     verifyNoMoreInteractions(pathCleaner);
   }
 
   @Test
   void pathCleanerException() {
     doThrow(new RuntimeException("Error"))
-      .doNothing()
-      .when(pathCleaner)
-      .cleanupPath(any(EntityHousekeepingPath.class));
+        .doNothing()
+        .when(pathCleaner)
+        .cleanupPath(any(EntityHousekeepingPath.class));
 
     housekeepingPathRepository.save(entityPath1);
     housekeepingPathRepository.save(entityPath2);
@@ -171,8 +180,8 @@ class PagingCleanupServiceTest {
 
     verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
-      .extracting("path")
-      .containsExactly(path1, path2);
+        .extracting("path")
+        .containsExactly(path1, path2);
 
     List<EntityHousekeepingPath> result = housekeepingPathRepository.findAll();
     assertThat(result.size()).isEqualTo(2);
@@ -189,17 +198,26 @@ class PagingCleanupServiceTest {
 
   @Test
   void typicalDryRunWithPaging() {
-    pagingCleanupService = new PagingCleanupService(housekeepingPathRepository, pathCleaner, 2, true);
+    pagingCleanupService = new PagingCleanupService(handlers, 2, true);
     housekeepingPathRepository.save(entityPath1);
     housekeepingPathRepository.save(entityPath2);
     housekeepingPathRepository.save(entityPath3);
     List<EntityHousekeepingPath> beforeClean = housekeepingPathRepository.findAll();
 
-    pagingCleanupService.cleanUp(Instant.now());
+    Instant now = Instant.now();
+    LocalDateTime nowDT = LocalDateTime.ofInstant(now, ZoneOffset.UTC);
+
+    PageImpl<EntityHousekeepingPath> pages = new PageImpl<>(
+        List.of(entityPath1, entityPath2, entityPath3));
+
+    when(handler.getPathCleaner()).thenReturn(pathCleaner);
+    when(handler.findRecordsToClean(nowDT, any())).thenReturn(pages);
+
+    pagingCleanupService.cleanUp(now);
     verify(pathCleaner, times(3)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
-      .extracting("path")
-      .containsExactly(path1, path2, path3);
+        .extracting("path")
+        .containsExactly(path1, path2, path3);
 
     List<EntityHousekeepingPath> afterClean = housekeepingPathRepository.findAll();
     assertThat(afterClean.get(0)).isEqualToComparingFieldByFieldRecursively(beforeClean.get(0));
@@ -209,16 +227,16 @@ class PagingCleanupServiceTest {
 
   private EntityHousekeepingPath createEntityHousekeepingPath(String path) {
     EntityHousekeepingPath housekeepingPath = new EntityHousekeepingPath.Builder()
-      .path(path)
-      .databaseName("database")
-      .tableName("table")
-      .pathStatus(PathStatus.SCHEDULED)
-      .creationTimestamp(localNow)
-      .modifiedTimestamp(localNow)
-      .modifiedTimestamp(localNow)
-      .cleanupDelay(Duration.parse("P3D"))
-      .cleanupAttempts(0)
-      .build();
+        .path(path)
+        .databaseName("database")
+        .tableName("table")
+        .pathStatus(PathStatus.SCHEDULED)
+        .creationTimestamp(localNow)
+        .modifiedTimestamp(localNow)
+        .modifiedTimestamp(localNow)
+        .cleanupDelay(Duration.parse("P3D"))
+        .cleanupAttempts(0)
+        .build();
     housekeepingPath.setCleanupTimestamp(localNow);
     return housekeepingPath;
   }

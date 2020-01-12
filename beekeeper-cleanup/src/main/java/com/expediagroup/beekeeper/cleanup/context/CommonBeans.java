@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.cleanup.context;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -28,14 +30,13 @@ import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
+import com.expediagroup.beekeeper.cleanup.handler.GenericHandler;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
-import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3Client;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3SentinelFilesCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.PagingCleanupService;
-import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @Configuration
 @EnableScheduling
@@ -52,7 +53,7 @@ public class CommonBeans {
 
   @Bean
   @Profile("test")
-  public AmazonS3 amazonS3Test() {
+  AmazonS3 amazonS3Test() {
     String s3Endpoint = System.getProperty("aws.s3.endpoint");
     String region = System.getProperty("aws.region");
 
@@ -68,14 +69,16 @@ public class CommonBeans {
   }
 
   @Bean
-  public PathCleaner pathCleaner(S3Client s3Client, BytesDeletedReporter bytesDeletedReporter) {
+  S3PathCleaner s3PathCleaner(S3Client s3Client, BytesDeletedReporter bytesDeletedReporter) {
     return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
   }
 
   @Bean
-  public CleanupService cleanupService(HousekeepingPathRepository repository, PathCleaner pathCleaner,
+  CleanupService cleanupService(
+      List<GenericHandler> pathHandlers,
       @Value("${properties.cleanup-page-size}") int pageSize,
-      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new PagingCleanupService(repository, pathCleaner, pageSize, dryRunEnabled);
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled
+  ) {
+    return new PagingCleanupService(pathHandlers, pageSize, dryRunEnabled);
   }
 }

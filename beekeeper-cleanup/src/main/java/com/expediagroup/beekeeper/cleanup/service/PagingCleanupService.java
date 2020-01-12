@@ -20,6 +20,7 @@ import static java.lang.String.format;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -30,24 +31,23 @@ import org.springframework.data.domain.Pageable;
 
 import io.micrometer.core.annotation.Timed;
 
-import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
+import com.expediagroup.beekeeper.cleanup.handler.GenericHandler;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.core.model.PathStatus;
-import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 public class PagingCleanupService implements CleanupService {
 
   private final Logger log = LoggerFactory.getLogger(PagingCleanupService.class);
-  private final HousekeepingPathRepository housekeepingPathRepository;
-  private final PathCleaner pathCleaner;
+  private final List<GenericHandler> pathHandlers;
   private final boolean dryRunEnabled;
   private final int pageSize;
 
-  public PagingCleanupService(HousekeepingPathRepository housekeepingPathRepository, PathCleaner pathCleaner,
-      int pageSize, boolean dryRunEnabled) {
-    this.housekeepingPathRepository = housekeepingPathRepository;
-    this.pathCleaner = pathCleaner;
+  public PagingCleanupService(
+      List<GenericHandler> pathHandlers,
+      int pageSize,
+      boolean dryRunEnabled
+  ) {
+    this.pathHandlers = pathHandlers;
     this.pageSize = pageSize;
     this.dryRunEnabled = dryRunEnabled;
   }
@@ -56,46 +56,43 @@ public class PagingCleanupService implements CleanupService {
   @Timed("cleanup-job")
   public void cleanUp(Instant referenceTime) {
     try {
-      Pageable pageable = PageRequest.of(0, pageSize).first();
-      LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);
-
-      Page<EntityHousekeepingPath> page = housekeepingPathRepository.findRecordsForCleanupByModifiedTimestamp(instant,
-          pageable);
-
-      while (!page.getContent().isEmpty()) {
-        processPage(page.getContent());
-        if (dryRunEnabled) {
-          pageable = pageable.next();
-        }
-        page = housekeepingPathRepository.findRecordsForCleanupByModifiedTimestamp(instant, pageable);
-      }
+      pathHandlers.stream()
+          .map(handler -> getAllPagesForHandler(handler, referenceTime))
+          .flatMap(List::stream)
+          .forEach(pageHelper -> pageHelper.handler.processPage(pageHelper.paths, dryRunEnabled));
     } catch (Exception e) {
       throw new BeekeeperException(format("Cleanup failed for instant %s", referenceTime.toString()), e);
     }
   }
 
-  private void processPage(List<EntityHousekeepingPath> pageContent) {
-    if (dryRunEnabled) {
-      pageContent.forEach(pathCleaner::cleanupPath);
-    } else {
-      pageContent.forEach(this::cleanupContent);
+  private List<PageHelper> getAllPagesForHandler(GenericHandler handler, Instant referenceTime) {
+    List<PageHelper> paths = new ArrayList<>();
+    Pageable pageable = PageRequest.of(0, pageSize).first();
+
+    LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);
+    Page<EntityHousekeepingPath> page = handler.findRecordsToClean(instant, pageable);
+
+    while (!page.getContent().isEmpty()) {
+      paths.add(new PageHelper(handler, page.getContent()));
+
+      if (dryRunEnabled) {
+        pageable = pageable.next();
+      }
+
+      page = handler.findRecordsToClean(instant, pageable);
     }
+
+    return paths;
   }
 
-  private void cleanupContent(EntityHousekeepingPath housekeepingPath) {
-    try {
-      log.info("Cleaning up path \"{}\"", housekeepingPath.getPath());
-      pathCleaner.cleanupPath(housekeepingPath);
-      updateAttemptsAndStatus(housekeepingPath, PathStatus.DELETED);
-    } catch (Exception e) {
-      updateAttemptsAndStatus(housekeepingPath, PathStatus.FAILED);
-      log.warn("Unexpected exception deleting \"{}\"", housekeepingPath.getPath(), e);
-    }
-  }
+  private class PageHelper {
 
-  private void updateAttemptsAndStatus(EntityHousekeepingPath housekeepingPath, PathStatus status) {
-    housekeepingPath.setCleanupAttempts(housekeepingPath.getCleanupAttempts() + 1);
-    housekeepingPath.setPathStatus(status);
-    housekeepingPathRepository.save(housekeepingPath);
+    GenericHandler handler;
+    List<EntityHousekeepingPath> paths;
+
+    PageHelper(GenericHandler handler, List<EntityHousekeepingPath> paths) {
+      this.handler = handler;
+      this.paths = paths;
+    }
   }
 }

@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.net.URL;
+import java.util.Collections;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -90,16 +91,16 @@ class CommonBeansTest {
   }
 
   @Test
-  void pathCleaner() {
+  void verifyS3pathCleaner() {
     S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), false);
     MeterRegistry meterRegistry = mock(GraphiteMeterRegistry.class);
-    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, new BytesDeletedReporter(meterRegistry, false));
+    PathCleaner pathCleaner = commonBeans.s3PathCleaner(s3Client, new BytesDeletedReporter(meterRegistry, false));
     assertThat(pathCleaner).isInstanceOf(S3PathCleaner.class);
   }
 
   @Test
   void cleanupService() {
-    CleanupService cleanupService = commonBeans.cleanupService(repository, pathCleaner, 2, false);
+    CleanupService cleanupService = commonBeans.cleanupService(Collections.emptyList(), 2, false);
     assertThat(cleanupService).isInstanceOf(PagingCleanupService.class);
   }
 }

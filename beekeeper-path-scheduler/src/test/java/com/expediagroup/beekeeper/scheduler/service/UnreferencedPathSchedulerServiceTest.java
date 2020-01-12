@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.scheduler.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,6 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,6 +51,12 @@ public class UnreferencedPathSchedulerServiceTest {
         .build();
     unreferencedPathSchedulerService.scheduleForHousekeeping(path);
     verify(housekeepingPathRepository).save(path);
+  }
+
+  @Test
+  public void verifyLifecycleType() {
+    assertThat(unreferencedPathSchedulerService.getLifecycleEventType())
+        .isEqualTo(LifecycleEventType.UNREFERENCED);
   }
 
   @Test
