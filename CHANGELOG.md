@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - TBD
+### Added
+- Add `LifecycleEventType` enum in `beekeeper-core` to describe supported data lifecycles.
+- Increase unit test coverage for `beekeeper-path-scheduler-apiary` package.
+- Increase coverage for integration tests.
+
+### Changed
+- Refactored internals of `beekeeper-path-scheduler-apiary` to support generic data lifecycle scheduling.
+    - Inserted additional workflow (handlers) between read & filter actions to support filters per lifecycle type.
+    - MessageReaderAdapter now has additional logic to orchestrate the updated workflow.
+    - Rename `PathEvent` to `BeekeeperEvent` to better reflect event types.
+- Refactored internals of `beekeeper-path-scheduler` to support generic data lifecycle scheduling.
+    - Rename `PathSchedulerService` to `UnreferencedPathSchedulerService` to differentiate types
+- Refactored internals of `beekeeper-cleanup` to support generic data lifecycle data lifecycle deletions.
+    - Refactor `PagingCleanupService` to be a generic orchestrator of Lifecycle handlers.
+
 ## [1.2.0] - 2020-01-06
 ### Adding
 - `TimedTaggable` annotation to time and report table level metrics.

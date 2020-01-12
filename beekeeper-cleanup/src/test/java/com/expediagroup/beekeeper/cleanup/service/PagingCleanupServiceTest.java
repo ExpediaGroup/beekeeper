@@ -15,9 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -33,8 +31,7 @@ public class PagingCleanupServiceTest {
   private static final int PAGE_SIZE = 1;
   private final List<GenericHandler> handlersListMock = new ArrayList<>();
   @Mock private GenericHandler handler;
-  @Mock private EntityHousekeepingPath housekeepingPath_one;
-  @Mock private EntityHousekeepingPath housekeepingPath_two;
+  @Mock private EntityHousekeepingPath housekeepingPath;
   private PagingCleanupService pagingCleanupService;
 
   @BeforeEach
@@ -43,40 +40,16 @@ public class PagingCleanupServiceTest {
   }
 
   @Test
-  public void typicalDryRunCleanup() {
-    LocalDateTime nowDT = LocalDateTime.now();
-    Instant nowInstant = nowDT.toInstant(ZoneOffset.UTC);
-
-    when(handler.findRecordsToClean(nowDT, getPageRequest(0))).thenReturn(createMockPages(housekeepingPath_one, false));
-    when(handler.findRecordsToClean(nowDT, getPageRequest(1))).thenReturn(createMockPages(null, true));
-
-    pagingCleanupService = new PagingCleanupService(handlersListMock, PAGE_SIZE, true);
-    pagingCleanupService.cleanUp(nowInstant);
-    verify(handler).processPage(List.of(housekeepingPath_one), true);
-  }
-
-  @Test
   public void typicalCleanup() {
     LocalDateTime nowDT = LocalDateTime.now();
     Instant nowInstant = nowDT.toInstant(ZoneOffset.UTC);
 
-    when(handler.findRecordsToClean(nowDT, getPageRequest(0)))
-        .thenAnswer(new Answer() {
-          private boolean calledOnce = false;
-
-          @Override
-          public Object answer(InvocationOnMock invocation) {
-            if (!calledOnce) {
-              calledOnce = true;
-              return createMockPages(housekeepingPath_one, false);
-            }
-            return createMockPages(null, true);
-          }
-        });
+    when(handler.findRecordsToClean(nowDT, getPageRequest(0))).thenReturn(createMockPages(housekeepingPath, false));
+    when(handler.findRecordsToClean(nowDT, getPageRequest(1))).thenReturn(createMockPages(null, true));
 
     pagingCleanupService = new PagingCleanupService(handlersListMock, PAGE_SIZE, false);
     pagingCleanupService.cleanUp(nowInstant);
-    verify(handler).processPage(List.of(housekeepingPath_one), false);
+    verify(handler).processPage(List.of(housekeepingPath), false);
   }
 
   @Test

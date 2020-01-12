@@ -72,11 +72,7 @@ public class PagingCleanupService implements CleanupService {
 
     while (!page.getContent().isEmpty()) {
       paths.add(new PageHelper(handler, page.getContent()));
-
-      if (dryRunEnabled) {
-        pageable = pageable.next();
-      }
-
+      pageable = pageable.next();
       page = handler.findRecordsToClean(instant, pageable);
     }
 
