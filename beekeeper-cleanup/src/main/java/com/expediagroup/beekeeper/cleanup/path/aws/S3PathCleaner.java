@@ -73,7 +73,7 @@ public class S3PathCleaner implements PathCleaner {
   }
 
   private void deleteFile(String bucket, String key, S3BytesDeletedCalculator bytesDeletedCalculator) {
-    bytesDeletedCalculator.storeFileSizes(bucket, List.of(key));
+    bytesDeletedCalculator.storeFileSize(bucket, key);
     s3Client.deleteObject(bucket, key);
     bytesDeletedCalculator.calculateBytesDeleted(List.of(key));
   }
@@ -82,11 +82,11 @@ public class S3PathCleaner implements PathCleaner {
     if (!key.endsWith("/")) {
       key += "/";
     }
-    List<String> keys = s3Client.listObjects(bucket, key)
-      .stream()
+    List<S3ObjectSummary> objectSummaries = s3Client.listObjects(bucket, key);
+    bytesDeletedCalculator.storeFileSizes(objectSummaries);
+    List<String> keys = objectSummaries.stream()
       .map(S3ObjectSummary::getKey)
       .collect(Collectors.toList());
-    bytesDeletedCalculator.storeFileSizes(bucket, keys);
     List<String> deletedKeys = s3Client.deleteObjects(bucket, keys);
     bytesDeletedCalculator.calculateBytesDeleted(deletedKeys);
     int totalFiles = keys.size();
