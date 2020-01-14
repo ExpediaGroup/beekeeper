@@ -18,8 +18,10 @@ package com.expediagroup.beekeeper.cleanup.path.aws;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -29,6 +31,9 @@ import org.mockito.Mockito;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
@@ -56,11 +61,28 @@ class S3ClientTest {
   void setUp() {
     amazonS3 = AmazonS3Factory.newInstance(s3Container);
     amazonS3.createBucket(bucket);
-    amazonS3.listObjectsV2(bucket)
-      .getObjectSummaries()
-      .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
+    emptyBucket(bucket);
+    assertThat(amazonS3.listObjectsV2(bucket).getObjectSummaries()).isEmpty();
     s3Client = new S3Client(amazonS3, false);
     s3ClientDryRun = new S3Client(amazonS3, true);
+  }
+
+  private void emptyBucket(String bucket) {
+    ListObjectsV2Result listObjectsV2Result;
+    String continuationToken = null;
+    do {
+      ListObjectsV2Request request = new ListObjectsV2Request()
+        .withBucketName(bucket)
+        .withContinuationToken(continuationToken);
+      listObjectsV2Result = amazonS3.listObjectsV2(request);
+      DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket);
+      List<String> keys = listObjectsV2Result.getObjectSummaries()
+        .stream()
+        .map(S3ObjectSummary::getKey)
+        .collect(Collectors.toList());
+      amazonS3.deleteObjects(deleteObjectsRequest.withKeys(keys.toArray(new String[]{})));
+      continuationToken = listObjectsV2Result.getNextContinuationToken();
+    } while (listObjectsV2Result.isTruncated());
   }
 
   @AfterAll
@@ -146,6 +168,22 @@ class S3ClientTest {
     assertThat(result.get(0).getKey()).isEqualTo(spacedKey1);
     assertThat(result.get(1).getBucketName()).isEqualTo(bucket);
     assertThat(result.get(1).getKey()).isEqualTo(spacedKey2);
+  }
+
+  @Test
+  void listBatchObjects() {
+    int s3BatchSize = 1000;
+    int extraKeys = 100;
+    List<String> keys = new ArrayList<>();
+    for (int i = 1; i <= s3BatchSize + extraKeys; i++) {
+      keys.add(keyRoot + "/file" + i);
+    }
+    keys.parallelStream()
+      .forEach(key -> amazonS3.putObject(bucket, key, content));
+
+    List<S3ObjectSummary> result = s3Client.listObjects(bucket, keyRoot);
+
+    assertThat(result.size()).isEqualTo(s3BatchSize + extraKeys);
   }
 
   @Test

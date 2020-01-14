@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored internals of `beekeeper-cleanup` to support generic data lifecycle data lifecycle deletions.
     - Refactor `PagingCleanupService` to be a generic orchestrator of Lifecycle handlers.
 
+## [1.2.1] - TBD
+### Changed
+- `S3Client.listObjects()` to list all objects at a key with batching.  
+
 ## [1.2.0] - 2020-01-06
 ### Adding
 - `TimedTaggable` annotation to time and report table level metrics.

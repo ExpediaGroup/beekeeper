@@ -29,8 +29,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterAll;
@@ -256,42 +254,6 @@ class S3PathCleanerTest {
   }
 
   @Test
-  void notAllObjectsDeleted() {
-    AmazonS3 mockAmazonS3 = mock(AmazonS3.class);
-    S3Client mockS3Client = new S3Client(mockAmazonS3, false);
-    mockOneOutOfTwoObjectsDeleted(mockAmazonS3, keyRootAsDirectory);
-
-    s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
-    assertThatExceptionOfType(BeekeeperException.class)
-        .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath))
-        .withMessage(format("Not all files could be deleted at path \"%s/%s\"; deleted 1/2 objects. "
-            + "Objects not deleted: 'table/id1/partition_1/file2'.", bucket,
-            keyRootAsDirectory));
-  }
-
-  private void mockOneOutOfTwoObjectsDeleted(AmazonS3 mockAmazonS3, String key) {
-    S3ObjectSummary s3ObjectSummary1 = new S3ObjectSummary();
-    S3ObjectSummary s3ObjectSummary2 = new S3ObjectSummary();
-    s3ObjectSummary1.setKey(key1);
-    s3ObjectSummary2.setKey(key2);
-    ObjectMetadata objectMetadata1 = new ObjectMetadata();
-    ObjectMetadata objectMetadata2 = new ObjectMetadata();
-    objectMetadata1.setContentLength(100L);
-    objectMetadata2.setContentLength(50L);
-    when(mockAmazonS3.getObjectMetadata(bucket, key1)).thenReturn(objectMetadata1);
-    when(mockAmazonS3.getObjectMetadata(bucket, key2)).thenReturn(objectMetadata2);
-
-    ListObjectsV2Result objectsAtPath = mock(ListObjectsV2Result.class);
-    when(objectsAtPath.getObjectSummaries()).thenReturn(Arrays.asList(s3ObjectSummary1, s3ObjectSummary2));
-    when(mockAmazonS3.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(objectsAtPath);
-
-    DeleteObjectsResult.DeletedObject deletedObject1 = new DeleteObjectsResult.DeletedObject();
-    deletedObject1.setKey(key1);
-    DeleteObjectsResult deleteObjectsResult1 = new DeleteObjectsResult(Collections.singletonList(deletedObject1));
-    when(mockAmazonS3.deleteObjects(any(DeleteObjectsRequest.class))).thenReturn(deleteObjectsResult1);
-  }
-
-  @Test
   void sentinelFileForTableDirectory() {
     String partitionSentinel = "table/id1/partition_1_$folder$";
     String partitionParentSentinel = "table/id1_$folder$";
@@ -377,25 +339,16 @@ class S3PathCleanerTest {
 
   @Test
   void reportBytesDeletedWhenDirectoryDeletionPartiallyFails() {
-    S3Client mockS3Client = mock(S3Client.class);
+    AmazonS3 mockAmazonS3 = mock(AmazonS3.class);
+    S3Client mockS3Client = new S3Client(mockAmazonS3, false);
+    mockOneOutOfTwoObjectsDeleted(mockAmazonS3);
     s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
-    S3ObjectSummary s3ObjectSummary = new S3ObjectSummary();
-    s3ObjectSummary.setBucketName(bucket);
-    s3ObjectSummary.setKey(key1);
-    S3ObjectSummary s3ObjectSummary2 = new S3ObjectSummary();
-    s3ObjectSummary2.setBucketName(bucket);
-    s3ObjectSummary2.setKey(key2);
-    when(mockS3Client.listObjects(bucket, keyRoot + "/")).thenReturn(List.of(s3ObjectSummary, s3ObjectSummary2));
-    int bytes = 10;
-    ObjectMetadata objectMetadata = new ObjectMetadata();
-    objectMetadata.setContentLength(bytes);
-    when(mockS3Client.getObjectMetadata(bucket, key1)).thenReturn(objectMetadata);
-    when(mockS3Client.getObjectMetadata(bucket, key2)).thenReturn(objectMetadata);
-    when(mockS3Client.deleteObjects(bucket, List.of(key1, key2))).thenReturn(List.of(key1));
-
     assertThatExceptionOfType(BeekeeperException.class)
-      .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
-    verify(bytesDeletedReporter).reportTaggable(bytes, housekeepingPath, FileSystemType.S3);
+      .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath))
+      .withMessage(format("Not all files could be deleted at path \"%s/%s\"; deleted 1/2 objects. "
+          + "Objects not deleted: 'table/id1/partition_1/file2'.", bucket,
+        keyRootAsDirectory));
+    verify(bytesDeletedReporter).reportTaggable(100L, housekeepingPath, FileSystemType.S3);
   }
 
   @Test
@@ -405,5 +358,23 @@ class S3PathCleanerTest {
     assertThatExceptionOfType(BeekeeperException.class)
       .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath))
       .withMessage(format("'%s' is not an S3 path.", path));
+  }
+
+  private void mockOneOutOfTwoObjectsDeleted(AmazonS3 mockAmazonS3) {
+    S3ObjectSummary s3ObjectSummary = new S3ObjectSummary();
+    s3ObjectSummary.setBucketName(bucket);
+    s3ObjectSummary.setKey(key1);
+    s3ObjectSummary.setSize(100L);
+    S3ObjectSummary s3ObjectSummary2 = new S3ObjectSummary();
+    s3ObjectSummary2.setBucketName(bucket);
+    s3ObjectSummary2.setKey(key2);
+    s3ObjectSummary2.setSize(50L);
+    ListObjectsV2Result listObjectsV2Result = mock(ListObjectsV2Result.class);
+    when(listObjectsV2Result.getObjectSummaries()).thenReturn(List.of(s3ObjectSummary, s3ObjectSummary2));
+    when(mockAmazonS3.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listObjectsV2Result);
+    DeleteObjectsResult.DeletedObject deletedObject = new DeleteObjectsResult.DeletedObject();
+    deletedObject.setKey(key1);
+    when(mockAmazonS3.deleteObjects(any(DeleteObjectsRequest.class)))
+      .thenReturn(new DeleteObjectsResult(List.of(deletedObject)));
   }
 }
