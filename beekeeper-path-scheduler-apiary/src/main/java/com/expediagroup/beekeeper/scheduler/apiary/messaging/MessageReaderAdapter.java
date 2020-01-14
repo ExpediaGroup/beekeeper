@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.scheduler.apiary.messaging;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -46,7 +47,7 @@ public class MessageReaderAdapter implements BeekeeperEventReader {
   public Optional<BeekeeperEvent> read() {
     Optional<MessageEvent> messageEvent = delegate.read();
 
-    if (!messageEvent.isPresent()) {
+    if (messageEvent.isEmpty()) {
       return Optional.empty();
     }
 
@@ -54,10 +55,11 @@ public class MessageReaderAdapter implements BeekeeperEventReader {
 
     List<HousekeepingPath> housekeepingPaths = handlers.parallelStream()
         .map(eventHandler -> eventHandler.handleMessage(message))
-        .flatMap(x -> x.stream())
+        .flatMap(paths -> paths.stream())
         .collect(Collectors.toList());
 
     if (housekeepingPaths.size() <= 0) {
+      delete(new BeekeeperEvent(Collections.emptyList(), message));
       return Optional.empty();
     }
 

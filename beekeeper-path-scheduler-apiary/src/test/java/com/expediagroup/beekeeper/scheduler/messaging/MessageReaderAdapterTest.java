@@ -74,6 +74,7 @@ public class MessageReaderAdapterTest {
     when(delegate.read()).thenReturn(Optional.of(messageEvent));
     when(handler.handleMessage(messageEvent)).thenReturn(Collections.emptyList());
     Optional<BeekeeperEvent> read = messageReaderAdapter.read();
+    verify(delegate).delete(messageEvent);
     assertThat(read).isEmpty();
   }
 

@@ -52,7 +52,7 @@ public class PathSchedulerApiary {
   public void scheduleBeekeeperEvent() {
     Optional<BeekeeperEvent> pathToBeScheduled = beekeeperEventReader.read();
 
-    if (!pathToBeScheduled.isPresent()) {
+    if (pathToBeScheduled.isEmpty()) {
       return;
     }
 

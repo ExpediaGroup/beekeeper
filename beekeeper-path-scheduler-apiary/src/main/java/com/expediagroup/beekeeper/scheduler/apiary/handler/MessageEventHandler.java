@@ -115,11 +115,11 @@ public abstract class MessageEventHandler {
         .pathStatus(PathStatus.SCHEDULED)
         .creationTimestamp(LocalDateTime.now())
         .cleanupDelay(extractCleanupDelay(listenerEvent))
-        .lifecycleType(event.lifecycleEvent.name())
+        .lifecycleType(event.getLifecycleEvent().name())
         .clientId(CLIENT_ID)
         .tableName(listenerEvent.getTableName())
         .databaseName(listenerEvent.getDbName())
-        .path(event.cleanupPath);
+        .path(event.getCleanupPath());
 
     return builder.build();
   }
