@@ -62,7 +62,6 @@ class MySqlTestUtils {
   }
 
   void insertPath(String path, String table) throws SQLException {
-    // TODO: for now, we'll just keep testing unreferenced paths only
     String lifecycleType = UNREFERENCED.toString().toLowerCase();
 
     String fields = String.join(", ", PATH, PATH_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME, LIFECYCLE_TYPE);

@@ -43,10 +43,10 @@ public class UnreferencedMessageHandler extends MessageEventHandler {
 
   @Override
   protected List<EventModel> generateEventModels(ListenerEvent event) {
-    Boolean tableWatchingUnreferenced = checkIfTablePropertyExists(event.getTableParameters());
+    Boolean tablePropertyExists = doesTablePropertyExists(event.getTableParameters());
     List<EventModel> eventPaths = new ArrayList<>();
 
-    if (!tableWatchingUnreferenced) {
+    if (!tablePropertyExists) {
       return eventPaths;
     }
 

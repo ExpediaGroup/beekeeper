@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
 
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
@@ -16,7 +15,6 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.model.PathStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
-@Component
 public abstract class GenericHandler {
 
   private final Logger log = LoggerFactory.getLogger(GenericHandler.class);

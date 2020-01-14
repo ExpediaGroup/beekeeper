@@ -66,9 +66,7 @@ public class CommonBeans {
   }
 
   @Bean(name = "sqsMessageReader")
-  public MessageReader messageReader(
-      @Value("${properties.apiary.queue-url}") String queueUrl
-  ) {
+  public MessageReader messageReader(@Value("${properties.apiary.queue-url}") String queueUrl) {
     return new SqsMessageReader.Builder(queueUrl).build();
   }
 

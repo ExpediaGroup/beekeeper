@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
@@ -41,11 +40,10 @@ import com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.model.EventModel;
 
-@Component
 public abstract class MessageEventHandler {
 
   private static final Logger log = LoggerFactory.getLogger(MessageEventHandler.class);
-  private final String CLIENT_ID = "apiary-metastore-event";
+  private static final String CLIENT_ID = "apiary-metastore-event";
   private final LifecycleEventType lifecycleEventType;
   private final String cleanupDelay;
   private final String hivePropertyKey;
@@ -80,7 +78,7 @@ public abstract class MessageEventHandler {
    * @param tableParameters
    * @return boolean
    */
-  boolean checkIfTablePropertyExists(Map<String, String> tableParameters) {
+  boolean doesTablePropertyExists(Map<String, String> tableParameters) {
     LifecycleEventType type = getLifecycleEventType();
     return Boolean.valueOf(tableParameters.get(type.getTableParameterName()));
   }

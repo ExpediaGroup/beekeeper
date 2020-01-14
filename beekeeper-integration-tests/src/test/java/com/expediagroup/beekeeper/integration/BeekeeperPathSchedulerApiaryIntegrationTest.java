@@ -64,7 +64,7 @@ import com.expediagroup.beekeeper.integration.model.DropPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.DropTableSqsMessage;
 import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperPathSchedulerApiary;
 
-public class PathSchedulerApiaryIntegrationTest {
+public class BeekeeperPathSchedulerApiaryIntegrationTest {
 
   private static final int TIMEOUT = 5;
   private static final String QUEUE = "apiary-receiver-queue";
