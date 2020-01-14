@@ -20,7 +20,6 @@ import static java.lang.String.format;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -50,40 +49,23 @@ public class PagingCleanupService implements CleanupService {
   @Timed("cleanup-job")
   public void cleanUp(Instant referenceTime) {
     try {
-      pathHandlers.stream()
-          .map(handler -> getAllPagesForHandler(handler, referenceTime))
-          .flatMap(List::stream)
-          .forEach(pageHelper -> pageHelper.handler.processPage(pageHelper.paths, dryRunEnabled));
+      pathHandlers.stream().forEach(handler -> pagingCleanup(handler, referenceTime));
     } catch (Exception e) {
       throw new BeekeeperException(format("Cleanup failed for instant %s", referenceTime.toString()), e);
     }
   }
 
   @Transactional
-  private List<PageHelper> getAllPagesForHandler(GenericHandler handler, Instant referenceTime) {
-    List<PageHelper> paths = new ArrayList<>();
+  private void pagingCleanup(GenericHandler handler, Instant referenceTime) {
     Pageable pageable = PageRequest.of(0, pageSize).first();
 
     LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);
     Page<EntityHousekeepingPath> page = handler.findRecordsToClean(instant, pageable);
 
     while (!page.getContent().isEmpty()) {
-      paths.add(new PageHelper(handler, page.getContent()));
+      handler.processPage(page.getContent(), dryRunEnabled);
       pageable = pageable.next();
       page = handler.findRecordsToClean(instant, pageable);
-    }
-
-    return paths;
-  }
-
-  private class PageHelper {
-
-    GenericHandler handler;
-    List<EntityHousekeepingPath> paths;
-
-    PageHelper(GenericHandler handler, List<EntityHousekeepingPath> paths) {
-      this.handler = handler;
-      this.paths = paths;
     }
   }
 }
