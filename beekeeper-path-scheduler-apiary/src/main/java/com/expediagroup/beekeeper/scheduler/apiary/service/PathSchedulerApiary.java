@@ -51,11 +51,7 @@ public class PathSchedulerApiary {
   @Transactional
   public void scheduleBeekeeperEvent() {
     Optional<BeekeeperEvent> pathToBeScheduled = beekeeperEventReader.read();
-
-    if (pathToBeScheduled.isEmpty()) {
-      return;
-    }
-
+    if (pathToBeScheduled.isEmpty()) { return; }
     BeekeeperEvent beekeeperEvent = pathToBeScheduled.get();
     List<HousekeepingPath> paths = beekeeperEvent.getHousekeepingPaths();
 
