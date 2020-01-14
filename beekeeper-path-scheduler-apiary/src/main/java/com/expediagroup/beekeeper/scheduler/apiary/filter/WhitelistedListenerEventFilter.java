@@ -23,6 +23,8 @@ import org.springframework.stereotype.Component;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+
 @Component
 public class WhitelistedListenerEventFilter implements ListenerEventFilter {
 
@@ -33,7 +35,7 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
   public FilterType getFilterType() { return TYPE; }
 
   @Override
-  public boolean filter(ListenerEvent listenerEvent) {
+  public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
     if (tableParameters != null && tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST) != null) {
       return !isWhitelisted(listenerEvent, tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST));

@@ -21,7 +21,6 @@ import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -72,17 +71,6 @@ public abstract class MessageEventHandler {
     return generateHouseKeepingPaths(listenerEvent);
   }
 
-  /**
-   * Get's a boolean flag if the given tableparameters exist for this mapper
-   *
-   * @param tableParameters
-   * @return boolean
-   */
-  boolean doesTablePropertyExists(Map<String, String> tableParameters) {
-    LifecycleEventType type = getLifecycleEventType();
-    return Boolean.valueOf(tableParameters.get(type.getTableParameterName()));
-  }
-
   abstract List<EventModel> generateEventModels(ListenerEvent listenerEvent);
 
   private List<ListenerEventFilter> getValidFilters() {
@@ -93,7 +81,8 @@ public abstract class MessageEventHandler {
   }
 
   private boolean shouldFilterMessage(ListenerEvent listenerEvent) {
-    return getValidFilters().stream().anyMatch(filter -> filter.filter(listenerEvent));
+    return getValidFilters().stream()
+        .anyMatch(filter -> filter.filter(listenerEvent, lifecycleEventType));
   }
 
   /**

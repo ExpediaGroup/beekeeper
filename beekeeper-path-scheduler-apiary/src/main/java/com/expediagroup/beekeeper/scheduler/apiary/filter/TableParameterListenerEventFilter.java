@@ -21,21 +21,24 @@ import org.springframework.stereotype.Component;
 
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+
 @Component
 public class TableParameterListenerEventFilter implements ListenerEventFilter {
 
-  private static final String BEEKEEPER_TABLE_PARAMETER = "beekeeper.remove.unreferenced.data";
   private final FilterType TYPE = FilterType.TABLE_PARAMETER;
 
   @Override
   public FilterType getFilterType() { return TYPE; }
 
   @Override
-  public boolean filter(ListenerEvent listenerEvent) {
+  public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
+
     if (tableParameters == null) {
       return true;
     }
-    return !Boolean.valueOf(tableParameters.get(BEEKEEPER_TABLE_PARAMETER));
+
+    return !Boolean.valueOf(tableParameters.get(lifecycleEventType.getTableParameterName()));
   }
 }

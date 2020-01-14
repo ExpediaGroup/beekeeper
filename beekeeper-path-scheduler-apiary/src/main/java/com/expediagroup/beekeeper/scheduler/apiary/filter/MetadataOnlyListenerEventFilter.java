@@ -22,6 +22,8 @@ import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+
 @Component
 public class MetadataOnlyListenerEventFilter implements ListenerEventFilter {
 
@@ -31,7 +33,7 @@ public class MetadataOnlyListenerEventFilter implements ListenerEventFilter {
   public FilterType getFilterType() { return TYPE; }
 
   @Override
-  public boolean filter(ListenerEvent listenerEvent) {
+  public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     EventType eventType = listenerEvent.getEventType();
     switch (eventType) {
     case ALTER_PARTITION:

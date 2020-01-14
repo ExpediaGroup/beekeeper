@@ -43,12 +43,7 @@ public class UnreferencedMessageHandler extends MessageEventHandler {
 
   @Override
   protected List<EventModel> generateEventModels(ListenerEvent event) {
-    Boolean tablePropertyExists = doesTablePropertyExists(event.getTableParameters());
     List<EventModel> eventPaths = new ArrayList<>();
-
-    if (!tablePropertyExists) {
-      return eventPaths;
-    }
 
     switch (event.getEventType()) {
     case ALTER_PARTITION:

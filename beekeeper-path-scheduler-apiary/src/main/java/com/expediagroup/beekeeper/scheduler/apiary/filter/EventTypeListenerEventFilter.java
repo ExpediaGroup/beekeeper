@@ -23,6 +23,8 @@ import com.expedia.apiary.extensions.receiver.common.event.DropPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+
 @Component
 public class EventTypeListenerEventFilter implements ListenerEventFilter {
 
@@ -32,7 +34,7 @@ public class EventTypeListenerEventFilter implements ListenerEventFilter {
   public FilterType getFilterType() { return TYPE; }
 
   @Override
-  public boolean filter(ListenerEvent listenerEvent) {
+  public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Class<? extends ListenerEvent> eventClass = listenerEvent.getEventType().eventClass();
     return !(AlterPartitionEvent.class.equals(eventClass) ||
         AlterTableEvent.class.equals(eventClass) ||

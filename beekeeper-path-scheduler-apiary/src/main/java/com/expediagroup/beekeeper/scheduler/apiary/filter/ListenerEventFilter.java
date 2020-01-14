@@ -17,9 +17,11 @@ package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+
 public interface ListenerEventFilter {
 
   FilterType getFilterType();
 
-  boolean filter(ListenerEvent listenerEvent);
+  boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType);
 }

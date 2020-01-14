@@ -11,7 +11,6 @@ import static com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType.WHIT
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -77,15 +76,6 @@ public class UnreferencedMessageEventHandlerTest {
   @Before
   public void setup() throws Exception {
     MockitoAnnotations.initMocks(this);
-  }
-
-  @Test
-  public void ignoreUnconfiguredTables() {
-    setupFilterMap(alterPartitionEvent, true, false, true, false, true, false, true, false);
-    when(alterPartitionEvent.getTableParameters()).thenReturn(Collections.emptyMap());
-    when(messageEvent.getEvent()).thenReturn(alterPartitionEvent);
-    List<HousekeepingPath> paths = msgHandler.handleMessage(messageEvent);
-    assertThat(paths.isEmpty()).isTrue();
   }
 
   @Test
@@ -174,7 +164,7 @@ public class UnreferencedMessageEventHandlerTest {
 
     for (StubFilterMapValue stub : stubFilters) {
       if (stub.enabled) {
-        when(stub.filterObj.filter(listenerEvent)).thenReturn(stub.returnValue);
+        when(stub.filterObj.filter(listenerEvent, UNREFERENCED)).thenReturn(stub.returnValue);
         filterMap.put(stub.type, stub.filterObj);
       }
     }

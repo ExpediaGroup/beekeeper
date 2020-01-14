@@ -18,6 +18,8 @@ package com.expediagroup.beekeeper.scheduler.filter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -51,35 +53,35 @@ public class EventTypeListenerEventFilterTest {
   @Test
   public void typicalFilterAlterPartitionEvent() {
     when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
-    boolean filter = listenerEventFilter.filter(alterPartitionEvent);
+    boolean filter = listenerEventFilter.filter(alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
   @Test
   public void typicalFilterAlterTableEvent() {
     when(alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
-    boolean filter = listenerEventFilter.filter(alterTableEvent);
+    boolean filter = listenerEventFilter.filter(alterTableEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
   @Test
   public void typicalFilterDropPartitionEvent() {
     when(dropPartitionEvent.getEventType()).thenReturn(EventType.DROP_PARTITION);
-    boolean filter = listenerEventFilter.filter(dropPartitionEvent);
+    boolean filter = listenerEventFilter.filter(dropPartitionEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
   @Test
   public void typicalFilterDropTableEvent() {
     when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
-    boolean filter = listenerEventFilter.filter(dropTableEvent);
+    boolean filter = listenerEventFilter.filter(dropTableEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
   @Test
   public void typicalFilterOtherEvent() {
     when(addPartitionEvent.getEventType()).thenReturn(EventType.ADD_PARTITION);
-    boolean filter = listenerEventFilter.filter(addPartitionEvent);
+    boolean filter = listenerEventFilter.filter(addPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
 }
