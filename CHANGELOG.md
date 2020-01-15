@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] - TBD
+## [2.0.0] - TBD
 ### Added
 - Add `LifecycleEventType` enum in `beekeeper-core` to describe supported data lifecycles.
 - Increase unit test coverage for `beekeeper-path-scheduler-apiary` package.
