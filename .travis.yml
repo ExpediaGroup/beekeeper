@@ -21,13 +21,13 @@ install:
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true --quiet --batch-mode --show-version --activate-profiles travis
 
 
-baseUnitTest: &baseUnitTest
+.base_unit_test: &base_unit_test
   stage: unit_test
   if: type = push
   script:
     - mvn -pl "$TEST_SUITE" test
 
-baseIntegrationTest: &baseIntegrationTest
+.base_integration_test: &base_integration_test
   stage: integration_test
   if: type = pull_request
   script:
@@ -37,23 +37,23 @@ baseIntegrationTest: &baseIntegrationTest
 
 jobs:
   include:
-    - <<: *baseUnitTest
+    - <<: *base_unit_test
       env:
         - TEST_SUITE: beekeeper-cleanup
-    - <<: *baseUnitTest
+    - <<: *base_unit_test
       env:
         - TEST_SUITE: beekeeper-core
-    - <<: *baseUnitTest
+    - <<: *base_unit_test
       env:
         - TEST_SUITE: beekeeper-path-scheduler,beekeeper-path-scheduler-apiar
 
 
-    - <<: *baseIntegrationTest
+    - <<: *base_integration_test
       env:
         - TEST_FILE: BeekeeperCleanupIntegrationTest
-    - <<: *baseIntegrationTest
+    - <<: *base_integration_test
       env:
         - TEST_FILE: BeekeeperDryRunCleanupIntegrationTest
-    - <<: *baseIntegrationTest
+    - <<: *base_integration_test
       env:
         - TEST_FILE: BeekeeperPathSchedulerApiaryIntegrationTest
