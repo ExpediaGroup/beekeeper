@@ -1,31 +1,59 @@
+stages:
+  - unitTest
+  - integrationTest
+
 language: java
+
+services:
+  - docker
+
 jdk:
   - openjdk11
+
 os:
   - linux
+
 cache:
   directories:
     - ~/.m2/repository
+
 install:
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true --quiet --batch-mode --show-version --activate-profiles travis
 
+
+baseUnitTest: &baseUnitTest
+  stage: unitTest
+  if: type = push
+  script:
+    - mvn -pl "$TEST_SUITE" test
+
+baseIntegrationTest: &baseIntegrationTest
+  stage: integrationTest
+  if: type = pull_request
+  script:
+    #    - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then bash ./travis/run_on_pull_requests; fi'
+    #    - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./travis/run_on_non_pull_requests; fi'
+    - mvn -pl 'beekeeper-integration-test' -Dtest="$TEST_FILE" test
+
 jobs:
   include:
-    - name: "Unit Tests - Cleanup"
-      if: type = push
-      script:
-        - mvn -pl 'beekeeper-cleanup' test
-    - name: "Unit Tests - Core"
-      if: type = push
-      script:
-        - mvn -pl 'beekeeper-core' test
-    - name: "Unit Tests - Path-Scheduler"
-      if: type = push
-      script:
-        - mvn -pl 'beekeeper-path-scheduler,beekeeper-path-scheduler-apiary' test
-    - name: "Integration Tests"
-      if: type = pull_request
-      script:
-        - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then bash ./travis/run_on_pull_requests; fi'
-        - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./travis/run_on_non_pull_requests; fi'
-        - mvn -pl 'beekeeper-integration-tests' test
+    - <<: *baseUnitTest
+      env:
+        - TEST_SUITE: beekeeper-cleanup
+    - <<: *baseUnitTest
+      env:
+        - TEST_SUITE: beekeeper-core
+    - <<: *baseUnitTest
+      env:
+        - TEST_SUITE: beekeeper-path-scheduler,beekeeper-path-scheduler-apiar
+
+
+    - <<: *baseIntegrationTest
+      env:
+        - TEST_FILE: BeekeeperCleanupIntegrationTest
+    - <<: *baseIntegrationTest
+      env:
+        - TEST_FILE: BeekeeperDryCleanupIntegrationTest
+    - <<: *baseIntegrationTest
+      env:
+        - TEST_FILE: BeekeeperPathSchedulerApiaryIntegrationTest
