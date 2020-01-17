@@ -19,10 +19,7 @@ jobs:
         - mvn -pl 'beekeeper-core' test
     - name: "Unit Tests - Path-Scheduler"
       script:
-        - mvn -pl 'beekeeper-path-scheduler' test
-    - name: "Unit Tests - Path-Scheduler-Apiary"
-      script:
-        - mvn -pl 'beekeeper-path-scheduler-apiary' test
+        - mvn -pl 'beekeeper-path-scheduler,beekeeper-path-scheduler-apiary' test
     - name: "Integration Tests"
       if: type = pull_request
       script:
