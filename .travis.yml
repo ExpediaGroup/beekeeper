@@ -20,7 +20,6 @@ cache:
 install:
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true --quiet --batch-mode --show-version --activate-profiles travis
 
-
 .base_unit_test: &base_unit_test
   stage: unit_test
   if: type = push
@@ -31,8 +30,6 @@ install:
   stage: integration_test
   if: type = pull_request
   script:
-    #    - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then bash ./travis/run_on_pull_requests; fi'
-    #    - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./travis/run_on_non_pull_requests; fi'
     - mvn -pl 'beekeeper-integration-tests' -Dtest=$TEST_FILE test
 
 jobs:
