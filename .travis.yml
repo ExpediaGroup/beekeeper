@@ -1,6 +1,6 @@
 stages:
-  - unitTest
-  - integrationTest
+  - unit_test
+  - integration_test
 
 language: java
 
@@ -22,18 +22,18 @@ install:
 
 
 baseUnitTest: &baseUnitTest
-  stage: unitTest
+  stage: unit_test
   if: type = push
   script:
     - mvn -pl "$TEST_SUITE" test
 
 baseIntegrationTest: &baseIntegrationTest
-  stage: integrationTest
+  stage: integration_test
   if: type = pull_request
   script:
     #    - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then bash ./travis/run_on_pull_requests; fi'
     #    - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./travis/run_on_non_pull_requests; fi'
-    - mvn -pl 'beekeeper-integration-test' -Dtest="$TEST_FILE" test
+    - mvn -pl 'beekeeper-integration-tests' -Dtest=$TEST_FILE test
 
 jobs:
   include:
@@ -53,7 +53,7 @@ jobs:
         - TEST_FILE: BeekeeperCleanupIntegrationTest
     - <<: *baseIntegrationTest
       env:
-        - TEST_FILE: BeekeeperDryCleanupIntegrationTest
+        - TEST_FILE: BeekeeperDryRunCleanupIntegrationTest
     - <<: *baseIntegrationTest
       env:
         - TEST_FILE: BeekeeperPathSchedulerApiaryIntegrationTest
