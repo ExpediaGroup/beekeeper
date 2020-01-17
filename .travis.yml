@@ -45,7 +45,7 @@ jobs:
         - TEST_SUITE: beekeeper-core
     - <<: *base_unit_test
       env:
-        - TEST_SUITE: beekeeper-path-scheduler,beekeeper-path-scheduler-apiar
+        - TEST_SUITE: beekeeper-path-scheduler,beekeeper-path-scheduler-apiary
 
 
     - <<: *base_integration_test
