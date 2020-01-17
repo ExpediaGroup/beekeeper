@@ -11,9 +11,18 @@ install:
 
 jobs:
   include:
-    - name: "Unit Tests"
+    - name: "Unit Tests - Cleanup"
       script:
-        - mvn -pl '!beekeeper-integration-tests' test
+        - mvn -pl 'beekeeper-cleanup' test
+    - name: "Unit Tests - Core"
+      script:
+        - mvn -pl 'beekeeper-core' test
+    - name: "Unit Tests - Path-Scheduler"
+      script:
+        - mvn -pl 'beekeeper-path-scheduler' test
+    - name: "Unit Tests - Path-Scheduler-Apiary"
+      script:
+        - mvn -pl 'beekeeper-path-scheduler-apiary' test
     - name: "Integration Tests"
       if: type = pull_request
       script:
