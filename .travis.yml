@@ -13,11 +13,11 @@ jobs:
   include:
     - name: "Unit Tests"
       script:
-        - mvn package --batch-mode --show-version --activate-profiles travis
+        - mvn -pl '!beekeeper-integration-tests' test
     - name: "Integration Tests"
       if: type = pull_request
       script:
         - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then bash ./travis/run_on_pull_requests; fi'
         - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./travis/run_on_non_pull_requests; fi'
-        - mvn package --batch-mode --show-version --activate-profiles travis
+        - mvn -pl 'beekeeper-integration-tests' test
 
