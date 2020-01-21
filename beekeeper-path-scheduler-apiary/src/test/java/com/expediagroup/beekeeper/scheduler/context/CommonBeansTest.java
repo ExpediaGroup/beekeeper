@@ -36,16 +36,16 @@ public class CommonBeansTest {
   private final CommonBeans commonBeans = new CommonBeans();
   @Mock private MessageReader messageReader;
 
-  @AfterAll
-  static void teardown() {
-    System.clearProperty(AWS_REGION_PROPERTY);
-    System.clearProperty(AWS_S3_ENDPOINT_PROPERTY);
-  }
-
   @BeforeEach
   void setUp() {
     System.setProperty(AWS_REGION_PROPERTY, REGION);
     System.setProperty(AWS_S3_ENDPOINT_PROPERTY, ENDPOINT);
+  }
+
+  @AfterAll
+  static void tearDown() {
+    System.clearProperty(AWS_REGION_PROPERTY);
+    System.clearProperty(AWS_S3_ENDPOINT_PROPERTY);
   }
 
   @Test
