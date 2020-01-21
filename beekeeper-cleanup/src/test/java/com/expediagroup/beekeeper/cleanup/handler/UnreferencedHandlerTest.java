@@ -3,12 +3,10 @@ package com.expediagroup.beekeeper.cleanup.handler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
@@ -21,11 +19,6 @@ public class UnreferencedHandlerTest {
   @Mock private S3PathCleaner s3PathCleaner;
   @InjectMocks private final UnreferencedHandler handler = new UnreferencedHandler(s3PathCleaner);
   @Mock private HousekeepingPathRepository housekeepingPathRepository;
-
-  @Before
-  public void init() {
-    MockitoAnnotations.initMocks(this);
-  }
 
   @Test
   public void verifyPathCleaner() {

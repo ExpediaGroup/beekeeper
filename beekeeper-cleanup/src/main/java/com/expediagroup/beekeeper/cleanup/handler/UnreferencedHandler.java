@@ -22,12 +22,11 @@ public class UnreferencedHandler extends GenericHandler {
 
   @Autowired
   public UnreferencedHandler(S3PathCleaner s3PathCleaner) {
-    super();
     this.s3PathCleaner = s3PathCleaner;
   }
 
   @VisibleForTesting
-  public void setS3PathCleaner(S3PathCleaner cleaner) {
+  void setS3PathCleaner(S3PathCleaner cleaner) {
     s3PathCleaner = cleaner;
   }
 

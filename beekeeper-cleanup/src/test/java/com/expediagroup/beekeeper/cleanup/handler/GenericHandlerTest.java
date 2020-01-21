@@ -6,12 +6,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
@@ -26,12 +24,6 @@ public class GenericHandlerTest {
   @Mock private S3PathCleaner pathCleaner;
   @InjectMocks private final UnreferencedHandler handler = new UnreferencedHandler(pathCleaner);
   @Mock private EntityHousekeepingPath mockPath;
-
-  @Before
-  public void init() {
-    handler.setS3PathCleaner(pathCleaner);
-    MockitoAnnotations.initMocks(this);
-  }
 
   @Test
   public void typicalProcessDryRunPage() {
