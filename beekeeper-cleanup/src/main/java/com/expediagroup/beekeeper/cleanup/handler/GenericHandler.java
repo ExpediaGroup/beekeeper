@@ -24,6 +24,8 @@ public abstract class GenericHandler {
 
   public abstract PathCleaner getPathCleaner();
 
+  protected abstract void setPathCleaner(PathCleaner cleaner);
+
   public abstract Page<EntityHousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable);
 
   public void processPage(List<EntityHousekeepingPath> pageContent, boolean dryRunEnabled) {

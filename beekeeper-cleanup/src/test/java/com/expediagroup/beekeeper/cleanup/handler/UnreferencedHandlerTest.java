@@ -22,7 +22,6 @@ public class UnreferencedHandlerTest {
 
   @Test
   public void verifyPathCleaner() {
-    handler.setS3PathCleaner(s3PathCleaner);
     assertThat(handler.getPathCleaner()).isInstanceOf(S3PathCleaner.class);
   }
 

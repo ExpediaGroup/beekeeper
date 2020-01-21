@@ -7,8 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
@@ -25,11 +23,6 @@ public class UnreferencedHandler extends GenericHandler {
     this.s3PathCleaner = s3PathCleaner;
   }
 
-  @VisibleForTesting
-  void setS3PathCleaner(S3PathCleaner cleaner) {
-    s3PathCleaner = cleaner;
-  }
-
   @Override
   public LifecycleEventType getLifecycleType() {
     return EVENT_TYPE;
@@ -37,6 +30,9 @@ public class UnreferencedHandler extends GenericHandler {
 
   @Override
   public PathCleaner getPathCleaner() { return s3PathCleaner; }
+
+  @Override
+  protected void setPathCleaner(PathCleaner cleaner) { s3PathCleaner = (S3PathCleaner) cleaner; }
 
   @Override
   public Page<EntityHousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable) {
