@@ -32,6 +32,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 import com.expediagroup.beekeeper.cleanup.handler.GenericHandler;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3Client;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.aws.S3SentinelFilesCleaner;
@@ -68,8 +69,8 @@ public class CommonBeans {
     return new S3Client(amazonS3, dryRunEnabled);
   }
 
-  @Bean
-  S3PathCleaner s3PathCleaner(S3Client s3Client, BytesDeletedReporter bytesDeletedReporter) {
+  @Bean(name = "s3PathCleaner")
+  PathCleaner pathCleaner(S3Client s3Client, BytesDeletedReporter bytesDeletedReporter) {
     return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
   }
 
