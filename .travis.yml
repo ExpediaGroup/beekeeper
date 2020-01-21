@@ -1,0 +1,20 @@
+os:
+  - linux
+
+language: java
+
+jdk:
+  - openjdk11
+
+cache:
+  directories:
+    - ~/.m2/repository
+
+services:
+  - docker
+
+install:
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true --quiet --batch-mode --show-version --activate-profiles travis
+
+script:
+  - mvn package --batch-mode --show-version --activate-profiles travis
