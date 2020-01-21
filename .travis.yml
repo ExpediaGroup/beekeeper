@@ -13,44 +13,8 @@ cache:
 services:
   - docker
 
-stages:
-  - unit_test
-  - integration_test
-
 install:
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true --quiet --batch-mode --show-version --activate-profiles travis
 
-.base_unit_test: &base_unit_test
-  stage: unit_test
-  if: type = push
-  script:
-    - mvn --projects "$TEST_SUITE" test
-
-.base_integration_test: &base_integration_test
-  stage: integration_test
-  if: type = pull_request
-  script:
-    - mvn --projects 'beekeeper-integration-tests' -Dtest=$TEST_FILE test
-
-jobs:
-  include:
-    - <<: *base_unit_test
-      env:
-        - TEST_SUITE: beekeeper-cleanup
-    - <<: *base_unit_test
-      env:
-        - TEST_SUITE: beekeeper-core
-    - <<: *base_unit_test
-      env:
-        - TEST_SUITE: beekeeper-path-scheduler,beekeeper-path-scheduler-apiary
-
-
-    - <<: *base_integration_test
-      env:
-        - TEST_FILE: BeekeeperCleanupIntegrationTest
-    - <<: *base_integration_test
-      env:
-        - TEST_FILE: BeekeeperDryRunCleanupIntegrationTest
-    - <<: *base_integration_test
-      env:
-        - TEST_FILE: BeekeeperPathSchedulerApiaryIntegrationTest
+script:
+  - mvn package --batch-mode --show-version --activate-profiles travis
