@@ -26,8 +26,7 @@
 
   <scm>
     <connection>scm:git:https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/ExpediaGroup/beekeeper.git</connection>
-    <developerConnection>scm:git:https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/ExpediaGroup/beekeeper.git
-    </developerConnection>
+    <developerConnection>scm:git:https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/ExpediaGroup/beekeeper.git</developerConnection>
     <url>https://github.com/ExpediaGroup/beekeeper</url>
     <tag>HEAD</tag>
   </scm>
