@@ -1,21 +1,21 @@
-stages:
-  - unit_test
-  - integration_test
+os:
+  - linux
 
 language: java
-
-services:
-  - docker
 
 jdk:
   - openjdk11
 
-os:
-  - linux
-
 cache:
   directories:
     - ~/.m2/repository
+
+services:
+  - docker
+
+stages:
+  - unit_test
+  - integration_test
 
 install:
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true --quiet --batch-mode --show-version --activate-profiles travis
@@ -24,13 +24,13 @@ install:
   stage: unit_test
   if: type = push
   script:
-    - mvn -pl "$TEST_SUITE" test
+    - mvn --projects "$TEST_SUITE" test
 
 .base_integration_test: &base_integration_test
   stage: integration_test
   if: type = pull_request
   script:
-    - mvn -pl 'beekeeper-integration-tests' -Dtest=$TEST_FILE test
+    - mvn --projects 'beekeeper-integration-tests' -Dtest=$TEST_FILE test
 
 jobs:
   include:
