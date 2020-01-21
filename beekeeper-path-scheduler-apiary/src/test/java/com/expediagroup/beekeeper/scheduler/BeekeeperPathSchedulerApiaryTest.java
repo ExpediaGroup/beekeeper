@@ -32,7 +32,6 @@ public class BeekeeperPathSchedulerApiaryTest {
   @Test
   public void verifyApplicationContext() {
     setupContextMock(true, true, true);
-    return;
   }
 
   @Test
