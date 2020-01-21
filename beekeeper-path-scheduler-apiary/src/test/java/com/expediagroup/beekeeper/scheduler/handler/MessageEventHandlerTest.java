@@ -13,12 +13,10 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -49,11 +47,6 @@ public class MessageEventHandlerTest {
   @Mock private AlterPartitionEvent listenerEvent;
   @Mock private WhitelistedListenerEventFilter whiteListFilter;
   @Mock private TableParameterListenerEventFilter tableFilter;
-
-  @Before
-  public void setup() throws Exception {
-    MockitoAnnotations.initMocks(this);
-  }
 
   @Test
   public void typicalHandleMessage() {
