@@ -24,6 +24,6 @@ jobs:
     - name: Install Maven Dependencies
       run: mvn install -DskipTests=true -Dmaven.javadoc.skip=true --quiet --batch-mode --show-version --activate-profiles travis
 
-    - name: Install Maven Dependencies
+    - name: Run Maven Package
       run: mvn package --batch-mode --show-version --activate-profiles travis
 
