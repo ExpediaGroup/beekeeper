@@ -47,9 +47,6 @@ public class UnreferencedHandler extends GenericHandler {
   public PathCleaner getPathCleaner() { return pathCleaner; }
 
   @Override
-  protected void setPathCleaner(PathCleaner pathCleaner) { this.pathCleaner = pathCleaner; }
-
-  @Override
   public Page<EntityHousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable) {
     return housekeepingPathRepository.findRecordsForCleanupByModifiedTimestamp(instant, pageable);
   }
