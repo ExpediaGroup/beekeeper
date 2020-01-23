@@ -49,7 +49,7 @@ public class PagingCleanupService implements CleanupService {
   @Timed("cleanup-job")
   public void cleanUp(Instant referenceTime) {
     try {
-      pathHandlers.stream().forEach(handler -> pagingCleanup(handler, referenceTime));
+      pathHandlers.forEach(handler -> pagingCleanup(handler, referenceTime));
     } catch (Exception e) {
       throw new BeekeeperException(format("Cleanup failed for instant %s", referenceTime.toString()), e);
     }

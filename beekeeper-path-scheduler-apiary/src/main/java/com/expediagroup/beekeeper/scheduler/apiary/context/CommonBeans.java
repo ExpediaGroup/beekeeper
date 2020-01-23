@@ -18,7 +18,6 @@ package com.expediagroup.beekeeper.scheduler.apiary.context;
 import java.util.EnumMap;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -47,14 +46,10 @@ import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 @EnableRetry(proxyTargetClass = true)
 public class CommonBeans {
 
-  @Autowired private List<SchedulerService> schedulerServices;
-  @Autowired private List<MessageEventHandler> handlers;
-  @Autowired private List<ListenerEventFilter> filters;
-
   @Bean
   public EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap(List<SchedulerService> schedulerServices) {
     EnumMap<LifecycleEventType, SchedulerService> schedulerMap = new EnumMap<>(LifecycleEventType.class);
-    schedulerServices.stream().forEach(scheduler -> schedulerMap.put(scheduler.getLifecycleEventType(), scheduler));
+    schedulerServices.forEach(scheduler -> schedulerMap.put(scheduler.getLifecycleEventType(), scheduler));
     return schedulerMap;
   }
 
