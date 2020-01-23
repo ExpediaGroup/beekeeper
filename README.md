@@ -1,4 +1,4 @@
-# Overview
+# Overview [![Build Status](https://travis-ci.com/ExpediaGroup/beekeeper.svg?branch=master)](https://travis-ci.com/ExpediaGroup/beekeeper)
 
 Beekeeper is a service that schedules orphaned paths for deletion.
 
