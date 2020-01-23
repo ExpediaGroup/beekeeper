@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.1] - TBD
 ### Changed
 - `S3Client.listObjects()` to list all objects at a key with batching.  
+- `eg-oss-parent` version updated to 1.3.1 (was 1.1.0).
 
 ## [1.2.0] - 2020-01-06
 ### Adding
