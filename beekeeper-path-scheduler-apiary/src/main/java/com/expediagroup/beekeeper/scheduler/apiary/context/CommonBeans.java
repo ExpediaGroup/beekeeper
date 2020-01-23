@@ -56,7 +56,7 @@ public class CommonBeans {
   @Bean
   public EnumMap<FilterType, ListenerEventFilter> filterTypeMap(List<ListenerEventFilter> filters) {
     EnumMap<FilterType, ListenerEventFilter> filterTypeMap = new EnumMap<>(FilterType.class);
-    filters.stream().forEach(filter -> filterTypeMap.put(filter.getFilterType(), filter));
+    filters.forEach(filter -> filterTypeMap.put(filter.getFilterType(), filter));
     return filterTypeMap;
   }
 

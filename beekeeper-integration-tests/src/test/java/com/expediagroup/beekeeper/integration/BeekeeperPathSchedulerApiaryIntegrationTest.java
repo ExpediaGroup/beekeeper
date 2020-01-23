@@ -230,12 +230,12 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
             "s3://unreferencedPartitionLocation", true, true),
         new AlterPartitionSqsMessage("s3://expiredTableLocation2", "s3://partitionLocation2", "s3://partitionLocation",
             true, true)
-    ).stream().forEach(msg -> amazonSQS.sendMessage(sendMessageRequest(msg.getFormattedString())));
+    ).forEach(msg -> amazonSQS.sendMessage(sendMessageRequest(msg.getFormattedString())));
 
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.unreferencedRowsInTable(PATH_TABLE) == 2);
     List<EntityHousekeepingPath> unreferencedPaths = mySqlTestUtils.getUnreferencedPaths();
 
-    unreferencedPaths.stream().forEach(hkPath -> assertUnreferencedPathFields(hkPath));
+    unreferencedPaths.forEach(hkPath -> assertUnreferencedPathFields(hkPath));
     Set<String> unreferencedPathSet = unreferencedPaths.stream()
         .map(hkPath -> hkPath.getPath())
         .collect(Collectors.toSet());
