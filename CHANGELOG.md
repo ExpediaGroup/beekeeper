@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored internals of `beekeeper-path-scheduler-apiary` to support generic Lifecycle scheduling.
     - Inserted additional workflow (handlers) between read & filter actions to support filters per Lifecycle type.
     - MessageReaderAdapter now has additional logic to orchestrate the updated workflow.
-    - Rename `PathEvent` to `BeekeeperEvent` to better reflect event types.
+    - Renamed `PathEvent` to `BeekeeperEvent` to better reflect event types.
 - Refactored internals of `beekeeper-path-scheduler` to support generic data Lifecycle scheduling.
     - Rename `PathSchedulerService` to `UnreferencedPathSchedulerService` to differentiate types.
 - Refactored internals of `beekeeper-cleanup` to support generic data Lifecycle deletions.
