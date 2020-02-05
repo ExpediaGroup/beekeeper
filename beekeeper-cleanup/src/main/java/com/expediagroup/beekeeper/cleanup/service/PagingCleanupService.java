@@ -63,8 +63,7 @@ public class PagingCleanupService implements CleanupService {
     Page<EntityHousekeepingPath> page = handler.findRecordsToClean(instant, pageable);
 
     while (!page.getContent().isEmpty()) {
-      handler.processPage(page.getContent(), dryRunEnabled);
-      pageable = pageable.next();
+      handler.processPage(pageable, page, dryRunEnabled);
       page = handler.findRecordsToClean(instant, pageable);
     }
   }

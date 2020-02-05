@@ -16,16 +16,19 @@
 package com.expediagroup.beekeeper.cleanup.handler;
 
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
@@ -37,20 +40,32 @@ public class GenericHandlerTest {
 
   @Mock private HousekeepingPathRepository housekeepingPathRepository;
   @Mock private S3PathCleaner pathCleaner;
-  @InjectMocks private final UnreferencedHandler handler = new UnreferencedHandler(pathCleaner);
   @Mock private EntityHousekeepingPath mockPath;
+  @Mock private Pageable mockPageable;
+  @Mock private PageImpl<EntityHousekeepingPath> mockPage;
+
+  private UnreferencedHandler handler;
+
+  @BeforeEach
+  public void initTest() {
+    handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
+  }
 
   @Test
   public void typicalProcessDryRunPage() {
-    handler.processPage(List.of(mockPath), true);
+    when(mockPage.getContent()).thenReturn(List.of(mockPath));
+    handler.processPage(mockPageable, mockPage, true);
+    verify(mockPageable).next();
     verify(pathCleaner).cleanupPath(mockPath);
   }
 
   @Test
   public void typicalProcessPage() {
     when(mockPath.getCleanupAttempts()).thenReturn(0);
-    handler.processPage(List.of(mockPath), false);
+    when(mockPage.getContent()).thenReturn(List.of(mockPath));
+    handler.processPage(mockPageable, mockPage, false);
     verify(pathCleaner).cleanupPath(mockPath);
+    verify(mockPageable, never()).next();
     verify(mockPath).setCleanupAttempts(1);
     verify(mockPath).setPathStatus(PathStatus.DELETED);
     verify(housekeepingPathRepository).save(mockPath);
@@ -60,7 +75,9 @@ public class GenericHandlerTest {
   public void processPageFails() {
     when(mockPath.getCleanupAttempts()).thenReturn(0);
     doThrow(RuntimeException.class).when(pathCleaner).cleanupPath(mockPath);
-    handler.processPage(List.of(mockPath), false);
+    when(mockPage.getContent()).thenReturn(List.of(mockPath));
+    handler.processPage(mockPageable, mockPage, false);
+    verify(mockPageable, never()).next();
     verify(mockPath).setCleanupAttempts(1);
     verify(mockPath).setPathStatus(PathStatus.FAILED);
     verify(housekeepingPathRepository).save(mockPath);

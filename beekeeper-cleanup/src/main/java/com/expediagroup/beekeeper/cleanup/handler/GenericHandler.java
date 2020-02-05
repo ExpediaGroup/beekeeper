@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -33,7 +32,8 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 public abstract class GenericHandler {
 
   private final Logger log = LoggerFactory.getLogger(GenericHandler.class);
-  @Autowired HousekeepingPathRepository housekeepingPathRepository;
+
+  public abstract HousekeepingPathRepository getHousekeepingPathRepository();
 
   public abstract LifecycleEventType getLifecycleType();
 
@@ -41,9 +41,21 @@ public abstract class GenericHandler {
 
   public abstract Page<EntityHousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable);
 
-  public void processPage(List<EntityHousekeepingPath> pageContent, boolean dryRunEnabled) {
+  /**
+   * Processes a pageable entityHouseKeepingPath page.
+   *
+   * @param pageable Pageable to iterate through for dryRun
+   * @param page Page to get content from
+   * @param dryRunEnabled Dry Run boolean flag
+   * @implNote This parent handler expects the child's cleanupPath call to update & remove the record from this call such
+   * that subsequent DB queries will not return the record. Hence why we only call next during dryRuns where no updates occur.
+   * @implNote Note that we only expect pageable.next to be called on
+   */
+  public void processPage(Pageable pageable, Page<EntityHousekeepingPath> page, boolean dryRunEnabled) {
+    List<EntityHousekeepingPath> pageContent = page.getContent();
     if (dryRunEnabled) {
       pageContent.forEach(this::cleanUpPath);
+      pageable.next();
     } else {
       pageContent.forEach(this::cleanupContent);
     }
@@ -68,6 +80,6 @@ public abstract class GenericHandler {
   private void updateAttemptsAndStatus(EntityHousekeepingPath housekeepingPath, PathStatus status) {
     housekeepingPath.setCleanupAttempts(housekeepingPath.getCleanupAttempts() + 1);
     housekeepingPath.setPathStatus(status);
-    housekeepingPathRepository.save(housekeepingPath);
+    getHousekeepingPathRepository().save(housekeepingPath);
   }
 }
