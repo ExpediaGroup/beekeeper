@@ -17,35 +17,24 @@ package com.expediagroup.beekeeper.cleanup.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -53,10 +42,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import com.expediagroup.beekeeper.cleanup.TestApplication;
-import com.expediagroup.beekeeper.cleanup.handler.GenericHandler;
 import com.expediagroup.beekeeper.cleanup.handler.UnreferencedHandler;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
-import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PathStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
@@ -75,61 +62,13 @@ public class PagingCleanupServiceTest {
 
   private static final int PAGE_SIZE = 1;
   private final LocalDateTime localNow = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
-  private final List<GenericHandler> handlersListMock = new ArrayList<>();
-  @Mock private GenericHandler handler;
-  @Mock private EntityHousekeepingPath housekeepingPath;
-  @Mock private Pageable mockPageable;
-  @Mock private Page<EntityHousekeepingPath> mockPage;
   private PagingCleanupService pagingCleanupService;
   private @Captor ArgumentCaptor<EntityHousekeepingPath> pathCaptor;
   private @Autowired HousekeepingPathRepository housekeepingPathRepository;
   private @MockBean PathCleaner pathCleaner;
 
   @Test
-  public void mockedTypicalCleanup() {
-    LocalDateTime nowDT = LocalDateTime.now();
-    Instant nowInstant = nowDT.toInstant(ZoneOffset.UTC);
-
-    doAnswer(new Answer() {
-      private boolean calledOnce = false;
-
-      @Override
-      public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-        if (!calledOnce) {
-          calledOnce = true;
-          return createMockPages(housekeepingPath, false);
-        } else {
-          return createMockPages(null, true);
-        }
-      }
-    }).when(handler).findRecordsToClean(nowDT, getPageRequest(0));
-
-    pagingCleanupService = new PagingCleanupService(handlersListMock, PAGE_SIZE, false);
-    pagingCleanupService.cleanUp(nowInstant);
-    handler.processPage(mockPageable, mockPage, false);
-    verify(handler).processPage(mockPageable, mockPage, false);
-  }
-
-  @Test
-  public void mockedCleanupFails() {
-    LocalDateTime nowDT = LocalDateTime.now();
-    Instant nowInstant = nowDT.toInstant(ZoneOffset.UTC);
-
-    when(handler.findRecordsToClean(nowDT, getPageRequest(0)))
-        .thenThrow(RuntimeException.class);
-
-    pagingCleanupService = new PagingCleanupService(handlersListMock, PAGE_SIZE, false);
-    try {
-      pagingCleanupService.cleanUp(nowInstant);
-    } catch (Exception ex) {
-      assertThat(ex).isInstanceOf(BeekeeperException.class);
-      assertThat(ex.getMessage())
-          .isEqualTo("Cleanup failed for instant " + nowInstant.toString());
-    }
-  }
-
-  @Test
-  public void intTypicalWithPaging() {
+  public void typicalWithPaging() {
     UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingCleanupService(List.of(handler), 2, false);
 
@@ -152,7 +91,7 @@ public class PagingCleanupServiceTest {
   }
 
   @Test
-  public void intMixOfScheduledAndFailedPaths() {
+  public void mixOfScheduledAndFailedPaths() {
     UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingCleanupService(List.of(handler), 2, false);
     List<EntityHousekeepingPath> paths = List.of(
@@ -169,7 +108,7 @@ public class PagingCleanupServiceTest {
   }
 
   @Test
-  public void intMixOfAllPaths() {
+  public void mixOfAllPaths() {
     UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingCleanupService(List.of(handler), 2, false);
     List<EntityHousekeepingPath> paths = List.of(
@@ -187,7 +126,7 @@ public class PagingCleanupServiceTest {
   }
 
   @Test
-  void intPathCleanerException() {
+  void pathCleanerException() {
     UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingCleanupService(List.of(handler), 2, false);
 
@@ -218,15 +157,34 @@ public class PagingCleanupServiceTest {
     assertThat(housekeepingPath2.getCleanupAttempts()).isEqualTo(1);
   }
 
-  private Pageable getPageRequest(int requestNumber) {
-    return PageRequest.of(requestNumber, PAGE_SIZE);
-  }
+  @Test
+  void doNotInfiniteLoopOnRepeatedFailures() {
+    UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
+    pagingCleanupService = new PagingCleanupService(List.of(handler), 1, false);
+    List<EntityHousekeepingPath> paths = List.of(
+        createEntityHousekeepingPath("s3://some_foo", PathStatus.FAILED),
+        createEntityHousekeepingPath("s3://some_bar", PathStatus.FAILED),
+        createEntityHousekeepingPath("s3://some_foobar", PathStatus.FAILED)
+    );
 
-  private Page<EntityHousekeepingPath> createMockPages(EntityHousekeepingPath housekeepingPath, boolean isEmpty) {
-    if (isEmpty) {
-      return new PageImpl<>(Collections.emptyList());
+    for (int i = 0; i < 5; i++) {
+      int finalI = i;
+      paths.forEach(path -> {
+        if (finalI == 0) {
+          housekeepingPathRepository.save(path);
+        }
+
+        doThrow(new RuntimeException("Error"))
+            .when(pathCleaner)
+            .cleanupPath(any());
+      });
+
+      pagingCleanupService.cleanUp(Instant.now());
+      housekeepingPathRepository.findAll().forEach(path -> {
+        assertThat(path.getCleanupAttempts()).isEqualTo(finalI + 1);
+        assertThat(path.getPathStatus()).isEqualTo(PathStatus.FAILED);
+      });
     }
-    return new PageImpl<>(List.of(housekeepingPath));
   }
 
   private EntityHousekeepingPath createEntityHousekeepingPath(String path, PathStatus pathStatus) {
