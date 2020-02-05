@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - TBD
 ### Added
 - Add `LifecycleEventType` enum in `beekeeper-core` to describe supported data Lifecycles.
-- Increase unit test coverage for `beekeeper-path-scheduler-apiary` package.
-- Increase coverage for integration tests.
 
 ### Changed
 - Refactored internals of `beekeeper-path-scheduler-apiary` to support generic Lifecycle scheduling.
@@ -16,9 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - MessageReaderAdapter now has additional logic to orchestrate the updated workflow.
     - Renamed `PathEvent` to `BeekeeperEvent` to better reflect event types.
 - Refactored internals of `beekeeper-path-scheduler` to support generic data Lifecycle scheduling.
-    - Rename `PathSchedulerService` to `UnreferencedPathSchedulerService` to differentiate types.
+    - Renamed `PathSchedulerService` to `UnreferencedPathSchedulerService` to differentiate types.
 - Refactored internals of `beekeeper-cleanup` to support generic data Lifecycle deletions.
-    - Refactor `PagingCleanupService` to be a generic orchestrator of Lifecycle handlers.
+    - Refactored `PagingCleanupService` to be a generic orchestrator of Lifecycle handlers.
 
 ## [1.2.1] - TBD
 ### Changed

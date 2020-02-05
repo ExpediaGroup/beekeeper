@@ -30,8 +30,7 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 @Component
 public class UnreferencedHandler extends GenericHandler {
 
-  private static final LifecycleEventType EVENT_TYPE = LifecycleEventType.UNREFERENCED;
-  private PathCleaner pathCleaner;
+  private final PathCleaner pathCleaner;
 
   @Autowired
   public UnreferencedHandler(@Qualifier("s3PathCleaner") PathCleaner pathCleaner) {
@@ -40,7 +39,7 @@ public class UnreferencedHandler extends GenericHandler {
 
   @Override
   public LifecycleEventType getLifecycleType() {
-    return EVENT_TYPE;
+    return LifecycleEventType.UNREFERENCED;
   }
 
   @Override

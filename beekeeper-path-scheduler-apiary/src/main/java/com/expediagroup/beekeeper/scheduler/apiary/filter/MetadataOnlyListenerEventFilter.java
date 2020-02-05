@@ -26,11 +26,9 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 @Component
 public class MetadataOnlyListenerEventFilter implements ListenerEventFilter {
-
-  private final FilterType TYPE = FilterType.METADATA_ONLY;
-
+  
   @Override
-  public FilterType getFilterType() { return TYPE; }
+  public FilterType getFilterType() { return FilterType.METADATA_ONLY; }
 
   @Override
   public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {

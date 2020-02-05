@@ -27,11 +27,9 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 @Component
 public class EventTypeListenerEventFilter implements ListenerEventFilter {
-
-  private final FilterType TYPE = FilterType.EVENT_TYPE;
-
+  
   @Override
-  public FilterType getFilterType() { return TYPE; }
+  public FilterType getFilterType() { return FilterType.EVENT_TYPE; }
 
   @Override
   public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
