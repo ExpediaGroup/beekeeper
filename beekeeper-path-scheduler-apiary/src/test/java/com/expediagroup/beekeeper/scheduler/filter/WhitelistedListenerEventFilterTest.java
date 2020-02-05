@@ -34,7 +34,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
-import com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,11 +42,6 @@ public class WhitelistedListenerEventFilterTest {
   private static final String BEEKEEPER_HIVE_EVENT_WHITELIST = "beekeeper.hive.event.whitelist";
   private final WhitelistedListenerEventFilter listenerEventFilter = new WhitelistedListenerEventFilter();
   @Mock private ListenerEvent listenerEvent;
-
-  @Test
-  public void checkTypeDeclaration() {
-    assertThat(listenerEventFilter.getFilterType()).isEqualTo(FilterType.WHITELISTED);
-  }
 
   @ParameterizedTest
   @EnumSource(value = EventType.class, names = { "ALTER_PARTITION",

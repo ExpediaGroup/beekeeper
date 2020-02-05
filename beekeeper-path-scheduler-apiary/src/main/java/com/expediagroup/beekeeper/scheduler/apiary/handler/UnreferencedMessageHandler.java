@@ -15,11 +15,6 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.handler;
 
-import static com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType.EVENT_TYPE;
-import static com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType.METADATA_ONLY;
-import static com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType.TABLE_PARAMETER;
-import static com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType.WHITELISTED;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +31,11 @@ import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.MetadataOnlyListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.model.EventModel;
 
 @Component
@@ -44,17 +43,35 @@ public class UnreferencedMessageHandler extends MessageEventHandler {
 
   private static final Logger log = LoggerFactory.getLogger(UnreferencedMessageHandler.class);
   private static final LifecycleEventType LIFECYCLE_EVENT_TYPE = LifecycleEventType.UNREFERENCED;
-  private static final List<FilterType> VALID_FILTERS = List.of(
-      EVENT_TYPE, METADATA_ONLY, TABLE_PARAMETER, WHITELISTED
-  );
+
+  private final List<ListenerEventFilter> filters;
 
   @Autowired
   public UnreferencedMessageHandler(
       @Value("${properties.apiary.cleanup-delay-property-key}") String hivePropertyKey,
       @Value("${properties.beekeeper.default-cleanup-delay}") String cleanupDelay
   ) {
-    super(cleanupDelay, hivePropertyKey, LIFECYCLE_EVENT_TYPE, VALID_FILTERS);
+    super(cleanupDelay, hivePropertyKey, LIFECYCLE_EVENT_TYPE);
+    filters = List.of(
+        new EventTypeListenerEventFilter(),
+        new MetadataOnlyListenerEventFilter(),
+        new TableParameterListenerEventFilter(),
+        new WhitelistedListenerEventFilter()
+    );
   }
+
+  @Autowired
+  public UnreferencedMessageHandler(
+      @Value("${properties.apiary.cleanup-delay-property-key}") String hivePropertyKey,
+      @Value("${properties.beekeeper.default-cleanup-delay}") String cleanupDelay,
+      List<ListenerEventFilter> filters
+  ) {
+    super(cleanupDelay, hivePropertyKey, LIFECYCLE_EVENT_TYPE);
+    this.filters = filters;
+  }
+
+  @Override
+  protected List<ListenerEventFilter> getFilters() { return filters; }
 
   @Override
   protected List<EventModel> generateEventModels(ListenerEvent event) {

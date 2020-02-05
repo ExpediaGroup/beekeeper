@@ -31,8 +31,6 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.handler.MessageEventHandler;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
@@ -51,13 +49,6 @@ public class CommonBeans {
     EnumMap<LifecycleEventType, SchedulerService> schedulerMap = new EnumMap<>(LifecycleEventType.class);
     schedulerServices.forEach(scheduler -> schedulerMap.put(scheduler.getLifecycleEventType(), scheduler));
     return schedulerMap;
-  }
-
-  @Bean
-  public EnumMap<FilterType, ListenerEventFilter> filterTypeMap(List<ListenerEventFilter> filters) {
-    EnumMap<FilterType, ListenerEventFilter> filterTypeMap = new EnumMap<>(FilterType.class);
-    filters.forEach(filter -> filterTypeMap.put(filter.getFilterType(), filter));
-    return filterTypeMap;
   }
 
   @Bean(name = "sqsMessageReader")

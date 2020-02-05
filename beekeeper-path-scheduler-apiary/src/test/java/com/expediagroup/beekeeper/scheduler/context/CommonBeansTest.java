@@ -32,8 +32,6 @@ import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.context.CommonBeans;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
@@ -51,16 +49,16 @@ public class CommonBeansTest {
   private final CommonBeans commonBeans = new CommonBeans();
   @Mock private MessageReader messageReader;
 
-  @BeforeEach
-  void setUp() {
-    System.setProperty(AWS_REGION_PROPERTY, REGION);
-    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, ENDPOINT);
-  }
-
   @AfterAll
   static void tearDown() {
     System.clearProperty(AWS_REGION_PROPERTY);
     System.clearProperty(AWS_S3_ENDPOINT_PROPERTY);
+  }
+
+  @BeforeEach
+  void setUp() {
+    System.setProperty(AWS_REGION_PROPERTY, REGION);
+    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, ENDPOINT);
   }
 
   @Test
@@ -68,13 +66,7 @@ public class CommonBeansTest {
     EnumMap<LifecycleEventType, SchedulerService> scheduleMap = commonBeans.schedulerServiceMap(Collections.EMPTY_LIST);
     assertThat(scheduleMap).isInstanceOf(EnumMap.class);
   }
-
-  @Test
-  public void validateFilterTypeMap() {
-    EnumMap<FilterType, ListenerEventFilter> filterMap = commonBeans.filterTypeMap(Collections.EMPTY_LIST);
-    assertThat(filterMap).isInstanceOf(EnumMap.class);
-  }
-
+  
   @Test
   public void validateMessageReader() {
     MessageReader reader = commonBeans.messageReader("some_path");

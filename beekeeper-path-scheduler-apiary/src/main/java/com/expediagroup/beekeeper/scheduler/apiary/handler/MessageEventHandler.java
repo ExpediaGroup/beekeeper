@@ -19,14 +19,11 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
@@ -35,7 +32,6 @@ import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.model.PathStatus;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.model.EventModel;
 
@@ -46,19 +42,15 @@ public abstract class MessageEventHandler {
   private final LifecycleEventType lifecycleEventType;
   private final String cleanupDelay;
   private final String hivePropertyKey;
-  private final List<FilterType> validFilterClasses;
-  @Autowired private EnumMap<FilterType, ListenerEventFilter> filterTypeMap;
 
   MessageEventHandler(
       String cleanupDelay,
       String hivePropertyKey,
-      LifecycleEventType lifecycleEventType,
-      List<FilterType> validFilterClasses
+      LifecycleEventType lifecycleEventType
   ) {
     this.cleanupDelay = cleanupDelay;
     this.hivePropertyKey = hivePropertyKey;
     this.lifecycleEventType = lifecycleEventType;
-    this.validFilterClasses = validFilterClasses;
   }
 
   public List<HousekeepingPath> handleMessage(MessageEvent event) {
@@ -73,15 +65,10 @@ public abstract class MessageEventHandler {
 
   abstract List<EventModel> generateEventModels(ListenerEvent listenerEvent);
 
-  private List<ListenerEventFilter> getValidFilters() {
-    return validFilterClasses.stream()
-        .map(filterType -> filterTypeMap.get(filterType))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-  }
+  protected abstract List<ListenerEventFilter> getFilters();
 
   private boolean shouldFilterMessage(ListenerEvent listenerEvent) {
-    return getValidFilters().stream()
+    return getFilters().stream()
         .anyMatch(filter -> filter.filter(listenerEvent, lifecycleEventType));
   }
 

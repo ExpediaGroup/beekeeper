@@ -33,7 +33,6 @@ import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 
 import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType;
 
 @ExtendWith(MockitoExtension.class)
 public class EventTypeListenerEventFilterTest {
@@ -44,11 +43,6 @@ public class EventTypeListenerEventFilterTest {
   @Mock private AlterTableEvent alterTableEvent;
   @Mock private DropPartitionEvent dropPartitionEvent;
   @Mock private DropTableEvent dropTableEvent;
-
-  @Test
-  public void checkTypeDeclaration() {
-    assertThat(listenerEventFilter.getFilterType()).isEqualTo(FilterType.EVENT_TYPE);
-  }
 
   @Test
   public void typicalFilterAlterPartitionEvent() {

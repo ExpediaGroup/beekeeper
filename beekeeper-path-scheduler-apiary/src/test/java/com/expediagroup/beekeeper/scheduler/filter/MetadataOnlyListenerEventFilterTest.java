@@ -32,7 +32,6 @@ import com.expedia.apiary.extensions.receiver.common.event.DropPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 
-import com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.MetadataOnlyListenerEventFilter;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,11 +44,6 @@ public class MetadataOnlyListenerEventFilterTest {
   private @Mock AlterTableEvent alterTableEvent;
   private @Mock DropPartitionEvent dropPartitionEvent;
   private @Mock DropTableEvent dropTableEvent;
-
-  @Test
-  public void checkTypeDeclaration() {
-    assertThat(metadataOnlyListenerEventFilter.getFilterType()).isEqualTo(FilterType.METADATA_ONLY);
-  }
 
   @Test
   public void alterPartitionEventNotMetadataOnly() {

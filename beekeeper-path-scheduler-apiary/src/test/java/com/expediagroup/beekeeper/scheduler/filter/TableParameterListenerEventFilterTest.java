@@ -29,7 +29,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expedia.apiary.extensions.receiver.common.event.AddPartitionEvent;
 
-import com.expediagroup.beekeeper.scheduler.apiary.filter.FilterType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,13 +39,7 @@ public class TableParameterListenerEventFilterTest {
   private static final String BEEKEEPER_MANAGED = "true";
   private static final String NOT_BEEKEEPER_MANAGED = "false";
   private final TableParameterListenerEventFilter listenerEventFilter = new TableParameterListenerEventFilter();
-  @Mock
-  private AddPartitionEvent alterPartitionEvent;
-
-  @Test
-  public void checkTypeDeclaration() {
-    assertThat(listenerEventFilter.getFilterType()).isEqualTo(FilterType.TABLE_PARAMETER);
-  }
+  @Mock private AddPartitionEvent alterPartitionEvent;
 
   @Test
   public void typicalFilterBeekeeperManaged() {

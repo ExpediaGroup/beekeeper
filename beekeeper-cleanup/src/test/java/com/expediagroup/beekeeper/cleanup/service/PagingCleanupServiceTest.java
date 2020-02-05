@@ -60,7 +60,6 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class PagingCleanupServiceTest {
 
-  private static final int PAGE_SIZE = 1;
   private final LocalDateTime localNow = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
   private PagingCleanupService pagingCleanupService;
   private @Captor ArgumentCaptor<EntityHousekeepingPath> pathCaptor;

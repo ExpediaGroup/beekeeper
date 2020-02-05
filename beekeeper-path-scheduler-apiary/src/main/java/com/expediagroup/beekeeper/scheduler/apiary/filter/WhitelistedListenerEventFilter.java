@@ -31,9 +31,6 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
   private static final String BEEKEEPER_HIVE_EVENT_WHITELIST = "beekeeper.hive.event.whitelist";
 
   @Override
-  public FilterType getFilterType() { return FilterType.WHITELISTED; }
-
-  @Override
   public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
     if (tableParameters != null && tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST) != null) {
