@@ -18,11 +18,15 @@ package com.expediagroup.beekeeper.cleanup.handler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
+import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
@@ -53,7 +57,9 @@ public class UnreferencedHandlerTest {
 
   @Test
   public void verifyHousekeepingPathFetch() {
-    handler.findRecordsToClean(null, null);
-    verify(housekeepingPathRepository).findRecordsForCleanupByModifiedTimestamp(null, null);
+    LocalDateTime now = LocalDateTime.now();
+    Pageable emptyPageable = PageRequest.of(0, 1);
+    handler.findRecordsToClean(now, emptyPageable);
+    verify(housekeepingPathRepository).findRecordsForCleanupByModifiedTimestamp(now, emptyPageable);
   }
 }

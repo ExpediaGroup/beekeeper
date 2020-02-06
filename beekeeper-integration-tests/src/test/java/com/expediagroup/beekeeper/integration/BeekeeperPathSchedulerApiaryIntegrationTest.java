@@ -142,7 +142,7 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
   }
 
   @Test
-  void noActionsRequested() throws IOException {
+  void noActionsRequested() throws IOException, SQLException {
     AlterPartitionSqsMessage alterPartitionSqsMessage = new AlterPartitionSqsMessage(
         "s3://unreferencedTableLocation",
         "s3://partitionLocation",
@@ -153,14 +153,26 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
         "s3://unreferencedTableLocation", false, true);
     amazonSQS.sendMessage(sendMessageRequest(createTableSqsMessage.getFormattedString()));
 
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.unreferencedRowsInTable(PATH_TABLE) == 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() ->
+        amazonSQS.getQueueAttributes(
+            ContainerTestUtils.queueUrl(sqsContainer, QUEUE),
+            List.of("ApproximateNumberOfMessages")
+        ).getAttributes().get("ApproximateNumberOfMessages").equals("0")
+    );
+
+    assertThat(mySqlTestUtils.unreferencedRowsInTable(PATH_TABLE)).isEqualTo(0);
   }
 
   @Test
   void unreferencedShouldIgnoreCreateTable() throws IOException, InterruptedException, SQLException {
     CreateTableSqsMessage createTableSqsMessage = new CreateTableSqsMessage("s3://orphanTableLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(createTableSqsMessage.getFormattedString()));
-    TimeUnit.SECONDS.sleep(TIMEOUT);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() ->
+        amazonSQS.getQueueAttributes(
+            ContainerTestUtils.queueUrl(sqsContainer, QUEUE),
+            List.of("ApproximateNumberOfMessages")
+        ).getAttributes().get("ApproximateNumberOfMessages").equals("0")
+    );
     assertThat(mySqlTestUtils.unreferencedRowsInTable(PATH_TABLE)).isEqualTo(0);
   }
 
@@ -168,7 +180,12 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
   void unreferencedShouldIgnoreAddPartition() throws SQLException, IOException, InterruptedException {
     AddPartitionSqsMessage addPartitionSqsMessage = new AddPartitionSqsMessage("s3://partitionLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage.getFormattedString()));
-    TimeUnit.SECONDS.sleep(TIMEOUT);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() ->
+        amazonSQS.getQueueAttributes(
+            ContainerTestUtils.queueUrl(sqsContainer, QUEUE),
+            List.of("ApproximateNumberOfMessages")
+        ).getAttributes().get("ApproximateNumberOfMessages").equals("0")
+    );
     assertThat(mySqlTestUtils.unreferencedRowsInTable(PATH_TABLE)).isEqualTo(0);
   }
 
