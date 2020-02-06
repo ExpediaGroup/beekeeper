@@ -60,7 +60,6 @@ public class UnreferencedMessageHandler extends MessageEventHandler {
     );
   }
 
-  @Autowired
   public UnreferencedMessageHandler(
       @Value("${properties.apiary.cleanup-delay-property-key}") String hivePropertyKey,
       @Value("${properties.beekeeper.default-cleanup-delay}") String cleanupDelay,
