@@ -1,3 +1,12 @@
+management.metrics:
+  web.server.auto-time-requests: false
+  enable.jvm: false
+  enable.tomcat: false
+  enable.process: false
+  enable.system: false
+  enable.logback: false
+management.endpoints.web.exposure.include: health,info,prometheus
+
 server:
   port: 8008
 
