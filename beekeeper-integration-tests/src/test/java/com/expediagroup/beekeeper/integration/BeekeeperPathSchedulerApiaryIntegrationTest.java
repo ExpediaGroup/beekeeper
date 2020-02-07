@@ -56,10 +56,8 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PathStatus;
-import com.expediagroup.beekeeper.integration.model.AddPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.AlterPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.AlterTableSqsMessage;
-import com.expediagroup.beekeeper.integration.model.CreateTableSqsMessage;
 import com.expediagroup.beekeeper.integration.model.DropPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.DropTableSqsMessage;
 import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperPathSchedulerApiary;
@@ -139,54 +137,6 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
   void stop() throws InterruptedException {
     BeekeeperPathSchedulerApiary.stop();
     executorService.awaitTermination(5, TimeUnit.SECONDS);
-  }
-
-  @Test
-  void noActionsRequested() throws IOException, SQLException {
-    AlterPartitionSqsMessage alterPartitionSqsMessage = new AlterPartitionSqsMessage(
-        "s3://unreferencedTableLocation",
-        "s3://partitionLocation",
-        "s3://unreferencedPartitionLocation",
-        false, false);
-    amazonSQS.sendMessage(sendMessageRequest(alterPartitionSqsMessage.getFormattedString()));
-    CreateTableSqsMessage createTableSqsMessage = new CreateTableSqsMessage(
-        "s3://unreferencedTableLocation", false, true);
-    amazonSQS.sendMessage(sendMessageRequest(createTableSqsMessage.getFormattedString()));
-
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() ->
-        amazonSQS.getQueueAttributes(
-            ContainerTestUtils.queueUrl(sqsContainer, QUEUE),
-            List.of("ApproximateNumberOfMessages")
-        ).getAttributes().get("ApproximateNumberOfMessages").equals("0")
-    );
-
-    assertThat(mySqlTestUtils.unreferencedRowsInTable(PATH_TABLE)).isEqualTo(0);
-  }
-
-  @Test
-  void unreferencedShouldIgnoreCreateTable() throws IOException, InterruptedException, SQLException {
-    CreateTableSqsMessage createTableSqsMessage = new CreateTableSqsMessage("s3://orphanTableLocation", true, true);
-    amazonSQS.sendMessage(sendMessageRequest(createTableSqsMessage.getFormattedString()));
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() ->
-        amazonSQS.getQueueAttributes(
-            ContainerTestUtils.queueUrl(sqsContainer, QUEUE),
-            List.of("ApproximateNumberOfMessages")
-        ).getAttributes().get("ApproximateNumberOfMessages").equals("0")
-    );
-    assertThat(mySqlTestUtils.unreferencedRowsInTable(PATH_TABLE)).isEqualTo(0);
-  }
-
-  @Test
-  void unreferencedShouldIgnoreAddPartition() throws SQLException, IOException, InterruptedException {
-    AddPartitionSqsMessage addPartitionSqsMessage = new AddPartitionSqsMessage("s3://partitionLocation", true, true);
-    amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage.getFormattedString()));
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() ->
-        amazonSQS.getQueueAttributes(
-            ContainerTestUtils.queueUrl(sqsContainer, QUEUE),
-            List.of("ApproximateNumberOfMessages")
-        ).getAttributes().get("ApproximateNumberOfMessages").equals("0")
-    );
-    assertThat(mySqlTestUtils.unreferencedRowsInTable(PATH_TABLE)).isEqualTo(0);
   }
 
   @Test
