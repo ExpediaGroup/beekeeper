@@ -1,4 +1,4 @@
-# Overview [![Build Status](https://travis-ci.com/ExpediaGroup/beekeeper.svg?branch=master)](https://travis-ci.com/ExpediaGroup/beekeeper)
+# Overview [![Build Status](https://travis-ci.com/ExpediaGroup/beekeeper.svg?branch=master)](https://travis-ci.com/ExpediaGroup/beekeeper) ![Java CI](https://github.com/ExpediaGroup/beekeeper/workflows/Java%20CI/badge.svg?event=push)
 
 Beekeeper is a service that schedules orphaned paths for deletion.
 
@@ -6,7 +6,7 @@ The original inspiration for a data deletion tool came from another of our open 
 
 Beekeeper is based on Circus Train's Housekeeping module, however it is decoupled from Circus Train so it can be used by other applications as well.
 
-## Start using 
+## Start using
 
 To deploy Beekeeper in AWS, see the [terraform repo](https://github.com/ExpediaGroup/beekeeper-terraform). 
 
