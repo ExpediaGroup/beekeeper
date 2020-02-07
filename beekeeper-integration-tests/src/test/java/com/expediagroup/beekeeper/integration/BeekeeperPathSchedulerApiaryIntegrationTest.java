@@ -174,18 +174,16 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
   public void healthCheck() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
-    HttpCoreContext context = new HttpCoreContext();
     await().atMost(30, TimeUnit.SECONDS)
-      .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
+      .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
   @Test
   public void prometheus() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(PROMETHEUS_URI);
-    HttpCoreContext context = new HttpCoreContext();
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
   private void assertMetrics() {
