@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,15 @@ package com.expediagroup.beekeeper.scheduler.filter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expedia.apiary.extensions.receiver.common.event.AddPartitionEvent;
+import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
@@ -33,52 +36,46 @@ import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEvent
 
 @ExtendWith(MockitoExtension.class)
 public class EventTypeListenerEventFilterTest {
-  @Mock
-  private AddPartitionEvent addPartitionEvent;
-  @Mock
-  private AddPartitionEvent alterPartitionEvent;
-  @Mock
-  private AlterTableEvent alterTableEvent;
-  @Mock
-  private DropPartitionEvent dropPartitionEvent;
-  @Mock
-  private DropTableEvent dropTableEvent;
 
-  private EventTypeListenerEventFilter listenerEventFilter = new EventTypeListenerEventFilter();
+  private final EventTypeListenerEventFilter listenerEventFilter = new EventTypeListenerEventFilter();
+  @Mock private AddPartitionEvent addPartitionEvent;
+  @Mock private AlterPartitionEvent alterPartitionEvent;
+  @Mock private AlterTableEvent alterTableEvent;
+  @Mock private DropPartitionEvent dropPartitionEvent;
+  @Mock private DropTableEvent dropTableEvent;
 
   @Test
   public void typicalFilterAlterPartitionEvent() {
     when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
-    boolean filter = listenerEventFilter.filter(alterPartitionEvent);
+    boolean filter = listenerEventFilter.filter(alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
   @Test
   public void typicalFilterAlterTableEvent() {
     when(alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
-    boolean filter = listenerEventFilter.filter(alterTableEvent);
+    boolean filter = listenerEventFilter.filter(alterTableEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
   @Test
   public void typicalFilterDropPartitionEvent() {
     when(dropPartitionEvent.getEventType()).thenReturn(EventType.DROP_PARTITION);
-    boolean filter = listenerEventFilter.filter(dropPartitionEvent);
+    boolean filter = listenerEventFilter.filter(dropPartitionEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
   @Test
   public void typicalFilterDropTableEvent() {
     when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
-    boolean filter = listenerEventFilter.filter(dropTableEvent);
+    boolean filter = listenerEventFilter.filter(dropTableEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
   @Test
   public void typicalFilterOtherEvent() {
     when(addPartitionEvent.getEventType()).thenReturn(EventType.ADD_PARTITION);
-    boolean filter = listenerEventFilter.filter(addPartitionEvent);
+    boolean filter = listenerEventFilter.filter(addPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
-
 }

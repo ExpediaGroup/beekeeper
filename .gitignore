@@ -32,3 +32,6 @@ target/
 
 # AWS credentials
 *.pem
+
+# HMS data
+metastore_db

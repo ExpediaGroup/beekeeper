@@ -28,7 +28,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -43,6 +42,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import com.expediagroup.beekeeper.cleanup.TestApplication;
+import com.expediagroup.beekeeper.cleanup.handler.UnreferencedHandler;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PathStatus;
@@ -58,167 +58,146 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 @ContextConfiguration(classes = { TestApplication.class },
     loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class PagingCleanupServiceTest {
+public class PagingCleanupServiceTest {
 
   private final LocalDateTime localNow = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
-  private final String path1 = "s3://test/table/bar/test=1";
-  private final String path2 = "hdfs://test/table/bar/test=1/var=1";
-  private final String path3 = "s3://test/table/bar/test=1/var=2";
-  private EntityHousekeepingPath entityPath1;
-  private EntityHousekeepingPath entityPath2;
-  private EntityHousekeepingPath entityPath3;
-  private @MockBean PathCleaner pathCleaner;
-  private @Autowired HousekeepingPathRepository housekeepingPathRepository;
-  private @Captor ArgumentCaptor<EntityHousekeepingPath> pathCaptor;
   private PagingCleanupService pagingCleanupService;
-
-  @BeforeEach
-  void setUp() {
-    entityPath1 = createEntityHousekeepingPath(path1);
-    entityPath2 = createEntityHousekeepingPath(path2);
-    entityPath3 = createEntityHousekeepingPath(path3);
-    pagingCleanupService = new PagingCleanupService(housekeepingPathRepository, pathCleaner, 2, false);
-  }
+  private @Captor ArgumentCaptor<EntityHousekeepingPath> pathCaptor;
+  private @Autowired HousekeepingPathRepository housekeepingPathRepository;
+  private @MockBean PathCleaner pathCleaner;
 
   @Test
-  void typicalWithPaging() {
-    housekeepingPathRepository.save(entityPath1);
-    housekeepingPathRepository.save(entityPath2);
-    housekeepingPathRepository.save(entityPath3);
+  public void typicalWithPaging() {
+    UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
+    pagingCleanupService = new PagingCleanupService(List.of(handler), 2, false);
 
+    List<String> paths = List.of("s3://some_foo", "s3://some_bar", "s3://some_foobar");
+    paths.forEach(path -> housekeepingPathRepository.save(createEntityHousekeepingPath(path, PathStatus.SCHEDULED)));
     pagingCleanupService.cleanUp(Instant.now());
 
     verify(pathCleaner, times(3)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
-      .extracting("path")
-      .containsExactly(path1, path2, path3);
-    assertOriginalObjectsAreUpdated();
+        .extracting("path")
+        .containsExactly(paths.get(0), paths.get(1), paths.get(2));
+
+    housekeepingPathRepository.findAll().forEach(housekeepingPath -> {
+      assertThat(housekeepingPath.getCleanupAttempts()).isEqualTo(1);
+      assertThat(housekeepingPath.getPathStatus()).isEqualTo(PathStatus.DELETED);
+    });
 
     pagingCleanupService.cleanUp(Instant.now());
     verifyNoMoreInteractions(pathCleaner);
   }
 
-  private void assertOriginalObjectsAreUpdated() {
-    List<EntityHousekeepingPath> result = housekeepingPathRepository.findAll();
-    EntityHousekeepingPath housekeepingPath1 = result.get(0);
-    EntityHousekeepingPath housekeepingPath2 = result.get(1);
-    EntityHousekeepingPath housekeepingPath3 = result.get(2);
-    assertThat(housekeepingPath1.getCleanupAttempts()).isEqualTo(1);
-    assertThat(housekeepingPath2.getCleanupAttempts()).isEqualTo(1);
-    assertThat(housekeepingPath3.getCleanupAttempts()).isEqualTo(1);
-    assertThat(housekeepingPath1.getPathStatus()).isEqualTo(PathStatus.DELETED);
-    assertThat(housekeepingPath2.getPathStatus()).isEqualTo(PathStatus.DELETED);
-    assertThat(housekeepingPath3.getPathStatus()).isEqualTo(PathStatus.DELETED);
-  }
-
   @Test
-  void typicalOnePageWithMultipleElements() {
-    housekeepingPathRepository.save(entityPath1);
-    housekeepingPathRepository.save(entityPath2);
-
+  public void mixOfScheduledAndFailedPaths() {
+    UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
+    pagingCleanupService = new PagingCleanupService(List.of(handler), 2, false);
+    List<EntityHousekeepingPath> paths = List.of(
+        createEntityHousekeepingPath("s3://some_foo", PathStatus.SCHEDULED),
+        createEntityHousekeepingPath("s3://some_bar", PathStatus.FAILED)
+    );
+    paths.forEach(path -> housekeepingPathRepository.save(path));
     pagingCleanupService.cleanUp(Instant.now());
 
     verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
-      .extracting("path")
-      .containsExactly(path1, path2);
+        .extracting("path")
+        .containsExactly(paths.get(0).getPath(), paths.get(1).getPath());
   }
 
   @Test
-  void mixOfScheduledAndFailedPaths() {
-    entityPath2.setPathStatus(PathStatus.FAILED);
-
-    housekeepingPathRepository.save(entityPath1);
-    housekeepingPathRepository.save(entityPath2);
-
+  public void mixOfAllPaths() {
+    UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
+    pagingCleanupService = new PagingCleanupService(List.of(handler), 2, false);
+    List<EntityHousekeepingPath> paths = List.of(
+        createEntityHousekeepingPath("s3://some_foo", PathStatus.SCHEDULED),
+        createEntityHousekeepingPath("s3://some_bar", PathStatus.FAILED),
+        createEntityHousekeepingPath("s3://some_foobar", PathStatus.DELETED)
+    );
+    paths.forEach(path -> housekeepingPathRepository.save(path));
     pagingCleanupService.cleanUp(Instant.now());
 
     verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
-      .extracting("path")
-      .containsExactly(path1, path2);
-  }
-
-  @Test
-  void mixOfAllForPathStatus() {
-    entityPath2.setPathStatus(PathStatus.FAILED);
-    entityPath3.setPathStatus(PathStatus.DELETED);
-
-    housekeepingPathRepository.save(entityPath1);
-    housekeepingPathRepository.save(entityPath2);
-    housekeepingPathRepository.save(entityPath3);
-
-    pagingCleanupService.cleanUp(Instant.now());
-
-    verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
-    assertThat(pathCaptor.getAllValues())
-      .extracting("path")
-      .containsExactly(path1, path2);
-    verifyNoMoreInteractions(pathCleaner);
+        .extracting("path")
+        .containsExactly(paths.get(0).getPath(), paths.get(1).getPath());
   }
 
   @Test
   void pathCleanerException() {
+    UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
+    pagingCleanupService = new PagingCleanupService(List.of(handler), 2, false);
+
     doThrow(new RuntimeException("Error"))
-      .doNothing()
-      .when(pathCleaner)
-      .cleanupPath(any(EntityHousekeepingPath.class));
+        .doNothing()
+        .when(pathCleaner)
+        .cleanupPath(any(EntityHousekeepingPath.class));
 
-    housekeepingPathRepository.save(entityPath1);
-    housekeepingPathRepository.save(entityPath2);
-
+    List<String> paths = List.of("s3://some_foo", "s3://some_bar");
+    paths.forEach(path -> housekeepingPathRepository.save(createEntityHousekeepingPath(path, PathStatus.SCHEDULED)));
     pagingCleanupService.cleanUp(Instant.now());
 
     verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
     assertThat(pathCaptor.getAllValues())
-      .extracting("path")
-      .containsExactly(path1, path2);
+        .extracting("path")
+        .containsExactly(paths.get(0), paths.get(1));
 
     List<EntityHousekeepingPath> result = housekeepingPathRepository.findAll();
     assertThat(result.size()).isEqualTo(2);
     EntityHousekeepingPath housekeepingPath1 = result.get(0);
     EntityHousekeepingPath housekeepingPath2 = result.get(1);
 
-    assertThat(housekeepingPath1.getPath()).isEqualTo(path1);
+    assertThat(housekeepingPath1.getPath()).isEqualTo(paths.get(0));
     assertThat(housekeepingPath1.getPathStatus()).isEqualTo(PathStatus.FAILED);
     assertThat(housekeepingPath1.getCleanupAttempts()).isEqualTo(1);
-    assertThat(housekeepingPath2.getPath()).isEqualTo(path2);
+    assertThat(housekeepingPath2.getPath()).isEqualTo(paths.get(1));
     assertThat(housekeepingPath2.getPathStatus()).isEqualTo(PathStatus.DELETED);
     assertThat(housekeepingPath2.getCleanupAttempts()).isEqualTo(1);
   }
 
   @Test
-  void typicalDryRunWithPaging() {
-    pagingCleanupService = new PagingCleanupService(housekeepingPathRepository, pathCleaner, 2, true);
-    housekeepingPathRepository.save(entityPath1);
-    housekeepingPathRepository.save(entityPath2);
-    housekeepingPathRepository.save(entityPath3);
-    List<EntityHousekeepingPath> beforeClean = housekeepingPathRepository.findAll();
+  void doNotInfiniteLoopOnRepeatedFailures() {
+    UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
+    pagingCleanupService = new PagingCleanupService(List.of(handler), 1, false);
+    List<EntityHousekeepingPath> paths = List.of(
+        createEntityHousekeepingPath("s3://some_foo", PathStatus.FAILED),
+        createEntityHousekeepingPath("s3://some_bar", PathStatus.FAILED),
+        createEntityHousekeepingPath("s3://some_foobar", PathStatus.FAILED)
+    );
 
-    pagingCleanupService.cleanUp(Instant.now());
-    verify(pathCleaner, times(3)).cleanupPath(pathCaptor.capture());
-    assertThat(pathCaptor.getAllValues())
-      .extracting("path")
-      .containsExactly(path1, path2, path3);
+    for (int i = 0; i < 5; i++) {
+      int finalI = i;
+      paths.forEach(path -> {
+        if (finalI == 0) {
+          housekeepingPathRepository.save(path);
+        }
 
-    List<EntityHousekeepingPath> afterClean = housekeepingPathRepository.findAll();
-    assertThat(afterClean.get(0)).isEqualToComparingFieldByFieldRecursively(beforeClean.get(0));
-    assertThat(afterClean.get(1)).isEqualToComparingFieldByFieldRecursively(beforeClean.get(1));
-    assertThat(afterClean.get(2)).isEqualToComparingFieldByFieldRecursively(beforeClean.get(2));
+        doThrow(new RuntimeException("Error"))
+            .when(pathCleaner)
+            .cleanupPath(any());
+      });
+
+      pagingCleanupService.cleanUp(Instant.now());
+      housekeepingPathRepository.findAll().forEach(path -> {
+        assertThat(path.getCleanupAttempts()).isEqualTo(finalI + 1);
+        assertThat(path.getPathStatus()).isEqualTo(PathStatus.FAILED);
+      });
+    }
   }
 
-  private EntityHousekeepingPath createEntityHousekeepingPath(String path) {
+  private EntityHousekeepingPath createEntityHousekeepingPath(String path, PathStatus pathStatus) {
     EntityHousekeepingPath housekeepingPath = new EntityHousekeepingPath.Builder()
-      .path(path)
-      .databaseName("database")
-      .tableName("table")
-      .pathStatus(PathStatus.SCHEDULED)
-      .creationTimestamp(localNow)
-      .modifiedTimestamp(localNow)
-      .modifiedTimestamp(localNow)
-      .cleanupDelay(Duration.parse("P3D"))
-      .cleanupAttempts(0)
-      .build();
+        .path(path)
+        .databaseName("database")
+        .tableName("table")
+        .pathStatus(pathStatus)
+        .creationTimestamp(localNow)
+        .modifiedTimestamp(localNow)
+        .modifiedTimestamp(localNow)
+        .cleanupDelay(Duration.parse("P3D"))
+        .cleanupAttempts(0)
+        .build();
     housekeepingPath.setCleanupTimestamp(localNow);
     return housekeepingPath;
   }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,23 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.model;
 
-import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+public class EventModel {
 
-public class PathEvent {
-  private final HousekeepingPath housekeepingPath;
-  private final MessageEvent messageEvent;
+  private final LifecycleEventType lifecycleEvent;
+  private final String cleanupPath;
 
-  public PathEvent(HousekeepingPath housekeepingPath, MessageEvent messageEvent) {
-    this.housekeepingPath = housekeepingPath;
-    this.messageEvent = messageEvent;
+  public EventModel(LifecycleEventType lifecycleEvent, String cleanupPath) {
+    this.lifecycleEvent = lifecycleEvent;
+    this.cleanupPath = cleanupPath;
   }
 
-  public HousekeepingPath getHousekeepingPath() {
-    return housekeepingPath;
+  public String getCleanupPath() {
+    return cleanupPath;
   }
 
-  public MessageEvent getMessageEvent() {
-    return messageEvent;
+  public LifecycleEventType getLifecycleEvent() {
+    return lifecycleEvent;
   }
 }

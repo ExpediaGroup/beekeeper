@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,19 @@ import org.springframework.stereotype.Component;
 
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+
 @Component
 public class TableParameterListenerEventFilter implements ListenerEventFilter {
 
-  private static final String BEEKEEPER_TABLE_PARAMETER = "beekeeper.remove.unreferenced.data";
-
   @Override
-  public boolean filter(ListenerEvent listenerEvent) {
+  public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
+
     if (tableParameters == null) {
       return true;
     }
-    return !Boolean.valueOf(tableParameters.get(BEEKEEPER_TABLE_PARAMETER));
+
+    return !Boolean.valueOf(tableParameters.get(lifecycleEventType.getTableParameterName()));
   }
 }

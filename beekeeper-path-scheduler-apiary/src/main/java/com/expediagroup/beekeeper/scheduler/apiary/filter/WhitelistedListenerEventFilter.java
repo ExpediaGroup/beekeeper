@@ -23,13 +23,15 @@ import org.springframework.stereotype.Component;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+
 @Component
 public class WhitelistedListenerEventFilter implements ListenerEventFilter {
 
   private static final String BEEKEEPER_HIVE_EVENT_WHITELIST = "beekeeper.hive.event.whitelist";
 
   @Override
-  public boolean filter(ListenerEvent listenerEvent) {
+  public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
     if (tableParameters != null && tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST) != null) {
       return !isWhitelisted(listenerEvent, tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST));
@@ -39,9 +41,9 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
 
   private boolean isWhitelisted(ListenerEvent listenerEvent, String whitelist) {
     return Arrays.stream(whitelist.split(","))
-      .map(String::trim)
-      .anyMatch(whitelistedEvent -> whitelistedEvent.equalsIgnoreCase(listenerEvent.getEventType()
-        .toString()));
+        .map(String::trim)
+        .anyMatch(whitelistedEvent -> whitelistedEvent.equalsIgnoreCase(listenerEvent.getEventType()
+            .toString()));
   }
 
   private boolean isDefaultBehaviour(ListenerEvent listenerEvent) {

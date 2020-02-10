@@ -1,0 +1,11 @@
+{
+  "Type": "Notification",
+  "MessageId": "message-id",
+  "TopicArn": "arn:aws:sns:us-west-2:sns-topic",
+  "Timestamp": "2018-10-23T13:01:54.507Z",
+  "SignatureVersion": "1",
+  "Signature": "signature",
+  "SigningCertURL": "https://sns.us-west-2.amazonaws.com/SimpleNotificationService-xxxx",
+  "UnsubscribeURL": "https://sns.us-west-2.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-west-2:440407435941:sns-topic",
+  "Message": "{ \"protocolVersion\": \"1.0\", \"eventType\": \"DROP_PARTITION\", \"dbName\": \"some_db\", \"tableName\": \"some_table\", \"tableLocation\": \"s3://table_location\", \"partitionKeys\": { \"col_1\": \"string\", \"col_2\": \"integer\", \"col_3\": \"string\" }, \"partitionValues\": [ \"val_1\", \"val_2\", \"val_3\" ], \"partitionLocation\": \"%s\", \"tableParameters\": { \"beekeeper.unreferenced.data.retention.period\": \"P7D\", \"beekeeper.remove.unreferenced.data\": \"%s\",  \"beekeeper.hive.event.whitelist\":\"%s\" }}"
+}

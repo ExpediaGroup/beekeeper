@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 package com.expediagroup.beekeeper.scheduler.apiary.messaging;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,30 +27,49 @@ import org.slf4j.LoggerFactory;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 
-import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvent;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.scheduler.apiary.handler.MessageEventHandler;
+import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 
-public class MessageReaderAdapter implements PathEventReader {
+public class MessageReaderAdapter implements BeekeeperEventReader {
 
   private static final Logger log = LoggerFactory.getLogger(MessageReaderAdapter.class);
 
   private final MessageReader delegate;
-  private final MessageEventToPathEventMapper mapper;
+  private final List<MessageEventHandler> handlers;
 
-  public MessageReaderAdapter(MessageReader delegate, MessageEventToPathEventMapper mapper) {
+  public MessageReaderAdapter(MessageReader delegate, List<MessageEventHandler> handlers) {
     this.delegate = delegate;
-    this.mapper = mapper;
+    this.handlers = handlers;
   }
 
   @Override
-  public Optional<PathEvent> read() {
+  public Optional<BeekeeperEvent> read() {
     Optional<MessageEvent> messageEvent = delegate.read();
-    return messageEvent.flatMap(mapper::map);
+
+    if (messageEvent.isEmpty()) {
+      return Optional.empty();
+    }
+
+    MessageEvent message = messageEvent.get();
+
+    List<HousekeepingPath> housekeepingPaths = handlers.parallelStream()
+        .map(eventHandler -> eventHandler.handleMessage(message))
+        .flatMap(paths -> paths.stream())
+        .collect(Collectors.toList());
+
+    if (housekeepingPaths.size() <= 0) {
+      delete(new BeekeeperEvent(Collections.emptyList(), message));
+      return Optional.empty();
+    }
+
+    return Optional.of(new BeekeeperEvent(housekeepingPaths, message));
   }
 
   @Override
-  public void delete(PathEvent pathEvent) {
+  public void delete(BeekeeperEvent beekeeperEvent) {
     try {
-      delegate.delete(pathEvent.getMessageEvent());
+      delegate.delete(beekeeperEvent.getMessageEvent());
       log.debug("Message deleted successfully");
     } catch (Exception e) {
       log.error("Could not delete message from queue: ", e);
