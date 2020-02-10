@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.scheduler.apiary.messaging;
+package com.expediagroup.beekeeper.core.model;
 
-import java.io.Closeable;
-import java.util.Optional;
+import java.util.Map;
 
-import com.expediagroup.beekeeper.scheduler.apiary.model.PathEvent;
+public enum LifecycleEventType {
+  UNREFERENCED("beekeeper.remove.unreferenced.data");
 
-public interface PathEventReader extends Closeable {
+  private final String tableParameterName;
 
-  Optional<PathEvent> read();
+  LifecycleEventType(String tableParameterName) { this.tableParameterName = tableParameterName; }
 
-  void delete(PathEvent pathEvent);
+  public String getTableParameterName() {
+    return tableParameterName;
+  }
 
+  public Boolean getBoolean(Map<String, String> tableParameters) {
+    return Boolean.valueOf(tableParameters.get(getTableParameterName()));
+  }
 }

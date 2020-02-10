@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,17 +22,19 @@ import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+
 @Component
 public class MetadataOnlyListenerEventFilter implements ListenerEventFilter {
 
   @Override
-  public boolean filter(ListenerEvent listenerEvent) {
+  public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     EventType eventType = listenerEvent.getEventType();
     switch (eventType) {
     case ALTER_PARTITION:
       AlterPartitionEvent alterPartitionEvent = (AlterPartitionEvent) listenerEvent;
       return isMetadataUpdate(alterPartitionEvent.getOldPartitionLocation(),
-        alterPartitionEvent.getPartitionLocation());
+          alterPartitionEvent.getPartitionLocation());
     case ALTER_TABLE:
       AlterTableEvent alterTableEvent = (AlterTableEvent) listenerEvent;
       return isMetadataUpdate(alterTableEvent.getOldTableLocation(), alterTableEvent.getTableLocation());

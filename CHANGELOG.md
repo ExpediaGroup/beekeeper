@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - TBD
+### Added
+- Add `LifecycleEventType` enum in `beekeeper-core` to describe supported data Lifecycles.
+
+### Changed
+- Refactored internals of `beekeeper-path-scheduler-apiary` to support generic Lifecycle scheduling.
+    - Inserted additional workflow (handlers) between read & filter actions to support filters per Lifecycle type.
+    - MessageReaderAdapter now has additional logic to orchestrate the updated workflow.
+    - Renamed `PathEvent` to `BeekeeperEvent` to better reflect event types.
+- Refactored internals of `beekeeper-path-scheduler` to support generic data Lifecycle scheduling.
+    - Renamed `PathSchedulerService` to `UnreferencedPathSchedulerService` to differentiate types.
+- Refactored internals of `beekeeper-cleanup` to support generic data Lifecycle deletions.
+    - Refactored `PagingCleanupService` to be a generic orchestrator of Lifecycle handlers.
+
 ## [1.2.1] - TBD
 ### Changed
 - `S3Client.listObjects()` to list all objects at a key with batching.  

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class PathSchedulerApiaryRunner implements ApplicationRunner {
     log.info("Starting application runner");
     while (running.get()) {
       try {
-        pathSchedulerApiary.schedulePath();
+        pathSchedulerApiary.scheduleBeekeeperEvent();
       } catch (Exception e) {
         log.error("Error while scheduling path", e);
       }

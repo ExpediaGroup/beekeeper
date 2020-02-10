@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+
 import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -141,7 +143,7 @@ public class BeekeeperCleanupIntegrationTest {
     String path = "s3://" + BUCKET + "/" + OBJECT_KEY1;
     mySqlTestUtils.insertPath(path, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     // deleting a file shouldn't delete a folder sentinel
@@ -159,7 +161,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -181,7 +183,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(absolutePath, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-      .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, objectKey1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, objectKey2)).isFalse();
@@ -197,7 +199,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH + "/", TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -219,7 +221,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -242,7 +244,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -258,7 +260,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths().get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
@@ -277,7 +279,7 @@ public class BeekeeperCleanupIntegrationTest {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
     await().atMost(30, TimeUnit.SECONDS)
-      .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
+        .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
   }
 
   @Test

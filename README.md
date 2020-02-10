@@ -1,4 +1,4 @@
-# Overview [![Build Status](https://travis-ci.com/ExpediaGroup/beekeeper.svg?branch=master)](https://travis-ci.com/ExpediaGroup/beekeeper)
+# Overview [![Build Status](https://travis-ci.com/ExpediaGroup/beekeeper.svg?branch=master)](https://travis-ci.com/ExpediaGroup/beekeeper) ![Java CI](https://github.com/ExpediaGroup/beekeeper/workflows/Java%20CI/badge.svg?event=push)
 
 Beekeeper is a service that schedules orphaned paths for deletion.
 

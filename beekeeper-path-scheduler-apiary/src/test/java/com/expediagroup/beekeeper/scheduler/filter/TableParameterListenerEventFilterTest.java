@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package com.expediagroup.beekeeper.scheduler.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 import java.util.Map;
 
@@ -36,17 +38,14 @@ public class TableParameterListenerEventFilterTest {
   private static final String NOT_BEEKEEPER_TABLE_PARAMETER = "incorrect key";
   private static final String BEEKEEPER_MANAGED = "true";
   private static final String NOT_BEEKEEPER_MANAGED = "false";
-
-  @Mock
-  private AddPartitionEvent alterPartitionEvent;
-
-  private TableParameterListenerEventFilter listenerEventFilter = new TableParameterListenerEventFilter();
+  private final TableParameterListenerEventFilter listenerEventFilter = new TableParameterListenerEventFilter();
+  @Mock private AddPartitionEvent alterPartitionEvent;
 
   @Test
   public void typicalFilterBeekeeperManaged() {
     when(alterPartitionEvent.getTableParameters())
-      .thenReturn(Map.of(BEEKEEPER_TABLE_PARAMETER, BEEKEEPER_MANAGED));
-    Boolean filter = listenerEventFilter.filter(alterPartitionEvent);
+        .thenReturn(Map.of(BEEKEEPER_TABLE_PARAMETER, BEEKEEPER_MANAGED));
+    Boolean filter = listenerEventFilter.filter(alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
@@ -54,7 +53,7 @@ public class TableParameterListenerEventFilterTest {
   public void typicalFilterNotBeekeeperManaged() {
     when(alterPartitionEvent.getTableParameters())
         .thenReturn(Map.of(BEEKEEPER_TABLE_PARAMETER, NOT_BEEKEEPER_MANAGED));
-    Boolean filter = listenerEventFilter.filter(alterPartitionEvent);
+    Boolean filter = listenerEventFilter.filter(alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
 
@@ -62,7 +61,7 @@ public class TableParameterListenerEventFilterTest {
   public void typicalFilterNotBeekeeperManagedEmptyMap() {
     when(alterPartitionEvent.getTableParameters())
         .thenReturn(Map.of());
-    Boolean filter = listenerEventFilter.filter(alterPartitionEvent);
+    Boolean filter = listenerEventFilter.filter(alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
 
@@ -70,7 +69,7 @@ public class TableParameterListenerEventFilterTest {
   public void typicalFilterNotBeekeeperManagedNullMap() {
     when(alterPartitionEvent.getTableParameters())
         .thenReturn(null);
-    Boolean filter = listenerEventFilter.filter(alterPartitionEvent);
+    Boolean filter = listenerEventFilter.filter(alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
 
@@ -78,8 +77,7 @@ public class TableParameterListenerEventFilterTest {
   public void typicalFilterBeekeeperManagedMapWithWrongKey() {
     when(alterPartitionEvent.getTableParameters())
         .thenReturn(Map.of(NOT_BEEKEEPER_TABLE_PARAMETER, BEEKEEPER_MANAGED));
-    Boolean filter = listenerEventFilter.filter(alterPartitionEvent);
+    Boolean filter = listenerEventFilter.filter(alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
-
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,17 +23,24 @@ import org.springframework.stereotype.Service;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @Service
-public class PathSchedulerService implements SchedulerService {
+public class UnreferencedPathSchedulerService implements SchedulerService {
 
-  private HousekeepingPathRepository housekeepingPathRepository;
+  private final LifecycleEventType LIFECYCLE_EVENT_TYPE = LifecycleEventType.UNREFERENCED;
+  private final HousekeepingPathRepository housekeepingPathRepository;
 
   @Autowired
-  public PathSchedulerService(HousekeepingPathRepository housekeepingPathRepository) {
+  public UnreferencedPathSchedulerService(HousekeepingPathRepository housekeepingPathRepository) {
     this.housekeepingPathRepository = housekeepingPathRepository;
+  }
+
+  @Override
+  public LifecycleEventType getLifecycleEventType() {
+    return LIFECYCLE_EVENT_TYPE;
   }
 
   @Override

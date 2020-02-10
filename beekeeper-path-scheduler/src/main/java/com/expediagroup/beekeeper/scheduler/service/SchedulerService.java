@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 package com.expediagroup.beekeeper.scheduler.service;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 public interface SchedulerService {
+
+  LifecycleEventType getLifecycleEventType();
 
   /**
    * Schedules a file system path for deletion.
@@ -25,5 +28,4 @@ public interface SchedulerService {
    * @param cleanUpPath file system path encapsulation
    */
   void scheduleForHousekeeping(HousekeepingPath cleanUpPath);
-
 }

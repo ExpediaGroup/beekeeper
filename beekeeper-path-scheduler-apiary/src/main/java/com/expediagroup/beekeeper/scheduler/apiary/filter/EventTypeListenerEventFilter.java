@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,13 @@ import com.expedia.apiary.extensions.receiver.common.event.DropPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+
 @Component
 public class EventTypeListenerEventFilter implements ListenerEventFilter {
 
   @Override
-  public boolean filter(ListenerEvent listenerEvent) {
+  public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Class<? extends ListenerEvent> eventClass = listenerEvent.getEventType().eventClass();
     return !(AlterPartitionEvent.class.equals(eventClass) ||
         AlterTableEvent.class.equals(eventClass) ||
