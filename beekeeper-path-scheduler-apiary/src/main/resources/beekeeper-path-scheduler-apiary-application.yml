@@ -1,13 +1,7 @@
+management.endpoints.web.exposure.include: health,info,prometheus
+
 server:
   port: 8080
-
-management.metrics.web.server.auto-time-requests: false
-management.metrics.enable.jvm: false
-management.metrics.enable.tomcat: false
-management.metrics.enable.process: false
-management.metrics.enable.system: false
-management.metrics.enable.logback: false
-management.endpoints.web.exposure.include: health,info,prometheus
 
 spring:
   jpa:
