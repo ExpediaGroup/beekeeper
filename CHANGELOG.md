@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - TBD
 ### Added
 - Add `LifecycleEventType` enum in `beekeeper-core` to describe supported data Lifecycles.
+- Prometheus support.
 
 ### Changed
 - Refactored internals of `beekeeper-path-scheduler-apiary` to support generic Lifecycle scheduling.
@@ -17,9 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Renamed `PathSchedulerService` to `UnreferencedPathSchedulerService` to differentiate types.
 - Refactored internals of `beekeeper-cleanup` to support generic data Lifecycle deletions.
     - Refactored `PagingCleanupService` to be a generic orchestrator of Lifecycle handlers.
-
-## [1.2.1] - TBD
-### Changed
 - `S3Client.listObjects()` to list all objects at a key with batching.  
 - `eg-oss-parent` version updated to 1.3.1 (was 1.1.0).
 

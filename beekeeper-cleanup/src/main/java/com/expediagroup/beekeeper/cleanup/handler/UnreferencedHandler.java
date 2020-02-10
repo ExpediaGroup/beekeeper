@@ -36,7 +36,7 @@ public class UnreferencedHandler extends GenericHandler {
 
   @Autowired
   public UnreferencedHandler(
-      @Autowired HousekeepingPathRepository housekeepingPathRepository,
+      HousekeepingPathRepository housekeepingPathRepository,
       @Qualifier("s3PathCleaner") PathCleaner pathCleaner
   ) {
     this.housekeepingPathRepository = housekeepingPathRepository;

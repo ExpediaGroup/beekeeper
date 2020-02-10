@@ -79,6 +79,7 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
   private static final String DATABASE = "some_db";
   private static final String TABLE = "some_table";
   private static final String HEALTHCHECK_URI = "http://localhost:8080/actuator/health";
+  private static final String PROMETHEUS_URI = "http://localhost:8080/actuator/prometheus";
 
   private static final String SCHEDULED_EXPIRATION_METRIC = "paths-scheduled-expiration";
   private static final String SCHEDULED_ORPHANED_METRIC = "paths-scheduled";
@@ -246,7 +247,15 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
     HttpCoreContext context = new HttpCoreContext();
     await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
+  }
+
+  @Test
+  public void prometheus() {
+    CloseableHttpClient client = HttpClientBuilder.create().build();
+    HttpGet request = new HttpGet(PROMETHEUS_URI);
+    await().atMost(30, TimeUnit.SECONDS)
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
   private void assertMetrics(boolean isExpired) {

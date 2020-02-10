@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.protocol.HttpCoreContext;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -72,6 +71,7 @@ public class BeekeeperCleanupIntegrationTest {
   private static final String AWS_SECRET_KEY = "secretKey";
   private static final String CONTENT = "Content";
   private static final String HEALTHCHECK_URI = "http://localhost:8008/actuator/health";
+  private static final String PROMETHEUS_URI = "http://localhost:8008/actuator/prometheus";
 
   private static AmazonS3 amazonS3;
   private static LocalStackContainer s3Container;
@@ -96,6 +96,7 @@ public class BeekeeperCleanupIntegrationTest {
     System.setProperty("spring.datasource.password", password);
     System.setProperty("spring.profiles.active", "test");
     System.setProperty("properties.scheduler-delay-ms", SCHEDULER_DELAY_MS);
+    System.setProperty("properties.dry-run-enabled", "false");
     System.setProperty("aws.s3.endpoint", ContainerTestUtils.awsServiceEndpoint(s3Container, S3));
     System.setProperty("aws.accessKeyId", AWS_ACCESS_KEY_ID);
     System.setProperty("aws.secretKey", AWS_SECRET_KEY);
@@ -277,8 +278,15 @@ public class BeekeeperCleanupIntegrationTest {
   public void healthCheck() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
-    HttpCoreContext context = new HttpCoreContext();
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
+  }
+
+  @Test
+  public void prometheus() {
+    CloseableHttpClient client = HttpClientBuilder.create().build();
+    HttpGet request = new HttpGet(PROMETHEUS_URI);
+    await().atMost(30, TimeUnit.SECONDS)
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 }
