@@ -29,6 +29,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -157,6 +158,7 @@ public class PagingCleanupServiceTest {
   }
 
   @Test
+  @Timeout(value = 10)
   void doNotInfiniteLoopOnRepeatedFailures() {
     UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingCleanupService(List.of(handler), 1, false);
@@ -184,6 +186,26 @@ public class PagingCleanupServiceTest {
         assertThat(path.getPathStatus()).isEqualTo(PathStatus.FAILED);
       });
     }
+  }
+
+  @Test
+  @Timeout(value = 10)
+  void doNotInfiniteLoopOnDryRunCleanup() {
+    UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
+    pagingCleanupService = new PagingCleanupService(List.of(handler), 1, true);
+    List<EntityHousekeepingPath> paths = List.of(
+        createEntityHousekeepingPath("s3://some_foo", PathStatus.SCHEDULED),
+        createEntityHousekeepingPath("s3://some_bar", PathStatus.SCHEDULED),
+        createEntityHousekeepingPath("s3://some_foobar", PathStatus.SCHEDULED)
+    );
+    housekeepingPathRepository.saveAll(paths);
+
+    pagingCleanupService.cleanUp(Instant.now());
+
+    housekeepingPathRepository.findAll().forEach(path -> {
+      assertThat(path.getCleanupAttempts()).isEqualTo(0);
+      assertThat(path.getPathStatus()).isEqualTo(PathStatus.SCHEDULED);
+    });
   }
 
   private EntityHousekeepingPath createEntityHousekeepingPath(String path, PathStatus pathStatus) {
