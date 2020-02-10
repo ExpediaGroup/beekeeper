@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.protocol.HttpCoreContext;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -279,7 +278,7 @@ public class BeekeeperCleanupIntegrationTest {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
   @Test

@@ -231,15 +231,6 @@ class BeekeeperDryRunCleanupIntegrationTest {
     await().atMost(30, TimeUnit.SECONDS).until(this::assertMetrics);
   }
 
-  @Test
-  public void healthCheck() {
-    CloseableHttpClient client = HttpClientBuilder.create().build();
-    HttpGet request = new HttpGet(HEALTHCHECK_URI);
-    HttpCoreContext context = new HttpCoreContext();
-    await().atMost(30, TimeUnit.SECONDS)
-      .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
-  }
-
   private boolean assertMetrics() {
     MeterRegistry meterRegistry = BeekeeperCleanup.meterRegistry();
     List<Meter> meters = meterRegistry.getMeters();

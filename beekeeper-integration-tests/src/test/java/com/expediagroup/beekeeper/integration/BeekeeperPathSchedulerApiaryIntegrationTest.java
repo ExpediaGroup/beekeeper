@@ -247,7 +247,7 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
     HttpCoreContext context = new HttpCoreContext();
     await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> client.execute(request, context).getStatusLine().getStatusCode() == 200);
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
   @Test
