@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.cleanup.handler;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -42,6 +43,7 @@ public class GenericHandlerTest {
   @Mock private S3PathCleaner pathCleaner;
   @Mock private EntityHousekeepingPath mockPath;
   @Mock private Pageable mockPageable;
+  @Mock private Pageable nextPage;
   @Mock private PageImpl<EntityHousekeepingPath> mockPage;
 
   private UnreferencedHandler handler;
@@ -54,21 +56,23 @@ public class GenericHandlerTest {
   @Test
   public void typicalProcessDryRunPage() {
     when(mockPage.getContent()).thenReturn(List.of(mockPath));
-    handler.processPage(mockPageable, mockPage, true);
-    verify(mockPageable).next();
+    when(mockPageable.next()).thenReturn(nextPage);
+    Pageable pageable = handler.processPage(mockPageable, mockPage, true);
     verify(pathCleaner).cleanupPath(mockPath);
+    assertThat(pageable).isEqualTo(nextPage);
   }
 
   @Test
   public void typicalProcessPage() {
     when(mockPath.getCleanupAttempts()).thenReturn(0);
     when(mockPage.getContent()).thenReturn(List.of(mockPath));
-    handler.processPage(mockPageable, mockPage, false);
+    Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(pathCleaner).cleanupPath(mockPath);
     verify(mockPageable, never()).next();
     verify(mockPath).setCleanupAttempts(1);
     verify(mockPath).setPathStatus(PathStatus.DELETED);
     verify(housekeepingPathRepository).save(mockPath);
+    assertThat(pageable).isEqualTo(pageable);
   }
 
   @Test
@@ -76,10 +80,11 @@ public class GenericHandlerTest {
     when(mockPath.getCleanupAttempts()).thenReturn(0);
     doThrow(RuntimeException.class).when(pathCleaner).cleanupPath(mockPath);
     when(mockPage.getContent()).thenReturn(List.of(mockPath));
-    handler.processPage(mockPageable, mockPage, false);
+    Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(mockPageable, never()).next();
     verify(mockPath).setCleanupAttempts(1);
     verify(mockPath).setPathStatus(PathStatus.FAILED);
     verify(housekeepingPathRepository).save(mockPath);
+    assertThat(pageable).isEqualTo(pageable);
   }
 }
