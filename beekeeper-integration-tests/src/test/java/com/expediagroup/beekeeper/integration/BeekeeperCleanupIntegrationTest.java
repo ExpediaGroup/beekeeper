@@ -96,6 +96,7 @@ public class BeekeeperCleanupIntegrationTest {
     System.setProperty("spring.datasource.password", password);
     System.setProperty("spring.profiles.active", "test");
     System.setProperty("properties.scheduler-delay-ms", SCHEDULER_DELAY_MS);
+    System.setProperty("properties.dry-run-enabled", "false");
     System.setProperty("aws.s3.endpoint", ContainerTestUtils.awsServiceEndpoint(s3Container, S3));
     System.setProperty("aws.accessKeyId", AWS_ACCESS_KEY_ID);
     System.setProperty("aws.secretKey", AWS_SECRET_KEY);
