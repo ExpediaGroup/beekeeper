@@ -25,10 +25,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.protocol.HttpCoreContext;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -72,7 +68,6 @@ class BeekeeperDryRunCleanupIntegrationTest {
   private static final String AWS_ACCESS_KEY_ID = "accessKey";
   private static final String AWS_SECRET_KEY = "secretKey";
   private static final String CONTENT = "Content";
-  private static final String HEALTHCHECK_URI = "http://localhost:8008/actuator/health";
 
   private static final String S3_CLIENT_CLASS_NAME = "S3Client";
 
@@ -137,7 +132,7 @@ class BeekeeperDryRunCleanupIntegrationTest {
   @AfterEach
   void stop() throws InterruptedException {
     BeekeeperCleanup.stop();
-    executorService.awaitTermination(5, TimeUnit.SECONDS);
+    executorService.awaitTermination(2, TimeUnit.SECONDS);
   }
 
   @Test

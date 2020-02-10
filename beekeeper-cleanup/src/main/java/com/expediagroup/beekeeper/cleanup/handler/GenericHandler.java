@@ -49,15 +49,17 @@ public abstract class GenericHandler {
    * @param dryRunEnabled Dry Run boolean flag
    * @implNote This parent handler expects the child's cleanupPath call to update & remove the record from this call such
    * that subsequent DB queries will not return the record. Hence why we only call next during dryRuns where no updates occur.
-   * @implNote Note that we only expect pageable.next to be called on
+   * @implNote Note that we only expect pageable.next to be called during a dry run.
+   * @return Pageable to pass to query. In the case of dry runs, this is the next page.
    */
-  public void processPage(Pageable pageable, Page<EntityHousekeepingPath> page, boolean dryRunEnabled) {
+  public Pageable processPage(Pageable pageable, Page<EntityHousekeepingPath> page, boolean dryRunEnabled) {
     List<EntityHousekeepingPath> pageContent = page.getContent();
     if (dryRunEnabled) {
       pageContent.forEach(this::cleanUpPath);
-      pageable.next();
+      return pageable.next();
     } else {
       pageContent.forEach(this::cleanupContent);
+      return pageable;
     }
   }
 
