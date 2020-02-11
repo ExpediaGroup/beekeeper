@@ -176,14 +176,21 @@ By default, `beekeeper-path-scheduler-apiary` listens on port 8080 and `beekeepe
 
 ### Metrics
 
-Beekeeper currently supports Graphite metrics. If enabled, both host and prefix are required. If they are not provided, the application will throw an exception and not start.
+Beekeeper currently supports Graphite and Prometheus metrics.
+
+Prometheus metrics are exposed at `/actuator/prometheus`.
+
+Graphite metrics require configuration to enable. If Graphite is enabled, both host and prefix are required. If they are not provided, the application will throw an exception and not start.
+
+The following table shows the configuration that can be provided:
 
 | Property             | Required | Description |
 |:----|:----:|:----|
 | `graphite.enabled`   | No       | Enable to produce Graphite metrics. Default value is `false`. |
 | `graphite.host`   | If enabled     | Graphite host. |
-| `graphite.prefix` | If enabled     | Prefix for reported metrics. |
+| `graphite.prefix` | If enabled     | Prefix for Graphite metrics. |
 | `graphite.port`   | No       | Graphite port. Default is `2003`. |
+| `prometheus.prefix` | No       | Prefix for Prometheus metrics. Default value is `beekeeper`. |
 
 ## External links
 
