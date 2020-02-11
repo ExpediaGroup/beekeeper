@@ -88,7 +88,7 @@ public class BeekeeperPathSchedulerApiaryTest {
   private void setupContextMock(boolean defineContext, boolean defineMeterRegistry, boolean defineRunner) {
     BeekeeperPathSchedulerApiary beekeeperPathSchedulerApiary = new BeekeeperPathSchedulerApiary();
 
-    when(contextMock.getBean("meterRegistry"))
+    when(contextMock.getBean("compositeMeterRegistry"))
         .thenReturn(defineMeterRegistry ? meterRegistryMock : null);
 
     when(contextMock.getBean("pathSchedulerApiaryRunner"))

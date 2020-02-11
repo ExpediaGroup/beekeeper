@@ -49,6 +49,7 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.PurgeQueueRequest;
@@ -260,13 +261,15 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
 
   private void assertMetrics(boolean isExpired) {
     String pathMetric = isExpired ? SCHEDULED_EXPIRATION_METRIC : SCHEDULED_ORPHANED_METRIC;
-    MeterRegistry meterRegistry = BeekeeperPathSchedulerApiary.meterRegistry();
-
-    List<Meter> meters = meterRegistry.getMeters();
-    assertThat(meters)
-        .extracting("id", Meter.Id.class)
-        .extracting("name")
-        .contains(pathMetric);
+    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperPathSchedulerApiary.meterRegistry()).getRegistries();
+    assertThat(meterRegistry).hasSize(2);
+    meterRegistry.forEach(registry -> {
+      List<Meter> meters = registry.getMeters();
+      assertThat(meters)
+          .extracting("id", Meter.Id.class)
+          .extracting("name")
+          .contains(pathMetric);
+    });
   }
 
   private SendMessageRequest sendMessageRequest(String payload) {

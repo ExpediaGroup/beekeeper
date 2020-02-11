@@ -23,6 +23,7 @@ import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFEREN
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +42,7 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
@@ -268,10 +270,13 @@ public class BeekeeperCleanupIntegrationTest {
   }
 
   private void assertMetrics() {
-    MeterRegistry meterRegistry = BeekeeperCleanup.meterRegistry();
-    List<Meter> meters = meterRegistry.getMeters();
-    assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-        .contains("cleanup-job", "s3-paths-deleted", "s3-" + BytesDeletedReporter.METRIC_NAME);
+    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperCleanup.meterRegistry()).getRegistries();
+    assertThat(meterRegistry).hasSize(2);
+    meterRegistry.forEach(registry -> {
+      List<Meter> meters = registry.getMeters();
+      assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
+          .contains("cleanup-job", "s3-paths-deleted", "s3-" + BytesDeletedReporter.METRIC_NAME);
+    });
   }
 
   @Test
