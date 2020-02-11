@@ -271,7 +271,7 @@ public class BeekeeperCleanupIntegrationTest {
 
   private void assertMetrics() {
     Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperCleanup.meterRegistry()).getRegistries();
-    assertThat(meterRegistry).containsExactlyInAnyOrder();
+    assertThat(meterRegistry).hasSize(2);
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
