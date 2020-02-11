@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.core.context;
 
+import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,8 +26,10 @@ import io.micrometer.core.instrument.config.NamingConvention;
 import io.micrometer.core.instrument.util.HierarchicalNameMapper;
 import io.micrometer.graphite.GraphiteConfig;
 import io.micrometer.graphite.GraphiteMeterRegistry;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
 
 import com.expediagroup.beekeeper.core.config.GraphiteConfigFactory;
+import com.expediagroup.beekeeper.core.config.PrometheusConfigFactory;
 
 @Configuration
 public class MonitoringContext {
@@ -41,6 +44,15 @@ public class MonitoringContext {
     graphiteMeterRegistry.config()
         .namingConvention(NamingConvention.dot);
     return graphiteMeterRegistry;
+  }
+
+  @Bean
+  MeterRegistryCustomizer<MeterRegistry> metricsCommonTags(PrometheusConfigFactory prometheusConfigFactory) {
+    return registry -> {
+      if (registry instanceof PrometheusMeterRegistry) {
+        registry.config().commonTags("application", prometheusConfigFactory.newInstance().prefix());
+      }
+    };
   }
 
   @Bean

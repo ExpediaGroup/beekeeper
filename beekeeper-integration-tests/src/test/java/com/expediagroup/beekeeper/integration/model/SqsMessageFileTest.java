@@ -98,7 +98,6 @@ public class SqsMessageFileTest {
       addAll(commonKeys);
     }};
 
-    log.info("\n" + sqsMessageFile.prettyPrintedMessageContents());
     JsonObject object = sqsMessageFile.getNestedJsonObject();
 
     assertThat(object.get("eventType").getAsString()).isEqualTo(eventType);

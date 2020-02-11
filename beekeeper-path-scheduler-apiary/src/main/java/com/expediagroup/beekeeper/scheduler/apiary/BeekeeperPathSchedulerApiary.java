@@ -83,6 +83,6 @@ public class BeekeeperPathSchedulerApiary implements ApplicationContextAware {
   public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     context = (ConfigurableApplicationContext) applicationContext;
     runner = (PathSchedulerApiaryRunner) context.getBean("pathSchedulerApiaryRunner");
-    meterRegistry = (MeterRegistry) context.getBean("meterRegistry");
+    meterRegistry = (MeterRegistry) context.getBean("compositeMeterRegistry");
   }
 }
