@@ -40,6 +40,4 @@ public class PrometheusConfigFactoryTest {
     PrometheusConfig prometheusConfig = prometheusConfigFactory.newInstance();
     assertThat(prometheusConfig.prefix()).isEqualTo(prefix);
   }
-
-
 }
