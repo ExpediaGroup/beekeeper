@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,7 @@ import io.micrometer.prometheus.PrometheusConfig;
 @ConfigurationProperties(prefix = "prometheus")
 public class PrometheusConfigFactory {
 
-  private static String DEFAULT_PREFIX = "beekeeper";
-
-  private String prefix;
+  private String prefix = "beekeeper";
 
   public String getPrefix() {
     return prefix;
@@ -37,9 +35,6 @@ public class PrometheusConfigFactory {
   }
 
   public PrometheusConfig newInstance() {
-    if (prefix == null) {
-      return new PrometheusConfigFactory.DefaultPrometheusConfig(DEFAULT_PREFIX);
-    }
     return new PrometheusConfigFactory.DefaultPrometheusConfig(prefix);
   }
 
