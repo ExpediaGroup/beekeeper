@@ -18,26 +18,49 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>com.expediagroup</groupId>
+      <artifactId>beekeeper-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.expediagroup</groupId>
+      <artifactId>beekeeper-path-scheduler</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-web</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>hcommon-hive-metastore</artifactId>
+      <version>1.4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>8.0.17</version>
+    </dependency>
     <!-- spring boot -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
-      <version>${springframework.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
-      <version>${springframework.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
-      <version>${springframework.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-aop</artifactId>
-      <version>${springframework.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -48,17 +71,14 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot</artifactId>
-      <version>${springframework.boot.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-autoconfigure</artifactId>
-      <version>${springframework.boot.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter</artifactId>
-      <version>${springframework.boot.version}</version>
     </dependency>
 
     <dependency>
@@ -68,17 +88,6 @@
     </dependency>
 
     <!-- hadoop and hive -->
-    <dependency>
-      <groupId>org.apache.hive</groupId>
-      <artifactId>hive-metastore</artifactId>
-      <version>${hive.version}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>jdk.tools</artifactId>
-          <groupId>jdk.tools</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
@@ -102,24 +111,23 @@
       <version>${hadoop-aws.version}</version>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>8.0.17</version>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-metastore</artifactId>
+      <version>${hive.version}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>jdk.tools</artifactId>
+          <groupId>jdk.tools</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- tests -->
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>${springframework.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-test</artifactId>
-      <version>${springframework.boot.version}</version>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -141,27 +149,14 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <version>${assertj.version}</version>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
       <scope>test</scope>
     </dependency>
-
-    <!-- hcom and EG -->
     <dependency>
-      <groupId>com.hotels</groupId>
-      <artifactId>hcommon-hive-metastore</artifactId>
-      <version>1.4.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.expediagroup</groupId>
-      <artifactId>beekeeper-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.expediagroup</groupId>
-      <artifactId>beekeeper-path-scheduler</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

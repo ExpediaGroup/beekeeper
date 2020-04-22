@@ -46,6 +46,7 @@ import com.expediagroup.beekeeper.cleanup.TestApplication;
 import com.expediagroup.beekeeper.cleanup.handler.UnreferencedHandler;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.model.PathStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
@@ -219,6 +220,7 @@ public class PagingCleanupServiceTest {
         .modifiedTimestamp(localNow)
         .cleanupDelay(Duration.parse("P3D"))
         .cleanupAttempts(0)
+        .lifecycleType(LifecycleEventType.UNREFERENCED.toString())
         .build();
     housekeepingPath.setCleanupTimestamp(localNow);
     return housekeepingPath;
