@@ -22,6 +22,13 @@
       <groupId>com.expediagroup</groupId>
       <artifactId>beekeeper-core</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <!-- TODO: put this back and figure out why graphite config etc. is being ignored by vacuum-tool -->
+        <exclusion>
+          <groupId>io.micrometer</groupId>
+          <artifactId>micrometer-registry-graphite</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.expediagroup</groupId>
@@ -92,7 +99,6 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -101,15 +107,25 @@
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-mapreduce-client-core</artifactId>
-      <version>${hadoop.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-aws</artifactId>
       <version>${hadoop-aws.version}</version>
-      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.amazonaws</groupId>
+          <artifactId>aws-java-sdk-bundle</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- including below directly instead of aws-java-sdk-bundle from above to keep jar file size down -->
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-core</artifactId>
+      <version>1.11.199</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-s3</artifactId>
+      <version>1.11.199</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hive</groupId>
@@ -176,7 +192,7 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${springframework.boot.version}</version>
         <configuration>
-          <excludeGroupIds>org.datanucleus,org.eclipse.jetty.aggregate,org.apache.derby</excludeGroupIds>
+          <excludeGroupIds>org.apache.ant,org.apache.derby,org.apache.hbase,org.datanucleus,org.eclipse.jetty.aggregate,</excludeGroupIds>
           <requiresUnpack>
             <!-- We are hitting an issue introduced in hive-common-2.1.1 and fixed in https://issues.apache.org/jira/browse/HIVE-17155
               for hive 3
