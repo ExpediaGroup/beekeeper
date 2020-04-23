@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.vacuum.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -45,9 +47,8 @@ import com.expediagroup.beekeeper.vacuum.TestApplication;
     "default-cleanup-delay=P1D",
     "dry-run=false",
     "spring.jpa.hibernate.ddl-auto=update",
-    "spring.jpa.database=default"})
-@ContextConfiguration(classes = { TestApplication.class },
-    loader = AnnotationConfigContextLoader.class)
+    "spring.jpa.database=default" })
+@ContextConfiguration(classes = { TestApplication.class }, loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class BeekeeperRepositoryTest {
 
@@ -61,7 +62,7 @@ class BeekeeperRepositoryTest {
 
   @Test
   void findAllScheduledPaths() {
-    EntityHousekeepingPath path = getEntityHousekeepingPath();
+    EntityHousekeepingPath path = createEntityHousekeepingPath();
     repository.save(path);
     List<EntityHousekeepingPath> paths = repository.findAllScheduledPaths();
     assertThat(paths.size()).isEqualTo(1);
@@ -81,7 +82,7 @@ class BeekeeperRepositoryTest {
 
   @Test
   void findAllScheduledPathsAfterPathFailedToBeDeleted() {
-    EntityHousekeepingPath path = getEntityHousekeepingPath();
+    EntityHousekeepingPath path = createEntityHousekeepingPath();
     path.setPathStatus(PathStatus.FAILED);
     repository.save(path);
     List<EntityHousekeepingPath> paths = repository.findAllScheduledPaths();
@@ -90,14 +91,22 @@ class BeekeeperRepositoryTest {
 
   @Test
   void findAllScheduledPathsAfterPathWasDeleted() {
-    EntityHousekeepingPath path = getEntityHousekeepingPath();
+    EntityHousekeepingPath path = createEntityHousekeepingPath();
     path.setPathStatus(PathStatus.DELETED);
     repository.save(path);
     List<EntityHousekeepingPath> paths = repository.findAllScheduledPaths();
     assertThat(paths.size()).isEqualTo(0);
   }
 
-  private EntityHousekeepingPath getEntityHousekeepingPath() {
+  // we've had issues with null checks being skipped so we have this test to ensure it works from outside beekeeper-core
+  @Test
+  public void notNullableField() {
+    EntityHousekeepingPath path = createEntityHousekeepingPath();
+    path.setLifecycleType(null);
+    assertThrows(DataIntegrityViolationException.class, () -> repository.save(path));
+  }
+
+  private EntityHousekeepingPath createEntityHousekeepingPath() {
     LocalDateTime creationTimestamp = LocalDateTime.now(ZoneId.of("UTC"));
     return new EntityHousekeepingPath.Builder()
         .path("path")
