@@ -23,7 +23,9 @@
       <artifactId>beekeeper-core</artifactId>
       <version>${project.version}</version>
       <exclusions>
-        <!-- TODO: put this back and figure out why graphite config etc. is being ignored by vacuum-tool -->
+        <!-- TODO: put this back and figure out why graphite config etc. is being ignored by vacuum-tool 
+                   see https://github.com/ExpediaGroup/beekeeper/issues/50
+        -->
         <exclusion>
           <groupId>io.micrometer</groupId>
           <artifactId>micrometer-registry-graphite</artifactId>
