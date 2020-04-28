@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.expediagroup.beekeeper.core.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -38,6 +39,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import com.expediagroup.beekeeper.core.TestApplication;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.model.PathStatus;
 
 @ExtendWith(SpringExtension.class)
@@ -46,8 +48,7 @@ import com.expediagroup.beekeeper.core.model.PathStatus;
     "hibernate.dialect=org.hibernate.dialect.H2Dialect",
     "hibernate.hbm2ddl.auto=create",
     "spring.datasource.url=jdbc:h2:mem:beekeeper;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL" })
-@ContextConfiguration(classes = { TestApplication.class },
-    loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = { TestApplication.class }, loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class HousekeepingPathRepositoryTest {
 
@@ -61,7 +62,7 @@ public class HousekeepingPathRepositoryTest {
 
   @Test
   public void typicalSave() {
-    EntityHousekeepingPath path = getEntityHousekeepingPath();
+    EntityHousekeepingPath path = createEntityHousekeepingPath();
 
     housekeepingPathRepository.save(path);
 
@@ -82,7 +83,7 @@ public class HousekeepingPathRepositoryTest {
 
   @Test
   public void typicalUpdate() {
-    EntityHousekeepingPath path = getEntityHousekeepingPath();
+    EntityHousekeepingPath path = createEntityHousekeepingPath();
     EntityHousekeepingPath savedPath = housekeepingPathRepository.save(path);
 
     savedPath.setPathStatus(PathStatus.DELETED);
@@ -98,8 +99,15 @@ public class HousekeepingPathRepositoryTest {
   }
 
   @Test
+  public void notNullableField() {
+    EntityHousekeepingPath path = createEntityHousekeepingPath();
+    path.setLifecycleType(null);
+    assertThrows(DataIntegrityViolationException.class, () -> housekeepingPathRepository.save(path));
+  }
+
+  @Test
   void timezone() {
-    EntityHousekeepingPath path = getEntityHousekeepingPath();
+    EntityHousekeepingPath path = createEntityHousekeepingPath();
     housekeepingPathRepository.save(path);
     List<EntityHousekeepingPath> paths = housekeepingPathRepository.findAll();
     assertThat(paths.size()).isEqualTo(1);
@@ -113,8 +121,8 @@ public class HousekeepingPathRepositoryTest {
 
   @Test
   public void checkDuplicatePathThrowsException() {
-    EntityHousekeepingPath path1 = getEntityHousekeepingPath();
-    EntityHousekeepingPath path2 = getEntityHousekeepingPath();
+    EntityHousekeepingPath path1 = createEntityHousekeepingPath();
+    EntityHousekeepingPath path2 = createEntityHousekeepingPath();
     housekeepingPathRepository.save(path1);
     assertThatExceptionOfType(DataIntegrityViolationException.class)
         .isThrownBy(() -> housekeepingPathRepository.save(path2));
@@ -122,23 +130,23 @@ public class HousekeepingPathRepositoryTest {
 
   @Test
   void findRecordsForCleanupByModifiedTimestamp() {
-    EntityHousekeepingPath path = getEntityHousekeepingPath();
+    EntityHousekeepingPath path = createEntityHousekeepingPath();
     path.setCleanupTimestamp(LocalDateTime.now(ZoneId.of("UTC")));
     housekeepingPathRepository.save(path);
 
-    Page<EntityHousekeepingPath> result = housekeepingPathRepository.findRecordsForCleanupByModifiedTimestamp(
-        LocalDateTime.now(ZoneId.of("UTC")), PageRequest.of(0, 500));
+    Page<EntityHousekeepingPath> result = housekeepingPathRepository
+        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(ZoneId.of("UTC")), PageRequest.of(0, 500));
     assertThat(result.getContent().get(0).getPath()).isEqualTo("path");
   }
 
   @Test
   void findRecordsForCleanupByModifiedTimestampZeroResults() {
-    EntityHousekeepingPath path = getEntityHousekeepingPath();
+    EntityHousekeepingPath path = createEntityHousekeepingPath();
     path.setPathStatus(PathStatus.DELETED);
     housekeepingPathRepository.save(path);
 
-    Page<EntityHousekeepingPath> result = housekeepingPathRepository.findRecordsForCleanupByModifiedTimestamp(
-        LocalDateTime.now(), PageRequest.of(0, 500));
+    Page<EntityHousekeepingPath> result = housekeepingPathRepository
+        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(), PageRequest.of(0, 500));
     assertThat(result.getContent().size()).isEqualTo(0);
   }
 
@@ -146,24 +154,24 @@ public class HousekeepingPathRepositoryTest {
   void findRecordsForCleanupByModifiedTimestampMixedPathStatus() {
     LocalDateTime now = LocalDateTime.now(ZoneId.of("UTC"));
 
-    EntityHousekeepingPath housekeepingPath1 = getEntityHousekeepingPath();
+    EntityHousekeepingPath housekeepingPath1 = createEntityHousekeepingPath();
     housekeepingPath1.setCleanupTimestamp(now);
     housekeepingPathRepository.save(housekeepingPath1);
 
-    EntityHousekeepingPath housekeepingPath2 = getEntityHousekeepingPath();
+    EntityHousekeepingPath housekeepingPath2 = createEntityHousekeepingPath();
     housekeepingPath2.setCleanupTimestamp(now);
     housekeepingPath2.setPathStatus(PathStatus.FAILED);
     housekeepingPath2.setPath("path2");
     housekeepingPathRepository.save(housekeepingPath2);
 
-    EntityHousekeepingPath housekeepingPath3 = getEntityHousekeepingPath();
+    EntityHousekeepingPath housekeepingPath3 = createEntityHousekeepingPath();
     housekeepingPath3.setCleanupTimestamp(now);
     housekeepingPath3.setPathStatus(PathStatus.DELETED);
     housekeepingPath3.setPath("path3");
     housekeepingPathRepository.save(housekeepingPath3);
 
-    Page<EntityHousekeepingPath> result = housekeepingPathRepository.findRecordsForCleanupByModifiedTimestamp(
-        LocalDateTime.now(ZoneId.of("UTC")), PageRequest.of(0, 500));
+    Page<EntityHousekeepingPath> result = housekeepingPathRepository
+        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(ZoneId.of("UTC")), PageRequest.of(0, 500));
     assertThat(result.getContent().size()).isEqualTo(2);
   }
 
@@ -173,23 +181,24 @@ public class HousekeepingPathRepositoryTest {
     String path1 = "path1";
     String path2 = "path2";
 
-    EntityHousekeepingPath housekeepingPath1 = getEntityHousekeepingPath();
+    EntityHousekeepingPath housekeepingPath1 = createEntityHousekeepingPath();
     housekeepingPath1.setCleanupTimestamp(now);
     housekeepingPath1.setPath(path1);
     housekeepingPathRepository.save(housekeepingPath1);
 
-    EntityHousekeepingPath housekeepingPath2 = getEntityHousekeepingPath();
+    EntityHousekeepingPath housekeepingPath2 = createEntityHousekeepingPath();
     housekeepingPath2.setCleanupTimestamp(now);
     housekeepingPath2.setPath(path2);
     housekeepingPathRepository.save(housekeepingPath2);
 
-    List<EntityHousekeepingPath> result = housekeepingPathRepository.findRecordsForCleanupByModifiedTimestamp(
-        LocalDateTime.now(ZoneId.of("UTC")), PageRequest.of(0, 500)).getContent();
+    List<EntityHousekeepingPath> result = housekeepingPathRepository
+        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(ZoneId.of("UTC")), PageRequest.of(0, 500))
+        .getContent();
     assertThat(result.get(0).getPath()).isEqualTo(path1);
     assertThat(result.get(1).getPath()).isEqualTo(path2);
   }
 
-  private EntityHousekeepingPath getEntityHousekeepingPath() {
+  private EntityHousekeepingPath createEntityHousekeepingPath() {
     LocalDateTime creationTimestamp = LocalDateTime.now(ZoneId.of("UTC"));
     return new EntityHousekeepingPath.Builder()
         .path("path")
@@ -200,6 +209,7 @@ public class HousekeepingPathRepositoryTest {
         .modifiedTimestamp(creationTimestamp)
         .cleanupDelay(Duration.parse("P3D"))
         .cleanupAttempts(0)
+        .lifecycleType(LifecycleEventType.UNREFERENCED.toString())
         .build();
   }
 }
