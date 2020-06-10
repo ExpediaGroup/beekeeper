@@ -27,13 +27,13 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 public class TableParameterListenerEventFilter implements ListenerEventFilter {
 
   @Override
-  public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
+  public boolean isFilteredOut(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
 
     if (tableParameters == null) {
       return true;
     }
 
-    return !Boolean.valueOf(tableParameters.get(lifecycleEventType.getTableParameterName()));
+    return !Boolean.parseBoolean(tableParameters.get(lifecycleEventType.getTableParameterName()));
   }
 }

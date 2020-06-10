@@ -49,7 +49,7 @@ import com.amazonaws.services.s3.model.CreateBucketRequest;
 
 import com.expediagroup.beekeeper.cleanup.BeekeeperCleanup;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
-import com.expediagroup.beekeeper.core.model.PathStatus;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 
 public class BeekeeperCleanupIntegrationTest {
 
@@ -145,7 +145,7 @@ public class BeekeeperCleanupIntegrationTest {
     String path = "s3://" + BUCKET + "/" + OBJECT_KEY1;
     mySqlTestUtils.insertPath(path, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getHousekeepingStatus() == HousekeepingStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     // deleting a file shouldn't delete a folder sentinel
@@ -163,7 +163,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getHousekeepingStatus() == HousekeepingStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -185,7 +185,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(absolutePath, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getHousekeepingStatus() == HousekeepingStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, objectKey1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, objectKey2)).isFalse();
@@ -201,7 +201,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH + "/", TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getHousekeepingStatus() == HousekeepingStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -223,7 +223,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getHousekeepingStatus() == HousekeepingStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -246,7 +246,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getHousekeepingStatus() == HousekeepingStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -262,7 +262,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getPathStatus() == PathStatus.DELETED);
+        .until(() -> mySqlTestUtils.getPaths(UNREFERENCED.toString()).get(0).getHousekeepingStatus() == HousekeepingStatus.DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();

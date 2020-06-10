@@ -17,12 +17,14 @@ package com.expediagroup.beekeeper.scheduler.service;
 
 import static java.lang.String.format;
 
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.Housekeeping;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
@@ -30,7 +32,7 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 @Service
 public class UnreferencedPathSchedulerService implements SchedulerService {
 
-  private final LifecycleEventType LIFECYCLE_EVENT_TYPE = LifecycleEventType.UNREFERENCED;
+  private final LifecycleEventType LIFECYCLE_EVENT_TYPE = UNREFERENCED;
   private final HousekeepingPathRepository housekeepingPathRepository;
 
   @Autowired
@@ -45,11 +47,12 @@ public class UnreferencedPathSchedulerService implements SchedulerService {
 
   @Override
   @TimedTaggable("paths-scheduled")
-  public void scheduleForHousekeeping(HousekeepingPath cleanUpPath) {
+  public void scheduleForHousekeeping(Housekeeping housekeepingEntity) {
+    EntityHousekeepingPath housekeepingPath = (EntityHousekeepingPath) housekeepingEntity;
     try {
-      housekeepingPathRepository.save((EntityHousekeepingPath) cleanUpPath);
+      housekeepingPathRepository.save(housekeepingPath);
     } catch (Exception e) {
-      throw new BeekeeperException(format("Unable to schedule path '%s' for deletion", cleanUpPath.getPath()), e);
+      throw new BeekeeperException(format("Unable to schedule path '%s' for deletion", housekeepingPath.getPath()), e);
     }
   }
 }

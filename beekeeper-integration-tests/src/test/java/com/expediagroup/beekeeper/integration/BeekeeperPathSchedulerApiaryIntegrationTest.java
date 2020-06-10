@@ -56,7 +56,7 @@ import com.amazonaws.services.sqs.model.PurgeQueueRequest;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.core.model.PathStatus;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.integration.model.AlterPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.AlterTableSqsMessage;
 import com.expediagroup.beekeeper.integration.model.DropPartitionSqsMessage;
@@ -286,7 +286,7 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
   private void assertPathFields(EntityHousekeepingPath savedPath) {
     assertThat(savedPath.getDatabaseName()).isEqualTo(DATABASE);
     assertThat(savedPath.getTableName()).isEqualTo(TABLE);
-    assertThat(savedPath.getPathStatus()).isEqualTo(PathStatus.SCHEDULED);
+    assertThat(savedPath.getHousekeepingStatus()).isEqualTo(HousekeepingStatus.SCHEDULED);
     assertThat(savedPath.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP);
     assertThat(savedPath.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP);
 

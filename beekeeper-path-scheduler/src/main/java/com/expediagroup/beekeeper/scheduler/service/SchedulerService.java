@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.scheduler.service;
 
+import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import com.expediagroup.beekeeper.core.model.Housekeeping;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
@@ -25,7 +27,7 @@ public interface SchedulerService {
   /**
    * Schedules a file system path for deletion.
    *
-   * @param cleanUpPath file system path encapsulation
+   * @param housekeepingEntity housekeeping entity encapsulation
    */
-  void scheduleForHousekeeping(HousekeepingPath cleanUpPath);
+  void scheduleForHousekeeping(Housekeeping housekeepingEntity);
 }

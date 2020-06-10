@@ -45,7 +45,7 @@ public class MessageEventHandlerTest {
   private static final String UNREF_DEFAULT = "P3D";
   private static final Map<String, String> defaultProperties = Map.of(
       UNREFERENCED.getTableParameterName(), "true",
-      UNREF_HIVE_KEY, UNREF_DEFAULT
+      MessageEventHandlerTest.UNREF_HIVE_KEY, MessageEventHandlerTest.UNREF_DEFAULT
   );
   @Mock private MessageEvent messageEvent;
   @Mock private AlterPartitionEvent listenerEvent;
@@ -54,30 +54,30 @@ public class MessageEventHandlerTest {
 
   @Test
   public void typicalHandleMessage() {
-    UnreferencedMessageHandler handler = new UnreferencedMessageHandler(UNREF_HIVE_KEY, UNREF_DEFAULT,
+    UnreferencedMessageHandler handler = new UnreferencedMessageHandler(UNREF_DEFAULT,
         List.of(whiteListFilter));
     setupListenerEvent();
-    when(whiteListFilter.filter(listenerEvent, UNREFERENCED)).thenReturn(false);
+    when(whiteListFilter.isFilteredOut(listenerEvent, UNREFERENCED)).thenReturn(false);
     List<HousekeepingPath> paths = handler.handleMessage(messageEvent);
     assertThat(paths.isEmpty()).isFalse();
   }
 
   @Test
   public void typicalFilterMessage() {
-    UnreferencedMessageHandler handler = new UnreferencedMessageHandler(UNREF_HIVE_KEY, UNREF_DEFAULT,
+    UnreferencedMessageHandler handler = new UnreferencedMessageHandler(UNREF_DEFAULT,
         List.of(whiteListFilter));
     when(messageEvent.getEvent()).thenReturn(listenerEvent);
-    when(whiteListFilter.filter(listenerEvent, UNREFERENCED)).thenReturn(true);
+    when(whiteListFilter.isFilteredOut(listenerEvent, UNREFERENCED)).thenReturn(true);
     List<HousekeepingPath> paths = handler.handleMessage(messageEvent);
     assertThat(paths.isEmpty()).isTrue();
   }
 
   @Test
   public void ignoreUnconfiguredTables() {
-    UnreferencedMessageHandler handler = new UnreferencedMessageHandler(UNREF_HIVE_KEY, UNREF_DEFAULT,
+    UnreferencedMessageHandler handler = new UnreferencedMessageHandler(UNREF_DEFAULT,
         List.of(tableFilter));
     when(messageEvent.getEvent()).thenReturn(listenerEvent);
-    when(tableFilter.filter(listenerEvent, UNREFERENCED)).thenReturn(true);
+    when(tableFilter.isFilteredOut(listenerEvent, UNREFERENCED)).thenReturn(true);
     List<HousekeepingPath> paths = handler.handleMessage(messageEvent);
     assertThat(paths.isEmpty()).isTrue();
   }

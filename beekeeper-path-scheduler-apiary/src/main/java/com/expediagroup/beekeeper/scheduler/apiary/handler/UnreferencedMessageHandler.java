@@ -15,6 +15,9 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.handler;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,64 +33,86 @@ import com.expedia.apiary.extensions.receiver.common.event.DropPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
+import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.MetadataOnlyListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.LocationOnlyUpdateListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.model.EventModel;
+import com.expediagroup.beekeeper.scheduler.apiary.model.UnreferencedEventModel;
 
 @Component
-public class UnreferencedMessageHandler extends MessageEventHandler {
+public class UnreferencedMessageHandler extends MessageEventHandler<EntityHousekeepingPath, UnreferencedEventModel> {
 
   private static final Logger log = LoggerFactory.getLogger(UnreferencedMessageHandler.class);
+  private static final String UNREFERENCED_DATA_RETENTION_PERIOD_PROPERTY_KEY = "beekeeper.unreferenced.data.retention.period";
   private static final LifecycleEventType LIFECYCLE_EVENT_TYPE = LifecycleEventType.UNREFERENCED;
+  private static final List<Class<? extends ListenerEvent>> EVENT_CLASSES = List.of(AlterPartitionEvent.class,
+      AlterTableEvent.class, DropPartitionEvent.class, DropPartitionEvent.class);
 
   private final List<ListenerEventFilter> filters;
 
   @Autowired
   public UnreferencedMessageHandler(
-      @Value("${properties.apiary.cleanup-delay-property-key}") String hivePropertyKey,
       @Value("${properties.beekeeper.default-cleanup-delay}") String cleanupDelay
   ) {
-    super(cleanupDelay, hivePropertyKey, LIFECYCLE_EVENT_TYPE);
-    filters = List.of(
-        new EventTypeListenerEventFilter(),
-        new MetadataOnlyListenerEventFilter(),
+    super(cleanupDelay, UNREFERENCED_DATA_RETENTION_PERIOD_PROPERTY_KEY, LIFECYCLE_EVENT_TYPE);
+    this.filters = List.of(
+        new EventTypeListenerEventFilter(EVENT_CLASSES),
+        new LocationOnlyUpdateListenerEventFilter(),
         new TableParameterListenerEventFilter(),
         new WhitelistedListenerEventFilter()
     );
   }
 
   public UnreferencedMessageHandler(
-      @Value("${properties.apiary.cleanup-delay-property-key}") String hivePropertyKey,
       @Value("${properties.beekeeper.default-cleanup-delay}") String cleanupDelay,
       List<ListenerEventFilter> filters
   ) {
-    super(cleanupDelay, hivePropertyKey, LIFECYCLE_EVENT_TYPE);
+    super(cleanupDelay, UNREFERENCED_DATA_RETENTION_PERIOD_PROPERTY_KEY, LIFECYCLE_EVENT_TYPE);
     this.filters = filters;
   }
 
   @Override
-  protected List<ListenerEventFilter> getFilters() { return filters; }
+  protected List<ListenerEventFilter> getFilters() {
+    return filters;
+  }
 
   @Override
-  protected List<EventModel> generateEventModels(ListenerEvent event) {
-    List<EventModel> eventPaths = new ArrayList<>();
+  protected EntityHousekeepingPath generateHousekeepingEntity(UnreferencedEventModel eventModel,
+      ListenerEvent listenerEvent) {
+    EntityHousekeepingPath.Builder builder = new EntityHousekeepingPath.Builder()
+        .housekeepingStatus(SCHEDULED)
+        .creationTimestamp(LocalDateTime.now())
+        .cleanupDelay(extractCleanupDelay(listenerEvent))
+        .lifecycleType(eventModel.getLifecycleEventType().name())
+        .clientId(CLIENT_ID)
+        .tableName(listenerEvent.getTableName())
+        .databaseName(listenerEvent.getDbName())
+        .path(eventModel.getCleanupPath());
+
+    return builder.build();
+  }
+
+  @Override
+  protected List<UnreferencedEventModel> generateEventModels(ListenerEvent event) {
+    List<UnreferencedEventModel> eventPaths = new ArrayList<>();
 
     switch (event.getEventType()) {
     case ALTER_PARTITION:
-      eventPaths.add(new EventModel(LIFECYCLE_EVENT_TYPE, ((AlterPartitionEvent) event).getOldPartitionLocation()));
+      eventPaths.add(
+          new UnreferencedEventModel(LIFECYCLE_EVENT_TYPE, ((AlterPartitionEvent) event).getOldPartitionLocation()));
       break;
     case ALTER_TABLE:
-      eventPaths.add(new EventModel(LIFECYCLE_EVENT_TYPE, ((AlterTableEvent) event).getOldTableLocation()));
+      eventPaths.add(new UnreferencedEventModel(LIFECYCLE_EVENT_TYPE, ((AlterTableEvent) event).getOldTableLocation()));
       break;
     case DROP_TABLE:
-      eventPaths.add(new EventModel(LIFECYCLE_EVENT_TYPE, ((DropTableEvent) event).getTableLocation()));
+      eventPaths.add(new UnreferencedEventModel(LIFECYCLE_EVENT_TYPE, ((DropTableEvent) event).getTableLocation()));
       break;
     case DROP_PARTITION:
-      eventPaths.add(new EventModel(LIFECYCLE_EVENT_TYPE, ((DropPartitionEvent) event).getPartitionLocation()));
+      eventPaths.add(
+          new UnreferencedEventModel(LIFECYCLE_EVENT_TYPE, ((DropPartitionEvent) event).getPartitionLocation()));
       break;
     }
 

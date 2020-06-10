@@ -41,13 +41,13 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.filter.MetadataOnlyListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.LocationOnlyUpdateListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.handler.UnreferencedMessageHandler;
 
 @ExtendWith(MockitoExtension.class)
-public class UnreferencedMessageEventHandlerTest {
+public class UnreferencedEventModelTest {
 
   private static final String UNREF_HIVE_KEY = "beekeeper.unreferenced.data.retention.period";
   private static final String UNREF_DEFAULT = "P3D";
@@ -62,12 +62,12 @@ public class UnreferencedMessageEventHandlerTest {
 
   private static final Map<String, String> defaultProperties = Map.of(
       UNREFERENCED.getTableParameterName(), "true",
-      UNREF_HIVE_KEY, CLEANUP_DELAY
+      UnreferencedEventModelTest.UNREF_HIVE_KEY, UnreferencedEventModelTest.CLEANUP_DELAY
   );
 
   @Mock private MessageEvent messageEvent;
   @Mock private TableParameterListenerEventFilter tableParameterListenerEventFilter;
-  @Mock private MetadataOnlyListenerEventFilter metadataOnlyListenerEventFilter;
+  @Mock private LocationOnlyUpdateListenerEventFilter locationOnlyUpdateListenerEventFilter;
   @Mock private EventTypeListenerEventFilter eventTypeListenerEventFilter;
   @Mock private WhitelistedListenerEventFilter whiteListedFilter;
   @Mock private AlterPartitionEvent alterPartitionEvent;
@@ -78,11 +78,10 @@ public class UnreferencedMessageEventHandlerTest {
 
   @BeforeEach
   public void setup() throws Exception {
-    msgHandler = new UnreferencedMessageHandler(
-        UNREF_HIVE_KEY,
-        UNREF_DEFAULT,
+    this.msgHandler = new UnreferencedMessageHandler(
+        UnreferencedEventModelTest.UNREF_DEFAULT,
         List.of(
-            tableParameterListenerEventFilter, metadataOnlyListenerEventFilter,
+            tableParameterListenerEventFilter, locationOnlyUpdateListenerEventFilter,
             eventTypeListenerEventFilter, whiteListedFilter
         )
     );
@@ -166,39 +165,39 @@ public class UnreferencedMessageEventHandlerTest {
   ) {
 
     if (whiteListEnabled) {
-      when(whiteListedFilter.filter(listenerEvent, UNREFERENCED)).thenReturn(whitelistValue);
+      when(whiteListedFilter.isFilteredOut(listenerEvent, UNREFERENCED)).thenReturn(whitelistValue);
     }
 
     if (eventTypeEnabled) {
-      when(eventTypeListenerEventFilter.filter(listenerEvent, UNREFERENCED)).thenReturn(eventTypeValue);
+      when(eventTypeListenerEventFilter.isFilteredOut(listenerEvent, UNREFERENCED)).thenReturn(eventTypeValue);
     }
 
     if (metadataEnabled) {
-      when(metadataOnlyListenerEventFilter.filter(listenerEvent, UNREFERENCED)).thenReturn(metadataValue);
+      when(locationOnlyUpdateListenerEventFilter.isFilteredOut(listenerEvent, UNREFERENCED)).thenReturn(metadataValue);
     }
 
     if (tableParameterEnabled) {
-      when(tableParameterListenerEventFilter.filter(listenerEvent, UNREFERENCED)).thenReturn(tableParameterValue);
+      when(tableParameterListenerEventFilter.isFilteredOut(listenerEvent, UNREFERENCED)).thenReturn(tableParameterValue);
     }
   }
 
   private void setupListenerEvent(ListenerEvent listenerEvent) {
-    when(messageEvent.getEvent()).thenReturn(listenerEvent);
-    when(listenerEvent.getDbName()).thenReturn(DATABASE);
-    when(listenerEvent.getTableName()).thenReturn(TABLE);
+    when(this.messageEvent.getEvent()).thenReturn(listenerEvent);
+    when(listenerEvent.getDbName()).thenReturn(UnreferencedEventModelTest.DATABASE);
+    when(listenerEvent.getTableName()).thenReturn(UnreferencedEventModelTest.TABLE);
   }
 
   private void assertPath(List<HousekeepingPath> paths, String cleanupDelay) {
     assertThat(paths.size()).isEqualTo(1);
     HousekeepingPath path = paths.get(0);
     LocalDateTime now = LocalDateTime.now();
-    assertThat(path.getPath()).isEqualTo(OLD_PATH);
-    assertThat(path.getTableName()).isEqualTo(TABLE);
-    assertThat(path.getDatabaseName()).isEqualTo(DATABASE);
-    assertThat(path.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS);
+    assertThat(path.getPath()).isEqualTo(UnreferencedEventModelTest.OLD_PATH);
+    assertThat(path.getTableName()).isEqualTo(UnreferencedEventModelTest.TABLE);
+    assertThat(path.getDatabaseName()).isEqualTo(UnreferencedEventModelTest.DATABASE);
+    assertThat(path.getCleanupAttempts()).isEqualTo(UnreferencedEventModelTest.CLEANUP_ATTEMPTS);
     assertThat(path.getCleanupDelay()).isEqualTo(Duration.parse(cleanupDelay));
     assertThat(path.getModifiedTimestamp()).isNull();
-    assertThat(path.getCreationTimestamp()).isBetween(CREATION_TIMESTAMP, now);
+    assertThat(path.getCreationTimestamp()).isBetween(UnreferencedEventModelTest.CREATION_TIMESTAMP, now);
     assertThat(path.getCleanupTimestamp()).isEqualTo(path.getCreationTimestamp().plus(Duration.parse(cleanupDelay)));
   }
 }

@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
 import com.google.common.base.Supplier;
 
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.core.model.PathStatus;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 import com.expediagroup.beekeeper.vacuum.repository.BeekeeperRepository;
 
@@ -177,7 +177,7 @@ public class BeekeeperVacuumToolApplication implements ApplicationRunner {
       schedulerService.scheduleForHousekeeping(new EntityHousekeepingPath.Builder().databaseName(databaseName)
           .tableName(tableName)
           .path(toRemove.toString())
-          .pathStatus(PathStatus.SCHEDULED)
+          .housekeepingStatus(HousekeepingStatus.SCHEDULED)
           .creationTimestamp(LocalDateTime.now())
           .cleanupDelay(Duration.parse(cleanupDelay))
           .clientId("beekeeper-vacuum-tool")

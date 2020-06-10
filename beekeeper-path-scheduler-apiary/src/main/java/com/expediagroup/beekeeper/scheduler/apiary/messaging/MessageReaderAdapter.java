@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 
+import com.expediagroup.beekeeper.core.model.Housekeeping;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.scheduler.apiary.handler.MessageEventHandler;
 import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;

@@ -1,18 +1,3 @@
-/**
- * Copyright (C) 2019-2020 Expedia, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.expediagroup.beekeeper.core.model;
 
 import java.time.Duration;
@@ -34,20 +19,17 @@ import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.monitoring.MetricTag;
 
 @Entity
-@Table(name = "path")
-public class EntityHousekeepingPath implements HousekeepingPath {
+@Table(name = "table")
+public class EntityHousekeepingTable implements Housekeeping {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "path", nullable = false, unique = true)
-  private String path;
-
-  @Column(name = "database_name")
+  @Column(name = "database_name", nullable = false)
   private String databaseName;
 
-  @Column(name = "table_name")
+  @Column(name = "table_name", nullable = false)
   private String tableName;
 
   @Column(name = "path_status", nullable = false)
@@ -76,12 +58,11 @@ public class EntityHousekeepingPath implements HousekeepingPath {
   @Column(name = "lifecycle_type", nullable = false)
   private String lifecycleType;
 
-  private EntityHousekeepingPath(Long id, String path, String databaseName, String tableName,
-      HousekeepingStatus housekeepingStatus, LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,
+  private EntityHousekeepingTable(Long id, String databaseName, String tableName, HousekeepingStatus housekeepingStatus,
+      LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,
       LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts, String lifecycleType,
       String clientId) {
     this.id = id;
-    this.path = path;
     this.databaseName = databaseName;
     this.tableName = tableName;
     this.housekeepingStatus = housekeepingStatus;
@@ -109,14 +90,6 @@ public class EntityHousekeepingPath implements HousekeepingPath {
     return id;
   }
 
-  public String getPath() {
-    return path;
-  }
-
-  public void setPath(String path) {
-    this.path = path;
-  }
-
   @Override
   public String getDatabaseName() {
     return databaseName;
@@ -137,10 +110,12 @@ public class EntityHousekeepingPath implements HousekeepingPath {
     this.tableName = tableName;
   }
 
+  @Override
   public HousekeepingStatus getHousekeepingStatus() {
     return housekeepingStatus;
   }
 
+  @Override
   public void setHousekeepingStatus(HousekeepingStatus housekeepingStatus) {
     this.housekeepingStatus = housekeepingStatus;
   }
@@ -214,91 +189,83 @@ public class EntityHousekeepingPath implements HousekeepingPath {
   public static final class Builder {
 
     private Long id;
-    private String path;
     private String databaseName;
     private String tableName;
     private HousekeepingStatus housekeepingStatus;
     private LocalDateTime creationTimestamp;
     private LocalDateTime modifiedTimestamp;
-    private LocalDateTime cleanupTimestamp;
     private Duration cleanupDelay;
     private int cleanupAttempts;
-    private String clientId;
     private String lifecycleType;
+    private String clientId;
 
     public Builder() { }
 
-    public Builder id(Long id) {
+    public EntityHousekeepingTable.Builder id(Long id) {
       this.id = id;
       return this;
     }
 
-    public Builder path(String path) {
-      this.path = path;
-      return this;
-    }
-
-    public Builder housekeepingStatus(HousekeepingStatus housekeepingStatus) {
-      this.housekeepingStatus = housekeepingStatus;
-      return this;
-    }
-
-    public Builder databaseName(String databaseName) {
+    public EntityHousekeepingTable.Builder databaseName(String databaseName) {
       this.databaseName = databaseName;
       return this;
     }
 
-    public Builder tableName(String tableName) {
+    public EntityHousekeepingTable.Builder tableName(String tableName) {
       this.tableName = tableName;
       return this;
     }
 
-    public Builder creationTimestamp(LocalDateTime creationTimestamp) {
+    public EntityHousekeepingTable.Builder housekeepingStatus(HousekeepingStatus housekeepingStatus) {
+      this.housekeepingStatus = housekeepingStatus;
+      return this;
+    }
+
+    public EntityHousekeepingTable.Builder creationTimestamp(LocalDateTime creationTimestamp) {
       this.creationTimestamp = creationTimestamp;
       return this;
     }
 
-    public Builder modifiedTimestamp(LocalDateTime modifiedTimestamp) {
+    public EntityHousekeepingTable.Builder modifiedTimestamp(LocalDateTime modifiedTimestamp) {
       this.modifiedTimestamp = modifiedTimestamp;
       return this;
     }
 
-    public Builder cleanupDelay(Duration cleanupDelay) {
+    public EntityHousekeepingTable.Builder cleanupDelay(Duration cleanupDelay) {
       this.cleanupDelay = cleanupDelay;
       return this;
     }
 
-    public Builder cleanupAttempts(int cleanupAttempts) {
+    public EntityHousekeepingTable.Builder cleanupAttempts(int cleanupAttempts) {
       this.cleanupAttempts = cleanupAttempts;
       return this;
     }
 
-    public Builder clientId(String clientId) {
+    public EntityHousekeepingTable.Builder lifecycleType(String lifecycleType) {
+      this.lifecycleType = lifecycleType;
+      return this;
+    }
+
+    public EntityHousekeepingTable.Builder clientId(String clientId) {
       this.clientId = clientId;
       return this;
     }
 
-    public EntityHousekeepingPath build() {
-      cleanupTimestamp = configureCleanupTimestamp();
+    public EntityHousekeepingTable build() {
+      LocalDateTime cleanupTimestamp = configureCleanupTimestamp();
 
-      return new EntityHousekeepingPath(id, path, databaseName, tableName, housekeepingStatus,
-          creationTimestamp, modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, lifecycleType,
-          clientId);
+      return new EntityHousekeepingTable(id, databaseName, tableName, housekeepingStatus, creationTimestamp,
+          modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, lifecycleType, clientId);
     }
 
     private LocalDateTime configureCleanupTimestamp() {
       if (creationTimestamp == null) {
-        throw new BeekeeperException("Path requires a creation timestamp");
+        throw new BeekeeperException("Table requires a creation timestamp");
       }
       if (cleanupDelay == null) {
-        throw new BeekeeperException("Path requires a cleanup delay");
+        throw new BeekeeperException("Table requires a cleanup delay");
       }
       return creationTimestamp.plus(cleanupDelay);
-    }
-
-    public Builder lifecycleType(String lifecycleType) {
-      this.lifecycleType = lifecycleType;
-      return this;
     }
   }
 }

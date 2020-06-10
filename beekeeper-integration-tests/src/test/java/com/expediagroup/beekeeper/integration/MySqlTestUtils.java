@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.core.model.PathStatus;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 
 class MySqlTestUtils {
 
@@ -65,7 +65,7 @@ class MySqlTestUtils {
     String lifecycleType = UNREFERENCED.toString().toLowerCase();
 
     String fields = String.join(", ", PATH, PATH_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME, LIFECYCLE_TYPE);
-    String values = Stream.of(path, PathStatus.SCHEDULED.toString(), "PT1S", Timestamp.valueOf(LocalDateTime.now(UTC)
+    String values = Stream.of(path, HousekeepingStatus.SCHEDULED.toString(), "PT1S", Timestamp.valueOf(LocalDateTime.now(UTC)
         .minus(1L, ChronoUnit.DAYS))
         .toString(), table, lifecycleType)
         .map(s -> "\"" + s + "\"")
@@ -113,7 +113,7 @@ class MySqlTestUtils {
     EntityHousekeepingPath path = new EntityHousekeepingPath.Builder()
         .id(resultSet.getLong(ID))
         .path(resultSet.getString(PATH))
-        .pathStatus(PathStatus.valueOf(resultSet.getString(PATH_STATUS)))
+        .housekeepingStatus(HousekeepingStatus.valueOf(resultSet.getString(PATH_STATUS)))
         .cleanupAttempts(resultSet.getInt(CLEANUP_ATTEMPTS))
         .tableName(resultSet.getString(TABLE_NAME))
         .databaseName(resultSet.getString(DATABASE_NAME))

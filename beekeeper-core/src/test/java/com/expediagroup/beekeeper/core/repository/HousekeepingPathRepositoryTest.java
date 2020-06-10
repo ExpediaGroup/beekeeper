@@ -40,7 +40,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import com.expediagroup.beekeeper.core.TestApplication;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
-import com.expediagroup.beekeeper.core.model.PathStatus;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(properties = {
@@ -72,7 +72,7 @@ public class HousekeepingPathRepositoryTest {
     assertThat(savedPath.getPath()).isEqualTo("path");
     assertThat(savedPath.getDatabaseName()).isEqualTo("database");
     assertThat(savedPath.getTableName()).isEqualTo("table");
-    assertThat(savedPath.getPathStatus()).isEqualTo(PathStatus.SCHEDULED);
+    assertThat(savedPath.getHousekeepingStatus()).isEqualTo(HousekeepingStatus.SCHEDULED);
     assertThat(savedPath.getCleanupDelay()).isEqualTo(Duration.parse("P3D"));
     assertThat(savedPath.getCreationTimestamp()).isNotNull();
     assertThat(savedPath.getModifiedTimestamp()).isNotNull();
@@ -86,14 +86,14 @@ public class HousekeepingPathRepositoryTest {
     EntityHousekeepingPath path = createEntityHousekeepingPath();
     EntityHousekeepingPath savedPath = housekeepingPathRepository.save(path);
 
-    savedPath.setPathStatus(PathStatus.DELETED);
+    savedPath.setHousekeepingStatus(HousekeepingStatus.DELETED);
     savedPath.setCleanupAttempts(savedPath.getCleanupAttempts() + 1);
     housekeepingPathRepository.save(savedPath);
 
     List<EntityHousekeepingPath> paths = housekeepingPathRepository.findAll();
     assertThat(paths.size()).isEqualTo(1);
     EntityHousekeepingPath updatedPath = paths.get(0);
-    assertThat(updatedPath.getPathStatus()).isEqualTo(PathStatus.DELETED);
+    assertThat(updatedPath.getHousekeepingStatus()).isEqualTo(HousekeepingStatus.DELETED);
     assertThat(updatedPath.getCleanupAttempts()).isEqualTo(1);
     assertThat(updatedPath.getModifiedTimestamp()).isNotEqualTo(savedPath.getModifiedTimestamp());
   }
@@ -142,7 +142,7 @@ public class HousekeepingPathRepositoryTest {
   @Test
   void findRecordsForCleanupByModifiedTimestampZeroResults() {
     EntityHousekeepingPath path = createEntityHousekeepingPath();
-    path.setPathStatus(PathStatus.DELETED);
+    path.setHousekeepingStatus(HousekeepingStatus.DELETED);
     housekeepingPathRepository.save(path);
 
     Page<EntityHousekeepingPath> result = housekeepingPathRepository
@@ -160,13 +160,13 @@ public class HousekeepingPathRepositoryTest {
 
     EntityHousekeepingPath housekeepingPath2 = createEntityHousekeepingPath();
     housekeepingPath2.setCleanupTimestamp(now);
-    housekeepingPath2.setPathStatus(PathStatus.FAILED);
+    housekeepingPath2.setHousekeepingStatus(HousekeepingStatus.FAILED);
     housekeepingPath2.setPath("path2");
     housekeepingPathRepository.save(housekeepingPath2);
 
     EntityHousekeepingPath housekeepingPath3 = createEntityHousekeepingPath();
     housekeepingPath3.setCleanupTimestamp(now);
-    housekeepingPath3.setPathStatus(PathStatus.DELETED);
+    housekeepingPath3.setHousekeepingStatus(HousekeepingStatus.DELETED);
     housekeepingPath3.setPath("path3");
     housekeepingPathRepository.save(housekeepingPath3);
 
@@ -204,7 +204,7 @@ public class HousekeepingPathRepositoryTest {
         .path("path")
         .databaseName("database")
         .tableName("table")
-        .pathStatus(PathStatus.SCHEDULED)
+        .housekeepingStatus(HousekeepingStatus.SCHEDULED)
         .creationTimestamp(creationTimestamp)
         .modifiedTimestamp(creationTimestamp)
         .cleanupDelay(Duration.parse("P3D"))

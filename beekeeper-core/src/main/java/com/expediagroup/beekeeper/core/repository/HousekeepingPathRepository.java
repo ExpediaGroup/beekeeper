@@ -25,12 +25,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @Repository
 public interface HousekeepingPathRepository extends JpaRepository<EntityHousekeepingPath, Long> {
 
   @Query(value = "from EntityHousekeepingPath p where p.cleanupTimestamp <= :instant "
-      + "and (p.pathStatus = 'SCHEDULED' or p.pathStatus = 'FAILED') "
+      + "and (p.housekeepingStatus = 'SCHEDULED' or p.housekeepingStatus = 'FAILED') "
       + "and p.modifiedTimestamp <= :instant order by p.modifiedTimestamp")
   Page<EntityHousekeepingPath> findRecordsForCleanupByModifiedTimestamp(@Param("instant") LocalDateTime instant,
       Pageable pageable);

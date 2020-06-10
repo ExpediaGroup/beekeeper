@@ -46,36 +46,36 @@ public class EventTypeListenerEventFilterTest {
 
   @Test
   public void typicalFilterAlterPartitionEvent() {
-    when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
-    boolean filter = listenerEventFilter.filter(alterPartitionEvent, UNREFERENCED);
+    when(this.alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
+    boolean filter = this.listenerEventFilter.isFilteredOut(this.alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
   @Test
   public void typicalFilterAlterTableEvent() {
-    when(alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
-    boolean filter = listenerEventFilter.filter(alterTableEvent, UNREFERENCED);
+    when(this.alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
+    boolean filter = this.listenerEventFilter.isFilteredOut(this.alterTableEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
   @Test
   public void typicalFilterDropPartitionEvent() {
-    when(dropPartitionEvent.getEventType()).thenReturn(EventType.DROP_PARTITION);
-    boolean filter = listenerEventFilter.filter(dropPartitionEvent, UNREFERENCED);
+    when(this.dropPartitionEvent.getEventType()).thenReturn(EventType.DROP_PARTITION);
+    boolean filter = this.listenerEventFilter.isFilteredOut(this.dropPartitionEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
   @Test
   public void typicalFilterDropTableEvent() {
-    when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
-    boolean filter = listenerEventFilter.filter(dropTableEvent, UNREFERENCED);
+    when(this.dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
+    boolean filter = this.listenerEventFilter.isFilteredOut(this.dropTableEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
   @Test
   public void typicalFilterOtherEvent() {
-    when(addPartitionEvent.getEventType()).thenReturn(EventType.ADD_PARTITION);
-    boolean filter = listenerEventFilter.filter(addPartitionEvent, UNREFERENCED);
+    when(this.addPartitionEvent.getEventType()).thenReturn(EventType.ADD_PARTITION);
+    boolean filter = this.listenerEventFilter.isFilteredOut(this.addPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
 }

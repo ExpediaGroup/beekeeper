@@ -61,7 +61,7 @@ import com.google.common.base.Supplier;
 
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
-import com.expediagroup.beekeeper.core.model.PathStatus;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 import com.expediagroup.beekeeper.vacuum.repository.BeekeeperRepository;
 
@@ -165,7 +165,7 @@ class BeekeeperVacuumToolApplicationTest {
     EntityHousekeepingPath path = new EntityHousekeepingPath.Builder().databaseName(databaseName)
         .tableName(tableName)
         .path("file:" + snapshot0Dir.toString())
-        .pathStatus(PathStatus.SCHEDULED)
+        .housekeepingStatus(HousekeepingStatus.SCHEDULED)
         .creationTimestamp(LocalDateTime.now())
         .cleanupDelay(Duration.parse("P3D"))
         .lifecycleType(LifecycleEventType.UNREFERENCED.toString())
@@ -214,7 +214,7 @@ class BeekeeperVacuumToolApplicationTest {
     EntityHousekeepingPath path = new EntityHousekeepingPath.Builder().databaseName(databaseName)
         .tableName(tableName)
         .path("file:" + partition3InSnapshot1Dir.toString())
-        .pathStatus(PathStatus.SCHEDULED)
+        .housekeepingStatus(HousekeepingStatus.SCHEDULED)
         .creationTimestamp(LocalDateTime.now())
         .cleanupDelay(Duration.parse("P3D"))
         .lifecycleType(LifecycleEventType.UNREFERENCED.toString())

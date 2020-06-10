@@ -31,10 +31,12 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
   private static final String BEEKEEPER_HIVE_EVENT_WHITELIST = "beekeeper.hive.event.whitelist";
 
   @Override
-  public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
+  public boolean isFilteredOut(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
-    if (tableParameters != null && tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST) != null) {
-      return !isWhitelisted(listenerEvent, tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST));
+    if (tableParameters != null
+        && tableParameters.get(WhitelistedListenerEventFilter.BEEKEEPER_HIVE_EVENT_WHITELIST) != null) {
+      return !isWhitelisted(listenerEvent, tableParameters.get(
+          WhitelistedListenerEventFilter.BEEKEEPER_HIVE_EVENT_WHITELIST));
     }
     return !isDefaultBehaviour(listenerEvent);
   }

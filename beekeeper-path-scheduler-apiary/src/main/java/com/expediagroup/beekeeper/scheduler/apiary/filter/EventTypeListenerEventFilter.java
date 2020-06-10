@@ -15,12 +15,10 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
-import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
-import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
-import com.expedia.apiary.extensions.receiver.common.event.DropPartitionEvent;
-import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
@@ -28,12 +26,15 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 @Component
 public class EventTypeListenerEventFilter implements ListenerEventFilter {
 
+  private final List<Class<? extends ListenerEvent>> eventClasses;
+
+  public EventTypeListenerEventFilter(List<Class<? extends ListenerEvent>> eventClasses) {
+    this.eventClasses = eventClasses;
+  }
+
   @Override
-  public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
+  public boolean isFilteredOut(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Class<? extends ListenerEvent> eventClass = listenerEvent.getEventType().eventClass();
-    return !(AlterPartitionEvent.class.equals(eventClass) ||
-        AlterTableEvent.class.equals(eventClass) ||
-        DropPartitionEvent.class.equals(eventClass) ||
-        DropTableEvent.class.equals(eventClass));
+    return !eventClasses.contains(eventClass);
   }
 }

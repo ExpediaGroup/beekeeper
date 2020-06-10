@@ -43,41 +43,44 @@ public class TableParameterListenerEventFilterTest {
 
   @Test
   public void typicalFilterBeekeeperManaged() {
-    when(alterPartitionEvent.getTableParameters())
-        .thenReturn(Map.of(BEEKEEPER_TABLE_PARAMETER, BEEKEEPER_MANAGED));
-    Boolean filter = listenerEventFilter.filter(alterPartitionEvent, UNREFERENCED);
+    when(this.alterPartitionEvent.getTableParameters())
+        .thenReturn(Map.of(TableParameterListenerEventFilterTest.BEEKEEPER_TABLE_PARAMETER,
+            TableParameterListenerEventFilterTest.BEEKEEPER_MANAGED));
+    Boolean filter = this.listenerEventFilter.isFilteredOut(this.alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
 
   @Test
   public void typicalFilterNotBeekeeperManaged() {
-    when(alterPartitionEvent.getTableParameters())
-        .thenReturn(Map.of(BEEKEEPER_TABLE_PARAMETER, NOT_BEEKEEPER_MANAGED));
-    Boolean filter = listenerEventFilter.filter(alterPartitionEvent, UNREFERENCED);
+    when(this.alterPartitionEvent.getTableParameters())
+        .thenReturn(Map.of(TableParameterListenerEventFilterTest.BEEKEEPER_TABLE_PARAMETER,
+            TableParameterListenerEventFilterTest.NOT_BEEKEEPER_MANAGED));
+    Boolean filter = this.listenerEventFilter.isFilteredOut(this.alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
 
   @Test
   public void typicalFilterNotBeekeeperManagedEmptyMap() {
-    when(alterPartitionEvent.getTableParameters())
+    when(this.alterPartitionEvent.getTableParameters())
         .thenReturn(Map.of());
-    Boolean filter = listenerEventFilter.filter(alterPartitionEvent, UNREFERENCED);
+    Boolean filter = this.listenerEventFilter.isFilteredOut(this.alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
 
   @Test
   public void typicalFilterNotBeekeeperManagedNullMap() {
-    when(alterPartitionEvent.getTableParameters())
+    when(this.alterPartitionEvent.getTableParameters())
         .thenReturn(null);
-    Boolean filter = listenerEventFilter.filter(alterPartitionEvent, UNREFERENCED);
+    Boolean filter = this.listenerEventFilter.isFilteredOut(this.alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
 
   @Test
   public void typicalFilterBeekeeperManagedMapWithWrongKey() {
-    when(alterPartitionEvent.getTableParameters())
-        .thenReturn(Map.of(NOT_BEEKEEPER_TABLE_PARAMETER, BEEKEEPER_MANAGED));
-    Boolean filter = listenerEventFilter.filter(alterPartitionEvent, UNREFERENCED);
+    when(this.alterPartitionEvent.getTableParameters())
+        .thenReturn(Map.of(TableParameterListenerEventFilterTest.NOT_BEEKEEPER_TABLE_PARAMETER,
+            TableParameterListenerEventFilterTest.BEEKEEPER_MANAGED));
+    Boolean filter = this.listenerEventFilter.isFilteredOut(this.alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
 }

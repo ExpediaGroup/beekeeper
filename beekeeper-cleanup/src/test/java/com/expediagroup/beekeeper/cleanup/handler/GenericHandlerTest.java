@@ -33,7 +33,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.core.model.PathStatus;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -70,7 +70,7 @@ public class GenericHandlerTest {
     verify(pathCleaner).cleanupPath(mockPath);
     verify(mockPageable, never()).next();
     verify(mockPath).setCleanupAttempts(1);
-    verify(mockPath).setPathStatus(PathStatus.DELETED);
+    verify(mockPath).setHousekeepingStatus(HousekeepingStatus.DELETED);
     verify(housekeepingPathRepository).save(mockPath);
     assertThat(pageable).isEqualTo(pageable);
   }
@@ -83,7 +83,7 @@ public class GenericHandlerTest {
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(mockPageable, never()).next();
     verify(mockPath).setCleanupAttempts(1);
-    verify(mockPath).setPathStatus(PathStatus.FAILED);
+    verify(mockPath).setHousekeepingStatus(HousekeepingStatus.FAILED);
     verify(housekeepingPathRepository).save(mockPath);
     assertThat(pageable).isEqualTo(pageable);
   }

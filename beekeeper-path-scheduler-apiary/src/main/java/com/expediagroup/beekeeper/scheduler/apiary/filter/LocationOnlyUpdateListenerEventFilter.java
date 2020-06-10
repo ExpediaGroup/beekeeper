@@ -25,25 +25,25 @@ import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 @Component
-public class MetadataOnlyListenerEventFilter implements ListenerEventFilter {
+public class LocationOnlyUpdateListenerEventFilter implements ListenerEventFilter {
 
   @Override
-  public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
+  public boolean isFilteredOut(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     EventType eventType = listenerEvent.getEventType();
     switch (eventType) {
     case ALTER_PARTITION:
       AlterPartitionEvent alterPartitionEvent = (AlterPartitionEvent) listenerEvent;
-      return isMetadataUpdate(alterPartitionEvent.getOldPartitionLocation(),
+      return isLocationSame(alterPartitionEvent.getOldPartitionLocation(),
           alterPartitionEvent.getPartitionLocation());
     case ALTER_TABLE:
       AlterTableEvent alterTableEvent = (AlterTableEvent) listenerEvent;
-      return isMetadataUpdate(alterTableEvent.getOldTableLocation(), alterTableEvent.getTableLocation());
+      return isLocationSame(alterTableEvent.getOldTableLocation(), alterTableEvent.getTableLocation());
     default:
       return false;
     }
   }
 
-  private boolean isMetadataUpdate(String oldLocation, String location) {
+  private boolean isLocationSame(String oldLocation, String location) {
     return location == null || oldLocation == null || oldLocation.equals(location);
   }
 }

@@ -21,5 +21,5 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 public interface ListenerEventFilter {
 
-  boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType);
+  boolean isFilteredOut(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType);
 }

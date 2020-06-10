@@ -26,7 +26,7 @@ import org.springframework.data.domain.Pageable;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
-import com.expediagroup.beekeeper.core.model.PathStatus;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 public abstract class GenericHandler {
@@ -72,16 +72,16 @@ public abstract class GenericHandler {
     try {
       log.info("Cleaning up path \"{}\"", housekeepingPath.getPath());
       cleanUpPath(housekeepingPath);
-      updateAttemptsAndStatus(housekeepingPath, PathStatus.DELETED);
+      updateAttemptsAndStatus(housekeepingPath, HousekeepingStatus.DELETED);
     } catch (Exception e) {
-      updateAttemptsAndStatus(housekeepingPath, PathStatus.FAILED);
+      updateAttemptsAndStatus(housekeepingPath, HousekeepingStatus.FAILED);
       log.warn("Unexpected exception deleting \"{}\"", housekeepingPath.getPath(), e);
     }
   }
 
-  private void updateAttemptsAndStatus(EntityHousekeepingPath housekeepingPath, PathStatus status) {
+  private void updateAttemptsAndStatus(EntityHousekeepingPath housekeepingPath, HousekeepingStatus status) {
     housekeepingPath.setCleanupAttempts(housekeepingPath.getCleanupAttempts() + 1);
-    housekeepingPath.setPathStatus(status);
+    housekeepingPath.setHousekeepingStatus(status);
     getHousekeepingPathRepository().save(housekeepingPath);
   }
 }

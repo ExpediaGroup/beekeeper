@@ -36,7 +36,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
-import com.expediagroup.beekeeper.core.model.PathStatus;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.vacuum.TestApplication;
 
 @ExtendWith(SpringExtension.class)
@@ -71,7 +71,7 @@ class BeekeeperRepositoryTest {
     assertThat(savedPath.getPath()).isEqualTo("path");
     assertThat(savedPath.getDatabaseName()).isEqualTo("database");
     assertThat(savedPath.getTableName()).isEqualTo("table");
-    assertThat(savedPath.getPathStatus()).isEqualTo(PathStatus.SCHEDULED);
+    assertThat(savedPath.getHousekeepingStatus()).isEqualTo(HousekeepingStatus.SCHEDULED);
     assertThat(savedPath.getCleanupDelay()).isEqualTo(Duration.parse("P3D"));
     assertThat(savedPath.getCreationTimestamp()).isNotNull();
     assertThat(savedPath.getModifiedTimestamp()).isNotNull();
@@ -83,7 +83,7 @@ class BeekeeperRepositoryTest {
   @Test
   void findAllScheduledPathsAfterPathFailedToBeDeleted() {
     EntityHousekeepingPath path = createEntityHousekeepingPath();
-    path.setPathStatus(PathStatus.FAILED);
+    path.setHousekeepingStatus(HousekeepingStatus.FAILED);
     repository.save(path);
     List<EntityHousekeepingPath> paths = repository.findAllScheduledPaths();
     assertThat(paths.size()).isEqualTo(1);
@@ -92,7 +92,7 @@ class BeekeeperRepositoryTest {
   @Test
   void findAllScheduledPathsAfterPathWasDeleted() {
     EntityHousekeepingPath path = createEntityHousekeepingPath();
-    path.setPathStatus(PathStatus.DELETED);
+    path.setHousekeepingStatus(HousekeepingStatus.DELETED);
     repository.save(path);
     List<EntityHousekeepingPath> paths = repository.findAllScheduledPaths();
     assertThat(paths.size()).isEqualTo(0);
@@ -112,7 +112,7 @@ class BeekeeperRepositoryTest {
         .path("path")
         .databaseName("database")
         .tableName("table")
-        .pathStatus(PathStatus.SCHEDULED)
+        .housekeepingStatus(HousekeepingStatus.SCHEDULED)
         .creationTimestamp(creationTimestamp)
         .modifiedTimestamp(creationTimestamp)
         .cleanupDelay(Duration.parse("P3D"))

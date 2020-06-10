@@ -13,5 +13,4 @@ spring:
 properties:
   beekeeper:
     default-cleanup-delay: P3D
-  apiary:
-    cleanup-delay-property-key: beekeeper.unreferenced.data.retention.period
+    default-expiriration-delay: P3D
