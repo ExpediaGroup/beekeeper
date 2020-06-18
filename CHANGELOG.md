@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.2.0] - TBD
 ### Added
-- Add Time To Live (TTL) for unpartitioned tables.
+- Add basic Time To Live (TTL) for all tables.
 
 ## [2.1.0] - 2020-04-29
 ### Added

@@ -35,6 +35,7 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.model.ExpiredEventModel;
 
 @Component
@@ -54,7 +55,8 @@ public class ExpiredMessageHandler extends MessageEventHandler<EntityHousekeepin
     super(cleanupDelay, EXPIRED_DATA_RETENTION_PERIOD_PROPERTY_KEY, LIFECYCLE_EVENT_TYPE);
     this.filters = List.of(
         new EventTypeListenerEventFilter(EVENT_CLASSES),
-        new TableParameterListenerEventFilter());
+        new TableParameterListenerEventFilter(),
+        new WhitelistedListenerEventFilter());
   }
 
   public ExpiredMessageHandler(

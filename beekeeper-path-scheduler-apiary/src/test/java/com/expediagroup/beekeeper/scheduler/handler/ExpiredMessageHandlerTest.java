@@ -44,6 +44,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.handler.ExpiredMessageHandler;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,13 +66,14 @@ public class ExpiredMessageHandlerTest {
   @Mock private MessageEvent messageEvent;
   @Mock private TableParameterListenerEventFilter tableParameterListenerEventFilter;
   @Mock private EventTypeListenerEventFilter eventTypeListenerEventFilter;
+  @Mock private WhitelistedListenerEventFilter whitelistedListenerEventFilter;
   @Mock private AlterTableEvent alterTableEvent;
   private ExpiredMessageHandler msgHandler;
 
   @BeforeEach
   public void setup() {
     this.msgHandler = new ExpiredMessageHandler(EXPIRED_DEFAULT,
-        List.of(tableParameterListenerEventFilter, eventTypeListenerEventFilter));
+        List.of(tableParameterListenerEventFilter, eventTypeListenerEventFilter, whitelistedListenerEventFilter));
   }
 
   @Test
@@ -112,6 +114,7 @@ public class ExpiredMessageHandlerTest {
   private void setupFilterMocks(ListenerEvent listenerEvent) {
     when(eventTypeListenerEventFilter.isFilteredOut(listenerEvent, EXPIRED)).thenReturn(false);
     when(tableParameterListenerEventFilter.isFilteredOut(listenerEvent, EXPIRED)).thenReturn(false);
+    when(whitelistedListenerEventFilter.isFilteredOut(listenerEvent, EXPIRED)).thenReturn(false);
   }
 
   private void setupListenerEvent(ListenerEvent listenerEvent) {
