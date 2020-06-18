@@ -29,7 +29,7 @@ Beekeeper comprises two separate Spring-based Java applications. One application
 3. Hive Metastore events are emitted by the [Hive Metastore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-listener) as a result of the operation.
 4. Hive events are picked up from the queue by Beekeeper using [Apiary Receiver](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-receivers).
 5. Beekeeper processes these messages and schedules orphaned paths or expired tables for deletion by adding them to a database.
-6. The scheduled paths or tables are deleted by Beekeeper after a configurable delay, the default is 3 days for tables and 30 days for tables (see [Hive table configuration](#hive-table-configuration) for more details.)
+6. The scheduled paths or tables are deleted by Beekeeper after a configurable delay, the default is 3 days for paths and 30 days for tables (see [Hive table configuration](#hive-table-configuration) for more details.)
 
 ## Supported events
 
