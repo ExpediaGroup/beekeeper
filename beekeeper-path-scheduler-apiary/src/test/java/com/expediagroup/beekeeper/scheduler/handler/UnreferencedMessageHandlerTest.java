@@ -18,6 +18,7 @@ package com.expediagroup.beekeeper.scheduler.handler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 import java.time.Duration;
@@ -39,7 +40,9 @@ import com.expedia.apiary.extensions.receiver.common.event.EventType;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.Housekeeping;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.LocationOnlyUpdateListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
@@ -47,22 +50,20 @@ import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEve
 import com.expediagroup.beekeeper.scheduler.apiary.handler.UnreferencedMessageHandler;
 
 @ExtendWith(MockitoExtension.class)
-public class UnreferencedEventModelTest {
+public class UnreferencedMessageHandlerTest {
 
   private static final String UNREF_HIVE_KEY = "beekeeper.unreferenced.data.retention.period";
   private static final String UNREF_DEFAULT = "P3D";
-  private static final String PATH = "path";
   private static final String OLD_PATH = "old_path";
   private static final String DATABASE = "database";
   private static final String TABLE = "table";
-  private static final String OLD_TABLE = "old_table";
   private static final Integer CLEANUP_ATTEMPTS = 0;
   private static final String CLEANUP_DELAY = "P7D";
   private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now();
 
   private static final Map<String, String> defaultProperties = Map.of(
       UNREFERENCED.getTableParameterName(), "true",
-      UnreferencedEventModelTest.UNREF_HIVE_KEY, UnreferencedEventModelTest.CLEANUP_DELAY
+      UNREF_HIVE_KEY, CLEANUP_DELAY
   );
 
   @Mock private MessageEvent messageEvent;
@@ -77,13 +78,10 @@ public class UnreferencedEventModelTest {
   private UnreferencedMessageHandler msgHandler;
 
   @BeforeEach
-  public void setup() throws Exception {
-    this.msgHandler = new UnreferencedMessageHandler(
-        UnreferencedEventModelTest.UNREF_DEFAULT,
-        List.of(
-            tableParameterListenerEventFilter, locationOnlyUpdateListenerEventFilter,
-            eventTypeListenerEventFilter, whiteListedFilter
-        )
+  public void setup() {
+    this.msgHandler = new UnreferencedMessageHandler(UNREF_DEFAULT,
+        List.of(tableParameterListenerEventFilter, locationOnlyUpdateListenerEventFilter, eventTypeListenerEventFilter,
+            whiteListedFilter)
     );
   }
 
@@ -94,7 +92,7 @@ public class UnreferencedEventModelTest {
     when(alterPartitionEvent.getTableParameters()).thenReturn(defaultProperties);
     when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
     when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_PATH);
-    List<HousekeepingPath> paths = msgHandler.handleMessage(messageEvent);
+    List<Housekeeping> paths = msgHandler.handleMessage(messageEvent);
     assertPath(paths, CLEANUP_DELAY);
   }
 
@@ -105,7 +103,7 @@ public class UnreferencedEventModelTest {
     when(alterTableEvent.getTableParameters()).thenReturn(defaultProperties);
     when(alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
     when(alterTableEvent.getOldTableLocation()).thenReturn(OLD_PATH);
-    List<HousekeepingPath> paths = msgHandler.handleMessage(messageEvent);
+    List<Housekeeping> paths = msgHandler.handleMessage(messageEvent);
     assertPath(paths, CLEANUP_DELAY);
   }
 
@@ -116,7 +114,7 @@ public class UnreferencedEventModelTest {
     when(dropPartitionEvent.getTableParameters()).thenReturn(defaultProperties);
     when(dropPartitionEvent.getEventType()).thenReturn(EventType.DROP_PARTITION);
     when(dropPartitionEvent.getPartitionLocation()).thenReturn(OLD_PATH);
-    List<HousekeepingPath> paths = msgHandler.handleMessage(messageEvent);
+    List<Housekeeping> paths = msgHandler.handleMessage(messageEvent);
     assertPath(paths, CLEANUP_DELAY);
   }
 
@@ -127,7 +125,7 @@ public class UnreferencedEventModelTest {
     when(dropTableEvent.getTableParameters()).thenReturn(defaultProperties);
     when(dropTableEvent.getEventType()).thenReturn(EventType.DROP_TABLE);
     when(dropTableEvent.getTableLocation()).thenReturn(OLD_PATH);
-    List<HousekeepingPath> paths = msgHandler.handleMessage(messageEvent);
+    List<Housekeeping> paths = msgHandler.handleMessage(messageEvent);
     assertPath(paths, CLEANUP_DELAY);
   }
 
@@ -140,7 +138,7 @@ public class UnreferencedEventModelTest {
     when(alterPartitionEvent.getTableParameters()).thenReturn(
         Map.of(UNREFERENCED.getTableParameterName(), "true")
     );
-    List<HousekeepingPath> paths = msgHandler.handleMessage(messageEvent);
+    List<Housekeeping> paths = msgHandler.handleMessage(messageEvent);
     assertPath(paths, UNREF_DEFAULT);
   }
 
@@ -153,7 +151,7 @@ public class UnreferencedEventModelTest {
     when(alterPartitionEvent.getTableParameters()).thenReturn(
         Map.of(UNREFERENCED.getTableParameterName(), "true", UNREF_HIVE_KEY, "1")
     );
-    List<HousekeepingPath> paths = msgHandler.handleMessage(messageEvent);
+    List<Housekeeping> paths = msgHandler.handleMessage(messageEvent);
     assertPath(paths, UNREF_DEFAULT);
   }
 
@@ -177,27 +175,30 @@ public class UnreferencedEventModelTest {
     }
 
     if (tableParameterEnabled) {
-      when(tableParameterListenerEventFilter.isFilteredOut(listenerEvent, UNREFERENCED)).thenReturn(tableParameterValue);
+      when(tableParameterListenerEventFilter.isFilteredOut(listenerEvent, UNREFERENCED)).thenReturn(
+          tableParameterValue);
     }
   }
 
   private void setupListenerEvent(ListenerEvent listenerEvent) {
     when(this.messageEvent.getEvent()).thenReturn(listenerEvent);
-    when(listenerEvent.getDbName()).thenReturn(UnreferencedEventModelTest.DATABASE);
-    when(listenerEvent.getTableName()).thenReturn(UnreferencedEventModelTest.TABLE);
+    when(listenerEvent.getDbName()).thenReturn(DATABASE);
+    when(listenerEvent.getTableName()).thenReturn(TABLE);
   }
 
-  private void assertPath(List<HousekeepingPath> paths, String cleanupDelay) {
+  private void assertPath(List<Housekeeping> paths, String cleanupDelay) {
     assertThat(paths.size()).isEqualTo(1);
-    HousekeepingPath path = paths.get(0);
+    EntityHousekeepingPath path = (EntityHousekeepingPath) paths.get(0);
     LocalDateTime now = LocalDateTime.now();
-    assertThat(path.getPath()).isEqualTo(UnreferencedEventModelTest.OLD_PATH);
-    assertThat(path.getTableName()).isEqualTo(UnreferencedEventModelTest.TABLE);
-    assertThat(path.getDatabaseName()).isEqualTo(UnreferencedEventModelTest.DATABASE);
-    assertThat(path.getCleanupAttempts()).isEqualTo(UnreferencedEventModelTest.CLEANUP_ATTEMPTS);
+    assertThat(LifecycleEventType.valueOf(path.getLifecycleType())).isEqualTo(UNREFERENCED);
+    assertThat(path.getHousekeepingStatus()).isEqualTo(SCHEDULED);
+    assertThat(path.getPath()).isEqualTo(OLD_PATH);
+    assertThat(path.getTableName()).isEqualTo(TABLE);
+    assertThat(path.getDatabaseName()).isEqualTo(DATABASE);
+    assertThat(path.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS);
     assertThat(path.getCleanupDelay()).isEqualTo(Duration.parse(cleanupDelay));
     assertThat(path.getModifiedTimestamp()).isNull();
-    assertThat(path.getCreationTimestamp()).isBetween(UnreferencedEventModelTest.CREATION_TIMESTAMP, now);
+    assertThat(path.getCreationTimestamp()).isBetween(CREATION_TIMESTAMP, now);
     assertThat(path.getCleanupTimestamp()).isEqualTo(path.getCreationTimestamp().plus(Duration.parse(cleanupDelay)));
   }
 }

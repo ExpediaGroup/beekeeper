@@ -30,11 +30,13 @@ import org.springframework.retry.annotation.EnableRetry;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
+import com.expediagroup.beekeeper.core.model.Housekeeping;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.handler.MessageEventHandler;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
+import com.expediagroup.beekeeper.scheduler.apiary.model.EventModel;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 
 @Configuration
@@ -64,7 +66,7 @@ public class CommonBeans {
   @Bean
   public BeekeeperEventReader pathEventReader(
       @Qualifier("retryingMessageReader") MessageReader messageReader,
-      List<MessageEventHandler> handlers
+      List<MessageEventHandler<? extends Housekeeping, ? extends EventModel>> handlers
   ) {
     return new MessageReaderAdapter(messageReader, handlers);
   }

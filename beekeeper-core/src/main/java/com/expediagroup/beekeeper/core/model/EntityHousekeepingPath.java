@@ -35,7 +35,7 @@ import com.expediagroup.beekeeper.core.monitoring.MetricTag;
 
 @Entity
 @Table(name = "path")
-public class EntityHousekeepingPath implements HousekeepingPath {
+public class EntityHousekeepingPath implements Housekeeping {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,7 +52,7 @@ public class EntityHousekeepingPath implements HousekeepingPath {
 
   @Column(name = "path_status", nullable = false)
   @Enumerated(EnumType.STRING)
-  private HousekeepingStatus housekeepingStatus;
+  private HousekeepingStatus pathStatus;
 
   @Column(name = "creation_timestamp", nullable = false, updatable = false)
   private LocalDateTime creationTimestamp;
@@ -76,15 +76,19 @@ public class EntityHousekeepingPath implements HousekeepingPath {
   @Column(name = "lifecycle_type", nullable = false)
   private String lifecycleType;
 
+  public EntityHousekeepingPath() {
+
+  }
+
   private EntityHousekeepingPath(Long id, String path, String databaseName, String tableName,
-      HousekeepingStatus housekeepingStatus, LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,
+      HousekeepingStatus pathStatus, LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,
       LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts, String lifecycleType,
       String clientId) {
     this.id = id;
     this.path = path;
     this.databaseName = databaseName;
     this.tableName = tableName;
-    this.housekeepingStatus = housekeepingStatus;
+    this.pathStatus = pathStatus;
     this.creationTimestamp = creationTimestamp;
     this.modifiedTimestamp = modifiedTimestamp;
     this.cleanupTimestamp = cleanupTimestamp;
@@ -138,11 +142,11 @@ public class EntityHousekeepingPath implements HousekeepingPath {
   }
 
   public HousekeepingStatus getHousekeepingStatus() {
-    return housekeepingStatus;
+    return pathStatus;
   }
 
   public void setHousekeepingStatus(HousekeepingStatus housekeepingStatus) {
-    this.housekeepingStatus = housekeepingStatus;
+    this.pathStatus = housekeepingStatus;
   }
 
   @Override

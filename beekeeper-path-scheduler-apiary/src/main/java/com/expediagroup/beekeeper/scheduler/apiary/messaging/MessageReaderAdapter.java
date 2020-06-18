@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.scheduler.apiary.messaging;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -28,18 +29,19 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 
 import com.expediagroup.beekeeper.core.model.Housekeeping;
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.scheduler.apiary.handler.MessageEventHandler;
 import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
+import com.expediagroup.beekeeper.scheduler.apiary.model.EventModel;
 
 public class MessageReaderAdapter implements BeekeeperEventReader {
 
   private static final Logger log = LoggerFactory.getLogger(MessageReaderAdapter.class);
 
   private final MessageReader delegate;
-  private final List<MessageEventHandler> handlers;
+  private final List<MessageEventHandler<? extends Housekeeping, ? extends EventModel>> handlers;
 
-  public MessageReaderAdapter(MessageReader delegate, List<MessageEventHandler> handlers) {
+  public MessageReaderAdapter(MessageReader delegate,
+      List<MessageEventHandler<? extends Housekeeping, ? extends EventModel>> handlers) {
     this.delegate = delegate;
     this.handlers = handlers;
   }
@@ -54,17 +56,17 @@ public class MessageReaderAdapter implements BeekeeperEventReader {
 
     MessageEvent message = messageEvent.get();
 
-    List<HousekeepingPath> housekeepingPaths = handlers.parallelStream()
+    List<Housekeeping> housekeepingEntities = handlers.parallelStream()
         .map(eventHandler -> eventHandler.handleMessage(message))
-        .flatMap(paths -> paths.stream())
+        .flatMap(Collection::stream)
         .collect(Collectors.toList());
 
-    if (housekeepingPaths.size() <= 0) {
+    if (housekeepingEntities.size() <= 0) {
       delete(new BeekeeperEvent(Collections.emptyList(), message));
       return Optional.empty();
     }
 
-    return Optional.of(new BeekeeperEvent(housekeepingPaths, message));
+    return Optional.of(new BeekeeperEvent(housekeepingEntities, message));
   }
 
   @Override

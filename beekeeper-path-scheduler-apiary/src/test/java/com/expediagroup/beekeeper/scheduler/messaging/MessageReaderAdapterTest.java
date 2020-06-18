@@ -37,10 +37,13 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.EntityHousekeepingTable;
+import com.expediagroup.beekeeper.core.model.Housekeeping;
 import com.expediagroup.beekeeper.scheduler.apiary.handler.MessageEventHandler;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
 import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
+import com.expediagroup.beekeeper.scheduler.apiary.model.ExpiredEventModel;
+import com.expediagroup.beekeeper.scheduler.apiary.model.UnreferencedEventModel;
 
 @ExtendWith(MockitoExtension.class)
 public class MessageReaderAdapterTest {
@@ -48,31 +51,37 @@ public class MessageReaderAdapterTest {
   @Mock private MessageReader delegate;
   @Mock private MessageEvent messageEvent;
   @Mock private EntityHousekeepingPath path;
-  @Mock private MessageEventHandler handler;
+  @Mock private EntityHousekeepingTable table;
+  @Mock private MessageEventHandler<EntityHousekeepingPath, UnreferencedEventModel> unreferencedEventHandler;
+  @Mock private MessageEventHandler<EntityHousekeepingTable, ExpiredEventModel> expiredEventHandler;
   private MessageReaderAdapter messageReaderAdapter;
-  private List<HousekeepingPath> pathsList;
+  private List<Housekeeping> housekeepingEntities;
 
   @BeforeEach
   public void beforeEach() {
-    pathsList = List.of(path);
-    messageReaderAdapter = new MessageReaderAdapter(delegate, List.of(handler));
+    housekeepingEntities = List.of(path, table);
+    messageReaderAdapter = new MessageReaderAdapter(delegate, List.of(unreferencedEventHandler, expiredEventHandler));
   }
 
   @Test
   public void typicalRead() {
     when(delegate.read()).thenReturn(Optional.of(messageEvent));
-    when(handler.handleMessage(messageEvent)).thenReturn(pathsList);
+    when(unreferencedEventHandler.handleMessage(messageEvent)).thenReturn(List.of(path));
+    when(expiredEventHandler.handleMessage(messageEvent)).thenReturn(List.of(table));
 
     Optional<BeekeeperEvent> read = messageReaderAdapter.read();
     assertThat(read).isPresent();
+
     assertThat(read.get().getMessageEvent()).isEqualTo(messageEvent);
-    assertThat(read.get().getHousekeepingPaths()).isEqualTo(pathsList);
+    assertThat(read.get().getHousekeepingEntities()).isEqualTo(housekeepingEntities);
   }
 
   @Test
   public void typicalReadWithEmptyMappedEvent() {
     when(delegate.read()).thenReturn(Optional.of(messageEvent));
-    when(handler.handleMessage(messageEvent)).thenReturn(Collections.emptyList());
+    when(unreferencedEventHandler.handleMessage(messageEvent)).thenReturn(Collections.emptyList());
+    when(expiredEventHandler.handleMessage(messageEvent)).thenReturn(Collections.emptyList());
+
     Optional<BeekeeperEvent> read = messageReaderAdapter.read();
     verify(delegate).delete(messageEvent);
     assertThat(read).isEmpty();
@@ -87,14 +96,14 @@ public class MessageReaderAdapterTest {
 
   @Test
   public void typicalDelete() {
-    BeekeeperEvent beekeeperEvent = new BeekeeperEvent(pathsList, messageEvent);
+    BeekeeperEvent beekeeperEvent = new BeekeeperEvent(housekeepingEntities, messageEvent);
     messageReaderAdapter.delete(beekeeperEvent);
     verify(delegate).delete(beekeeperEvent.getMessageEvent());
   }
 
   @Test
   public void deletionFailure() {
-    BeekeeperEvent beekeeperEvent = new BeekeeperEvent(pathsList, messageEvent);
+    BeekeeperEvent beekeeperEvent = new BeekeeperEvent(housekeepingEntities, messageEvent);
     doThrow(AmazonClientException.class).when(delegate).delete(beekeeperEvent.getMessageEvent());
     messageReaderAdapter.delete(beekeeperEvent);
     verify(delegate).delete(beekeeperEvent.getMessageEvent());

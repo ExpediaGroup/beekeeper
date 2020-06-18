@@ -13,4 +13,4 @@ spring:
 properties:
   beekeeper:
     default-cleanup-delay: P3D
-    default-expiriration-delay: P3D
+    default-expiration-delay: P30D

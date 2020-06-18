@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ import io.micrometer.core.instrument.search.RequiredSearch;
 
 import com.expediagroup.beekeeper.core.TestApplication;
 import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -52,7 +51,7 @@ public class TimedTaggableAspectTest {
   private static final String TABLE = "table";
   private static final String TABLE_2 = "table2";
 
-  private HousekeepingPath housekeepingPath;
+  private EntityHousekeepingPath housekeepingPath;
   
   @Autowired
   private MeterRegistry meterRegistry;

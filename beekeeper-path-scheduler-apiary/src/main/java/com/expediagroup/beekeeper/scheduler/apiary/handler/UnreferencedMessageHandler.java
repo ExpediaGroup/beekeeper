@@ -49,7 +49,7 @@ public class UnreferencedMessageHandler extends MessageEventHandler<EntityHousek
   private static final String UNREFERENCED_DATA_RETENTION_PERIOD_PROPERTY_KEY = "beekeeper.unreferenced.data.retention.period";
   private static final LifecycleEventType LIFECYCLE_EVENT_TYPE = LifecycleEventType.UNREFERENCED;
   private static final List<Class<? extends ListenerEvent>> EVENT_CLASSES = List.of(AlterPartitionEvent.class,
-      AlterTableEvent.class, DropPartitionEvent.class, DropPartitionEvent.class);
+      AlterTableEvent.class, DropPartitionEvent.class, DropTableEvent.class);
 
   private final List<ListenerEventFilter> filters;
 

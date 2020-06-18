@@ -33,7 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.Housekeeping;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.handler.UnreferencedMessageHandler;
@@ -45,7 +45,7 @@ public class MessageEventHandlerTest {
   private static final String UNREF_DEFAULT = "P3D";
   private static final Map<String, String> defaultProperties = Map.of(
       UNREFERENCED.getTableParameterName(), "true",
-      MessageEventHandlerTest.UNREF_HIVE_KEY, MessageEventHandlerTest.UNREF_DEFAULT
+      UNREF_HIVE_KEY, UNREF_DEFAULT
   );
   @Mock private MessageEvent messageEvent;
   @Mock private AlterPartitionEvent listenerEvent;
@@ -58,7 +58,7 @@ public class MessageEventHandlerTest {
         List.of(whiteListFilter));
     setupListenerEvent();
     when(whiteListFilter.isFilteredOut(listenerEvent, UNREFERENCED)).thenReturn(false);
-    List<HousekeepingPath> paths = handler.handleMessage(messageEvent);
+    List<Housekeeping> paths = handler.handleMessage(messageEvent);
     assertThat(paths.isEmpty()).isFalse();
   }
 
@@ -68,7 +68,7 @@ public class MessageEventHandlerTest {
         List.of(whiteListFilter));
     when(messageEvent.getEvent()).thenReturn(listenerEvent);
     when(whiteListFilter.isFilteredOut(listenerEvent, UNREFERENCED)).thenReturn(true);
-    List<HousekeepingPath> paths = handler.handleMessage(messageEvent);
+    List<Housekeeping> paths = handler.handleMessage(messageEvent);
     assertThat(paths.isEmpty()).isTrue();
   }
 
@@ -78,7 +78,7 @@ public class MessageEventHandlerTest {
         List.of(tableFilter));
     when(messageEvent.getEvent()).thenReturn(listenerEvent);
     when(tableFilter.isFilteredOut(listenerEvent, UNREFERENCED)).thenReturn(true);
-    List<HousekeepingPath> paths = handler.handleMessage(messageEvent);
+    List<Housekeeping> paths = handler.handleMessage(messageEvent);
     assertThat(paths.isEmpty()).isTrue();
   }
 

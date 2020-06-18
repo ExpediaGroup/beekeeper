@@ -48,9 +48,8 @@ public class LocationOnlyUpdateListenerEventFilterTest {
   @Test
   public void alterPartitionEventNotMetadataOnly() {
     when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
-    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(
-        LocationOnlyUpdateListenerEventFilterTest.OLD_LOCATION);
-    when(alterPartitionEvent.getPartitionLocation()).thenReturn(LocationOnlyUpdateListenerEventFilterTest.NEW_LOCATION);
+    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_LOCATION);
+    when(alterPartitionEvent.getPartitionLocation()).thenReturn(NEW_LOCATION);
     boolean filter = locationOnlyUpdateListenerEventFilter.isFilteredOut(alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
@@ -58,8 +57,8 @@ public class LocationOnlyUpdateListenerEventFilterTest {
   @Test
   public void alterTableEventNotMetadataOnly() {
     when(alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
-    when(alterTableEvent.getOldTableLocation()).thenReturn(LocationOnlyUpdateListenerEventFilterTest.OLD_LOCATION);
-    when(alterTableEvent.getTableLocation()).thenReturn(LocationOnlyUpdateListenerEventFilterTest.NEW_LOCATION);
+    when(alterTableEvent.getOldTableLocation()).thenReturn(OLD_LOCATION);
+    when(alterTableEvent.getTableLocation()).thenReturn(NEW_LOCATION);
     boolean filter = locationOnlyUpdateListenerEventFilter.isFilteredOut(alterTableEvent, UNREFERENCED);
     assertThat(filter).isFalse();
   }
@@ -67,8 +66,8 @@ public class LocationOnlyUpdateListenerEventFilterTest {
   @Test
   public void alterTableEventMetadataOnly() {
     when(alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
-    when(alterTableEvent.getOldTableLocation()).thenReturn(LocationOnlyUpdateListenerEventFilterTest.OLD_LOCATION);
-    when(alterTableEvent.getTableLocation()).thenReturn(LocationOnlyUpdateListenerEventFilterTest.OLD_LOCATION);
+    when(alterTableEvent.getOldTableLocation()).thenReturn(OLD_LOCATION);
+    when(alterTableEvent.getTableLocation()).thenReturn(OLD_LOCATION);
     boolean filter = locationOnlyUpdateListenerEventFilter.isFilteredOut(alterTableEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
@@ -76,9 +75,8 @@ public class LocationOnlyUpdateListenerEventFilterTest {
   @Test
   public void alterPartitionEventMetadataOnly() {
     when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
-    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(
-        LocationOnlyUpdateListenerEventFilterTest.OLD_LOCATION);
-    when(alterPartitionEvent.getPartitionLocation()).thenReturn(LocationOnlyUpdateListenerEventFilterTest.OLD_LOCATION);
+    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_LOCATION);
+    when(alterPartitionEvent.getPartitionLocation()).thenReturn(OLD_LOCATION);
     boolean filter = locationOnlyUpdateListenerEventFilter.isFilteredOut(alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
@@ -103,7 +101,7 @@ public class LocationOnlyUpdateListenerEventFilterTest {
   public void alterTableEventMetadataOnlyNullOldLocation() {
     when(alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
     when(alterTableEvent.getOldTableLocation()).thenReturn(null);
-    when(alterTableEvent.getTableLocation()).thenReturn(LocationOnlyUpdateListenerEventFilterTest.NEW_LOCATION);
+    when(alterTableEvent.getTableLocation()).thenReturn(NEW_LOCATION);
     boolean filter = locationOnlyUpdateListenerEventFilter.isFilteredOut(alterTableEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
@@ -112,7 +110,7 @@ public class LocationOnlyUpdateListenerEventFilterTest {
   public void alterPartitionEventMetadataOnlyNullOldLocation() {
     when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
     when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(null);
-    when(alterPartitionEvent.getPartitionLocation()).thenReturn(LocationOnlyUpdateListenerEventFilterTest.NEW_LOCATION);
+    when(alterPartitionEvent.getPartitionLocation()).thenReturn(NEW_LOCATION);
     boolean filter = locationOnlyUpdateListenerEventFilter.isFilteredOut(alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }

@@ -1,3 +1,18 @@
+/**
+ * Copyright (C) 2019-2020 Expedia, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.expediagroup.beekeeper.core.model;
 
 import java.time.Duration;
@@ -19,7 +34,7 @@ import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.monitoring.MetricTag;
 
 @Entity
-@Table(name = "table")
+@Table(name = "unpartitioned_table_housekeeping")
 public class EntityHousekeepingTable implements Housekeeping {
 
   @Id
@@ -32,7 +47,7 @@ public class EntityHousekeepingTable implements Housekeeping {
   @Column(name = "table_name", nullable = false)
   private String tableName;
 
-  @Column(name = "path_status", nullable = false)
+  @Column(name = "housekeeping_status", nullable = false)
   @Enumerated(EnumType.STRING)
   private HousekeepingStatus housekeepingStatus;
 
@@ -57,6 +72,10 @@ public class EntityHousekeepingTable implements Housekeeping {
   private String clientId;
   @Column(name = "lifecycle_type", nullable = false)
   private String lifecycleType;
+
+  public EntityHousekeepingTable() {
+
+  }
 
   private EntityHousekeepingTable(Long id, String databaseName, String tableName, HousekeepingStatus housekeepingStatus,
       LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,

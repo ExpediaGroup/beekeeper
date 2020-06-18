@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,23 +19,23 @@ import static com.expediagroup.beekeeper.core.monitoring.TimedTaggableAspectTest
 
 import org.springframework.stereotype.Component;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
 
 @Component
 public class MonitoredClass {
 
   @TimedTaggable(TIMER_NAME)
-  public HousekeepingPath doSomething(HousekeepingPath path) {
+  public EntityHousekeepingPath doSomething(EntityHousekeepingPath path) {
     return path;
   }
 
   @TimedTaggable(TIMER_NAME)
-  public HousekeepingPath multipleArguments(HousekeepingPath path, int i, String s) {
+  public EntityHousekeepingPath multipleArguments(EntityHousekeepingPath path, int i, String s) {
     return path;
   }
 
   @TimedTaggable(TIMER_NAME)
-  public HousekeepingPath pathIsNotTheFirstArg(int i, String s, HousekeepingPath path) {
+  public EntityHousekeepingPath pathIsNotTheFirstArg(int i, String s, EntityHousekeepingPath path) {
     return path;
   }
 }

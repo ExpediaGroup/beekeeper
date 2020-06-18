@@ -20,7 +20,6 @@ import java.util.List;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 
 import com.expediagroup.beekeeper.core.model.Housekeeping;
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 public class BeekeeperEvent {
 

@@ -15,9 +15,7 @@
  */
 package com.expediagroup.beekeeper.scheduler.service;
 
-import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.Housekeeping;
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 public interface SchedulerService {

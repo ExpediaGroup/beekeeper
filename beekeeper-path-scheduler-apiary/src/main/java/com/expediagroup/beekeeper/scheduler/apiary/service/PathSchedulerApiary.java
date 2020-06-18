@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.service;
 
+import static java.lang.String.format;
+
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.List;
@@ -59,7 +61,9 @@ public class PathSchedulerApiary {
         SchedulerService scheduler = schedulerServiceMap.get(eventType);
         scheduler.scheduleForHousekeeping(entity);
       } catch (Exception e) {
-        throw new BeekeeperException("Unable to schedule entity for deletion, this message will go back on the queue",
+        throw new BeekeeperException(format(
+            "Unable to schedule %s deletion for entity, this message will go back on the queue",
+            entity.getLifecycleType()),
             e);
       }
     }
