@@ -69,7 +69,7 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
   private static final String QUEUE = "apiary-receiver-queue";
   private static final String REGION = "us-west-2";
   private static final String PATH_TABLE = "path";
-  private static final String UNPARTITIONED_TABLE_HOUSEKEEPING_TABLE = "unpartitioned_table_housekeeping";
+  private static final String TABLE_HOUSEKEEPING_TABLE = "table_housekeeping";
   private static final String FLYWAY_TABLE = "flyway_schema_history";
   private static final String AWS_ACCESS_KEY_ID = "accessKey";
   private static final String AWS_SECRET_KEY = "secretKey";
@@ -131,7 +131,7 @@ public class BeekeeperPathSchedulerApiaryIntegrationTest {
   void setup() throws SQLException {
     amazonSQS.purgeQueue(new PurgeQueueRequest(ContainerTestUtils.queueUrl(sqsContainer, QUEUE)));
     mySqlTestUtils.dropTable(PATH_TABLE);
-    mySqlTestUtils.dropTable(UNPARTITIONED_TABLE_HOUSEKEEPING_TABLE);
+    mySqlTestUtils.dropTable(TABLE_HOUSEKEEPING_TABLE);
     mySqlTestUtils.dropTable(FLYWAY_TABLE);
     executorService.execute(() -> BeekeeperPathSchedulerApiary.main(new String[] {}));
     await().atMost(Duration.ONE_MINUTE).until(BeekeeperPathSchedulerApiary::isRunning);

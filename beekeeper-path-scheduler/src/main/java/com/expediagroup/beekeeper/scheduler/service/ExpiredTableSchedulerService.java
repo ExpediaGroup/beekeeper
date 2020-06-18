@@ -49,7 +49,7 @@ public class ExpiredTableSchedulerService implements SchedulerService {
   }
 
   @Override
-  @TimedTaggable("unpartitioned-tables-scheduled")
+  @TimedTaggable("tables-scheduled")
   public void scheduleForHousekeeping(Housekeeping housekeepingEntity) {
     EntityHousekeepingTable housekeepingTable = createOrUpdateHousekeepingTable(
         (EntityHousekeepingTable) housekeepingEntity);

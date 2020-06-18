@@ -1,5 +1,5 @@
 USE beekeeper;
-CREATE TABLE IF NOT EXISTS unpartitioned_table_housekeeping (
+CREATE TABLE IF NOT EXISTS table_housekeeping (
   id BIGINT(20) AUTO_INCREMENT,
   database_name VARCHAR(512),
   table_name VARCHAR(512),

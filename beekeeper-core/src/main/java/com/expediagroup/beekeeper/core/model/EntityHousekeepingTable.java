@@ -34,7 +34,7 @@ import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.monitoring.MetricTag;
 
 @Entity
-@Table(name = "unpartitioned_table_housekeeping")
+@Table(name = "table_housekeeping")
 public class EntityHousekeepingTable implements Housekeeping {
 
   @Id
