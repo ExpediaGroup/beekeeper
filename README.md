@@ -170,7 +170,7 @@ By default, `beekeeper-path-scheduler-apiary` listens on port 8080 and `beekeepe
 | `apiary.queue-url`                  | Yes      | URL for SQS queue. |
 | `apiary.cleanup-delay-property-key` | No       | Table parameter to use for Apiary listener. Default value is `beekeeper.unreferenced.data.retention.period`. |
 | `beekeeper.default-cleanup-delay`   | No       | Default Time To Live (TTL) for orphaned paths in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Durations) format: only days, hours, minutes and seconds can be specified in the expression. Default value is `P3D` (3 days). |
-| `beekeeper.default-expiration-delay`| No    | Default Time To Live (TTL) for tables in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Durations) format: only days, hours, minutes and seconds can be specified in the expression. Default value is `P3D` (3 days). |
+| `beekeeper.default-expiration-delay`| No    | Default Time To Live (TTL) for tables in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Durations) format: only days, hours, minutes and seconds can be specified in the expression. Default value is `P30D` (30 days). |
 
 ### Beekeeper Cleanup
 | Property             | Required | Description |
