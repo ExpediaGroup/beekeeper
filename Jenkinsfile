@@ -1,6 +1,6 @@
 pipeline {
   agent {
-    label 'centos7-alljava-maven-docker'
+    label 'eg-jenkinscloud-default'
   }
   tools {
     jdk 'OpenJDK11'
