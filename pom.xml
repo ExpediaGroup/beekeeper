@@ -20,7 +20,7 @@
     <module>beekeeper-path-scheduler</module>
     <module>beekeeper-path-scheduler-apiary</module>
     <module>beekeeper-integration-tests</module>
-    <module>beekeeper-package</module>
+<!--    <module>beekeeper-package</module>-->
     <module>beekeeper-vacuum-tool</module>
   </modules>
 
@@ -36,7 +36,12 @@
     <assertj.version>3.12.2</assertj.version>
     <awaitility.version>3.1.6</awaitility.version>
     <docker.registry>expediagroup</docker.registry>
+    <!-- default docker image 'from' references (can be overridden in child projects if needed) -->
+    <docker.from.image>java</docker.from.image>
+    <docker.from.tag>11</docker.from.tag>
+    <docker.from.reference>gcr.io/distroless/${docker.from.image}:${docker.from.tag}</docker.from.reference>
     <jdk.version>11</jdk.version>
+    <jib.version>2.4.0</jib.version>
     <junit.jupiter.version>5.6.0</junit.jupiter.version>
     <logback.version>1.2.3</logback.version>
     <maven.assembly.plugin.version>3.1.0</maven.assembly.plugin.version>
@@ -136,6 +141,56 @@
             <excludes>
               <exclude>src/main/java/com/expediagroup/beekeeper/core/monitoring/TimedTaggableAspect.java</exclude>
             </excludes>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>com.google.cloud.tools</groupId>
+          <artifactId>jib-maven-plugin</artifactId>
+          <version>${jib.version}</version>
+          <executions>
+            <execution>
+              <id>deploy</id>
+              <phase>deploy</phase>
+              <goals>
+                <goal>build</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>package</id>
+              <phase>package</phase>
+              <goals>
+                <goal>dockerBuild</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <from>
+              <image>${docker.from.reference}</image>
+            </from>
+            <to>
+              <image>${docker.to.reference}</image>
+            </to>
+            <container>
+              <entrypoint>/bin/startup.sh</entrypoint>
+              <ports>
+                <port>${docker.container.port}</port>
+              </ports>
+            </container>
+            <extraDirectories>
+              <paths>
+                <path>
+                  <from>./src/main/scripts</from>
+                  <into>/bin</into>
+                </path>
+              </paths>
+              <permissions>
+                <permission>
+                  <file>/file/in/container</file>
+                  <mode>755</mode>
+                </permission>
+              </permissions>
+            </extraDirectories>
           </configuration>
         </plugin>
       </plugins>
