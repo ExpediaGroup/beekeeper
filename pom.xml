@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>beekeeper-parent</artifactId>
-  <version>2.2.0-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
   <description>Beekeeper is a service which manages the cleanup of tables and unreferenced S3 paths.</description>
   <inceptionYear>2019</inceptionYear>
   <packaging>pom</packaging>
@@ -17,8 +17,8 @@
   <modules>
     <module>beekeeper-cleanup</module>
     <module>beekeeper-core</module>
-    <module>beekeeper-path-scheduler</module>
-    <module>beekeeper-path-scheduler-apiary</module>
+    <module>beekeeper-scheduler</module>
+    <module>beekeeper-scheduler-apiary</module>
     <module>beekeeper-integration-tests</module>
     <module>beekeeper-package</module>
     <module>beekeeper-vacuum-tool</module>
