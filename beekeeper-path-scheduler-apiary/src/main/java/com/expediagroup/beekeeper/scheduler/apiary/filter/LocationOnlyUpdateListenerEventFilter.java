@@ -28,7 +28,7 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 public class LocationOnlyUpdateListenerEventFilter implements ListenerEventFilter {
 
   @Override
-  public boolean isFilteredOut(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
+  public boolean isFiltered(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     EventType eventType = listenerEvent.getEventType();
     switch (eventType) {
     case ALTER_PARTITION:

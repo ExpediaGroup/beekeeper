@@ -19,6 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -38,9 +43,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import com.expediagroup.beekeeper.core.TestApplication;
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
-import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(properties = {
@@ -62,17 +65,17 @@ public class HousekeepingPathRepositoryTest {
 
   @Test
   public void typicalSave() {
-    EntityHousekeepingPath path = createEntityHousekeepingPath();
+    HousekeepingPath path = createEntityHousekeepingPath();
 
     housekeepingPathRepository.save(path);
 
-    List<EntityHousekeepingPath> paths = housekeepingPathRepository.findAll();
+    List<HousekeepingPath> paths = housekeepingPathRepository.findAll();
     assertThat(paths.size()).isEqualTo(1);
-    EntityHousekeepingPath savedPath = paths.get(0);
+    HousekeepingPath savedPath = paths.get(0);
     assertThat(savedPath.getPath()).isEqualTo("path");
     assertThat(savedPath.getDatabaseName()).isEqualTo("database");
     assertThat(savedPath.getTableName()).isEqualTo("table");
-    assertThat(savedPath.getHousekeepingStatus()).isEqualTo(HousekeepingStatus.SCHEDULED);
+    assertThat(savedPath.getHousekeepingStatus()).isEqualTo(SCHEDULED);
     assertThat(savedPath.getCleanupDelay()).isEqualTo(Duration.parse("P3D"));
     assertThat(savedPath.getCreationTimestamp()).isNotNull();
     assertThat(savedPath.getModifiedTimestamp()).isNotNull();
@@ -83,36 +86,36 @@ public class HousekeepingPathRepositoryTest {
 
   @Test
   public void typicalUpdate() {
-    EntityHousekeepingPath path = createEntityHousekeepingPath();
-    EntityHousekeepingPath savedPath = housekeepingPathRepository.save(path);
+    HousekeepingPath path = createEntityHousekeepingPath();
+    HousekeepingPath savedPath = housekeepingPathRepository.save(path);
 
-    savedPath.setHousekeepingStatus(HousekeepingStatus.DELETED);
+    savedPath.setHousekeepingStatus(DELETED);
     savedPath.setCleanupAttempts(savedPath.getCleanupAttempts() + 1);
     housekeepingPathRepository.save(savedPath);
 
-    List<EntityHousekeepingPath> paths = housekeepingPathRepository.findAll();
+    List<HousekeepingPath> paths = housekeepingPathRepository.findAll();
     assertThat(paths.size()).isEqualTo(1);
-    EntityHousekeepingPath updatedPath = paths.get(0);
-    assertThat(updatedPath.getHousekeepingStatus()).isEqualTo(HousekeepingStatus.DELETED);
+    HousekeepingPath updatedPath = paths.get(0);
+    assertThat(updatedPath.getHousekeepingStatus()).isEqualTo(DELETED);
     assertThat(updatedPath.getCleanupAttempts()).isEqualTo(1);
     assertThat(updatedPath.getModifiedTimestamp()).isNotEqualTo(savedPath.getModifiedTimestamp());
   }
 
   @Test
   public void notNullableField() {
-    EntityHousekeepingPath path = createEntityHousekeepingPath();
+    HousekeepingPath path = createEntityHousekeepingPath();
     path.setLifecycleType(null);
     assertThrows(DataIntegrityViolationException.class, () -> housekeepingPathRepository.save(path));
   }
 
   @Test
   void timezone() {
-    EntityHousekeepingPath path = createEntityHousekeepingPath();
+    HousekeepingPath path = createEntityHousekeepingPath();
     housekeepingPathRepository.save(path);
-    List<EntityHousekeepingPath> paths = housekeepingPathRepository.findAll();
+    List<HousekeepingPath> paths = housekeepingPathRepository.findAll();
     assertThat(paths.size()).isEqualTo(1);
 
-    EntityHousekeepingPath savedPath = paths.get(0);
+    HousekeepingPath savedPath = paths.get(0);
     int utcHour = LocalDateTime.now(ZoneId.of("UTC")).getHour();
     assertThat(savedPath.getCleanupTimestamp().getHour()).isEqualTo(utcHour);
     assertThat(savedPath.getModifiedTimestamp().getHour()).isEqualTo(utcHour);
@@ -121,8 +124,8 @@ public class HousekeepingPathRepositoryTest {
 
   @Test
   public void checkDuplicatePathThrowsException() {
-    EntityHousekeepingPath path1 = createEntityHousekeepingPath();
-    EntityHousekeepingPath path2 = createEntityHousekeepingPath();
+    HousekeepingPath path1 = createEntityHousekeepingPath();
+    HousekeepingPath path2 = createEntityHousekeepingPath();
     housekeepingPathRepository.save(path1);
     assertThatExceptionOfType(DataIntegrityViolationException.class)
         .isThrownBy(() -> housekeepingPathRepository.save(path2));
@@ -130,22 +133,22 @@ public class HousekeepingPathRepositoryTest {
 
   @Test
   void findRecordsForCleanupByModifiedTimestamp() {
-    EntityHousekeepingPath path = createEntityHousekeepingPath();
+    HousekeepingPath path = createEntityHousekeepingPath();
     path.setCleanupTimestamp(LocalDateTime.now(ZoneId.of("UTC")));
     housekeepingPathRepository.save(path);
 
-    Page<EntityHousekeepingPath> result = housekeepingPathRepository
+    Page<HousekeepingPath> result = housekeepingPathRepository
         .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(ZoneId.of("UTC")), PageRequest.of(0, 500));
     assertThat(result.getContent().get(0).getPath()).isEqualTo("path");
   }
 
   @Test
   void findRecordsForCleanupByModifiedTimestampZeroResults() {
-    EntityHousekeepingPath path = createEntityHousekeepingPath();
-    path.setHousekeepingStatus(HousekeepingStatus.DELETED);
+    HousekeepingPath path = createEntityHousekeepingPath();
+    path.setHousekeepingStatus(DELETED);
     housekeepingPathRepository.save(path);
 
-    Page<EntityHousekeepingPath> result = housekeepingPathRepository
+    Page<HousekeepingPath> result = housekeepingPathRepository
         .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(), PageRequest.of(0, 500));
     assertThat(result.getContent().size()).isEqualTo(0);
   }
@@ -154,23 +157,23 @@ public class HousekeepingPathRepositoryTest {
   void findRecordsForCleanupByModifiedTimestampMixedPathStatus() {
     LocalDateTime now = LocalDateTime.now(ZoneId.of("UTC"));
 
-    EntityHousekeepingPath housekeepingPath1 = createEntityHousekeepingPath();
+    HousekeepingPath housekeepingPath1 = createEntityHousekeepingPath();
     housekeepingPath1.setCleanupTimestamp(now);
     housekeepingPathRepository.save(housekeepingPath1);
 
-    EntityHousekeepingPath housekeepingPath2 = createEntityHousekeepingPath();
+    HousekeepingPath housekeepingPath2 = createEntityHousekeepingPath();
     housekeepingPath2.setCleanupTimestamp(now);
-    housekeepingPath2.setHousekeepingStatus(HousekeepingStatus.FAILED);
+    housekeepingPath2.setHousekeepingStatus(FAILED);
     housekeepingPath2.setPath("path2");
     housekeepingPathRepository.save(housekeepingPath2);
 
-    EntityHousekeepingPath housekeepingPath3 = createEntityHousekeepingPath();
+    HousekeepingPath housekeepingPath3 = createEntityHousekeepingPath();
     housekeepingPath3.setCleanupTimestamp(now);
-    housekeepingPath3.setHousekeepingStatus(HousekeepingStatus.DELETED);
+    housekeepingPath3.setHousekeepingStatus(DELETED);
     housekeepingPath3.setPath("path3");
     housekeepingPathRepository.save(housekeepingPath3);
 
-    Page<EntityHousekeepingPath> result = housekeepingPathRepository
+    Page<HousekeepingPath> result = housekeepingPathRepository
         .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(ZoneId.of("UTC")), PageRequest.of(0, 500));
     assertThat(result.getContent().size()).isEqualTo(2);
   }
@@ -181,35 +184,35 @@ public class HousekeepingPathRepositoryTest {
     String path1 = "path1";
     String path2 = "path2";
 
-    EntityHousekeepingPath housekeepingPath1 = createEntityHousekeepingPath();
+    HousekeepingPath housekeepingPath1 = createEntityHousekeepingPath();
     housekeepingPath1.setCleanupTimestamp(now);
     housekeepingPath1.setPath(path1);
     housekeepingPathRepository.save(housekeepingPath1);
 
-    EntityHousekeepingPath housekeepingPath2 = createEntityHousekeepingPath();
+    HousekeepingPath housekeepingPath2 = createEntityHousekeepingPath();
     housekeepingPath2.setCleanupTimestamp(now);
     housekeepingPath2.setPath(path2);
     housekeepingPathRepository.save(housekeepingPath2);
 
-    List<EntityHousekeepingPath> result = housekeepingPathRepository
+    List<HousekeepingPath> result = housekeepingPathRepository
         .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(ZoneId.of("UTC")), PageRequest.of(0, 500))
         .getContent();
     assertThat(result.get(0).getPath()).isEqualTo(path1);
     assertThat(result.get(1).getPath()).isEqualTo(path2);
   }
 
-  private EntityHousekeepingPath createEntityHousekeepingPath() {
+  private HousekeepingPath createEntityHousekeepingPath() {
     LocalDateTime creationTimestamp = LocalDateTime.now(ZoneId.of("UTC"));
-    return new EntityHousekeepingPath.Builder()
+    return new HousekeepingPath.Builder()
         .path("path")
         .databaseName("database")
         .tableName("table")
-        .housekeepingStatus(HousekeepingStatus.SCHEDULED)
+        .housekeepingStatus(SCHEDULED)
         .creationTimestamp(creationTimestamp)
         .modifiedTimestamp(creationTimestamp)
         .cleanupDelay(Duration.parse("P3D"))
         .cleanupAttempts(0)
-        .lifecycleType(LifecycleEventType.UNREFERENCED.toString())
+        .lifecycleType(UNREFERENCED.toString())
         .build();
   }
 }

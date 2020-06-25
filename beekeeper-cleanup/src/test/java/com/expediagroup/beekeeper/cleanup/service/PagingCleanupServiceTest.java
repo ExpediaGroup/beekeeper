@@ -22,6 +22,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -45,9 +49,8 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import com.expediagroup.beekeeper.cleanup.TestApplication;
 import com.expediagroup.beekeeper.cleanup.handler.UnreferencedHandler;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
-import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @ExtendWith(SpringExtension.class)
@@ -64,7 +67,7 @@ public class PagingCleanupServiceTest {
 
   private final LocalDateTime localNow = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
   private PagingCleanupService pagingCleanupService;
-  private @Captor ArgumentCaptor<EntityHousekeepingPath> pathCaptor;
+  private @Captor ArgumentCaptor<HousekeepingPath> pathCaptor;
   private @Autowired HousekeepingPathRepository housekeepingPathRepository;
   private @MockBean PathCleaner pathCleaner;
 
@@ -74,7 +77,7 @@ public class PagingCleanupServiceTest {
     pagingCleanupService = new PagingCleanupService(List.of(handler), 2, false);
 
     List<String> paths = List.of("s3://some_foo", "s3://some_bar", "s3://some_foobar");
-    paths.forEach(path -> housekeepingPathRepository.save(createEntityHousekeepingPath(path, HousekeepingStatus.SCHEDULED)));
+    paths.forEach(path -> housekeepingPathRepository.save(createEntityHousekeepingPath(path, SCHEDULED)));
     pagingCleanupService.cleanUp(Instant.now());
 
     verify(pathCleaner, times(3)).cleanupPath(pathCaptor.capture());
@@ -84,7 +87,7 @@ public class PagingCleanupServiceTest {
 
     housekeepingPathRepository.findAll().forEach(housekeepingPath -> {
       assertThat(housekeepingPath.getCleanupAttempts()).isEqualTo(1);
-      assertThat(housekeepingPath.getHousekeepingStatus()).isEqualTo(HousekeepingStatus.DELETED);
+      assertThat(housekeepingPath.getHousekeepingStatus()).isEqualTo(DELETED);
     });
 
     pagingCleanupService.cleanUp(Instant.now());
@@ -95,8 +98,8 @@ public class PagingCleanupServiceTest {
   public void mixOfScheduledAndFailedPaths() {
     UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingCleanupService(List.of(handler), 2, false);
-    List<EntityHousekeepingPath> paths = List.of(
-        createEntityHousekeepingPath("s3://some_foo", HousekeepingStatus.SCHEDULED),
+    List<HousekeepingPath> paths = List.of(
+        createEntityHousekeepingPath("s3://some_foo", SCHEDULED),
         createEntityHousekeepingPath("s3://some_bar", HousekeepingStatus.FAILED)
     );
     paths.forEach(path -> housekeepingPathRepository.save(path));
@@ -112,10 +115,10 @@ public class PagingCleanupServiceTest {
   public void mixOfAllPaths() {
     UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingCleanupService(List.of(handler), 2, false);
-    List<EntityHousekeepingPath> paths = List.of(
-        createEntityHousekeepingPath("s3://some_foo", HousekeepingStatus.SCHEDULED),
+    List<HousekeepingPath> paths = List.of(
+        createEntityHousekeepingPath("s3://some_foo", SCHEDULED),
         createEntityHousekeepingPath("s3://some_bar", HousekeepingStatus.FAILED),
-        createEntityHousekeepingPath("s3://some_foobar", HousekeepingStatus.DELETED)
+        createEntityHousekeepingPath("s3://some_foobar", DELETED)
     );
     paths.forEach(path -> housekeepingPathRepository.save(path));
     pagingCleanupService.cleanUp(Instant.now());
@@ -134,10 +137,10 @@ public class PagingCleanupServiceTest {
     doThrow(new RuntimeException("Error"))
         .doNothing()
         .when(pathCleaner)
-        .cleanupPath(any(EntityHousekeepingPath.class));
+        .cleanupPath(any(HousekeepingPath.class));
 
     List<String> paths = List.of("s3://some_foo", "s3://some_bar");
-    paths.forEach(path -> housekeepingPathRepository.save(createEntityHousekeepingPath(path, HousekeepingStatus.SCHEDULED)));
+    paths.forEach(path -> housekeepingPathRepository.save(createEntityHousekeepingPath(path, SCHEDULED)));
     pagingCleanupService.cleanUp(Instant.now());
 
     verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
@@ -145,16 +148,16 @@ public class PagingCleanupServiceTest {
         .extracting("path")
         .containsExactly(paths.get(0), paths.get(1));
 
-    List<EntityHousekeepingPath> result = housekeepingPathRepository.findAll();
+    List<HousekeepingPath> result = housekeepingPathRepository.findAll();
     assertThat(result.size()).isEqualTo(2);
-    EntityHousekeepingPath housekeepingPath1 = result.get(0);
-    EntityHousekeepingPath housekeepingPath2 = result.get(1);
+    HousekeepingPath housekeepingPath1 = result.get(0);
+    HousekeepingPath housekeepingPath2 = result.get(1);
 
     assertThat(housekeepingPath1.getPath()).isEqualTo(paths.get(0));
     assertThat(housekeepingPath1.getHousekeepingStatus()).isEqualTo(HousekeepingStatus.FAILED);
     assertThat(housekeepingPath1.getCleanupAttempts()).isEqualTo(1);
     assertThat(housekeepingPath2.getPath()).isEqualTo(paths.get(1));
-    assertThat(housekeepingPath2.getHousekeepingStatus()).isEqualTo(HousekeepingStatus.DELETED);
+    assertThat(housekeepingPath2.getHousekeepingStatus()).isEqualTo(DELETED);
     assertThat(housekeepingPath2.getCleanupAttempts()).isEqualTo(1);
   }
 
@@ -163,7 +166,7 @@ public class PagingCleanupServiceTest {
   void doNotInfiniteLoopOnRepeatedFailures() {
     UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingCleanupService(List.of(handler), 1, false);
-    List<EntityHousekeepingPath> paths = List.of(
+    List<HousekeepingPath> paths = List.of(
         createEntityHousekeepingPath("s3://some_foo", HousekeepingStatus.FAILED),
         createEntityHousekeepingPath("s3://some_bar", HousekeepingStatus.FAILED),
         createEntityHousekeepingPath("s3://some_foobar", HousekeepingStatus.FAILED)
@@ -194,10 +197,10 @@ public class PagingCleanupServiceTest {
   void doNotInfiniteLoopOnDryRunCleanup() {
     UnreferencedHandler handler = new UnreferencedHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingCleanupService(List.of(handler), 1, true);
-    List<EntityHousekeepingPath> paths = List.of(
-        createEntityHousekeepingPath("s3://some_foo", HousekeepingStatus.SCHEDULED),
-        createEntityHousekeepingPath("s3://some_bar", HousekeepingStatus.SCHEDULED),
-        createEntityHousekeepingPath("s3://some_foobar", HousekeepingStatus.SCHEDULED)
+    List<HousekeepingPath> paths = List.of(
+        createEntityHousekeepingPath("s3://some_foo", SCHEDULED),
+        createEntityHousekeepingPath("s3://some_bar", SCHEDULED),
+        createEntityHousekeepingPath("s3://some_foobar", SCHEDULED)
     );
     housekeepingPathRepository.saveAll(paths);
 
@@ -205,12 +208,12 @@ public class PagingCleanupServiceTest {
 
     housekeepingPathRepository.findAll().forEach(path -> {
       assertThat(path.getCleanupAttempts()).isEqualTo(0);
-      assertThat(path.getHousekeepingStatus()).isEqualTo(HousekeepingStatus.SCHEDULED);
+      assertThat(path.getHousekeepingStatus()).isEqualTo(SCHEDULED);
     });
   }
 
-  private EntityHousekeepingPath createEntityHousekeepingPath(String path, HousekeepingStatus housekeepingStatus) {
-    EntityHousekeepingPath housekeepingPath = new EntityHousekeepingPath.Builder()
+  private HousekeepingPath createEntityHousekeepingPath(String path, HousekeepingStatus housekeepingStatus) {
+    HousekeepingPath housekeepingPath = new HousekeepingPath.Builder()
         .path(path)
         .databaseName("database")
         .tableName("table")
@@ -220,7 +223,7 @@ public class PagingCleanupServiceTest {
         .modifiedTimestamp(localNow)
         .cleanupDelay(Duration.parse("P3D"))
         .cleanupAttempts(0)
-        .lifecycleType(LifecycleEventType.UNREFERENCED.toString())
+        .lifecycleType(UNREFERENCED.toString())
         .build();
     housekeepingPath.setCleanupTimestamp(localNow);
     return housekeepingPath;

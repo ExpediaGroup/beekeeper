@@ -27,16 +27,27 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.retry.annotation.EnableRetry;
 
+import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
+import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
+import com.expedia.apiary.extensions.receiver.common.event.DropPartitionEvent;
+import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
+import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
-import com.expediagroup.beekeeper.core.model.Housekeeping;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.LocationOnlyUpdateListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.generator.ExpiredHousekeepingMetadataGenerator;
+import com.expediagroup.beekeeper.scheduler.apiary.generator.HousekeepingEntityGenerator;
+import com.expediagroup.beekeeper.scheduler.apiary.generator.UnreferencedHousekeepingPathGenerator;
 import com.expediagroup.beekeeper.scheduler.apiary.handler.MessageEventHandler;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
-import com.expediagroup.beekeeper.scheduler.apiary.model.EventModel;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 
 @Configuration
@@ -63,11 +74,64 @@ public class CommonBeans {
     return new RetryingMessageReader(messageReader);
   }
 
+  @Bean(name = "unreferencedHousekeepingPathGenerator")
+  public HousekeepingEntityGenerator unreferencedHousekeepingPathGenerator(
+      @Value("${properties.beekeeper.default-cleanup-delay}") String cleanupDelay) {
+    return new UnreferencedHousekeepingPathGenerator(cleanupDelay);
+  }
+
+  @Bean(name = "unreferencedHousekeepingPathMessageEventHandler")
+  public MessageEventHandler unreferencedHousekeepingPathMessageEventHandler(
+      @Qualifier("unreferencedHousekeepingPathGenerator") HousekeepingEntityGenerator generator) {
+    List<Class<? extends ListenerEvent>> eventClasses = List.of(
+        AlterPartitionEvent.class,
+        AlterTableEvent.class,
+        DropPartitionEvent.class,
+        DropTableEvent.class
+    );
+
+    List<ListenerEventFilter> filters = List.of(
+        new EventTypeListenerEventFilter(eventClasses),
+        new LocationOnlyUpdateListenerEventFilter(),
+        new TableParameterListenerEventFilter(),
+        new WhitelistedListenerEventFilter()
+    );
+
+    return new MessageEventHandler(generator, filters);
+  }
+
+  @Bean(name = "expiredHousekeepingMetadataGenerator")
+  public HousekeepingEntityGenerator expiredHousekeepingMetadataGenerator(
+      @Value("${properties.beekeeper.default-expiration-delay}") String cleanupDelay) {
+    return new ExpiredHousekeepingMetadataGenerator(cleanupDelay);
+  }
+
+  @Bean(name = "expiredHousekeepingMetadataMessageEventHandler")
+  public MessageEventHandler expiredHousekeepingMetadataMessageEventHandler(
+      @Qualifier("expiredHousekeepingMetadataGenerator") HousekeepingEntityGenerator generator) {
+    List<Class<? extends ListenerEvent>> eventClasses = List.of(
+        AlterTableEvent.class
+    );
+
+    List<ListenerEventFilter> filters = List.of(
+        new EventTypeListenerEventFilter(eventClasses),
+        new TableParameterListenerEventFilter()
+    );
+
+    return new MessageEventHandler(generator, filters);
+  }
+
   @Bean
-  public BeekeeperEventReader pathEventReader(
+  public BeekeeperEventReader eventReader(
       @Qualifier("retryingMessageReader") MessageReader messageReader,
-      List<MessageEventHandler<? extends Housekeeping, ? extends EventModel>> handlers
+      @Qualifier("unreferencedHousekeepingPathMessageEventHandler") MessageEventHandler unreferencedHousekeepingPathMessageEventHandler,
+      @Qualifier("expiredHousekeepingMetadataMessageEventHandler") MessageEventHandler expiredHousekeepingMetadataMessageEventHandler
   ) {
+    List<MessageEventHandler> handlers = List.of(
+        unreferencedHousekeepingPathMessageEventHandler,
+        expiredHousekeepingMetadataMessageEventHandler
+    );
+
     return new MessageReaderAdapter(messageReader, handlers);
   }
 }

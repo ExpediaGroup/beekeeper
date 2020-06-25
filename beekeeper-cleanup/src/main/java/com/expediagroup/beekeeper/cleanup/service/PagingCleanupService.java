@@ -31,7 +31,7 @@ import io.micrometer.core.annotation.Timed;
 
 import com.expediagroup.beekeeper.cleanup.handler.GenericHandler;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 public class PagingCleanupService implements CleanupService {
 
@@ -60,7 +60,7 @@ public class PagingCleanupService implements CleanupService {
     Pageable pageable = PageRequest.of(0, pageSize).first();
 
     LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);
-    Page<EntityHousekeepingPath> page = handler.findRecordsToClean(instant, pageable);
+    Page<HousekeepingPath> page = handler.findRecordsToClean(instant, pageable);
 
     while (!page.getContent().isEmpty()) {
       pageable = handler.processPage(pageable, page, dryRunEnabled);

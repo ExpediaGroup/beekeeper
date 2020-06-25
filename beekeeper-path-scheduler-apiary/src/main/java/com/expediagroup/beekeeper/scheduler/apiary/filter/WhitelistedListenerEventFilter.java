@@ -15,6 +15,9 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
+import static com.expedia.apiary.extensions.receiver.common.event.EventType.ALTER_PARTITION;
+import static com.expedia.apiary.extensions.receiver.common.event.EventType.ALTER_TABLE;
+
 import java.util.Arrays;
 import java.util.Map;
 
@@ -31,12 +34,10 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
   private static final String BEEKEEPER_HIVE_EVENT_WHITELIST = "beekeeper.hive.event.whitelist";
 
   @Override
-  public boolean isFilteredOut(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
+  public boolean isFiltered(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
-    if (tableParameters != null
-        && tableParameters.get(WhitelistedListenerEventFilter.BEEKEEPER_HIVE_EVENT_WHITELIST) != null) {
-      return !isWhitelisted(listenerEvent, tableParameters.get(
-          WhitelistedListenerEventFilter.BEEKEEPER_HIVE_EVENT_WHITELIST));
+    if (tableParameters != null && tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST) != null) {
+      return !isWhitelisted(listenerEvent, tableParameters.get(BEEKEEPER_HIVE_EVENT_WHITELIST));
     }
     return !isDefaultBehaviour(listenerEvent);
   }
@@ -44,12 +45,11 @@ public class WhitelistedListenerEventFilter implements ListenerEventFilter {
   private boolean isWhitelisted(ListenerEvent listenerEvent, String whitelist) {
     return Arrays.stream(whitelist.split(","))
         .map(String::trim)
-        .anyMatch(whitelistedEvent -> whitelistedEvent.equalsIgnoreCase(listenerEvent.getEventType()
-            .toString()));
+        .anyMatch(whitelistedEvent -> whitelistedEvent.equalsIgnoreCase(listenerEvent.getEventType().toString()));
   }
 
   private boolean isDefaultBehaviour(ListenerEvent listenerEvent) {
     EventType eventType = listenerEvent.getEventType();
-    return eventType == EventType.ALTER_PARTITION || eventType == EventType.ALTER_TABLE;
+    return eventType == ALTER_PARTITION || eventType == ALTER_TABLE;
   }
 }

@@ -19,19 +19,19 @@ import java.util.List;
 
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 
-import com.expediagroup.beekeeper.core.model.Housekeeping;
+import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 
 public class BeekeeperEvent {
 
-  private final List<Housekeeping> housekeepingEntities;
+  private final List<HousekeepingEntity> housekeepingEntities;
   private final MessageEvent messageEvent;
 
-  public BeekeeperEvent(List<Housekeeping> housekeepingEntities, MessageEvent messageEvent) {
+  public BeekeeperEvent(List<HousekeepingEntity> housekeepingEntities, MessageEvent messageEvent) {
     this.housekeepingEntities = housekeepingEntities;
     this.messageEvent = messageEvent;
   }
 
-  public List<Housekeeping> getHousekeepingEntities() {
+  public List<HousekeepingEntity> getHousekeepingEntities() {
     return housekeepingEntities;
   }
 

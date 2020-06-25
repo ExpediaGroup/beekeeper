@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.vacuum;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.Duration;
@@ -42,8 +44,7 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.base.Supplier;
 
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 import com.expediagroup.beekeeper.vacuum.repository.BeekeeperRepository;
 
@@ -112,8 +113,8 @@ public class BeekeeperVacuumToolApplication implements ApplicationRunner {
   private Set<String> fetchHousekeepingPaths(BeekeeperRepository repository) {
     log.info("Fetching scheduled paths");
     Set<String> paths = new HashSet<>();
-    Iterable<EntityHousekeepingPath> repositoryPaths = repository.findAllScheduledPaths();
-    for (EntityHousekeepingPath repositoryPath : repositoryPaths) {
+    Iterable<HousekeepingPath> repositoryPaths = repository.findAllScheduledPaths();
+    for (HousekeepingPath repositoryPath : repositoryPaths) {
       paths.add(repositoryPath.getPath());
     }
     return paths;
@@ -174,10 +175,10 @@ public class BeekeeperVacuumToolApplication implements ApplicationRunner {
   private void removePath(Path toRemove, String databaseName, String tableName) {
     log.info("REMOVE path '{}'; it is not referenced and can be deleted.", toRemove);
     if (!isDryRun) {
-      schedulerService.scheduleForHousekeeping(new EntityHousekeepingPath.Builder().databaseName(databaseName)
+      schedulerService.scheduleForHousekeeping(new HousekeepingPath.Builder().databaseName(databaseName)
           .tableName(tableName)
           .path(toRemove.toString())
-          .housekeepingStatus(HousekeepingStatus.SCHEDULED)
+          .housekeepingStatus(SCHEDULED)
           .creationTimestamp(LocalDateTime.now())
           .cleanupDelay(Duration.parse(cleanupDelay))
           .clientId("beekeeper-vacuum-tool")

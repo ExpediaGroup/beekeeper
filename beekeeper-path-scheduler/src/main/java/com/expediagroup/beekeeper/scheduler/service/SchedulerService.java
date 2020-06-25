@@ -15,7 +15,7 @@
  */
 package com.expediagroup.beekeeper.scheduler.service;
 
-import com.expediagroup.beekeeper.core.model.Housekeeping;
+import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 public interface SchedulerService {
@@ -27,5 +27,5 @@ public interface SchedulerService {
    *
    * @param housekeepingEntity housekeeping entity encapsulation
    */
-  void scheduleForHousekeeping(Housekeeping housekeepingEntity);
+  void scheduleForHousekeeping(HousekeepingEntity housekeepingEntity);
 }

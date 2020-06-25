@@ -18,6 +18,7 @@ package com.expediagroup.beekeeper.integration;
 import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 import java.sql.Connection;
@@ -33,14 +34,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 
 class MySqlTestUtils {
 
   private static final String DROP_TABLE = "DROP TABLE IF EXISTS beekeeper.%s;";
   private static final String SELECT_TABLE = "SELECT * FROM beekeeper.%s where lifecycle_type = '%s' order by path;";
-  private static final String INSERT_PATH = "INSERT INTO beekeeper.path (%s) VALUES (%s);";
+  private static final String INSERT_PATH = "INSERT INTO beekeeper.%s (%s) VALUES (%s);";
 
   private static final String CLEANUP_ATTEMPTS = "cleanup_attempts";
   private static final String CLEANUP_DELAY = "cleanup_delay";
@@ -52,7 +53,7 @@ class MySqlTestUtils {
   private static final String ID = "id";
   private static final String MODIFIED_TIMESTAMP = "modified_timestamp";
   private static final String PATH = "path";
-  private static final String PATH_STATUS = "path_status";
+  private static final String HOUSEKEEPING_STATUS = "housekeeping_status";
   private static final String TABLE_NAME = "table_name";
 
   private final Connection connection;
@@ -61,59 +62,59 @@ class MySqlTestUtils {
     connection = DriverManager.getConnection(jdbcUrl, username, password);
   }
 
-  void insertPath(String path, String table) throws SQLException {
+  void insertPath(String beekeeperTableName, String path, String table) throws SQLException {
     String lifecycleType = UNREFERENCED.toString().toLowerCase();
 
-    String fields = String.join(", ", PATH, PATH_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME, LIFECYCLE_TYPE);
-    String values = Stream.of(path, HousekeepingStatus.SCHEDULED.toString(), "PT1S", Timestamp.valueOf(LocalDateTime.now(UTC)
+    String fields = String.join(", ", PATH, HOUSEKEEPING_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME, LIFECYCLE_TYPE);
+    String values = Stream.of(path, SCHEDULED.toString(), "PT1S", Timestamp.valueOf(LocalDateTime.now(UTC)
         .minus(1L, ChronoUnit.DAYS))
         .toString(), table, lifecycleType)
         .map(s -> "\"" + s + "\"")
         .collect(Collectors.joining(", "));
 
     connection.createStatement()
-        .executeUpdate(format(INSERT_PATH, fields, values));
+        .executeUpdate(format(INSERT_PATH, beekeeperTableName, fields, values));
   }
 
-  int unreferencedRowsInTable(String table) throws SQLException {
-    return rowsInTable(table, UNREFERENCED.toString());
+  int unreferencedRowsInTable(String beekeeperTableName) throws SQLException {
+    return rowsInTable(beekeeperTableName, UNREFERENCED.toString());
   }
 
-  private int rowsInTable(String table, String cleanupType) throws SQLException {
+  private int rowsInTable(String beekeeperTableName, String cleanupType) throws SQLException {
     ResultSet resultSet = connection.createStatement()
-        .executeQuery(format(SELECT_TABLE, table, cleanupType));
+        .executeQuery(format(SELECT_TABLE, beekeeperTableName, cleanupType));
     resultSet.last();
     int rowsInTable = resultSet.getRow();
     return rowsInTable;
   }
 
-  void dropTable(String tableName) throws SQLException {
+  void dropTable(String beekeeperTableName) throws SQLException {
     connection.createStatement()
-        .executeUpdate(format(DROP_TABLE, tableName));
+        .executeUpdate(format(DROP_TABLE, beekeeperTableName));
   }
 
   void close() throws SQLException {
     connection.close();
   }
 
-  List<EntityHousekeepingPath> getUnreferencedPaths() throws SQLException {
-    return getPaths(UNREFERENCED.toString());
+  List<HousekeepingPath> getUnreferencedPaths(String beekeeperTableName) throws SQLException {
+    return getPaths(beekeeperTableName, UNREFERENCED.toString());
   }
 
-  List<EntityHousekeepingPath> getPaths(String cleanupType) throws SQLException {
-    ResultSet resultSet = connection.createStatement().executeQuery(format(SELECT_TABLE, PATH, cleanupType));
-    List<EntityHousekeepingPath> paths = new ArrayList<>();
+  List<HousekeepingPath> getPaths(String beekeeperTableName, String cleanupType) throws SQLException {
+    ResultSet resultSet = connection.createStatement().executeQuery(format(SELECT_TABLE, beekeeperTableName, cleanupType));
+    List<HousekeepingPath> paths = new ArrayList<>();
     while (resultSet.next()) {
       paths.add(map(resultSet));
     }
     return paths;
   }
 
-  private EntityHousekeepingPath map(ResultSet resultSet) throws SQLException {
-    EntityHousekeepingPath path = new EntityHousekeepingPath.Builder()
+  private HousekeepingPath map(ResultSet resultSet) throws SQLException {
+    HousekeepingPath path = new HousekeepingPath.Builder()
         .id(resultSet.getLong(ID))
         .path(resultSet.getString(PATH))
-        .housekeepingStatus(HousekeepingStatus.valueOf(resultSet.getString(PATH_STATUS)))
+        .housekeepingStatus(HousekeepingStatus.valueOf(resultSet.getString(HOUSEKEEPING_STATUS)))
         .cleanupAttempts(resultSet.getInt(CLEANUP_ATTEMPTS))
         .tableName(resultSet.getString(TABLE_NAME))
         .databaseName(resultSet.getString(DATABASE_NAME))

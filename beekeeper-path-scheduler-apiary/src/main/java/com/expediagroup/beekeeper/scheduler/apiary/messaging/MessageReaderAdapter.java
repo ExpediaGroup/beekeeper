@@ -28,20 +28,19 @@ import org.slf4j.LoggerFactory;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 
-import com.expediagroup.beekeeper.core.model.Housekeeping;
+import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.scheduler.apiary.handler.MessageEventHandler;
 import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
-import com.expediagroup.beekeeper.scheduler.apiary.model.EventModel;
 
 public class MessageReaderAdapter implements BeekeeperEventReader {
 
   private static final Logger log = LoggerFactory.getLogger(MessageReaderAdapter.class);
 
   private final MessageReader delegate;
-  private final List<MessageEventHandler<? extends Housekeeping, ? extends EventModel>> handlers;
+  private final List<MessageEventHandler> handlers;
 
   public MessageReaderAdapter(MessageReader delegate,
-      List<MessageEventHandler<? extends Housekeeping, ? extends EventModel>> handlers) {
+      List<MessageEventHandler> handlers) {
     this.delegate = delegate;
     this.handlers = handlers;
   }
@@ -56,7 +55,7 @@ public class MessageReaderAdapter implements BeekeeperEventReader {
 
     MessageEvent message = messageEvent.get();
 
-    List<Housekeeping> housekeepingEntities = handlers.parallelStream()
+    List<HousekeepingEntity> housekeepingEntities = handlers.parallelStream()
         .map(eventHandler -> eventHandler.handleMessage(message))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());

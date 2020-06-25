@@ -33,7 +33,7 @@ public class EventTypeListenerEventFilter implements ListenerEventFilter {
   }
 
   @Override
-  public boolean isFilteredOut(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
+  public boolean isFiltered(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Class<? extends ListenerEvent> eventClass = listenerEvent.getEventType().eventClass();
     return !eventClasses.contains(eventClass);
   }

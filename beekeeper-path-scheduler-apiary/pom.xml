@@ -104,7 +104,7 @@
         <version>${springframework.boot.version}</version>
         <configuration>
           <classifier>spring-boot</classifier>
-          <mainClass>com.expediagroup.beekeeper.scheduler.apiary.BeekeeperPathSchedulerApiary</mainClass>
+          <mainClass>com.expediagroup.beekeeper.scheduler.apiary.BeekeeperSchedulerApiary</mainClass>
           <executable>true</executable>
         </configuration>
         <executions>

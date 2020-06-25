@@ -27,7 +27,7 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 public class TableParameterListenerEventFilter implements ListenerEventFilter {
 
   @Override
-  public boolean isFilteredOut(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
+  public boolean isFiltered(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Map<String, String> tableParameters = listenerEvent.getTableParameters();
 
     if (tableParameters == null) {

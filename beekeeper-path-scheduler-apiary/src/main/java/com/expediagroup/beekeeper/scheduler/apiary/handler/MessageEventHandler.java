@@ -15,11 +15,8 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.handler;
 
-import java.time.Duration;
-import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,30 +24,29 @@ import org.slf4j.LoggerFactory;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 
-import com.expediagroup.beekeeper.core.model.Housekeeping;
+import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
-import com.expediagroup.beekeeper.scheduler.apiary.model.EventModel;
+import com.expediagroup.beekeeper.scheduler.apiary.generator.HousekeepingEntityGenerator;
 
-public abstract class MessageEventHandler<T extends Housekeeping, U extends EventModel> {
+public class MessageEventHandler {
 
   private static final Logger log = LoggerFactory.getLogger(MessageEventHandler.class);
+  private static final String CLIENT_ID = "apiary-metastore-event";
   private final LifecycleEventType lifecycleEventType;
-  private final String cleanupDelay;
-  private final String hivePropertyKey;
-  protected static final String CLIENT_ID = "apiary-metastore-event";
+  private final HousekeepingEntityGenerator generator;
+  private final List<ListenerEventFilter> filters;
 
-  MessageEventHandler(
-      String cleanupDelay,
-      String hivePropertyKey,
-      LifecycleEventType lifecycleEventType
+  public MessageEventHandler(
+      HousekeepingEntityGenerator generator,
+      List<ListenerEventFilter> filters
   ) {
-    this.cleanupDelay = cleanupDelay;
-    this.hivePropertyKey = hivePropertyKey;
-    this.lifecycleEventType = lifecycleEventType;
+    this.generator = generator;
+    this.filters = filters;
+    this.lifecycleEventType = generator.getLifecycleEventType();
   }
 
-  public List<Housekeeping> handleMessage(MessageEvent event) {
+  public List<HousekeepingEntity> handleMessage(MessageEvent event) {
     ListenerEvent listenerEvent = event.getEvent();
 
     if (shouldFilterMessage(listenerEvent)) {
@@ -60,59 +56,12 @@ public abstract class MessageEventHandler<T extends Housekeeping, U extends Even
     return generateHousekeepingEntities(listenerEvent);
   }
 
-  protected abstract List<ListenerEventFilter> getFilters();
-
-  protected abstract T generateHousekeepingEntity(U eventModel, ListenerEvent listenerEvent);
-
-  protected abstract List<U> generateEventModels(ListenerEvent listenerEvent);
-
   private boolean shouldFilterMessage(ListenerEvent listenerEvent) {
-    return getFilters().stream()
-        .anyMatch(filter -> filter.isFilteredOut(listenerEvent, lifecycleEventType));
+    return filters.stream()
+        .anyMatch(filter -> filter.isFiltered(listenerEvent, lifecycleEventType));
   }
 
-  /**
-   * Generates housekeeping paths for a given event.
-   *
-   * @param listenerEvent Listener event from the current message
-   * @return list of housekeeping paths. This can be an empty list if there are no valid paths.
-   */
-  private List<Housekeeping> generateHousekeepingEntities(ListenerEvent listenerEvent) {
-    return generateEventModels(listenerEvent).stream()
-        .map(event -> generateHousekeepingEntity(event, listenerEvent))
-        .collect(Collectors.toList());
-  }
-
-  private String getHivePropertyKey() {
-    return hivePropertyKey;
-  }
-
-  private String getCleanupDelay() {
-    return cleanupDelay;
-  }
-
-  private LifecycleEventType getLifecycleEventType() {
-    return lifecycleEventType;
-  }
-
-  /**
-   * Extracts the cleanup delay from the given event.
-   * If the cleanupDelay on the event cannot be parsed, use the predefined default value.
-   *
-   * @param listenerEvent Current event from Apiary
-   * @return Duration Parsed Duration object from the event or the default value.
-   */
-  protected final Duration extractCleanupDelay(ListenerEvent listenerEvent) {
-    String propertyKey = getHivePropertyKey();
-    String defaultValue = getCleanupDelay();
-    String tableCleanupDelay = listenerEvent.getTableParameters().getOrDefault(propertyKey, defaultValue);
-
-    try {
-      return Duration.parse(tableCleanupDelay);
-    } catch (DateTimeParseException e) {
-      log.error("Text '{}' cannot be parsed to a Duration for table '{}.{}'. Using default setting.",
-          tableCleanupDelay, listenerEvent.getDbName(), listenerEvent.getTableName());
-      return Duration.parse(defaultValue);
-    }
+  private List<HousekeepingEntity> generateHousekeepingEntities(ListenerEvent listenerEvent) {
+    return generator.generate(listenerEvent, CLIENT_ID);
   }
 }
