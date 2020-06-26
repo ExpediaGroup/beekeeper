@@ -20,13 +20,13 @@ import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @Repository
 public interface BeekeeperRepository extends HousekeepingPathRepository {
 
-  @Query(value = "from EntityHousekeepingPath p where "
-      + "p.pathStatus = 'SCHEDULED' or p.pathStatus = 'FAILED'")
-  List<EntityHousekeepingPath> findAllScheduledPaths();
+  @Query(value = "from HousekeepingPath p where "
+      + "p.housekeepingStatus = 'SCHEDULED' or p.housekeepingStatus = 'FAILED'")
+  List<HousekeepingPath> findAllScheduledPaths();
 }

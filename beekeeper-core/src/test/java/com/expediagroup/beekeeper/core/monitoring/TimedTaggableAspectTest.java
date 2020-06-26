@@ -37,7 +37,7 @@ import io.micrometer.core.instrument.search.MeterNotFoundException;
 import io.micrometer.core.instrument.search.RequiredSearch;
 
 import com.expediagroup.beekeeper.core.TestApplication;
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -51,7 +51,7 @@ public class TimedTaggableAspectTest {
   private static final String TABLE = "table";
   private static final String TABLE_2 = "table2";
 
-  private EntityHousekeepingPath housekeepingPath;
+  private HousekeepingPath housekeepingPath;
   
   @Autowired
   private MeterRegistry meterRegistry;
@@ -61,7 +61,7 @@ public class TimedTaggableAspectTest {
 
   @BeforeEach
   public void init() {
-    housekeepingPath = new EntityHousekeepingPath.Builder()
+    housekeepingPath = new HousekeepingPath.Builder()
       .databaseName(DATABASE)
       .tableName(TABLE)
       .creationTimestamp(LocalDateTime.now())

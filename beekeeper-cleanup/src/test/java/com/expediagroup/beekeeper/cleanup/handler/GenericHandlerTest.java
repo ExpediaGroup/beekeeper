@@ -21,6 +21,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
+
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -32,8 +35,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,10 +43,10 @@ public class GenericHandlerTest {
 
   @Mock private HousekeepingPathRepository housekeepingPathRepository;
   @Mock private S3PathCleaner pathCleaner;
-  @Mock private EntityHousekeepingPath mockPath;
+  @Mock private HousekeepingPath mockPath;
   @Mock private Pageable mockPageable;
   @Mock private Pageable nextPage;
-  @Mock private PageImpl<EntityHousekeepingPath> mockPage;
+  @Mock private PageImpl<HousekeepingPath> mockPage;
 
   private UnreferencedHandler handler;
 
@@ -70,7 +72,7 @@ public class GenericHandlerTest {
     verify(pathCleaner).cleanupPath(mockPath);
     verify(mockPageable, never()).next();
     verify(mockPath).setCleanupAttempts(1);
-    verify(mockPath).setHousekeepingStatus(HousekeepingStatus.DELETED);
+    verify(mockPath).setHousekeepingStatus(DELETED);
     verify(housekeepingPathRepository).save(mockPath);
     assertThat(pageable).isEqualTo(pageable);
   }
@@ -83,7 +85,7 @@ public class GenericHandlerTest {
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(mockPageable, never()).next();
     verify(mockPath).setCleanupAttempts(1);
-    verify(mockPath).setHousekeepingStatus(HousekeepingStatus.FAILED);
+    verify(mockPath).setHousekeepingStatus(FAILED);
     verify(housekeepingPathRepository).save(mockPath);
     assertThat(pageable).isEqualTo(pageable);
   }

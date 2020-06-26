@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.2.0] - TBD
 ### Added
 - Add basic Time To Live (TTL) for all tables.
+### Changed
+- Renamed `beekeeper-path-scheduler-apiary` module to `beekeeper-scheduler-apiary`.
+- Renamed `beekeeper-path-apiary` module to `beekeeper-apiary`.
+- Renamed `beekeeper-assembly-path-scheduler-apiary` module to `beekeeper-assembly-scheduler-apiary`.
 
 ## [2.1.0] - 2020-04-29
 ### Added

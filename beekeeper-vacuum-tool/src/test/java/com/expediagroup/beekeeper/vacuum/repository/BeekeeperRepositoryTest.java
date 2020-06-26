@@ -18,6 +18,9 @@ package com.expediagroup.beekeeper.vacuum.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -34,9 +37,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
-import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.vacuum.TestApplication;
 
 @ExtendWith(SpringExtension.class)
@@ -62,16 +64,16 @@ class BeekeeperRepositoryTest {
 
   @Test
   void findAllScheduledPaths() {
-    EntityHousekeepingPath path = createEntityHousekeepingPath();
+    HousekeepingPath path = createEntityHousekeepingPath();
     repository.save(path);
-    List<EntityHousekeepingPath> paths = repository.findAllScheduledPaths();
+    List<HousekeepingPath> paths = repository.findAllScheduledPaths();
     assertThat(paths.size()).isEqualTo(1);
 
-    EntityHousekeepingPath savedPath = paths.get(0);
+    HousekeepingPath savedPath = paths.get(0);
     assertThat(savedPath.getPath()).isEqualTo("path");
     assertThat(savedPath.getDatabaseName()).isEqualTo("database");
     assertThat(savedPath.getTableName()).isEqualTo("table");
-    assertThat(savedPath.getHousekeepingStatus()).isEqualTo(HousekeepingStatus.SCHEDULED);
+    assertThat(savedPath.getHousekeepingStatus()).isEqualTo(SCHEDULED);
     assertThat(savedPath.getCleanupDelay()).isEqualTo(Duration.parse("P3D"));
     assertThat(savedPath.getCreationTimestamp()).isNotNull();
     assertThat(savedPath.getModifiedTimestamp()).isNotNull();
@@ -82,42 +84,42 @@ class BeekeeperRepositoryTest {
 
   @Test
   void findAllScheduledPathsAfterPathFailedToBeDeleted() {
-    EntityHousekeepingPath path = createEntityHousekeepingPath();
+    HousekeepingPath path = createEntityHousekeepingPath();
     path.setHousekeepingStatus(HousekeepingStatus.FAILED);
     repository.save(path);
-    List<EntityHousekeepingPath> paths = repository.findAllScheduledPaths();
+    List<HousekeepingPath> paths = repository.findAllScheduledPaths();
     assertThat(paths.size()).isEqualTo(1);
   }
 
   @Test
   void findAllScheduledPathsAfterPathWasDeleted() {
-    EntityHousekeepingPath path = createEntityHousekeepingPath();
+    HousekeepingPath path = createEntityHousekeepingPath();
     path.setHousekeepingStatus(HousekeepingStatus.DELETED);
     repository.save(path);
-    List<EntityHousekeepingPath> paths = repository.findAllScheduledPaths();
+    List<HousekeepingPath> paths = repository.findAllScheduledPaths();
     assertThat(paths.size()).isEqualTo(0);
   }
 
   // we've had issues with null checks being skipped so we have this test to ensure it works from outside beekeeper-core
   @Test
   public void notNullableField() {
-    EntityHousekeepingPath path = createEntityHousekeepingPath();
+    HousekeepingPath path = createEntityHousekeepingPath();
     path.setLifecycleType(null);
     assertThrows(DataIntegrityViolationException.class, () -> repository.save(path));
   }
 
-  private EntityHousekeepingPath createEntityHousekeepingPath() {
+  private HousekeepingPath createEntityHousekeepingPath() {
     LocalDateTime creationTimestamp = LocalDateTime.now(ZoneId.of("UTC"));
-    return new EntityHousekeepingPath.Builder()
+    return new HousekeepingPath.Builder()
         .path("path")
         .databaseName("database")
         .tableName("table")
-        .housekeepingStatus(HousekeepingStatus.SCHEDULED)
+        .housekeepingStatus(SCHEDULED)
         .creationTimestamp(creationTimestamp)
         .modifiedTimestamp(creationTimestamp)
         .cleanupDelay(Duration.parse("P3D"))
         .cleanupAttempts(0)
-        .lifecycleType(LifecycleEventType.UNREFERENCED.toString())
+        .lifecycleType(UNREFERENCED.toString())
         .build();
   }
 }

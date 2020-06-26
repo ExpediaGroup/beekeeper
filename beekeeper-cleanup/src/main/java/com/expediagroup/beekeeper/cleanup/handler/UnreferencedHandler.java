@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.cleanup.handler;
 
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
@@ -45,7 +47,7 @@ public class UnreferencedHandler extends GenericHandler {
 
   @Override
   public LifecycleEventType getLifecycleType() {
-    return LifecycleEventType.UNREFERENCED;
+    return UNREFERENCED;
   }
 
   @Override
@@ -55,7 +57,7 @@ public class UnreferencedHandler extends GenericHandler {
   public HousekeepingPathRepository getHousekeepingPathRepository() { return housekeepingPathRepository; }
 
   @Override
-  public Page<EntityHousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable) {
+  public Page<HousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable) {
     return housekeepingPathRepository.findRecordsForCleanupByModifiedTimestamp(instant, pageable);
   }
 }

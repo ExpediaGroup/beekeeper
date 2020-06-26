@@ -21,6 +21,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -59,9 +62,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 
 import com.google.common.base.Supplier;
 
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
-import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
-import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 import com.expediagroup.beekeeper.vacuum.repository.BeekeeperRepository;
 
@@ -76,7 +77,7 @@ import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
     "default-cleanup-delay=P1D",
     "dry-run=false",
     "spring.jpa.hibernate.ddl-auto=update",
-    "spring.jpa.database=default"})
+    "spring.jpa.database=default" })
 @ContextConfiguration(classes = { TestApplication.class })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class BeekeeperVacuumToolApplicationTest {
@@ -97,7 +98,7 @@ class BeekeeperVacuumToolApplicationTest {
   private @MockBean Supplier<CloseableMetaStoreClient> clientSupplier;
   private @MockBean SchedulerService schedulerService;
   private @Mock CloseableMetaStoreClient closeableMetaStoreClient;
-  private @Captor ArgumentCaptor<EntityHousekeepingPath> housekeepingPath;
+  private @Captor ArgumentCaptor<HousekeepingPath> housekeepingPath;
   private BeekeeperVacuumToolApplication application;
   private TestAppender appender = new TestAppender();
 
@@ -128,7 +129,7 @@ class BeekeeperVacuumToolApplicationTest {
     application.run(args);
 
     verify(schedulerService).scheduleForHousekeeping(housekeepingPath.capture());
-    EntityHousekeepingPath path = housekeepingPath.getValue();
+    HousekeepingPath path = housekeepingPath.getValue();
     assertThat(path.getPath()).isEqualTo("file:" + snapshot0Dir.toString());
     assertThat(path.getCleanupDelay().toDays()).isEqualTo(1L);
   }
@@ -140,7 +141,7 @@ class BeekeeperVacuumToolApplicationTest {
     application.run(args);
 
     verify(schedulerService, times(2)).scheduleForHousekeeping(housekeepingPath.capture());
-    List<EntityHousekeepingPath> scheduledPaths = housekeepingPath.getAllValues();
+    List<HousekeepingPath> scheduledPaths = housekeepingPath.getAllValues();
 
     String file1Path = "file:" + partition1InSnapshot0Dir.toString();
     String file2Path = "file:" + partition2InSnapshot0Dir.toString();
@@ -162,13 +163,13 @@ class BeekeeperVacuumToolApplicationTest {
   void vacuumAfterPathWasScheduledForHousekeeping() throws IOException {
     initialiseApp();
     setUnpartitionedTable();
-    EntityHousekeepingPath path = new EntityHousekeepingPath.Builder().databaseName(databaseName)
+    HousekeepingPath path = new HousekeepingPath.Builder().databaseName(databaseName)
         .tableName(tableName)
         .path("file:" + snapshot0Dir.toString())
-        .housekeepingStatus(HousekeepingStatus.SCHEDULED)
+        .housekeepingStatus(SCHEDULED)
         .creationTimestamp(LocalDateTime.now())
         .cleanupDelay(Duration.parse("P3D"))
-        .lifecycleType(LifecycleEventType.UNREFERENCED.toString())
+        .lifecycleType(UNREFERENCED.toString())
         .build();
     repository.save(path);
 
@@ -211,20 +212,20 @@ class BeekeeperVacuumToolApplicationTest {
     Path partition3InSnapshot1Dir = Files.createTempDirectory(snapshot1Dir, "partition 3_");
     File file3 = File.createTempFile("000000_", null, partition3InSnapshot1Dir.toFile());
     writeContentToFiles(file3.toPath(), file3.toPath(), file3.toPath());
-    EntityHousekeepingPath path = new EntityHousekeepingPath.Builder().databaseName(databaseName)
+    HousekeepingPath path = new HousekeepingPath.Builder().databaseName(databaseName)
         .tableName(tableName)
         .path("file:" + partition3InSnapshot1Dir.toString())
-        .housekeepingStatus(HousekeepingStatus.SCHEDULED)
+        .housekeepingStatus(SCHEDULED)
         .creationTimestamp(LocalDateTime.now())
         .cleanupDelay(Duration.parse("P3D"))
-        .lifecycleType(LifecycleEventType.UNREFERENCED.toString())
+        .lifecycleType(UNREFERENCED.toString())
         .build();
     repository.save(path);
 
     application.run(args);
 
     verify(schedulerService, times(3)).scheduleForHousekeeping(housekeepingPath.capture());
-    List<EntityHousekeepingPath> scheduledPaths = housekeepingPath.getAllValues();
+    List<HousekeepingPath> scheduledPaths = housekeepingPath.getAllValues();
 
     String file1Path = "file:" + partition1InSnapshot0Dir.toString();
     String file2Path = "file:" + partition2InSnapshot0Dir.toString();
@@ -237,12 +238,12 @@ class BeekeeperVacuumToolApplicationTest {
 
   private void initialiseApp() {
     application = new BeekeeperVacuumToolApplication(clientSupplier, schedulerService, repository, conf, databaseName,
-        tableName, expiryTime,false, (short) 1000);
+        tableName, expiryTime, false, (short) 1000);
   }
 
   private void initialiseDryRunApp() {
     application = new BeekeeperVacuumToolApplication(clientSupplier, schedulerService, repository, conf, databaseName,
-        tableName, expiryTime,true, (short) 1000);
+        tableName, expiryTime, true, (short) 1000);
   }
 
   private void setPartitionedTable(String metastorePathPrefix) throws TException, IOException {

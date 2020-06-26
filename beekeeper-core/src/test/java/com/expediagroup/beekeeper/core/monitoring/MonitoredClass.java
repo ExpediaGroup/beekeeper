@@ -19,23 +19,23 @@ import static com.expediagroup.beekeeper.core.monitoring.TimedTaggableAspectTest
 
 import org.springframework.stereotype.Component;
 
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @Component
 public class MonitoredClass {
 
   @TimedTaggable(TIMER_NAME)
-  public EntityHousekeepingPath doSomething(EntityHousekeepingPath path) {
+  public HousekeepingPath doSomething(HousekeepingPath path) {
     return path;
   }
 
   @TimedTaggable(TIMER_NAME)
-  public EntityHousekeepingPath multipleArguments(EntityHousekeepingPath path, int i, String s) {
+  public HousekeepingPath multipleArguments(HousekeepingPath path, int i, String s) {
     return path;
   }
 
   @TimedTaggable(TIMER_NAME)
-  public EntityHousekeepingPath pathIsNotTheFirstArg(int i, String s, EntityHousekeepingPath path) {
+  public HousekeepingPath pathIsNotTheFirstArg(int i, String s, HousekeepingPath path) {
     return path;
   }
 }
