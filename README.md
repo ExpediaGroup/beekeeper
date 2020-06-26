@@ -198,7 +198,7 @@ The following table shows the configuration that can be provided:
 
 ## External links
 
-Please see the [Housekeeping](https://github.com/HotelsDotCom/housekeepingEntity) library for more information.
+Please see the [Housekeeping](https://github.com/HotelsDotCom/housekeeping) library for more information.
 
 # Legal
 This project is available under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
