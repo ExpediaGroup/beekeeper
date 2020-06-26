@@ -29,6 +29,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropPartitionEvent;
@@ -54,6 +56,7 @@ public class UnreferencedHousekeepingPathGenerator implements HousekeepingEntity
         Clock.systemDefaultZone());
   }
 
+  @VisibleForTesting
   UnreferencedHousekeepingPathGenerator(CleanupDelayExtractor cleanupDelayExtractor, Clock clock) {
     this.cleanupDelayExtractor = cleanupDelayExtractor;
     this.clock = clock;
