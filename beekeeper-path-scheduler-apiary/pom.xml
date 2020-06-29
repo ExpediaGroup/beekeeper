@@ -11,10 +11,6 @@
   <artifactId>beekeeper-path-scheduler-apiary</artifactId>
 
   <properties>
-    <!-- default docker image 'to' references -->
-    <docker.to.image>${project.artifactId}</docker.to.image>
-    <docker.to.tag>${project.version}</docker.to.tag>
-    <docker.to.reference>${docker.registry}/${docker.to.image}:${docker.to.tag}</docker.to.reference>
     <docker.container.port>8080</docker.container.port>
   </properties>
 

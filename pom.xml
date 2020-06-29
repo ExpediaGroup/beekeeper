@@ -20,7 +20,6 @@
     <module>beekeeper-path-scheduler</module>
     <module>beekeeper-path-scheduler-apiary</module>
     <module>beekeeper-integration-tests</module>
-<!--    <module>beekeeper-package</module>-->
     <module>beekeeper-vacuum-tool</module>
   </modules>
 
@@ -35,11 +34,14 @@
     <apache.commons.lang3>3.0</apache.commons.lang3>
     <assertj.version>3.12.2</assertj.version>
     <awaitility.version>3.1.6</awaitility.version>
+    <docker.from.image>openjdk</docker.from.image>
+    <docker.from.tag>11-jdk</docker.from.tag>
+    <docker.from.reference>${docker.from.image}:${docker.from.tag}</docker.from.reference>
     <docker.registry>expediagroup</docker.registry>
-    <!-- default docker image 'from' references (can be overridden in child projects if needed) -->
-    <docker.from.image>java</docker.from.image>
-    <docker.from.tag>11</docker.from.tag>
-    <docker.from.reference>gcr.io/distroless/${docker.from.image}:${docker.from.tag}</docker.from.reference>
+    <docker.to.image>${project.artifactId}</docker.to.image>
+    <docker.to.reference>${dockerhub.url}/${docker.registry}/${docker.to.image}:${docker.to.tag}</docker.to.reference>
+    <docker.to.tag>${project.version}</docker.to.tag>
+    <dockerhub.url>docker.io</dockerhub.url>
     <jdk.version>11</jdk.version>
     <jib.version>2.4.0</jib.version>
     <junit.jupiter.version>5.6.0</junit.jupiter.version>
@@ -170,8 +172,13 @@
             </from>
             <to>
               <image>${docker.to.reference}</image>
+              <auth>
+                <username>${DOCKERHUB_USERNAME}</username>
+                <password>${DOCKERHUB_PASSWORD}</password>
+              </auth>
             </to>
             <container>
+              <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
               <entrypoint>/bin/startup.sh</entrypoint>
               <ports>
                 <port>${docker.container.port}</port>
@@ -186,7 +193,7 @@
               </paths>
               <permissions>
                 <permission>
-                  <file>/file/in/container</file>
+                  <file>/bin/startup.sh</file>
                   <mode>755</mode>
                 </permission>
               </permissions>

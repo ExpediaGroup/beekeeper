@@ -12,6 +12,7 @@
 
   <properties>
     <aws.version>1.11.532</aws.version>
+    <docker.container.port>8008</docker.container.port>
     <s3mock.version>0.2.5</s3mock.version>
   </properties>
 
@@ -126,6 +127,11 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
