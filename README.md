@@ -83,9 +83,7 @@ This can be provided via a file or Spring can load properties from the environme
 
 ## Using Docker
 
-Two Docker images are created during `mvn deploy` using `jib`, one for cleanup and one for path scheduling. To build an image to a local docker demon:
-
-    mvn compile com.google.cloud.tools:jib-maven-plugin:dockerBuild -pl beekeeper-path-scheduler-apiary 
+Two Docker images are created during `mvn package` using `jib`, one for cleanup and one for path scheduling.
 
 Configuration can be provided in one of two ways:
 
