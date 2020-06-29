@@ -265,7 +265,7 @@ public class HousekeepingMetadataRepositoryTest {
         .build();
   }
 
-  private void compare(HousekeepingMetadata actual, HousekeepingMetadata expected) {
+  private void compare(HousekeepingMetadata expected, HousekeepingMetadata actual) {
     assertThat(actual.getDatabaseName()).isEqualTo(expected.getDatabaseName());
     assertThat(actual.getTableName()).isEqualTo(expected.getTableName());
     assertThat(actual.getHousekeepingStatus()).isEqualTo(expected.getHousekeepingStatus());

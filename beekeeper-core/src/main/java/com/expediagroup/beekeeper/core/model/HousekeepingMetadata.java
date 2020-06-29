@@ -99,7 +99,6 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return lifecycleType;
   }
 
-  @Override
   public void setLifecycleType(String lifecycleType) {
     this.lifecycleType = lifecycleType;
   }
@@ -114,7 +113,6 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return databaseName;
   }
 
-  @Override
   public void setDatabaseName(String databaseName) {
     this.databaseName = databaseName;
   }
@@ -124,7 +122,6 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return tableName;
   }
 
-  @Override
   public void setTableName(String tableName) {
     this.tableName = tableName;
   }
@@ -134,7 +131,6 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return housekeepingStatus;
   }
 
-  @Override
   public void setHousekeepingStatus(HousekeepingStatus housekeepingStatus) {
     this.housekeepingStatus = housekeepingStatus;
   }
@@ -144,7 +140,6 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return creationTimestamp;
   }
 
-  @Override
   public void setCreationTimestamp(LocalDateTime creationTimestamp) {
     this.creationTimestamp = creationTimestamp;
   }
@@ -154,7 +149,6 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return modifiedTimestamp;
   }
 
-  @Override
   public void setModifiedTimestamp(LocalDateTime modifiedTimestamp) {
     this.modifiedTimestamp = modifiedTimestamp;
   }
@@ -164,7 +158,6 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return cleanupTimestamp;
   }
 
-  @Override
   public void setCleanupTimestamp(LocalDateTime cleanupTimestamp) {
     this.cleanupTimestamp = cleanupTimestamp;
   }
@@ -174,7 +167,6 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return cleanupAttempts;
   }
 
-  @Override
   public void setCleanupAttempts(int cleanupAttempts) {
     this.cleanupAttempts = cleanupAttempts;
   }
@@ -184,7 +176,6 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return clientId;
   }
 
-  @Override
   public void setClientId(String clientId) {
     this.clientId = clientId;
   }
@@ -194,7 +185,6 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return cleanupDelay;
   }
 
-  @Override
   public void setCleanupDelay(Duration cleanupDelay) {
     this.cleanupDelay = cleanupDelay;
     cleanupTimestamp = creationTimestamp.plus(cleanupDelay);

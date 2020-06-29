@@ -124,7 +124,6 @@ public class BeekeeperCleanupIntegrationTest {
     amazonS3.listObjectsV2(BUCKET)
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
-//    mySqlTestUtils.dropDatabase();
     mySqlTestUtils.dropTable(BEEKEEPER_PATH_HOUSEKEEPING_TABLE);
     mySqlTestUtils.dropTable(BEEKEEPER_METADATA_HOUSEKEEPING_TABLE);
     mySqlTestUtils.dropTable(FLYWAY_TABLE);

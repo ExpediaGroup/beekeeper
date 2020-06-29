@@ -21,7 +21,6 @@ import static org.mockito.Mockito.when;
 import java.time.Duration;
 import java.util.Map;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -36,12 +35,8 @@ public class CleanupDelayExtractorTest {
   private static final String EXTRACTOR_DEFAULT_VALUE = "P7D";
 
   @Mock private AlterTableEvent listenerEvent;
-  private CleanupDelayExtractor cleanupDelayExtractor;
-
-  @BeforeEach
-  public void setup() {
-    cleanupDelayExtractor = new CleanupDelayExtractor(EXTRACTOR_KEY, EXTRACTOR_DEFAULT_VALUE);
-  }
+  private CleanupDelayExtractor cleanupDelayExtractor = new CleanupDelayExtractor(EXTRACTOR_KEY,
+      EXTRACTOR_DEFAULT_VALUE);
 
   @Test
   public void typicalExtractCleanUpDelay() {

@@ -35,7 +35,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.generator.utils.CleanupDelayExtractor;
 
-public class HousekeepingEntityGeneratorTestBase {
+public abstract class HousekeepingEntityGeneratorTestBase {
 
   protected static final String CLIENT_ID = "client-id";
   protected static final String DATABASE = "database";
