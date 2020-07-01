@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+  xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>beekeeper-parent</artifactId>
+    <groupId>com.expediagroup</groupId>
+    <version>2.1.1-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>beekeeper-metadata-cleanup</artifactId>
+
+  <properties>
+    <aws.version>1.11.532</aws.version>
+    <s3mock.version>0.2.5</s3mock.version>
+    <hive.version>2.3.7</hive.version>
+    <hcommon-hive-metastore.version>1.4.2</hcommon-hive-metastore.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <url>http://maven.apache.org</url>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.expediagroup</groupId>
+      <artifactId>beekeeper-core</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <!-- if this is on classpath then not-null checks in objects persisted via JPA are ignored -->
+        <exclusion>
+          <groupId>org.hibernate.validator</groupId>
+          <artifactId>hibernate-validator</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- Hive -->
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-metastore</artifactId>
+      <version>${hive.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>hcommon-hive-metastore</artifactId>
+      <version>${hcommon-hive-metastore.version}</version>
+    </dependency>
+
+
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>
