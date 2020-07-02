@@ -31,14 +31,14 @@ import com.google.common.annotations.VisibleForTesting;
 
 @SpringBootApplication
 @EnableConfigurationProperties
-public class BeekeeperCleanup implements ApplicationContextAware {
+public class BeekeeperMetadataCleanup implements ApplicationContextAware {
 
   private static MeterRegistry meterRegistry;
   private static ConfigurableApplicationContext context;
 
   public static void main(String[] args) {
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-    new SpringApplicationBuilder(BeekeeperCleanup.class)
+    new SpringApplicationBuilder(BeekeeperMetadataCleanup.class)
         .properties("spring.config.additional-location:classpath:/beekeeper-cleanup-application.yml,${config:null}")
         .build()
         .run(args);
