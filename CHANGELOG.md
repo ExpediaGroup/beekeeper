@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DB migration for creating new `housekeeping_metadata` table.
 ### Changed
 - Renamed `beekeeper-path-scheduler-apiary` module to `beekeeper-scheduler-apiary`.
-- Renamed `beekeeper-path-apiary` module to `beekeeper-apiary`.
+- Renamed `beekeeper-path-scheduler` module to `beekeeper-scheduler`.
 - Renamed `beekeeper-assembly-path-scheduler-apiary` module to `beekeeper-assembly-scheduler-apiary`.
 - DB migration to rename `path_status` column to `housekeeping_status` in the `path` table.
 - DB migration to rename `path` table to `housekeeping_path` table.
