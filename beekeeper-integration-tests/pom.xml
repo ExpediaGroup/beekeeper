@@ -18,7 +18,7 @@
     </dependency>
     <dependency>
       <groupId>com.expediagroup</groupId>
-      <artifactId>beekeeper-path-scheduler-apiary</artifactId>
+      <artifactId>beekeeper-scheduler-apiary</artifactId>
       <version>${project.version}</version>
     </dependency>
 

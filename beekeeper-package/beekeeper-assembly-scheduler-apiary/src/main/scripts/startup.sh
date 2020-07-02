@@ -6,7 +6,7 @@ fi
 
 if [[ ! -z $BEEKEEPER_CONFIG ]]; then
   echo "$BEEKEEPER_CONFIG"|base64 -d > ./conf/beekeeper-config.yml
-  java -jar ./lib/beekeeper-path-scheduler-apiary-app.jar --config=./conf/beekeeper-config.yml $db_password
+  java -jar ./lib/beekeeper-scheduler-apiary-app.jar --config=./conf/beekeeper-config.yml $db_password
 else
-  java -jar ./lib/beekeeper-path-scheduler-apiary-app.jar $db_password
+  java -jar ./lib/beekeeper-scheduler-apiary-app.jar $db_password
 fi

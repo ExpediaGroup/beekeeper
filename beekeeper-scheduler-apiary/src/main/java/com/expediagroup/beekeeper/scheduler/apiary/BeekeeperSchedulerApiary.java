@@ -42,7 +42,7 @@ public class BeekeeperSchedulerApiary implements ApplicationContextAware {
   public static void main(String[] args) {
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     new SpringApplicationBuilder(BeekeeperSchedulerApiary.class)
-        .properties("spring.config.additional-location:classpath:/beekeeper-path-scheduler-apiary-application.yml,"
+        .properties("spring.config.additional-location:classpath:/beekeeper-scheduler-apiary-application.yml,"
             + "${config:null}")
         .build()
         .run(args);

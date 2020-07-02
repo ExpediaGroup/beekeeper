@@ -49,7 +49,7 @@ pipeline {
           sh 'docker login -u $USERNAME -p $PASSWORD'
         }
         sh 'docker push ${DOCKER_REGISTRY}/beekeeper-cleanup'
-        sh 'docker push ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary'
+        sh 'docker push ${DOCKER_REGISTRY}/beekeeper-scheduler-apiary'
       }
     }
 
@@ -83,9 +83,9 @@ pipeline {
                 -s ${MVN_OSS_SETTINGS}"""
         echo 'Pushing images...'
         sh 'docker tag ${DOCKER_REGISTRY}/beekeeper-cleanup:${RELEASE_VERSION} ${DOCKER_REGISTRY}/beekeeper-cleanup:latest'
-        sh 'docker tag ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary:${RELEASE_VERSION} ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary:latest'
+        sh 'docker tag ${DOCKER_REGISTRY}/beekeeper-scheduler-apiary:${RELEASE_VERSION} ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary:latest'
         sh 'docker push ${DOCKER_REGISTRY}/beekeeper-cleanup'
-        sh 'docker push ${DOCKER_REGISTRY}/beekeeper-path-scheduler-apiary'
+        sh 'docker push ${DOCKER_REGISTRY}/beekeeper-scheduler-apiary'
       }
     }
   }

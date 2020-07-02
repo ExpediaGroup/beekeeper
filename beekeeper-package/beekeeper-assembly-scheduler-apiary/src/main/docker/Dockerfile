@@ -5,9 +5,9 @@ RUN ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
 ARG PORT
 EXPOSE $PORT
 ARG BEEKEEPER_VERSION
-COPY /target/beekeeper-path-scheduler-apiary-${BEEKEEPER_VERSION}-bin.tgz /usr/src/app/beekeeper-path-scheduler-apiary-${BEEKEEPER_VERSION}-bin.tgz
+COPY /target/beekeeper-scheduler-apiary-${BEEKEEPER_VERSION}-bin.tgz /usr/src/app/beekeeper-scheduler-apiary-${BEEKEEPER_VERSION}-bin.tgz
 WORKDIR /usr/src/app
-RUN tar -xf beekeeper-path-scheduler-apiary-${BEEKEEPER_VERSION}-bin.tgz
-WORKDIR /usr/src/app/beekeeper-path-scheduler-apiary-${BEEKEEPER_VERSION}
+RUN tar -xf beekeeper-scheduler-apiary-${BEEKEEPER_VERSION}-bin.tgz
+WORKDIR /usr/src/app/beekeeper-scheduler-apiary-${BEEKEEPER_VERSION}
 ENV BEEKEEPER_VERSION=${BEEKEEPER_VERSION}
-ENTRYPOINT ["/bin/bash", "-c", "exec /usr/src/app/beekeeper-path-scheduler-apiary-${BEEKEEPER_VERSION}/bin/startup.sh"]
+ENTRYPOINT ["/bin/bash", "-c", "exec /usr/src/app/beekeeper-scheduler-apiary-${BEEKEEPER_VERSION}/bin/startup.sh"]

@@ -19,14 +19,14 @@
   <dependencies>
     <dependency>
       <groupId>com.expediagroup</groupId>
-      <artifactId>beekeeper-path-scheduler-apiary</artifactId>
+      <artifactId>beekeeper-scheduler-apiary</artifactId>
       <version>${project.version}</version>
       <classifier>spring-boot</classifier>
     </dependency>
   </dependencies>
 
   <build>
-    <finalName>beekeeper-path-scheduler-apiary-${project.version}</finalName>
+    <finalName>beekeeper-scheduler-apiary-${project.version}</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -34,7 +34,7 @@
         <version>${maven.assembly.plugin.version}</version>
         <executions>
           <execution>
-            <id>make-zip-path-scheduler</id>
+            <id>make-zip-scheduler</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
@@ -42,7 +42,7 @@
             <configuration>
               <tarLongFileMode>posix</tarLongFileMode>
               <descriptors>
-                <descriptor>src/main/assembly/beekeeper-assembly-path-scheduler-apiary.xml</descriptor>
+                <descriptor>src/main/assembly/beekeeper-assembly-scheduler-apiary.xml</descriptor>
               </descriptors>
             </configuration>
           </execution>
@@ -54,7 +54,7 @@
         <version>${dockerfile-maven-plugin.version}</version>
         <executions>
           <execution>
-            <id>tag-path-scheduler-apiary</id>
+            <id>tag-scheduler-apiary</id>
             <phase>deploy</phase>
             <goals>
               <goal>build</goal>
@@ -67,7 +67,7 @@
         </executions>
         <configuration>
           <dockerfile>${dockerfile.path}</dockerfile>
-          <repository>${docker.registry}/beekeeper-path-scheduler-apiary</repository>
+          <repository>${docker.registry}/beekeeper-scheduler-apiary</repository>
           <buildArgs>
             <BEEKEEPER_VERSION>${project.version}</BEEKEEPER_VERSION>
             <PORT>${docker.port}</PORT>

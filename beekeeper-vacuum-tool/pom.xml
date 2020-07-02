@@ -33,7 +33,7 @@
     </dependency>
     <dependency>
       <groupId>com.expediagroup</groupId>
-      <artifactId>beekeeper-path-scheduler</artifactId>
+      <artifactId>beekeeper-scheduler</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
