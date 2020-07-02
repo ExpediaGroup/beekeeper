@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 if [[ $DB_PASSWORD_STRATEGY == "aws-secrets-manager" ]]; then
+  # This should go, we shouldn't be install aws cli here
   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
   unzip awscliv2.zip
   ./aws/install
