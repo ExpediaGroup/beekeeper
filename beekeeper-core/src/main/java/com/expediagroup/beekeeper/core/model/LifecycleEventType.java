@@ -18,7 +18,8 @@ package com.expediagroup.beekeeper.core.model;
 import java.util.Map;
 
 public enum LifecycleEventType {
-  UNREFERENCED("beekeeper.remove.unreferenced.data");
+  UNREFERENCED("beekeeper.remove.unreferenced.data"),
+  EXPIRED("beekeeper.remove.expired.data");
 
   private final String tableParameterName;
 

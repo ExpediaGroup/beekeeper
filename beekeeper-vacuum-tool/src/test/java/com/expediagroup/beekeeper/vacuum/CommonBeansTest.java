@@ -30,7 +30,7 @@ import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.google.common.base.Supplier;
 
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
-import com.expediagroup.beekeeper.scheduler.service.UnreferencedPathSchedulerService;
+import com.expediagroup.beekeeper.scheduler.service.UnreferencedHousekeepingPathSchedulerService;
 import com.expediagroup.beekeeper.vacuum.repository.BeekeeperRepository;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
@@ -90,7 +90,7 @@ class CommonBeansTest {
 
   @Test
   void schedulerService() {
-    SchedulerService schedulerService = new UnreferencedPathSchedulerService(repository);
+    SchedulerService schedulerService = new UnreferencedHousekeepingPathSchedulerService(repository);
     assertThat(schedulerService).isEqualToComparingFieldByField(commonBeans.schedulerService(repository));
   }
 }

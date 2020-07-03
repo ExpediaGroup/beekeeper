@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - TBD
+### Added
+- Add basic Time To Live (TTL) for all tables.
+- DB migration for creating new `housekeeping_metadata` table.
+### Changed
+- Renamed `beekeeper-path-scheduler-apiary` module to `beekeeper-scheduler-apiary`.
+- Renamed `beekeeper-path-scheduler` module to `beekeeper-scheduler`.
+- Renamed `beekeeper-assembly-path-scheduler-apiary` module to `beekeeper-assembly-scheduler-apiary`.
+- Docker image name changed from `beekeeper-path-scheduler-apiary` to `beekeeper-scheduler-apiary`
+- DB migration to rename `path_status` column to `housekeeping_status` in the `path` table.
+- DB migration to rename `path` table to `housekeeping_path` table.
+
 ## [2.1.0] - 2020-04-29
 ### Added
 - `beekeeper-vacuum-tool` module.

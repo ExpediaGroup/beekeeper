@@ -5,7 +5,7 @@
   <parent>
     <artifactId>beekeeper-parent</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>2.1.1-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>beekeeper-package</artifactId>
@@ -13,7 +13,7 @@
 
   <modules>
     <module>beekeeper-assembly-cleanup</module>
-    <module>beekeeper-assembly-path-scheduler-apiary</module>
+    <module>beekeeper-assembly-scheduler-apiary</module>
   </modules>
 
   <properties>

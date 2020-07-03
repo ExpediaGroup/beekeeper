@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @Repository
-public interface HousekeepingPathRepository extends JpaRepository<EntityHousekeepingPath, Long> {
+public interface HousekeepingPathRepository extends JpaRepository<HousekeepingPath, Long> {
 
-  @Query(value = "from EntityHousekeepingPath p where p.cleanupTimestamp <= :instant "
-      + "and (p.pathStatus = 'SCHEDULED' or p.pathStatus = 'FAILED') "
+  @Query(value = "from HousekeepingPath p where p.cleanupTimestamp <= :instant "
+      + "and (p.housekeepingStatus = 'SCHEDULED' or p.housekeepingStatus = 'FAILED') "
       + "and p.modifiedTimestamp <= :instant order by p.modifiedTimestamp")
-  Page<EntityHousekeepingPath> findRecordsForCleanupByModifiedTimestamp(@Param("instant") LocalDateTime instant,
+  Page<HousekeepingPath> findRecordsForCleanupByModifiedTimestamp(@Param("instant") LocalDateTime instant,
       Pageable pageable);
 }

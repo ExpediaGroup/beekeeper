@@ -5,7 +5,7 @@
   <parent>
     <artifactId>beekeeper-parent</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>2.1.1-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>beekeeper-integration-tests</artifactId>
@@ -18,7 +18,7 @@
     </dependency>
     <dependency>
       <groupId>com.expediagroup</groupId>
-      <artifactId>beekeeper-path-scheduler-apiary</artifactId>
+      <artifactId>beekeeper-scheduler-apiary</artifactId>
       <version>${project.version}</version>
     </dependency>
 
