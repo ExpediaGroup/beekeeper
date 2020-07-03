@@ -15,7 +15,10 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.generator.utils;
 
+import static java.lang.String.format;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
@@ -27,6 +30,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
+
+import com.expediagroup.beekeeper.core.error.BeekeeperException;
 
 @ExtendWith(MockitoExtension.class)
 public class CleanupDelayExtractorTest {
@@ -47,7 +52,7 @@ public class CleanupDelayExtractorTest {
   }
 
   @Test
-  public void NoKeyExtractCleanUpDelay() {
+  public void noKeyExtractCleanUpDelay() {
     when(listenerEvent.getTableParameters()).thenReturn(Map.of());
     Duration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
     assertThat(cleanupDelay).isEqualTo(Duration.parse(EXTRACTOR_DEFAULT_VALUE));
@@ -58,5 +63,14 @@ public class CleanupDelayExtractorTest {
     when(listenerEvent.getTableParameters()).thenReturn(Map.of(EXTRACTOR_KEY, "1"));
     Duration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
     assertThat(cleanupDelay).isEqualTo(Duration.parse(EXTRACTOR_DEFAULT_VALUE));
+  }
+
+  @Test
+  public void invalidDefaultCleanupDelay() {
+    String defaultDelay = "1";
+    assertThatExceptionOfType(BeekeeperException.class)
+        .isThrownBy(() -> new CleanupDelayExtractor(EXTRACTOR_KEY, defaultDelay))
+        .withMessage(format("Default delay value '%s' for key '%s' cannot be parsed to a Duration", defaultDelay,
+            EXTRACTOR_KEY));
   }
 }

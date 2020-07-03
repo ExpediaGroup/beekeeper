@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.generator.utils;
 
+import static java.lang.String.format;
+
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 
@@ -23,26 +25,33 @@ import org.slf4j.LoggerFactory;
 
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
+import com.expediagroup.beekeeper.core.error.BeekeeperException;
+
 public class CleanupDelayExtractor {
 
   private static final Logger log = LoggerFactory.getLogger(CleanupDelayExtractor.class);
   private final String propertyKey;
-  private final String defaultValue;
+  private final Duration defaultValue;
 
   public CleanupDelayExtractor(String propertyKey, String defaultValue) {
     this.propertyKey = propertyKey;
-    this.defaultValue = defaultValue;
+    try {
+      this.defaultValue = Duration.parse(defaultValue);
+    } catch (DateTimeParseException e) {
+      throw new BeekeeperException(
+          format("Default delay value '%s' for key '%s' cannot be parsed to a Duration", defaultValue, propertyKey), e);
+    }
   }
 
   public Duration extractCleanupDelay(ListenerEvent listenerEvent) {
-    String tableCleanupDelay = listenerEvent.getTableParameters().getOrDefault(propertyKey, defaultValue);
-
+    String tableCleanupDelay = listenerEvent.getTableParameters().get(propertyKey);
     try {
       return Duration.parse(tableCleanupDelay);
-    } catch (DateTimeParseException e) {
-      log.error("Text '{}' cannot be parsed to a Duration for table '{}.{}'. Using default setting.",
-          tableCleanupDelay, listenerEvent.getDbName(), listenerEvent.getTableName());
-      return Duration.parse(defaultValue);
+    } catch (DateTimeParseException | NullPointerException e) {
+      log.error(
+          "Overridden delay value '{}' for key '{}' cannot be parsed to a Duration for table '{}.{}'. Using default setting.",
+          tableCleanupDelay, propertyKey, listenerEvent.getDbName(), listenerEvent.getTableName());
+      return defaultValue;
     }
   }
 }

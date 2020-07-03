@@ -18,7 +18,7 @@ package com.expediagroup.beekeeper.vacuum;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
@@ -156,7 +156,7 @@ class BeekeeperVacuumToolApplicationTest {
     initialiseDryRunApp();
     setUnpartitionedTable();
     application.run(args);
-    verifyZeroInteractions(schedulerService);
+    verifyNoInteractions(schedulerService);
   }
 
   @Test
@@ -174,7 +174,7 @@ class BeekeeperVacuumToolApplicationTest {
     repository.save(path);
 
     application.run(args);
-    verifyZeroInteractions(schedulerService);
+    verifyNoInteractions(schedulerService);
   }
 
   @Test

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed `beekeeper-path-scheduler-apiary` module to `beekeeper-scheduler-apiary`.
 - Renamed `beekeeper-path-scheduler` module to `beekeeper-scheduler`.
 - Renamed `beekeeper-assembly-path-scheduler-apiary` module to `beekeeper-assembly-scheduler-apiary`.
+- Docker image name changed from `beekeeper-path-scheduler-apiary` to `beekeeper-scheduler-apiary`
 - DB migration to rename `path_status` column to `housekeeping_status` in the `path` table.
 - DB migration to rename `path` table to `housekeeping_path` table.
 
