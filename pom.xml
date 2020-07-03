@@ -19,10 +19,10 @@
     <module>beekeeper-core</module>
     <module>beekeeper-path-scheduler</module>
     <module>beekeeper-path-scheduler-apiary</module>
+    <module>beekeeper-metadata-cleanup</module>
     <module>beekeeper-integration-tests</module>
     <module>beekeeper-package</module>
     <module>beekeeper-vacuum-tool</module>
-    <module>beekeeper-metadata-cleanup</module>
   </modules>
 
   <scm>
