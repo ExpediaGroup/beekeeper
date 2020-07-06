@@ -33,7 +33,7 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import com.amazonaws.services.s3.AmazonS3;
 
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @ExtendWith(MockitoExtension.class)
 class S3DryRunPathCleanerTest {
@@ -50,7 +50,7 @@ class S3DryRunPathCleanerTest {
   private final String tableName = "table";
   private final String databaseName = "database";
 
-  private EntityHousekeepingPath housekeepingPath;
+  private HousekeepingPath housekeepingPath;
   private AmazonS3 amazonS3;
   private S3Client s3Client;
   private @Mock BytesDeletedReporter bytesDeletedReporter;
@@ -72,7 +72,7 @@ class S3DryRunPathCleanerTest {
       .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     s3Client = new S3Client(amazonS3, true);
     s3DryRunPathCleaner = new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
-    housekeepingPath = new EntityHousekeepingPath.Builder()
+    housekeepingPath = new HousekeepingPath.Builder()
       .path(absolutePath)
       .tableName(tableName)
       .databaseName(databaseName)

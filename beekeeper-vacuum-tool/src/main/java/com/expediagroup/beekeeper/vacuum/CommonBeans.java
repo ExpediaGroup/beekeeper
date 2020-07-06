@@ -27,7 +27,7 @@ import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.google.common.base.Supplier;
 
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
-import com.expediagroup.beekeeper.scheduler.service.UnreferencedPathSchedulerService;
+import com.expediagroup.beekeeper.scheduler.service.UnreferencedHousekeepingPathSchedulerService;
 import com.expediagroup.beekeeper.vacuum.repository.BeekeeperRepository;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
@@ -76,6 +76,6 @@ public class CommonBeans {
 
   @Bean
   public SchedulerService schedulerService(BeekeeperRepository beekeeperRepository) {
-    return new UnreferencedPathSchedulerService(beekeeperRepository);
+    return new UnreferencedHousekeepingPathSchedulerService(beekeeperRepository);
   }
 }

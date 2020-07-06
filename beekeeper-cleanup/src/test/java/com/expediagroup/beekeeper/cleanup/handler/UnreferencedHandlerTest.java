@@ -18,6 +18,8 @@ package com.expediagroup.beekeeper.cleanup.handler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +31,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
-import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,7 +53,7 @@ public class UnreferencedHandlerTest {
 
   @Test
   public void verifyLifecycle() {
-    assertThat(handler.getLifecycleType()).isEqualTo(LifecycleEventType.UNREFERENCED);
+    assertThat(handler.getLifecycleType()).isEqualTo(UNREFERENCED);
   }
 
   @Test

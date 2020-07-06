@@ -24,9 +24,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
-import com.expediagroup.beekeeper.core.model.PathStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 public abstract class GenericHandler {
@@ -39,7 +39,7 @@ public abstract class GenericHandler {
 
   public abstract PathCleaner getPathCleaner();
 
-  public abstract Page<EntityHousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable);
+  public abstract Page<HousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable);
 
   /**
    * Processes a pageable entityHouseKeepingPath page.
@@ -52,8 +52,8 @@ public abstract class GenericHandler {
    * @implNote Note that we only expect pageable.next to be called during a dry run.
    * @return Pageable to pass to query. In the case of dry runs, this is the next page.
    */
-  public Pageable processPage(Pageable pageable, Page<EntityHousekeepingPath> page, boolean dryRunEnabled) {
-    List<EntityHousekeepingPath> pageContent = page.getContent();
+  public Pageable processPage(Pageable pageable, Page<HousekeepingPath> page, boolean dryRunEnabled) {
+    List<HousekeepingPath> pageContent = page.getContent();
     if (dryRunEnabled) {
       pageContent.forEach(this::cleanUpPath);
       return pageable.next();
@@ -63,25 +63,25 @@ public abstract class GenericHandler {
     }
   }
 
-  private void cleanUpPath(EntityHousekeepingPath housekeepingPath) {
+  private void cleanUpPath(HousekeepingPath housekeepingPath) {
     PathCleaner pathCleaner = getPathCleaner();
     pathCleaner.cleanupPath(housekeepingPath);
   }
 
-  private void cleanupContent(EntityHousekeepingPath housekeepingPath) {
+  private void cleanupContent(HousekeepingPath housekeepingPath) {
     try {
       log.info("Cleaning up path \"{}\"", housekeepingPath.getPath());
       cleanUpPath(housekeepingPath);
-      updateAttemptsAndStatus(housekeepingPath, PathStatus.DELETED);
+      updateAttemptsAndStatus(housekeepingPath, HousekeepingStatus.DELETED);
     } catch (Exception e) {
-      updateAttemptsAndStatus(housekeepingPath, PathStatus.FAILED);
+      updateAttemptsAndStatus(housekeepingPath, HousekeepingStatus.FAILED);
       log.warn("Unexpected exception deleting \"{}\"", housekeepingPath.getPath(), e);
     }
   }
 
-  private void updateAttemptsAndStatus(EntityHousekeepingPath housekeepingPath, PathStatus status) {
+  private void updateAttemptsAndStatus(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
     housekeepingPath.setCleanupAttempts(housekeepingPath.getCleanupAttempts() + 1);
-    housekeepingPath.setPathStatus(status);
+    housekeepingPath.setHousekeepingStatus(status);
     getHousekeepingPathRepository().save(housekeepingPath);
   }
 }

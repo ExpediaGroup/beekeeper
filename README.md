@@ -28,8 +28,8 @@ Beekeeper comprises two separate Spring-based Java applications. One application
 2. An operation is executed on the table that orphans some data (alter partition, drop partition, etc.)
 3. Hive Metastore events are emitted by the [Hive Metastore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-listener) as a result of the operation.
 4. Hive events are picked up from the queue by Beekeeper using [Apiary Receiver](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-receivers).
-5. Beekeeper processes these messages and schedules orphaned paths for deletion by adding them to a database.
-6. The scheduled paths are deleted by Beekeeper after a configurable delay, the default is 3 days (see [Hive table configuration](#hive-table-configuration) for more details.)
+5. Beekeeper processes these messages and schedules orphaned paths or expired tables for deletion by adding them to a database.
+6. The scheduled paths or tables are deleted by Beekeeper after a configurable delay, the default is 3 days for paths and 30 days for tables (see [Hive table configuration](#hive-table-configuration) for more details.)
 
 ## Supported events
 
@@ -49,7 +49,9 @@ Beekeeper only actions on events which are marked with a specific parameter. Thi
 |:----|:----:|:----:|:----|
 | `beekeeper.remove.unreferenced.data=true`   | Yes |  `true` or `false`       | Set this parameter to ensure Beekeeper monitors your table for orphaned data. |
 | `beekeeper.unreferenced.data.retention.period=X` | No | e.g. `P7D` or `PT3H` (based on [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601)) | Set this parameter to control the delay between schedule and deletion by Beekeeper. If this is either not set, or configured incorrectly, the default will be used. Default is 3 days. |
-| `beekeeper.hive.event.whitelist=X` | No | Comma separated list of event types to whitelist. Valid event values are: `alter_partition`, `alter_table`, `drop_table`, `drop_partition`. | Beekeeper will only process whitelisted events. Default value: `alter_partition`, `alter_table`. |
+| `beekeeper.hive.event.whitelist=X` | No | Comma separated list of event types to whitelist for orphaned data. Valid event values are: `alter_partition`, `alter_table`, `drop_table`, `drop_partition`. | Beekeeper will only process whitelisted events. Default value: `alter_partition`, `alter_table`. |
+| `beekeeper.remove.expired.data=true`   | Yes |  `true` or `false`       | Set this parameter to enable TTL on your table. |
+| `beekeeper.expired.data.retention.period=X` | No | e.g. `P7D` or `PT3H` (based on [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601)) | Set this parameter to set the TTL duration for your table. If this is either not set, or configured incorrectly, the default will be used. Default value is `P30D` (30 days). |
 
 This command can be used to add a parameter to a Hive Table:
 
@@ -59,10 +61,10 @@ ALTER TABLE <table-name> SET TBLPROPERTIES("beekeeper.remove.unreferenced.data"=
 
 # Running Beekeeper
 
-Beekeeper comprises two Spring Boot applications, `beekeeper-cleanup` and `beekeeper-path-scheduler-apiary`, which run independently of each other:
+Beekeeper comprises two Spring Boot applications, `beekeeper-cleanup` and `beekeeper-scheduler-apiary`, which run independently of each other:
 
 - `beekeeper-cleanup` periodically queries a database for paths to delete and performs deletions. 
-- `beekeeper-path-scheduler-apiary` periodically polls an Apiary SQS queue for Hive metastore events and inserts S3 paths to be deleted into a database, scheduling them for deletion.
+- `beekeeper-scheduler-apiary` periodically polls an Apiary SQS queue for Hive metastore events and inserts S3 paths to be deleted into a database, scheduling them for deletion.
 
 Both applications require configuration to be provided, see [Application configuration](#application-configuration) for details.
 
@@ -157,7 +159,7 @@ Being a Spring Boot Application, all [standard actuator endpoints](https://docs.
 
 For example, the healthcheck endpoint at: `http://<address>:<port>/actuator/health`. 
 
-By default, `beekeeper-path-scheduler-apiary` listens on port 8080 and `beekeeper-cleanup` listens on port 8008. To access this endpoint when running in a Docker container, the port must be published:
+By default, `beekeeper-scheduler-apiary` listens on port 8080 and `beekeeper-cleanup` listens on port 8008. To access this endpoint when running in a Docker container, the port must be published:
 
     docker run -p <port>:<port> <image-id>
 
@@ -166,8 +168,8 @@ By default, `beekeeper-path-scheduler-apiary` listens on port 8080 and `beekeepe
 | Property                            | Required | Description |
 |:----|:----|:----|
 | `apiary.queue-url`                  | Yes      | URL for SQS queue. |
-| `apiary.cleanup-delay-property-key` | No       | Table parameter to use for Apiary listener. Default value is `beekeeper.unreferenced.data.retention.period`. |
 | `beekeeper.default-cleanup-delay`   | No       | Default Time To Live (TTL) for orphaned paths in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Durations) format: only days, hours, minutes and seconds can be specified in the expression. Default value is `P3D` (3 days). |
+| `beekeeper.default-expiration-delay`| No       | Default Time To Live (TTL) for tables in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Durations) format: only days, hours, minutes and seconds can be specified in the expression. Default value is `P30D` (30 days). |
 
 ### Beekeeper Cleanup
 | Property             | Required | Description |

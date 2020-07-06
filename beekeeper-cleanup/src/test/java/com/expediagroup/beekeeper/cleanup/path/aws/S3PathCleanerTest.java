@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
@@ -52,7 +52,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
-import com.expediagroup.beekeeper.core.model.EntityHousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @ExtendWith(MockitoExtension.class)
 class S3PathCleanerTest {
@@ -70,7 +70,7 @@ class S3PathCleanerTest {
   private final String tableName = "table";
   private final String databaseName = "database";
 
-  private EntityHousekeepingPath housekeepingPath;
+  private HousekeepingPath housekeepingPath;
   private AmazonS3 amazonS3;
   private S3Client s3Client;
   private S3SentinelFilesCleaner s3SentinelFilesCleaner;
@@ -94,7 +94,7 @@ class S3PathCleanerTest {
     s3Client = new S3Client(amazonS3, false);
     s3SentinelFilesCleaner = new S3SentinelFilesCleaner(s3Client);
     s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
-    housekeepingPath = new EntityHousekeepingPath.Builder()
+    housekeepingPath = new HousekeepingPath.Builder()
       .path(absolutePath)
       .tableName(tableName)
       .databaseName(databaseName)
@@ -323,7 +323,7 @@ class S3PathCleanerTest {
     housekeepingPath.setPath(absolutePath + "/file1");
     assertThatExceptionOfType(AmazonServiceException.class)
         .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
-    verifyZeroInteractions(bytesDeletedReporter);
+    verifyNoInteractions(bytesDeletedReporter);
   }
 
   @Test
@@ -334,7 +334,7 @@ class S3PathCleanerTest {
 
     assertThatExceptionOfType(AmazonServiceException.class)
         .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
-    verifyZeroInteractions(bytesDeletedReporter);
+    verifyNoInteractions(bytesDeletedReporter);
   }
 
   @Test

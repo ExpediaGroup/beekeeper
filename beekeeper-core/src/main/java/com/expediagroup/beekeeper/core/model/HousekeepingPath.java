@@ -18,53 +18,282 @@ package com.expediagroup.beekeeper.core.model;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import com.expediagroup.beekeeper.core.monitoring.Taggable;
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
-public interface HousekeepingPath extends Taggable {
+import org.hibernate.annotations.UpdateTimestamp;
 
-  String getLifecycleType();
+import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import com.expediagroup.beekeeper.core.monitoring.MetricTag;
 
-  void setLifecycleType(String lifecycleType);
+@Entity
+@Table(name = "housekeeping_path")
+public class HousekeepingPath implements HousekeepingEntity {
 
-  Long getId();
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-  String getPath();
+  @Column(name = "path", nullable = false, unique = true)
+  private String path;
 
-  void setPath(String path);
+  @Column(name = "database_name")
+  private String databaseName;
 
-  String getDatabaseName();
+  @Column(name = "table_name")
+  private String tableName;
 
-  void setDatabaseName(String databaseName);
+  @Column(name = "housekeeping_status", nullable = false)
+  @Enumerated(EnumType.STRING)
+  private HousekeepingStatus housekeepingStatus;
 
-  String getTableName();
+  @Column(name = "creation_timestamp", nullable = false, updatable = false)
+  private LocalDateTime creationTimestamp;
 
-  void setTableName(String tableName);
+  @Column(name = "modified_timestamp")
+  @UpdateTimestamp
+  private LocalDateTime modifiedTimestamp;
 
-  PathStatus getPathStatus();
+  @Column(name = "cleanup_timestamp", nullable = false)
+  private LocalDateTime cleanupTimestamp;
 
-  void setPathStatus(PathStatus pathStatus);
+  @Column(name = "cleanup_delay", nullable = false)
+  @Convert(converter = DurationConverter.class)
+  private Duration cleanupDelay;
 
-  Duration getCleanupDelay();
+  @Column(name = "cleanup_attempts", nullable = false)
+  private int cleanupAttempts;
 
-  void setCleanupDelay(Duration cleanupDelay);
+  @Column(name = "client_id")
+  private String clientId;
+  @Column(name = "lifecycle_type", nullable = false)
+  private String lifecycleType;
 
-  LocalDateTime getCreationTimestamp();
+  public HousekeepingPath() {
 
-  void setCreationTimestamp(LocalDateTime creationTimestamp);
+  }
 
-  LocalDateTime getModifiedTimestamp();
+  private HousekeepingPath(Long id, String path, String databaseName, String tableName,
+      HousekeepingStatus housekeepingStatus, LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,
+      LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts, String lifecycleType,
+      String clientId) {
+    this.id = id;
+    this.path = path;
+    this.databaseName = databaseName;
+    this.tableName = tableName;
+    this.housekeepingStatus = housekeepingStatus;
+    this.creationTimestamp = creationTimestamp;
+    this.modifiedTimestamp = modifiedTimestamp;
+    this.cleanupTimestamp = cleanupTimestamp;
+    this.cleanupDelay = cleanupDelay;
+    this.cleanupAttempts = cleanupAttempts;
+    this.lifecycleType = lifecycleType;
+    this.clientId = clientId;
+  }
 
-  void setModifiedTimestamp(LocalDateTime modifiedTimestamp);
+  @Override
+  public String getLifecycleType() {
+    return lifecycleType;
+  }
 
-  LocalDateTime getCleanupTimestamp();
+  public void setLifecycleType(String lifecycleType) {
+    this.lifecycleType = lifecycleType;
+  }
 
-  void setCleanupTimestamp(LocalDateTime cleanupTimestamp);
+  @Override
+  public Long getId() {
+    return id;
+  }
 
-  int getCleanupAttempts();
+  public String getPath() {
+    return path;
+  }
 
-  void setCleanupAttempts(int cleanupAttempts);
+  public void setPath(String path) {
+    this.path = path;
+  }
 
-  String getClientId();
+  @Override
+  public String getDatabaseName() {
+    return databaseName;
+  }
 
-  void setClientId(String clientId);
+  public void setDatabaseName(String databaseName) {
+    this.databaseName = databaseName;
+  }
+
+  @Override
+  public String getTableName() {
+    return tableName;
+  }
+
+  public void setTableName(String tableName) {
+    this.tableName = tableName;
+  }
+
+  public HousekeepingStatus getHousekeepingStatus() {
+    return housekeepingStatus;
+  }
+
+  public void setHousekeepingStatus(HousekeepingStatus housekeepingStatus) {
+    this.housekeepingStatus = housekeepingStatus;
+  }
+
+  @Override
+  public LocalDateTime getCreationTimestamp() {
+    return creationTimestamp;
+  }
+
+  public void setCreationTimestamp(LocalDateTime creationTimestamp) {
+    this.creationTimestamp = creationTimestamp;
+  }
+
+  @Override
+  public LocalDateTime getModifiedTimestamp() {
+    return modifiedTimestamp;
+  }
+
+  public void setModifiedTimestamp(LocalDateTime modifiedTimestamp) {
+    this.modifiedTimestamp = modifiedTimestamp;
+  }
+
+  @Override
+  public LocalDateTime getCleanupTimestamp() {
+    return cleanupTimestamp;
+  }
+
+  public void setCleanupTimestamp(LocalDateTime cleanupTimestamp) {
+    this.cleanupTimestamp = cleanupTimestamp;
+  }
+
+  @Override
+  public int getCleanupAttempts() {
+    return cleanupAttempts;
+  }
+
+  public void setCleanupAttempts(int cleanupAttempts) {
+    this.cleanupAttempts = cleanupAttempts;
+  }
+
+  @Override
+  public String getClientId() {
+    return clientId;
+  }
+
+  public void setClientId(String clientId) {
+    this.clientId = clientId;
+  }
+
+  @Override
+  public Duration getCleanupDelay() {
+    return cleanupDelay;
+  }
+
+  public void setCleanupDelay(Duration cleanupDelay) {
+    this.cleanupDelay = cleanupDelay;
+    cleanupTimestamp = creationTimestamp.plus(cleanupDelay);
+  }
+
+  @Override
+  public MetricTag getMetricTag() {
+    return new MetricTag("table", String.join(".", databaseName, tableName));
+  }
+
+  public static final class Builder {
+
+    private Long id;
+    private String path;
+    private String databaseName;
+    private String tableName;
+    private HousekeepingStatus housekeepingStatus;
+    private LocalDateTime creationTimestamp;
+    private LocalDateTime modifiedTimestamp;
+    private LocalDateTime cleanupTimestamp;
+    private Duration cleanupDelay;
+    private int cleanupAttempts;
+    private String clientId;
+    private String lifecycleType;
+
+    public Builder() { }
+
+    public Builder id(Long id) {
+      this.id = id;
+      return this;
+    }
+
+    public Builder path(String path) {
+      this.path = path;
+      return this;
+    }
+
+    public Builder housekeepingStatus(HousekeepingStatus housekeepingStatus) {
+      this.housekeepingStatus = housekeepingStatus;
+      return this;
+    }
+
+    public Builder databaseName(String databaseName) {
+      this.databaseName = databaseName;
+      return this;
+    }
+
+    public Builder tableName(String tableName) {
+      this.tableName = tableName;
+      return this;
+    }
+
+    public Builder creationTimestamp(LocalDateTime creationTimestamp) {
+      this.creationTimestamp = creationTimestamp;
+      return this;
+    }
+
+    public Builder modifiedTimestamp(LocalDateTime modifiedTimestamp) {
+      this.modifiedTimestamp = modifiedTimestamp;
+      return this;
+    }
+
+    public Builder cleanupDelay(Duration cleanupDelay) {
+      this.cleanupDelay = cleanupDelay;
+      return this;
+    }
+
+    public Builder cleanupAttempts(int cleanupAttempts) {
+      this.cleanupAttempts = cleanupAttempts;
+      return this;
+    }
+
+    public Builder clientId(String clientId) {
+      this.clientId = clientId;
+      return this;
+    }
+
+    public HousekeepingPath build() {
+      cleanupTimestamp = configureCleanupTimestamp();
+
+      return new HousekeepingPath(id, path, databaseName, tableName, housekeepingStatus,
+          creationTimestamp, modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, lifecycleType,
+          clientId);
+    }
+
+    private LocalDateTime configureCleanupTimestamp() {
+      if (creationTimestamp == null) {
+        throw new BeekeeperException("Path requires a creation timestamp");
+      }
+      if (cleanupDelay == null) {
+        throw new BeekeeperException("Path requires a cleanup delay");
+      }
+      return creationTimestamp.plus(cleanupDelay);
+    }
+
+    public Builder lifecycleType(String lifecycleType) {
+      this.lifecycleType = lifecycleType;
+      return this;
+    }
+  }
 }
