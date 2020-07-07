@@ -11,6 +11,12 @@
 
   <artifactId>beekeeper-metadata-cleanup</artifactId>
 
+  <properties>
+    <hive.version>2.3.7</hive.version>
+    <hcommon-hive-metastore.version>1.4.2</hcommon-hive-metastore.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.expediagroup</groupId>
@@ -25,11 +31,24 @@
       </exclusions>
     </dependency>
 
+        <!-- Hive -->
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-metastore</artifactId>
+      <version>${hive.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>hcommon-hive-metastore</artifactId>
+      <version>${hcommon-hive-metastore.version}</version>
+    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>27.1-jre</version>
     </dependency>
+    
   </dependencies>
   
   <build>
