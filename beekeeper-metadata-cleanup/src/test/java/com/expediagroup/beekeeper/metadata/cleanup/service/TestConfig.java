@@ -15,15 +15,11 @@
  */
 package com.expediagroup.beekeeper.metadata.cleanup.service;
 
-import java.time.Instant;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-public interface MetadataCleanupService {
-
-  /**
-   * Deletes all metadata which is older than {@code referenceTime}.
-   *
-   * @param referenceTime Metadata deletion reference time.
-   */
-  void cleanUp(Instant referenceTime);
-
-}
+@Configuration
+@EnableScheduling
+@ComponentScan({ "com.expediagroup.beekeeper.metadata.cleanup.service", "com.expediagroup.beekeeper.core.metadata" })
+public class TestConfig {}

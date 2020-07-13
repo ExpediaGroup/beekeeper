@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -21,7 +22,7 @@
       <artifactId>beekeeper-core</artifactId>
       <version>${project.version}</version>
       <exclusions>
-        <!-- if this is on classpath then not-null checks in objects persisted via JPA are ignored -->      
+        <!-- if this is on classpath then not-null checks in objects persisted via JPA are ignored -->
         <exclusion>
           <groupId>org.hibernate.validator</groupId>
           <artifactId>hibernate-validator</artifactId>
@@ -80,6 +81,7 @@
       <version>27.1-jre</version>
     </dependency>
 
+    <!-- test -->
     <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>

@@ -31,13 +31,13 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 import com.expediagroup.beekeeper.cleanup.handler.GenericHandler;
-import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
-import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
-import com.expediagroup.beekeeper.cleanup.path.aws.S3Client;
-import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
-import com.expediagroup.beekeeper.cleanup.path.aws.S3SentinelFilesCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.PagingCleanupService;
+import com.expediagroup.beekeeper.core.aws.S3Client;
+import com.expediagroup.beekeeper.core.aws.S3PathCleaner;
+import com.expediagroup.beekeeper.core.aws.S3SentinelFilesCleaner;
+import com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.core.path.PathCleaner;
 
 @Configuration
 @EnableScheduling
@@ -70,16 +70,18 @@ public class CommonBeans {
   }
 
   @Bean(name = "s3PathCleaner")
-  PathCleaner pathCleaner(S3Client s3Client, BytesDeletedReporter bytesDeletedReporter) {
-    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
+  PathCleaner pathCleaner(
+      S3Client s3Client,
+      BytesDeletedReporter bytesDeletedReporter,
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter, dryRunEnabled);
   }
 
   @Bean
   CleanupService cleanupService(
       List<GenericHandler> pathHandlers,
       @Value("${properties.cleanup-page-size}") int pageSize,
-      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled
-  ) {
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
     return new PagingCleanupService(pathHandlers, pageSize, dryRunEnabled);
   }
 }

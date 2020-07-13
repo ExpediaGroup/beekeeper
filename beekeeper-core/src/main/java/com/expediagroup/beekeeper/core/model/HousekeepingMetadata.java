@@ -41,6 +41,9 @@ public class HousekeepingMetadata implements HousekeepingEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  // @Column(name = "path", nullable = false, unique = true)
+  // private String path;
+
   @Column(name = "database_name", nullable = false)
   private String databaseName;
 
@@ -77,11 +80,17 @@ public class HousekeepingMetadata implements HousekeepingEntity {
 
   }
 
-  private HousekeepingMetadata(Long id, String databaseName, String tableName, HousekeepingStatus housekeepingStatus,
+  private HousekeepingMetadata(
+      Long id,
+      // String path,
+      String databaseName,
+      String tableName,
+      HousekeepingStatus housekeepingStatus,
       LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,
       LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts, String lifecycleType,
       String clientId) {
     this.id = id;
+    // this.path = path;
     this.databaseName = databaseName;
     this.tableName = tableName;
     this.housekeepingStatus = housekeepingStatus;
@@ -93,6 +102,14 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     this.lifecycleType = lifecycleType;
     this.clientId = clientId;
   }
+
+  // public String getPath() {
+  // return path;
+  // }
+  //
+  // public void setPath(String path) {
+  // this.path = path;
+  // }
 
   @Override
   public String getLifecycleType() {
@@ -198,6 +215,7 @@ public class HousekeepingMetadata implements HousekeepingEntity {
   public static final class Builder {
 
     private Long id;
+    // private String path;
     private String databaseName;
     private String tableName;
     private HousekeepingStatus housekeepingStatus;
@@ -214,6 +232,11 @@ public class HousekeepingMetadata implements HousekeepingEntity {
       this.id = id;
       return this;
     }
+
+    // public Builder path(String path) {
+    // this.path = path;
+    // return this;
+    // }
 
     public HousekeepingMetadata.Builder databaseName(String databaseName) {
       this.databaseName = databaseName;
@@ -263,7 +286,9 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     public HousekeepingMetadata build() {
       LocalDateTime cleanupTimestamp = configureCleanupTimestamp();
 
-      return new HousekeepingMetadata(id, databaseName, tableName, housekeepingStatus, creationTimestamp,
+      return new HousekeepingMetadata(id,
+          // path,
+          databaseName, tableName, housekeepingStatus, creationTimestamp,
           modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, lifecycleType, clientId);
     }
 
@@ -277,4 +302,5 @@ public class HousekeepingMetadata implements HousekeepingEntity {
       return creationTimestamp.plus(cleanupDelay);
     }
   }
+
 }

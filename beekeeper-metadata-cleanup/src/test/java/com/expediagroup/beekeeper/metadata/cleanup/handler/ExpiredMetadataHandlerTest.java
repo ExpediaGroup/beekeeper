@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.cleanup.handler;
+package com.expediagroup.beekeeper.metadata.cleanup.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.time.LocalDateTime;
 
@@ -31,19 +31,31 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.core.aws.S3PathCleaner;
-import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
+import com.expediagroup.beekeeper.core.hive.HiveMetadataCleaner;
+import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class UnreferencedHandlerTest {
+public class ExpiredMetadataHandlerTest {
 
-  @Mock private HousekeepingPathRepository housekeepingPathRepository;
-  @Mock private S3PathCleaner s3PathCleaner;
+  @Mock
+  private HousekeepingMetadataRepository metadataRepository;
+  
+  @Mock 
+  private HiveMetadataCleaner hiveCleaner;
 
-  private UnreferencedHandler handler;
+  @Mock
+  private S3PathCleaner s3Cleaner;
+  
+  private ExpiredMetadataHandler handler;
 
   @BeforeEach
-  public void initTest() {
-    handler = new UnreferencedHandler(housekeepingPathRepository, s3PathCleaner);
+  public void init() {
+    handler = new ExpiredMetadataHandler(metadataRepository, hiveCleaner, s3Cleaner);
+  }
+
+  @Test
+  public void verifyMetadataCleaner() {
+    assertThat(handler.getMetadataCleaner()).isInstanceOf(HiveMetadataCleaner.class);
   }
 
   @Test
@@ -53,14 +65,25 @@ public class UnreferencedHandlerTest {
 
   @Test
   public void verifyLifecycle() {
-    assertThat(handler.getLifecycleType()).isEqualTo(UNREFERENCED);
+    assertThat(handler.getLifecycleType()).isEqualTo(EXPIRED);
   }
 
   @Test
-  public void verifyHousekeepingPathFetch() {
+  public void verifyHousekeepingMetadataFetch() {
     LocalDateTime now = LocalDateTime.now();
     Pageable emptyPageable = PageRequest.of(0, 1);
     handler.findRecordsToClean(now, emptyPageable);
-    verify(housekeepingPathRepository).findRecordsForCleanupByModifiedTimestamp(now, emptyPageable);
+    verify(metadataRepository).findRecordsForCleanupByModifiedTimestamp(now, emptyPageable);
   }
+
+  @Test
+  public void verifyHousekeepingMetadataMatchingRecordFetch() {
+    LocalDateTime now = LocalDateTime.now();
+    Pageable emptyPageable = PageRequest.of(0, 1);
+    String databaseName = "database";
+    String tableName = "table_name";
+    handler.findMatchingRecords(databaseName, "table_name", emptyPageable);
+    verify(metadataRepository).findRecordsForGivenDatabaseAndTable(databaseName, tableName, emptyPageable);
+  }
+
 }

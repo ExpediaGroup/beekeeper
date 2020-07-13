@@ -70,4 +70,5 @@ public class PagingMetadataCleanupService implements MetadataCleanupService {
       page = handler.findRecordsToClean(instant, pageable);
     }
   }
+
 }
