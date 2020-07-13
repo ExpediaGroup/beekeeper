@@ -23,11 +23,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.expediagroup.beekeeper.core.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.path.PathCleaner;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
-import com.expediagroup.beekeeper.metadata.cleanup.cleaner.MetadataCleaner;
 
 public abstract class GenericMetadataHandler {
 
@@ -39,7 +40,16 @@ public abstract class GenericMetadataHandler {
 
   public abstract MetadataCleaner getMetadataCleaner();
 
+  public abstract PathCleaner getPathCleaner();
+
   public abstract Page<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable);
+
+  public abstract Page<HousekeepingMetadata> findMatchingRecords(
+      String databaseName,
+      String tableName,
+      Pageable pageable);
+
+  // public abstract int getPageSize();
 
   /**
    * Processes a pageable entityHouseKeepingPath page.
@@ -53,57 +63,98 @@ public abstract class GenericMetadataHandler {
    * @implNote Note that we only expect pageable.next to be called during a dry run.
    * @return Pageable to pass to query. In the case of dry runs, this is the next page.
    */
+  
+  /*-
+   * Example entries:
+   * no: db  | tblname | path  | part vals
+   * 1   db1 | tbl1    | path1 | null             <- unpartitioned
+   * 2   db1 | tbl2    | path2 | null             <- partitioned
+   * 3   db1 | tbl2    | path2 | year=2020,hour=2 <- partition for above 
+   * 
+   * Assume the above records are returned, the table entry 1 (unpartitioned) will be dropped. 
+   * For entry 2, tbl2 will not be dropped, since the number of records for db1.tbl2 = 2. 
+   * For entry 3, this partition will be dropped from the table. Now the repository looks like:
+   * 
+   * no: db  | tblname | path  | part vals
+   * 1   db1 | tbl2    | path2 | null             <- partitioned
+   * 
+   * and this time, when entry 1 is returned, the number of records for db1.tbl2 = 1, so this table is dropped. 
+   * 
+   */
+
+  // TODO
+  // I dont think there would be any worry about not returning the next page for normal runs. The only things which are
+  // returned are expired, so the only things which wil still remain are any partitioned tables which still have
+  // partitions, and once all the partitions have been deleted these should be fine to delete.
   public Pageable processPage(Pageable pageable, Page<HousekeepingMetadata> page, boolean dryRunEnabled) {
     List<HousekeepingMetadata> pageContent = page.getContent();
+
+    // TODO
+    // why only pageable.next for dry run? - because the initial page of entries doesnt change.
+    // in normal runs these entries are deleted, so it will be refreshed
     if (dryRunEnabled) {
-      pageContent.forEach(this::cleanUpTable);
+      // pageContent.forEach(this::cleanupMetadata);
+      pageContent.forEach(metadata -> cleanupMetadata(metadata, pageable));
       return pageable.next();
     } else {
-      pageContent.forEach(this::cleanupContent);
+      // pageContent.forEach(this::cleanupContent);
+      pageContent.forEach(metadata -> cleanupContent(metadata, pageable));
       return pageable;
     }
   }
 
-  private void cleanUpTable(HousekeepingMetadata housekeepingMetadata) {
+  // TODO
+  // what should this do for dry run???
+  private void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, Pageable pageable) {
     MetadataCleaner metadataCleaner = getMetadataCleaner();
-    // metadataCleaner.cleanupMetadata(housekeepingMetadata);
+    PathCleaner pathCleaner = getPathCleaner();
 
-    // partVals = housekeepingMetadata.getPartVals();
-    // if (partVals == null){
-    // // unpartitioned table. Can drop
-
-    // although - could also just be the table entry for the partitioned table.
-    // might need to do a check to see if there are any other entries with the same db.tbl name
-    // if no - delete. is either unpartitioned or a partitioned table with no partitions
-
-    // metadataCleaner.cleanupMetadata(housekeepingMetadata);
-    // } else {
-    // // partitioned table. Drop partition
-
-    // drop the partition from the table
-    // schedule the partition location for deletion
-    // check to see if there are any other entries with the same db.tbl name
-    // if no - drop table.
+    int numberOfRecords = getRecordCountForDatabaseAndTable(housekeepingMetadata.getDatabaseName(),
+        housekeepingMetadata.getTableName(), pageable);
 
     // TODO
-    // schedule the path to be deleted
-    // add it to the other table
-    // need to make sure that the drop table event is ignored by beekeeper
-
-    // need to know what path should be deleted, not currently in the HousekeepingMetadata table
+    // column needs to be added to the table
+    // partVals = housekeepingMetadata.getPartVals();
+    String partVals = "";
+    if (partVals == "" && numberOfRecords == 1) {
+      // either: unpartitioned table OR: partitioned table with no partitions. Can drop
+      cleanUpTable(housekeepingMetadata, metadataCleaner, pathCleaner);
+    } else {
+      // partition entry - partVals has some value
+      cleanupPartition(housekeepingMetadata, metadataCleaner, pathCleaner);
+    }
   }
 
-  private void cleanupContent(HousekeepingMetadata housekeepingMetadata) {
+  private void cleanUpTable(
+      HousekeepingMetadata housekeepingMetadata,
+      MetadataCleaner metadataCleaner,
+      PathCleaner pathCleaner) {
+    metadataCleaner.cleanupMetadata(housekeepingMetadata);
+    // TODO - wait for vedant to merge in changes
+    // pathCleaner.cleanupPath(housekeepingMetadata);
+  }
+
+  private void cleanupPartition(
+      HousekeepingMetadata housekeepingMetadata,
+      MetadataCleaner metadataCleaner,
+      PathCleaner pathCleaner) {
+    metadataCleaner.cleanupPartition(housekeepingMetadata);
+    // TODO - wait for vedant to merge in changes
+    // pathCleaner.cleanupPath(housekeepingMetadata);
+  }
+
+  private void cleanupContent(HousekeepingMetadata housekeepingMetadata, Pageable pageable) {
     try {
-      log.info("Cleaning up metadata \"{}.{}\"", housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
-      cleanUpTable(housekeepingMetadata);
-
+      log
+          .info("Cleaning up metadata for table \"{}.{}\"", housekeepingMetadata.getDatabaseName(),
+              housekeepingMetadata.getTableName());
+      cleanupMetadata(housekeepingMetadata, pageable);
       updateAttemptsAndStatus(housekeepingMetadata, HousekeepingStatus.DELETED);
-
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingMetadata, HousekeepingStatus.FAILED);
       log
-          .warn("Unexpected exception when deleting metadata \"{}.{}\"", housekeepingMetadata.getDatabaseName(),
+          .warn("Unexpected exception when deleting metadata for table \"{}.{}\"",
+              housekeepingMetadata.getDatabaseName(),
               housekeepingMetadata.getTableName(), e);
     }
   }
@@ -113,4 +164,15 @@ public abstract class GenericMetadataHandler {
     housekeepingMetadata.setHousekeepingStatus(status);
     getHousekeepingMetadataRepository().save(housekeepingMetadata);
   }
+
+  private int getRecordCountForDatabaseAndTable(String databaseName, String tableName, Pageable pageable) {
+    Page<HousekeepingMetadata> page = findMatchingRecords(databaseName, tableName, pageable);
+    int recordCount = 0;
+    while (!page.getContent().isEmpty()) {
+      recordCount += page.getContent().size();
+      page = findMatchingRecords(databaseName, tableName, pageable.next());
+    }
+    return recordCount;
+  }
+
 }

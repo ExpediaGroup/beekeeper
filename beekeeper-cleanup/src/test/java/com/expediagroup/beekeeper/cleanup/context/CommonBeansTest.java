@@ -33,12 +33,12 @@ import io.micrometer.graphite.GraphiteMeterRegistry;
 
 import com.amazonaws.services.s3.AmazonS3;
 
-import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
-import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
-import com.expediagroup.beekeeper.cleanup.path.aws.S3Client;
-import com.expediagroup.beekeeper.cleanup.path.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.PagingCleanupService;
+import com.expediagroup.beekeeper.core.aws.S3Client;
+import com.expediagroup.beekeeper.core.aws.S3PathCleaner;
+import com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.core.path.PathCleaner;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,6 +54,7 @@ class CommonBeansTest {
   private final CommonBeans commonBeans = new CommonBeans();
   private @Mock HousekeepingPathRepository repository;
   private @Mock PathCleaner pathCleaner;
+  private @Mock BytesDeletedReporter bytesDeletedReporter;
 
   @BeforeEach
   void setUp() {
@@ -94,7 +95,8 @@ class CommonBeansTest {
   void verifyS3pathCleaner() {
     S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), false);
     MeterRegistry meterRegistry = mock(GraphiteMeterRegistry.class);
-    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, new BytesDeletedReporter(meterRegistry, false));
+    
+    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, bytesDeletedReporter, false);
     assertThat(pathCleaner).isInstanceOf(S3PathCleaner.class);
   }
 

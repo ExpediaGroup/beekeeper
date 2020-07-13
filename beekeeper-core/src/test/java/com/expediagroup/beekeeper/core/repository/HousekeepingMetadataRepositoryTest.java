@@ -249,6 +249,22 @@ public class HousekeepingMetadataRepositoryTest {
     compare(result.get(), housekeepingTable1);
   }
 
+  // TODO
+  // test for find records by database name and tbl name
+  // test with partitioned table
+  @Test
+  public void findRecordsForGivenDatabaseAndTable() {
+    HousekeepingMetadata housekeepingTable1 = createEntityHousekeepingTable();
+    housekeepingMetadataRepository.save(housekeepingTable1);
+
+    Page<HousekeepingMetadata> result = housekeepingMetadataRepository
+        .findRecordsForGivenDatabaseAndTable(DATABASE_NAME, TABLE_NAME, PageRequest.of(0, 500));
+
+    assertTrue(result.getContent().size() == 1);
+    assertThat(result.getContent().get(0).getDatabaseName()).isEqualTo(DATABASE_NAME);
+    assertThat(result.getContent().get(0).getTableName()).isEqualTo(TABLE_NAME);
+  }
+
   private HousekeepingMetadata createEntityHousekeepingTable() {
     return new HousekeepingMetadata.Builder()
         .path(PATH)

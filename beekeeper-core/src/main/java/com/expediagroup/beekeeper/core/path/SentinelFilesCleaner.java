@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.metadata.cleanup.service;
+package com.expediagroup.beekeeper.core.path;
 
-import java.time.Instant;
-
-public interface MetadataCleanupService {
+public interface SentinelFilesCleaner {
 
   /**
-   * Deletes all metadata which is older than {@code referenceTime}.
+   * Deletes sentinel files given {@code absolutePath}.
    *
-   * @param referenceTime Metadata deletion reference time.
+   * @param absolutePath Absolute path to use to delete sentinel files.
    */
-  void cleanUp(Instant referenceTime);
-
+  void deleteSentinelFiles(String absolutePath);
 }

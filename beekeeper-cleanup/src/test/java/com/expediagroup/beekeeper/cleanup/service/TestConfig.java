@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,5 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @EnableScheduling
-@ComponentScan({ "com.expediagroup.beekeeper.cleanup.service", "com.expediagroup.beekeeper.cleanup.path" })
-public class TestConfig {
-}
+@ComponentScan({ "com.expediagroup.beekeeper.cleanup.service", "com.expediagroup.beekeeper.core.path" })
+public class TestConfig {}

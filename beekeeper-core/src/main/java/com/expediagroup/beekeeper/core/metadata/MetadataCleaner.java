@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.metadata.cleanup.service;
+package com.expediagroup.beekeeper.core.metadata;
 
-import java.time.Instant;
+import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
-public interface MetadataCleanupService {
+public interface MetadataCleaner {
 
-  /**
-   * Deletes all metadata which is older than {@code referenceTime}.
-   *
-   * @param referenceTime Metadata deletion reference time.
-   */
-  void cleanUp(Instant referenceTime);
+  void cleanupMetadata(HousekeepingMetadata housekeepingMetadata);
+
+  void cleanupPartition(HousekeepingMetadata housekeepingMetadata);
 
 }

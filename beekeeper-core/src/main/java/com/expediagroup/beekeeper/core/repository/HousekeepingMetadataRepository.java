@@ -31,7 +31,8 @@ public interface HousekeepingMetadataRepository extends JpaRepository<Housekeepi
   @Query(value = "from HousekeepingMetadata t where t.cleanupTimestamp <= :instant "
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED') "
       + "and t.modifiedTimestamp <= :instant order by t.modifiedTimestamp")
-  Page<HousekeepingMetadata> findRecordsForCleanupByModifiedTimestamp(@Param("instant") LocalDateTime instant,
+  Page<HousekeepingMetadata> findRecordsForCleanupByModifiedTimestamp(
+      @Param("instant") LocalDateTime instant,
       Pageable pageable);
 
   @Query(value = "from HousekeepingMetadata t "
@@ -41,4 +42,25 @@ public interface HousekeepingMetadataRepository extends JpaRepository<Housekeepi
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   Optional<HousekeepingMetadata> findRecordForCleanupByDatabaseAndTable(@Param("databaseName") String databaseName,
       @Param("tableName") String tableName, @Param("partitionName") String partitionName);
+  Optional<HousekeepingMetadata> findRecordForCleanupByDatabaseAndTable(
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName);
+
+  /**
+   * This method returns all the records for a database and table name pair. Each unpartitioned table will have a single
+   * entry in the HousekeepingMetadata table. If a table is partitioned there will be multiple entries for it in the
+   * HousekeepingMetadata table - one for each partition, and another for the table itself.
+   * 
+   * @param databaseName
+   * @param tableName
+   * @return A page of entries from the HouseKeepingMetadata.
+   */
+  @Query(value = "from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  Page<HousekeepingMetadata> findRecordsForGivenDatabaseAndTable(
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName,
+      Pageable pageable);
 }
