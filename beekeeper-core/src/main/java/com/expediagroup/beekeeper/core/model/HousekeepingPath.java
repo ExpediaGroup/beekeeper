@@ -153,10 +153,6 @@ public class HousekeepingPath implements HousekeepingEntity {
     return creationTimestamp;
   }
 
-  public void setCreationTimestamp(LocalDateTime creationTimestamp) {
-    this.creationTimestamp = creationTimestamp;
-  }
-
   @Override
   public LocalDateTime getModifiedTimestamp() {
     return modifiedTimestamp;
@@ -196,7 +192,7 @@ public class HousekeepingPath implements HousekeepingEntity {
 
   public void setCleanupDelay(Duration cleanupDelay) {
     this.cleanupDelay = cleanupDelay;
-    cleanupTimestamp = creationTimestamp.plus(cleanupDelay);
+    this.cleanupTimestamp = this.creationTimestamp.plus(cleanupDelay);
   }
 
   @Override
