@@ -22,12 +22,16 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import static com.expedia.apiary.extensions.receiver.common.event.EventType.ADD_PARTITION;
+import static com.expedia.apiary.extensions.receiver.common.event.EventType.ALTER_PARTITION;
 import static com.expedia.apiary.extensions.receiver.common.event.EventType.ALTER_TABLE;
+import static com.expedia.apiary.extensions.receiver.common.event.EventType.CREATE_TABLE;
 import static com.expedia.apiary.extensions.receiver.common.event.EventType.DROP_TABLE;
 
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +39,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.google.common.collect.ImmutableSortedMap;
+
+import com.expedia.apiary.extensions.receiver.common.event.AddPartitionEvent;
+import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
+import com.expedia.apiary.extensions.receiver.common.event.CreateTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
@@ -45,7 +54,17 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 @ExtendWith(MockitoExtension.class)
 public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntityGeneratorTestBase {
 
+  private static final Map<String, String> PARTITION_KEYS = ImmutableSortedMap.of(
+      "event_date", "date",
+      "event_hour", "smallint",
+      "event_type", "string");
+  private static final List<String> PARTITION_VALUES = List.of("2020-01-01", "0", "A");
+  private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
+
+  @Mock private CreateTableEvent createTableEvent;
   @Mock private AlterTableEvent alterTableEvent;
+  @Mock private AddPartitionEvent addPartitionEvent;
+  @Mock private AlterPartitionEvent alterPartitionEvent;
   private ExpiredHousekeepingMetadataGenerator generator;
 
   @BeforeEach
@@ -54,12 +73,51 @@ public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntity
   }
 
   @Test
+  public void typicalHandleCreateTableEvent() {
+    setupClockAndExtractor(createTableEvent);
+    setupListenerEvent(createTableEvent, CREATE_TABLE);
+    when(createTableEvent.getTableLocation()).thenReturn(PATH);
+
+    List<HousekeepingEntity> housekeepingEntities = generator.generate(createTableEvent, CLIENT_ID);
+    assertThat(housekeepingEntities.size()).isEqualTo(1);
+    assertExpiredHousekeepingMetadataEntity(housekeepingEntities.get(0), null);
+  }
+
+  @Test
   public void typicalHandleAlterTableEvent() {
     setupClockAndExtractor(alterTableEvent);
     setupListenerEvent(alterTableEvent, ALTER_TABLE);
+    when(alterTableEvent.getTableLocation()).thenReturn(PATH);
 
-    List<HousekeepingEntity> tables = generator.generate(alterTableEvent, CLIENT_ID);
-    assertExpiredHousekeepingMetadataEntity(tables);
+    List<HousekeepingEntity> housekeepingEntities = generator.generate(alterTableEvent, CLIENT_ID);
+    assertThat(housekeepingEntities.size()).isEqualTo(1);
+    assertExpiredHousekeepingMetadataEntity(housekeepingEntities.get(0), null);
+  }
+
+  @Test
+  public void typicalHandleAddPartitionEvent() {
+    setupClockAndExtractor(addPartitionEvent);
+    setupListenerEvent(addPartitionEvent, ADD_PARTITION);
+    when(addPartitionEvent.getPartitionLocation()).thenReturn(PATH);
+    when(addPartitionEvent.getPartitionKeys()).thenReturn(PARTITION_KEYS);
+    when(addPartitionEvent.getPartitionValues()).thenReturn(PARTITION_VALUES);
+
+    List<HousekeepingEntity> housekeepingEntities = generator.generate(addPartitionEvent, CLIENT_ID);
+    assertThat(housekeepingEntities.size()).isEqualTo(1);
+    assertExpiredHousekeepingMetadataEntity(housekeepingEntities.get(0), PARTITION_NAME);
+  }
+
+  @Test
+  public void typicalHandleAlterPartitionEvent() {
+    setupClockAndExtractor(alterPartitionEvent);
+    setupListenerEvent(alterPartitionEvent, ALTER_PARTITION);
+    when(alterPartitionEvent.getPartitionLocation()).thenReturn(PATH);
+    when(alterPartitionEvent.getPartitionKeys()).thenReturn(PARTITION_KEYS);
+    when(alterPartitionEvent.getPartitionValues()).thenReturn(PARTITION_VALUES);
+
+    List<HousekeepingEntity> housekeepingEntities = generator.generate(alterPartitionEvent, CLIENT_ID);
+    assertThat(housekeepingEntities.size()).isEqualTo(1);
+    assertExpiredHousekeepingMetadataEntity(housekeepingEntities.get(0), PARTITION_NAME);
   }
 
   @Test
@@ -75,9 +133,9 @@ public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntity
     }
   }
 
-  private void assertExpiredHousekeepingMetadataEntity(List<HousekeepingEntity> tables) {
-    assertThat(tables.size()).isEqualTo(1);
-    HousekeepingMetadata table = (HousekeepingMetadata) tables.get(0);
-    assertHousekeepingEntity(table, EXPIRED);
+  private void assertExpiredHousekeepingMetadataEntity(HousekeepingEntity housekeepingEntity, String partitionName) {
+    HousekeepingMetadata housekeepingMetadata = (HousekeepingMetadata) housekeepingEntity;
+    assertHousekeepingEntity(housekeepingMetadata, EXPIRED);
+    assertThat(housekeepingMetadata.getPartitionName()).isEqualTo(partitionName);
   }
 }

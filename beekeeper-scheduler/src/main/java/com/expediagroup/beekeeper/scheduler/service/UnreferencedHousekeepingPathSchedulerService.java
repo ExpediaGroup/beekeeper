@@ -19,6 +19,8 @@ import static java.lang.String.format;
 
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +34,9 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 @Service
 public class UnreferencedHousekeepingPathSchedulerService implements SchedulerService {
 
-  private final LifecycleEventType LIFECYCLE_EVENT_TYPE = UNREFERENCED;
+  private static final Logger log = LoggerFactory.getLogger(UnreferencedHousekeepingPathSchedulerService.class);
+  private static final LifecycleEventType LIFECYCLE_EVENT_TYPE = UNREFERENCED;
+
   private final HousekeepingPathRepository housekeepingPathRepository;
 
   @Autowired
@@ -51,8 +55,9 @@ public class UnreferencedHousekeepingPathSchedulerService implements SchedulerSe
     HousekeepingPath housekeepingPath = (HousekeepingPath) housekeepingEntity;
     try {
       housekeepingPathRepository.save(housekeepingPath);
+      log.info(format("Successfully scheduled %s", housekeepingPath));
     } catch (Exception e) {
-      throw new BeekeeperException(format("Unable to schedule path '%s' for deletion", housekeepingPath.getPath()), e);
+      throw new BeekeeperException(format("Unable to schedule %s", housekeepingPath), e);
     }
   }
 }

@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.scheduler.service;
 
+import static java.lang.String.format;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
@@ -72,7 +74,7 @@ public class UnreferencedHousekeepingPathSchedulerServiceTest {
 
     assertThatExceptionOfType(BeekeeperException.class)
         .isThrownBy(() -> unreferencedHousekeepingPathSchedulerService.scheduleForHousekeeping(path))
-        .withMessage("Unable to schedule path 'path_to_schedule' for deletion");
+        .withMessage(format("Unable to schedule %s", path));
     verify(housekeepingPathRepository).save(path);
   }
 }

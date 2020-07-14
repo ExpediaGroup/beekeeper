@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.0.0] - TBD
 ### Added
-- Add basic Time To Live (TTL) for all tables.
+- Add Time To Live (TTL) for all tables.
 - DB migration for creating new `housekeeping_metadata` table.
 ### Changed
 - Renamed `beekeeper-path-scheduler-apiary` module to `beekeeper-scheduler-apiary`.

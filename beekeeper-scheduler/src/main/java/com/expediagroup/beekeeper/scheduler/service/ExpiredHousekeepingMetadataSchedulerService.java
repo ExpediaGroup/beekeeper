@@ -21,13 +21,14 @@ import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
-import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
@@ -35,7 +36,9 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository
 @Service
 public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerService {
 
-  private final LifecycleEventType LIFECYCLE_EVENT_TYPE = EXPIRED;
+  private static final Logger log = LoggerFactory.getLogger(ExpiredHousekeepingMetadataSchedulerService.class);
+  private static final LifecycleEventType LIFECYCLE_EVENT_TYPE = EXPIRED;
+
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
 
   @Autowired
@@ -51,33 +54,30 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
   @Override
   @TimedTaggable("metadata-scheduled")
   public void scheduleForHousekeeping(HousekeepingEntity housekeepingEntity) {
-    HousekeepingMetadata housekeepingTable = createOrUpdateHousekeepingTable(
+    HousekeepingMetadata housekeepingMetadata = createOrUpdateHousekeepingMetadata(
         (HousekeepingMetadata) housekeepingEntity);
     try {
-      housekeepingMetadataRepository.save(housekeepingTable);
+      housekeepingMetadataRepository.save(housekeepingMetadata);
+      log.info(format("Successfully scheduled %s", housekeepingMetadata));
     } catch (Exception e) {
-      throw new BeekeeperException(
-          format("Unable to schedule table '%s.%s' for deletion", housekeepingTable.getDatabaseName(),
-              housekeepingTable.getTableName()), e);
+      throw new BeekeeperException(format("Unable to schedule %s", housekeepingMetadata), e);
     }
   }
 
-  private HousekeepingMetadata createOrUpdateHousekeepingTable(HousekeepingMetadata housekeepingTable) {
-    Optional<HousekeepingMetadata> existingHousekeepingTableOptional = housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(
-        housekeepingTable.getDatabaseName(), housekeepingTable.getTableName());
+  private HousekeepingMetadata createOrUpdateHousekeepingMetadata(HousekeepingMetadata housekeepingMetadata) {
+    Optional<HousekeepingMetadata> housekeepingMetadataOptional = housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(
+        housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(),
+        housekeepingMetadata.getPartitionName());
 
-    if (existingHousekeepingTableOptional.isEmpty()) {
-      return housekeepingTable;
+    if (housekeepingMetadataOptional.isEmpty()) {
+      return housekeepingMetadata;
     }
 
-    HousekeepingMetadata existingHousekeepingTable = existingHousekeepingTableOptional.get();
-    existingHousekeepingTable.setHousekeepingStatus(housekeepingTable.getHousekeepingStatus());
-    existingHousekeepingTable.setClientId(housekeepingTable.getClientId());
+    HousekeepingMetadata existingHousekeepingMetadata = housekeepingMetadataOptional.get();
+    existingHousekeepingMetadata.setHousekeepingStatus(housekeepingMetadata.getHousekeepingStatus());
+    existingHousekeepingMetadata.setClientId(housekeepingMetadata.getClientId());
+    existingHousekeepingMetadata.setCleanupDelay(housekeepingMetadata.getCleanupDelay());
 
-    if (housekeepingTable.getHousekeepingStatus() != HousekeepingStatus.DELETED) {
-      existingHousekeepingTable.setCleanupDelay(housekeepingTable.getCleanupDelay());
-    }
-
-    return existingHousekeepingTable;
+    return existingHousekeepingMetadata;
   }
 }

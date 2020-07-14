@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
@@ -46,8 +45,10 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository
 @ExtendWith(MockitoExtension.class)
 public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
-  private static String DATABASE_NAME = "database";
-  private static String TABLE_NAME = "table";
+  private static final String PATH = "path";
+  private static final String DATABASE_NAME = "database";
+  private static final String TABLE_NAME = "table";
+  private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
 
   @Mock
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
@@ -57,49 +58,32 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
   @Test
   public void typicalCreateScheduleForHousekeeping() {
-    HousekeepingMetadata table = createEntityHousekeepingTable();
+    HousekeepingMetadata metadata = createEntityHousekeepingTable();
 
-    when(housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME)).thenReturn(
-        Optional.empty());
+    when(housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME,
+        PARTITION_NAME)).thenReturn(Optional.empty());
 
-    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(table);
+    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
 
-    verify(housekeepingMetadataRepository).save(table);
-  }
-
-  @Test
-  public void typicalUpdateScheduleForHousekeepingWhenTableDeletedManually() {
-    HousekeepingMetadata existingTable = spy(createEntityHousekeepingTable());
-    HousekeepingMetadata table = createEntityHousekeepingTable();
-    table.setHousekeepingStatus(DELETED);
-
-    when(housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME)).thenReturn(
-        Optional.of(existingTable));
-
-    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(table);
-
-    verify(housekeepingMetadataRepository).findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME);
-    verify(existingTable).setHousekeepingStatus(table.getHousekeepingStatus());
-    verify(existingTable).setClientId(table.getClientId());
-    verifyNoMoreInteractions(existingTable);
-    verify(housekeepingMetadataRepository).save(existingTable);
+    verify(housekeepingMetadataRepository).save(metadata);
   }
 
   @Test
   public void typicalUpdateScheduleForHousekeepingWhenChangingCleanupDelay() {
     HousekeepingMetadata existingTable = spy(createEntityHousekeepingTable());
-    HousekeepingMetadata table = createEntityHousekeepingTable();
-    table.setCleanupDelay(Duration.parse("P30D"));
+    HousekeepingMetadata metadata = createEntityHousekeepingTable();
+    metadata.setCleanupDelay(Duration.parse("P30D"));
 
-    when(housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME)).thenReturn(
-        Optional.of(existingTable));
+    when(housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME,
+        PARTITION_NAME)).thenReturn(Optional.of(existingTable));
 
-    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(table);
+    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
 
-    verify(housekeepingMetadataRepository).findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME);
-    verify(existingTable).setHousekeepingStatus(table.getHousekeepingStatus());
-    verify(existingTable).setClientId(table.getClientId());
-    verify(existingTable).setCleanupDelay(table.getCleanupDelay());
+    verify(housekeepingMetadataRepository).findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME,
+        PARTITION_NAME);
+    verify(existingTable).setHousekeepingStatus(metadata.getHousekeepingStatus());
+    verify(existingTable).setClientId(metadata.getClientId());
+    verify(existingTable).setCleanupDelay(metadata.getCleanupDelay());
     verifyNoMoreInteractions(existingTable);
     verify(housekeepingMetadataRepository).save(existingTable);
   }
@@ -112,22 +96,23 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
   @Test
   public void scheduleFails() {
-    HousekeepingMetadata table = createEntityHousekeepingTable();
+    HousekeepingMetadata metadata = createEntityHousekeepingTable();
 
-    when(housekeepingMetadataRepository.save(table)).thenThrow(new RuntimeException());
+    when(housekeepingMetadataRepository.save(metadata)).thenThrow(new RuntimeException());
 
     assertThatExceptionOfType(BeekeeperException.class)
-        .isThrownBy(() -> expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(table))
-        .withMessage(
-            format("Unable to schedule table '%s.%s' for deletion", table.getDatabaseName(), table.getTableName()));
-    verify(housekeepingMetadataRepository).save(table);
+        .isThrownBy(() -> expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata))
+        .withMessage(format("Unable to schedule %s", metadata));
+    verify(housekeepingMetadataRepository).save(metadata);
   }
 
   private HousekeepingMetadata createEntityHousekeepingTable() {
     LocalDateTime creationTimestamp = LocalDateTime.now(ZoneId.of("UTC"));
     return new HousekeepingMetadata.Builder()
+        .path(PATH)
         .databaseName(DATABASE_NAME)
         .tableName(TABLE_NAME)
+        .partitionName(PARTITION_NAME)
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(creationTimestamp)
         .modifiedTimestamp(creationTimestamp)

@@ -51,8 +51,6 @@ import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 @ExtendWith(MockitoExtension.class)
 public class UnreferencedHousekeepingPathGeneratorTest extends HousekeepingEntityGeneratorTestBase {
 
-  private static final String OLD_PATH = "old_path";
-
   @Mock private AlterPartitionEvent alterPartitionEvent;
   @Mock private AlterTableEvent alterTableEvent;
   @Mock private DropTableEvent dropTableEvent;
@@ -68,40 +66,44 @@ public class UnreferencedHousekeepingPathGeneratorTest extends HousekeepingEntit
   public void typicalHandleAlterPartitionEvent() {
     setupClockAndExtractor(alterPartitionEvent);
     setupListenerEvent(alterPartitionEvent, ALTER_PARTITION);
-    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_PATH);
+    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(PATH);
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(alterPartitionEvent, CLIENT_ID);
-    assertUnreferencedHousekeepingPathEntity(housekeepingEntities);
+    assertThat(housekeepingEntities.size()).isEqualTo(1);
+    assertUnreferencedHousekeepingPathEntity(housekeepingEntities.get(0));
   }
 
   @Test
   public void typicalHandleAlterTableEvent() {
     setupClockAndExtractor(alterTableEvent);
     setupListenerEvent(alterTableEvent, ALTER_TABLE);
-    when(alterTableEvent.getOldTableLocation()).thenReturn(OLD_PATH);
+    when(alterTableEvent.getOldTableLocation()).thenReturn(PATH);
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(alterTableEvent, CLIENT_ID);
-    assertUnreferencedHousekeepingPathEntity(housekeepingEntities);
+    assertThat(housekeepingEntities.size()).isEqualTo(1);
+    assertUnreferencedHousekeepingPathEntity(housekeepingEntities.get(0));
   }
 
   @Test
   public void typicalHandleDropPartitionEvent() {
     setupClockAndExtractor(dropPartitionEvent);
     setupListenerEvent(dropPartitionEvent, DROP_PARTITION);
-    when(dropPartitionEvent.getPartitionLocation()).thenReturn(OLD_PATH);
+    when(dropPartitionEvent.getPartitionLocation()).thenReturn(PATH);
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(dropPartitionEvent, CLIENT_ID);
-    assertUnreferencedHousekeepingPathEntity(housekeepingEntities);
+    assertThat(housekeepingEntities.size()).isEqualTo(1);
+    assertUnreferencedHousekeepingPathEntity(housekeepingEntities.get(0));
   }
 
   @Test
   public void typicalHandleDropTableEvent() {
     setupClockAndExtractor(dropTableEvent);
     setupListenerEvent(dropTableEvent, DROP_TABLE);
-    when(dropTableEvent.getTableLocation()).thenReturn(OLD_PATH);
+    when(dropTableEvent.getTableLocation()).thenReturn(PATH);
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(dropTableEvent, CLIENT_ID);
-    assertUnreferencedHousekeepingPathEntity(housekeepingEntities);
+    assertThat(housekeepingEntities.size()).isEqualTo(1);
+    assertUnreferencedHousekeepingPathEntity(housekeepingEntities.get(0));
   }
 
   @Test
@@ -118,10 +120,8 @@ public class UnreferencedHousekeepingPathGeneratorTest extends HousekeepingEntit
     }
   }
 
-  private void assertUnreferencedHousekeepingPathEntity(List<HousekeepingEntity> paths) {
-    assertThat(paths.size()).isEqualTo(1);
-    HousekeepingPath path = (HousekeepingPath) paths.get(0);
-    assertHousekeepingEntity(path, UNREFERENCED);
-    assertThat(path.getPath()).isEqualTo(OLD_PATH);
+  private void assertUnreferencedHousekeepingPathEntity(HousekeepingEntity housekeepingEntity) {
+    HousekeepingPath housekeepingPath = (HousekeepingPath) housekeepingEntity;
+    assertHousekeepingEntity(housekeepingPath, UNREFERENCED);
   }
 }

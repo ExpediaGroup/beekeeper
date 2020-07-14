@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.core.model;
 
+import static java.lang.String.format;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -160,10 +162,6 @@ public class HousekeepingPath implements HousekeepingEntity {
     return modifiedTimestamp;
   }
 
-  public void setModifiedTimestamp(LocalDateTime modifiedTimestamp) {
-    this.modifiedTimestamp = modifiedTimestamp;
-  }
-
   @Override
   public LocalDateTime getCleanupTimestamp() {
     return cleanupTimestamp;
@@ -204,6 +202,14 @@ public class HousekeepingPath implements HousekeepingEntity {
   @Override
   public MetricTag getMetricTag() {
     return new MetricTag("table", String.join(".", databaseName, tableName));
+  }
+
+  @Override
+  public String toString() {
+    return format(
+        "%s(path=%s, databaseName=%s, tableName=%s, housekeepingStatus=%s, creationTimestamp=%s, modifiedTimestamp=%s, cleanupTimestamp=%s, cleanupDelay=%s, cleanupAttempts=%s, clientId=%s, lifecycleType=%s)",
+        HousekeepingPath.class.getSimpleName(), path, databaseName, tableName, housekeepingStatus, creationTimestamp,
+        modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, lifecycleType, clientId);
   }
 
   public static final class Builder {
