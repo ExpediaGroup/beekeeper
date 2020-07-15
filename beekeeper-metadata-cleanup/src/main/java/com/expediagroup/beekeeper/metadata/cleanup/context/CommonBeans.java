@@ -34,10 +34,14 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.google.common.base.Supplier;
 
 import com.expediagroup.beekeeper.core.aws.S3Client;
+import com.expediagroup.beekeeper.core.aws.S3PathCleaner;
+import com.expediagroup.beekeeper.core.aws.S3SentinelFilesCleaner;
 import com.expediagroup.beekeeper.core.hive.HiveClient;
 import com.expediagroup.beekeeper.core.hive.HiveMetadataCleaner;
 import com.expediagroup.beekeeper.core.metadata.MetadataCleaner;
+import com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.core.monitoring.DeletedMetadataReporter;
+import com.expediagroup.beekeeper.core.path.PathCleaner;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.GenericMetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.service.MetadataCleanupService;
 import com.expediagroup.beekeeper.metadata.cleanup.service.PagingMetadataCleanupService;
@@ -48,13 +52,10 @@ import com.hotels.hcommon.hive.metastore.client.supplier.HiveMetaStoreClientSupp
 
 @Configuration
 @EnableScheduling
-@ComponentScan({ "com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.cleanup" })
+@ComponentScan({ "com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.metadata.cleanup" })
 @EntityScan(basePackages = { "com.expediagroup.beekeeper.core.model" })
 @EnableJpaRepositories(basePackages = { "com.expediagroup.beekeeper.core.repository" })
 public class CommonBeans {
-
-  // TODO
-  // hive conf!
 
   @Bean
   public EC2ContainerCredentialsProviderWrapper ec2ContainerCredentialsProviderWrapper() {
@@ -63,11 +64,13 @@ public class CommonBeans {
 
   // TODO
   // whats the metastore uri?
-  // where does the user specify it?
+  // where does the user specify it? - inside the properties file
   @Bean
   public HiveConf hiveConf(@Value("${properties.metastore-uri}") String metastoreUri) {
     HiveConf conf = new HiveConf();
     conf.setVar(HiveConf.ConfVars.METASTOREURIS, metastoreUri);
+
+    // idk
     return conf;
   }
 
@@ -91,8 +94,14 @@ public class CommonBeans {
     return new HiveClient(metaStoreClientSupplier.get(), dryRunEnabled);
   }
 
-  // ***** AWS beans - TODO check if need this
-  // feel like probably yes ? since its going to be using path cleaner stuff
+  @Bean(name = "hiveTableCleaner")
+  MetadataCleaner metadataCleaner(
+      HiveClient hiveClient,
+      DeletedMetadataReporter deletedMetadataReporter,
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+    return new HiveMetadataCleaner(hiveClient, deletedMetadataReporter, dryRunEnabled);
+  }
+
   @Bean
   @Profile("default")
   public AmazonS3 amazonS3() {
@@ -111,23 +120,21 @@ public class CommonBeans {
 
   @Bean
   public S3Client s3Client(AmazonS3 amazonS3, @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new S3Client(amazonS3, dryRunEnabled);
-  }
-  // ******
+    return new S3Client(amazonS3, dryRunEnabled);}
 
-  @Bean(name = "hiveTableCleaner")
-  MetadataCleaner metadataCleaner(
-      HiveClient hiveClient,
-      DeletedMetadataReporter deletedMetadataReporter,
+  @Bean(name = "s3PathCleaner")
+  PathCleaner pathCleaner(
+      S3Client s3Client,
+      BytesDeletedReporter bytesDeletedReporter,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new HiveMetadataCleaner(hiveClient, deletedMetadataReporter, dryRunEnabled);
+    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter, dryRunEnabled);
   }
 
   @Bean
   MetadataCleanupService cleanupService(
       List<GenericMetadataHandler> metadataHandlers,
       @Value("${properties.cleanup-page-size}") int pageSize,
-      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new PagingMetadataCleanupService(metadataHandlers, pageSize, dryRunEnabled);
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {return new PagingMetadataCleanupService(
+          metadataHandlers, pageSize, dryRunEnabled);
   }
 }

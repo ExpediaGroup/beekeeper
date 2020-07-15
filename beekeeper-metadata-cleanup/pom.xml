@@ -12,10 +12,11 @@
   <artifactId>beekeeper-metadata-cleanup</artifactId>
 
   <properties>
-    <hive.version>2.3.7</hive.version>
-    <hcommon-hive-metastore.version>1.4.2</hcommon-hive-metastore.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <aws.version>1.11.532</aws.version>
+    <hadoop.version>2.9.2</hadoop.version>
+    <hcommon-hive-metastore.version>1.4.2</hcommon-hive-metastore.version>
+    <hive.version>2.3.7</hive.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <s3mock.version>0.2.5</s3mock.version>
   </properties>
 
@@ -86,6 +87,16 @@
 
     <!-- Hive -->
     <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.hotels</groupId>
+      <artifactId>hcommon-hive-metastore</artifactId>
+      <version>${hcommon-hive-metastore.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-metastore</artifactId>
       <version>${hive.version}</version>
@@ -97,11 +108,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>com.hotels</groupId>
-      <artifactId>hcommon-hive-metastore</artifactId>
-      <version>${hcommon-hive-metastore.version}</version>
-    </dependency>
+
 
     <!-- test -->
     <dependency>
@@ -143,6 +150,15 @@
           <classifier>spring-boot</classifier>
           <mainClass>com.expediagroup.beekeeper.metadata.cleanup.BeekeeperMetadataCleanup</mainClass>
           <executable>true</executable>
+          <requiresUnpack>
+            <!-- We are hitting an issue introduced in hive-common-2.1.1 and fixed in https://issues.apache.org/jira/browse/HIVE-17155 
+              for hive 3 The HiveConf class tries loading conf (e.g. hive-site.xml) from the uberjar and fails. Unpacking it with this 
+              setting fixes that problem. -->
+            <dependency>
+              <groupId>org.apache.hive</groupId>
+              <artifactId>hive-common</artifactId>
+            </dependency>
+          </requiresUnpack>
         </configuration>
         <executions>
           <execution>
