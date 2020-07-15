@@ -169,6 +169,10 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return cleanupTimestamp;
   }
 
+  public void setCleanupTimestamp(LocalDateTime cleanupTimestamp) {
+    this.cleanupTimestamp = cleanupTimestamp;
+  }
+
   @Override
   public int getCleanupAttempts() {
     return cleanupAttempts;
