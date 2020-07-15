@@ -272,7 +272,7 @@ public class PagingMetadataCleanupServiceTest {
         .lifecycleType(EXPIRED.toString())
         .build();
 
-    metadata.setCleanupTimestamp(localNow);
+    // metadata.setCleanupTimestamp(localNow);
     return metadata;
   }
 

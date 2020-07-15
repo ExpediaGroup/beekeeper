@@ -104,14 +104,6 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     this.clientId = clientId;
   }
 
-  // public String getPath() {
-  // return path;
-  // }
-  //
-  // public void setPath(String path) {
-  // this.path = path;
-  // }
-
   @Override
   public String getLifecycleType() {
     return lifecycleType;
