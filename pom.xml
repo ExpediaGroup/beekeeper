@@ -17,9 +17,9 @@
   <modules>
     <module>beekeeper-cleanup</module>
     <module>beekeeper-core</module>
+    <module>beekeeper-metadata-cleanup</module>
     <module>beekeeper-scheduler</module>
     <module>beekeeper-scheduler-apiary</module>
-    <module>beekeeper-metadata-cleanup</module>
     <module>beekeeper-integration-tests</module>
     <module>beekeeper-package</module>
     <module>beekeeper-vacuum-tool</module>

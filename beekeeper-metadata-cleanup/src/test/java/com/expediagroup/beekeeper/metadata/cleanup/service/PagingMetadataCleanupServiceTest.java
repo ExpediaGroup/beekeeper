@@ -61,11 +61,6 @@ import com.expediagroup.beekeeper.metadata.cleanup.handler.GenericMetadataHandle
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)
-// @TestPropertySource(properties = {
-// "hibernate.data-source.driver-class-name=org.h2.Driver",
-// "hibernate.dialect=org.hibernate.dialect.H2Dialect",
-// "hibernate.hbm2ddl.auto=create",
-// "spring.datasource.url=jdbc:h2:mem:beekeeper;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL" })
 @ContextConfiguration(classes = { TestApplication.class }, loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class PagingMetadataCleanupServiceTest {

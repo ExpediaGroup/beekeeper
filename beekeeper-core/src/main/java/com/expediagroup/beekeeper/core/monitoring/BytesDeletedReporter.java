@@ -25,7 +25,6 @@ import io.micrometer.core.instrument.Tags;
 
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 
-//@Service
 public class BytesDeletedReporter {
 
   private static final Logger log = LoggerFactory.getLogger(BytesDeletedReporter.class);
@@ -39,7 +38,6 @@ public class BytesDeletedReporter {
     this.meterRegistry = meterRegistry;
     this.metricName = dryRunEnabled ? DRY_RUN_METRIC_NAME : METRIC_NAME;
   }
-  // public BytesDeletedReporter(MeterRegistry meterRegistry, boolean dryRunEnabled) {
 
   public void reportTaggable(long bytesDeleted, Taggable taggable, FileSystemType fileSystemType) {
     log.info("Bytes deleted: {}", bytesDeleted);

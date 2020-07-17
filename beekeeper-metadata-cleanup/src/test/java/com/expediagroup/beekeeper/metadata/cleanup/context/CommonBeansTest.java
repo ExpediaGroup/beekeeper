@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URL;
 import java.util.Collections;
+import java.util.function.Supplier;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.junit.jupiter.api.AfterAll;
@@ -34,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import io.micrometer.core.instrument.MeterRegistry;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.google.common.base.Supplier;
 
 import com.expediagroup.beekeeper.core.aws.S3Client;
 import com.expediagroup.beekeeper.core.aws.S3PathCleaner;

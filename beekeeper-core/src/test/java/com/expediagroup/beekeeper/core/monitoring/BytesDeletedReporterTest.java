@@ -46,13 +46,6 @@ import com.expediagroup.beekeeper.core.config.FileSystemType;
 @ContextConfiguration(classes = { TestApplication.class },
   loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-
-// @TestPropertySource(properties = {
-// "hibernate.data-source.driver-class-name=org.h2.Driver",
-// "hibernate.dialect=org.hibernate.dialect.H2Dialect",
-// "hibernate.hbm2ddl.auto=create",
-// "spring.datasource.url=jdbc:h2:mem:beekeeper;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL" })
-
 public class BytesDeletedReporterTest {
 
   private static final String TABLE = "database.table";
@@ -65,7 +58,6 @@ public class BytesDeletedReporterTest {
   @BeforeEach
   public void init() {
     when(taggable.getMetricTag()).thenReturn(new MetricTag("table", "database.table"));
-    // bytesDeletedReporter = new BytesDeletedReporter(meterRegistry);
     bytesDeletedReporter = new BytesDeletedReporter(meterRegistry, false);
   }
 
@@ -86,7 +78,6 @@ public class BytesDeletedReporterTest {
 
   @Test
   public void typicalDryRun() {
-    // bytesDeletedReporter = new BytesDeletedReporter(meterRegistry);
     bytesDeletedReporter = new BytesDeletedReporter(meterRegistry, true);
     bytesDeletedReporter.reportTaggable(BYTES_DELETED, taggable, FileSystemType.S3);
     Counter counter = RequiredSearch.in(meterRegistry)

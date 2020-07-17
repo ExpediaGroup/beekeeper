@@ -113,14 +113,11 @@
         </exclusion>
       </exclusions>
     </dependency>
-
-
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
       <version>${hadoop.version}</version>
     </dependency>
-
 
     <!-- test -->
     <dependency>
@@ -162,15 +159,6 @@
           <classifier>spring-boot</classifier>
           <mainClass>com.expediagroup.beekeeper.metadata.cleanup.BeekeeperMetadataCleanup</mainClass>
           <executable>true</executable>
-          <requiresUnpack>
-            <!-- We are hitting an issue introduced in hive-common-2.1.1 and fixed in https://issues.apache.org/jira/browse/HIVE-17155 
-              for hive 3 The HiveConf class tries loading conf (e.g. hive-site.xml) from the uberjar and fails. Unpacking it with this 
-              setting fixes that problem. -->
-            <dependency>
-              <groupId>org.apache.hive</groupId>
-              <artifactId>hive-common</artifactId>
-            </dependency>
-          </requiresUnpack>
         </configuration>
         <executions>
           <execution>

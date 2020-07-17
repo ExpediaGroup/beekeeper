@@ -77,7 +77,6 @@ class S3PathCleanerTest {
   private @Mock BytesDeletedReporter bytesDeletedReporter;
   private Boolean dryRunEnabled = false;
 
-
   private S3PathCleaner s3PathCleaner;
 
   @BeforeAll

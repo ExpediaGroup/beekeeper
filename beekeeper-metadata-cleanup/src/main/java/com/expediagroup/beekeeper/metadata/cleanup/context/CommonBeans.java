@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.metadata.cleanup.context;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +33,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.google.common.base.Supplier;
 
 import com.expediagroup.beekeeper.core.aws.S3Client;
 import com.expediagroup.beekeeper.core.aws.S3PathCleaner;
