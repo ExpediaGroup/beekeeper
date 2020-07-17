@@ -95,8 +95,7 @@ public class CommonBeans {
   @Bean(name = "hiveTableCleaner")
   MetadataCleaner metadataCleaner(
       HiveClient hiveClient,
-      DeletedMetadataReporter deletedMetadataReporter,
-      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+      DeletedMetadataReporter deletedMetadataReporter) {
     return new HiveMetadataCleaner(hiveClient, deletedMetadataReporter);
   }
 
@@ -131,8 +130,7 @@ public class CommonBeans {
   @Bean(name = "s3PathCleaner")
   PathCleaner pathCleaner(
       S3Client s3Client,
-      BytesDeletedReporter bytesDeletedReporter,
-      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+      BytesDeletedReporter bytesDeletedReporter) {
     return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
   }
 

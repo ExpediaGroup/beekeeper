@@ -33,7 +33,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
-
 @ExtendWith(MockitoExtension.class)
 class S3BytesDeletedCalculatorTest {
 

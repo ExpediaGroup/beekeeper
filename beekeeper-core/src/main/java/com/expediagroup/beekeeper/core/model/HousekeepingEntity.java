@@ -22,8 +22,6 @@ import com.expediagroup.beekeeper.core.monitoring.Taggable;
 
 public interface HousekeepingEntity extends Taggable {
 
-  // String getPath();
-
   String getLifecycleType();
 
   Long getId();

@@ -32,7 +32,7 @@ public class BytesDeletedReporter {
   public static final String DRY_RUN_METRIC_NAME = "dry-run-" + METRIC_NAME;
 
   private MeterRegistry meterRegistry;
-  private String metricName = METRIC_NAME;
+  private String metricName;
 
   public BytesDeletedReporter(MeterRegistry meterRegistry, boolean dryRunEnabled) {
     this.meterRegistry = meterRegistry;

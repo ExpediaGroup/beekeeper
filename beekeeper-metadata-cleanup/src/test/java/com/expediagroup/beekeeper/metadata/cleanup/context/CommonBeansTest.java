@@ -118,7 +118,7 @@ public class CommonBeansTest {
   public void verifyHiveMetadataCleaner() {
     DeletedMetadataReporter reporter = commonBeans.deletedMetadataReporter(meterRegistry, false);
     HiveClient hiveClient = Mockito.mock(HiveClient.class);
-    MetadataCleaner metadataCleaner = commonBeans.metadataCleaner(hiveClient, reporter, dryRunEnabled);
+    MetadataCleaner metadataCleaner = commonBeans.metadataCleaner(hiveClient, reporter);
     assertThat(metadataCleaner).isInstanceOf(HiveMetadataCleaner.class);
   }
 
@@ -148,7 +148,7 @@ public class CommonBeansTest {
   void verifyS3pathCleaner() {
     BytesDeletedReporter reporter = commonBeans.bytesDeletedReporter(meterRegistry, false);
     S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), false);
-    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, reporter, false);
+    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, reporter);
     assertThat(pathCleaner).isInstanceOf(S3PathCleaner.class);
   }
 

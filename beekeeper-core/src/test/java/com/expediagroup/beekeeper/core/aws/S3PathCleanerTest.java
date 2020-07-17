@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
@@ -324,7 +324,7 @@ class S3PathCleanerTest {
     housekeepingPath.setPath(absolutePath + "/file1");
     assertThatExceptionOfType(AmazonServiceException.class)
         .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
-    verifyNoMoreInteractions(bytesDeletedReporter);
+    verifyNoInteractions(bytesDeletedReporter);
   }
 
   @Test
@@ -335,7 +335,7 @@ class S3PathCleanerTest {
 
     assertThatExceptionOfType(AmazonServiceException.class)
         .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
-    verifyNoMoreInteractions(bytesDeletedReporter);
+    verifyNoInteractions(bytesDeletedReporter);
   }
 
   @Test

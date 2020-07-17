@@ -18,9 +18,11 @@ package com.expediagroup.beekeeper.core.hive;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.thrift.TException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +58,7 @@ public class HiveClientTest {
 
   @Test
   public void typicalPartitionDrop() throws NoSuchObjectException, MetaException, TException {
+    when(client.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
     boolean result = hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
     verify(client).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME, false);
     assertThat(result == true);
@@ -78,7 +81,16 @@ public class HiveClientTest {
   }
 
   @Test
+  public void onlyDropPartitionIfTableExists() throws MetaException, UnknownDBException, TException {
+    when(client.tableExists(DATABASE, TABLE_NAME)).thenReturn(false);
+    boolean result = hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
+    verify(client, never()).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME, false);
+    assertThat(result == false);
+  }
+
+  @Test
   public void dontThrowErrorWhenTableAlreadyDeleted() throws MetaException, NoSuchObjectException, TException {
+    when(client.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
     Mockito.doThrow(NoSuchObjectException.class).when(client).dropTable(DATABASE, TABLE_NAME);
     boolean result = hiveClient.deleteMetadata(DATABASE, TABLE_NAME);
     verify(client).dropTable(DATABASE, TABLE_NAME);
@@ -87,6 +99,7 @@ public class HiveClientTest {
 
   @Test
   public void dontThrowErrorWhenPartitionAlreadyDeleted() throws MetaException, NoSuchObjectException, TException {
+    when(client.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
     Mockito
         .doThrow(NoSuchObjectException.class)
         .when(client)
@@ -107,6 +120,7 @@ public class HiveClientTest {
 
   @Test
   public void throwsExceptionForPartitionDelete() throws MetaException, NoSuchObjectException, TException {
+    when(client.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
     Mockito.doThrow(MetaException.class).when(client).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME, false);
     Assertions.assertThrows(BeekeeperException.class, () -> {
       hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);

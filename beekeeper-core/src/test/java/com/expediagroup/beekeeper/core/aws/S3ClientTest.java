@@ -37,7 +37,6 @@ import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
-
 class S3ClientTest {
 
   private static LocalStackContainer s3Container;

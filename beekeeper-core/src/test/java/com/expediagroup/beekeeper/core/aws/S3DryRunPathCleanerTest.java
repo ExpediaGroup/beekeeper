@@ -58,7 +58,6 @@ class S3DryRunPathCleanerTest {
 
   private S3PathCleaner s3DryRunPathCleaner;
 
-
   @BeforeAll
   public static void s3() {
     s3Container = new LocalStackContainer().withServices(LocalStackContainer.Service.S3);

@@ -67,11 +67,7 @@ public class DeletedMetadataReporterTest {
   public void typical() {
     deletedMetadataReporter.reportTaggable(taggable, MetadataType.HIVE_TABLE);
 
-    Counter counter = RequiredSearch
-        .in(meterRegistry)
-        .name(tableCounterName)
-        .tags("table", TABLE)
-        .counter();
+    Counter counter = RequiredSearch.in(meterRegistry).name(tableCounterName).tags("table", TABLE).counter();
     assertThat(counter).isNotNull();
     assertThat(counter.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
     assertThat(counter.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);

@@ -32,12 +32,9 @@ import com.expediagroup.beekeeper.core.monitoring.DeletedMetadataReporter;
 @ExtendWith(MockitoExtension.class)
 public class HiveMetadataCleanerTest {
 
-  @Mock
-  private HousekeepingMetadata housekeepingMetadata;
-  @Mock
-  private DeletedMetadataReporter deletedMetadataReporter;
-  @Mock
-  private HiveClient hiveClient;
+  private @Mock HousekeepingMetadata housekeepingMetadata;
+  private @Mock DeletedMetadataReporter deletedMetadataReporter;
+  private @Mock HiveClient hiveClient;
 
   private HiveMetadataCleaner cleaner;
   private static final String DATABASE = "database";

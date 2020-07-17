@@ -37,7 +37,7 @@ public class HiveClient {
   }
 
   /**
-   * Will delete the metadata. Error is not thrown if table not found.
+   * Will delete the table metadata. Error is not thrown if table not found.
    * 
    * @param database
    * @param tableName
@@ -49,7 +49,6 @@ public class HiveClient {
     } else {
       log.info("Deleting metadata for table \"{}.{}\"", database, tableName);
       try {
-        System.out.println(client);
         client.dropTable(database, tableName);
       } catch (NoSuchObjectException e) {
         log.info("Could not delete metadata. Table not found: \"{}.{}\"", database, tableName);
@@ -68,7 +67,7 @@ public class HiveClient {
    * 
    * @param databaseName
    * @param tableName
-   * @param partitionValue
+   * @param partitionValue expected format: "event_date=2020-01-01/event_hour=0/event_type=A"
    */
   public boolean dropPartition(String databaseName, String tableName, String partitionName) {
     boolean partitionDeleted = true;
@@ -103,8 +102,7 @@ public class HiveClient {
 
   private boolean tableExists(String databaseName, String tableName) {
     try {
-      client.getTable(databaseName, tableName);
-      return true;
+      return client.tableExists(databaseName, tableName);
     } catch (TException e) {
       return false;
     }

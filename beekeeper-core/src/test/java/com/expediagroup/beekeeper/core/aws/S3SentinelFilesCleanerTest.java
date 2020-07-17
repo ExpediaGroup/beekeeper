@@ -29,7 +29,6 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 
 import com.amazonaws.services.s3.AmazonS3;
 
-
 @ExtendWith(MockitoExtension.class)
 class S3SentinelFilesCleanerTest {
 
