@@ -27,6 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -52,15 +53,14 @@ public class DeletedMetadataReporterTest {
   private String dryRunTableCounterName = String
       .join("-", MetadataType.HIVE_TABLE.toString().toLowerCase(), DRY_RUN_METRIC_NAME);
 
-  private @Mock MeterRegistry meterRegistry;
-  @Mock
-  private Taggable taggable;
+  private @Autowired MeterRegistry meterRegistry;
+  private @Mock Taggable taggable;
   private DeletedMetadataReporter deletedMetadataReporter;
 
   @BeforeEach
   public void init() {
     when(taggable.getMetricTag()).thenReturn(new MetricTag("table", "database.table"));
-    deletedMetadataReporter = new DeletedMetadataReporter(meterRegistry);
+    deletedMetadataReporter = new DeletedMetadataReporter(meterRegistry, false);
   }
 
   @Test
@@ -79,7 +79,7 @@ public class DeletedMetadataReporterTest {
 
   @Test
   public void typicalDryRun() {
-    deletedMetadataReporter.isDryRunEnabled(true);
+    deletedMetadataReporter = new DeletedMetadataReporter(meterRegistry, true);
     deletedMetadataReporter.reportTaggable(taggable, MetadataType.HIVE_TABLE);
 
     Counter counter = RequiredSearch.in(meterRegistry).name(dryRunTableCounterName).tags("table", TABLE).counter();

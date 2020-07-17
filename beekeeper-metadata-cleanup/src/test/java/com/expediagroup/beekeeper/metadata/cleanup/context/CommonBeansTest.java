@@ -29,6 +29,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import io.micrometer.core.instrument.MeterRegistry;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.google.common.base.Supplier;
@@ -66,8 +69,8 @@ public class CommonBeansTest {
   private @Mock HousekeepingPathRepository repository;
   private @Mock MetadataCleaner metadataCleaner;
   private @Mock PathCleaner pathCleaner;
-  private @Mock DeletedMetadataReporter deletedMetadataReporter;
-  private @Mock BytesDeletedReporter bytesDeletedReporter;
+
+  private @Autowired MeterRegistry meterRegistry;
 
   @BeforeEach
   public void awsSetUp() {
@@ -113,8 +116,9 @@ public class CommonBeansTest {
 
   @Test
   public void verifyHiveMetadataCleaner() {
+    DeletedMetadataReporter reporter = commonBeans.deletedMetadataReporter(meterRegistry, false);
     HiveClient hiveClient = Mockito.mock(HiveClient.class);
-    MetadataCleaner metadataCleaner = commonBeans.metadataCleaner(hiveClient, deletedMetadataReporter, dryRunEnabled);
+    MetadataCleaner metadataCleaner = commonBeans.metadataCleaner(hiveClient, reporter, dryRunEnabled);
     assertThat(metadataCleaner).isInstanceOf(HiveMetadataCleaner.class);
   }
 
@@ -142,8 +146,9 @@ public class CommonBeansTest {
 
   @Test
   void verifyS3pathCleaner() {
+    BytesDeletedReporter reporter = commonBeans.bytesDeletedReporter(meterRegistry, false);
     S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), false);
-    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, bytesDeletedReporter, false);
+    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, reporter, false);
     assertThat(pathCleaner).isInstanceOf(S3PathCleaner.class);
   }
 

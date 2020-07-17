@@ -95,7 +95,7 @@ class S3PathCleanerTest {
       .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     s3Client = new S3Client(amazonS3, dryRunEnabled);
     s3SentinelFilesCleaner = new S3SentinelFilesCleaner(s3Client);
-    s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, bytesDeletedReporter, dryRunEnabled);
+    s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
     housekeepingPath = new HousekeepingPath.Builder()
       .path(absolutePath)
       .tableName(tableName)
@@ -250,7 +250,7 @@ class S3PathCleanerTest {
 
     amazonS3.putObject(bucket, key1, content);
 
-    s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, bytesDeletedReporter, dryRunEnabled);
+    s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
     assertThatCode(() -> s3PathCleaner.cleanupPath(housekeepingPath)).doesNotThrowAnyException();
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
   }
@@ -315,7 +315,7 @@ class S3PathCleanerTest {
   @Test
   void noBytesDeletedMetricWhenFileDeletionFails() {
     S3Client mockS3Client = mock(S3Client.class);
-    s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter, dryRunEnabled);
+    s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
     when(mockS3Client.doesObjectExist(bucket, key1)).thenReturn(true);
     ObjectMetadata objectMetadata = new ObjectMetadata();
     objectMetadata.setContentLength(10);
@@ -325,21 +325,17 @@ class S3PathCleanerTest {
     housekeepingPath.setPath(absolutePath + "/file1");
     assertThatExceptionOfType(AmazonServiceException.class)
         .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
-    // Called twice because the setup method also creates a new S3PathCleaner, which calls this method on the mock
-    // verify(bytesDeletedReporter, Mockito.times(2)).isDryRunEnabled(dryRunEnabled);
     verifyNoMoreInteractions(bytesDeletedReporter);
   }
 
   @Test
   void noBytesDeletedMetricWhenDirectoryDeletionFails() {
     S3Client mockS3Client = mock(S3Client.class);
-    s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter, dryRunEnabled);
+    s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
     doThrow(AmazonServiceException.class).when(mockS3Client).listObjects(bucket, keyRootAsDirectory);
 
     assertThatExceptionOfType(AmazonServiceException.class)
         .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
-    // Called twice because the setup method also creates a new S3PathCleaner, which calls this method on the mock
-    // verify(bytesDeletedReporter, Mockito.times(2)).isDryRunEnabled(dryRunEnabled);
     verifyNoMoreInteractions(bytesDeletedReporter);
   }
 
@@ -348,7 +344,7 @@ class S3PathCleanerTest {
     AmazonS3 mockAmazonS3 = mock(AmazonS3.class);
     S3Client mockS3Client = new S3Client(mockAmazonS3, false);
     mockOneOutOfTwoObjectsDeleted(mockAmazonS3);
-    s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter, dryRunEnabled);
+    s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
     assertThatExceptionOfType(BeekeeperException.class)
       .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath))
       .withMessage(format("Not all files could be deleted at path \"%s/%s\"; deleted 1/2 objects. "

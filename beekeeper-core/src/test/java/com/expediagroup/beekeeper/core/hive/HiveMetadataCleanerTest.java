@@ -46,7 +46,7 @@ public class HiveMetadataCleanerTest {
 
   @BeforeEach
   public void init() {
-    cleaner = new HiveMetadataCleaner(hiveClient, deletedMetadataReporter, false);
+    cleaner = new HiveMetadataCleaner(hiveClient, deletedMetadataReporter);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
   }

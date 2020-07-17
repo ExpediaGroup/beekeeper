@@ -27,6 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -57,16 +58,15 @@ public class BytesDeletedReporterTest {
   private static final String TABLE = "database.table";
   private static final long BYTES_DELETED = 10;
 
-  // @Autowired
-  private @Mock MeterRegistry meterRegistry;
+  private @Autowired MeterRegistry meterRegistry;
   private @Mock Taggable taggable;
   private BytesDeletedReporter bytesDeletedReporter;
 
   @BeforeEach
   public void init() {
     when(taggable.getMetricTag()).thenReturn(new MetricTag("table", "database.table"));
-    bytesDeletedReporter = new BytesDeletedReporter(meterRegistry);
-    // bytesDeletedReporter = new BytesDeletedReporter(meterRegistry, false);
+    // bytesDeletedReporter = new BytesDeletedReporter(meterRegistry);
+    bytesDeletedReporter = new BytesDeletedReporter(meterRegistry, false);
   }
 
   @Test
@@ -86,8 +86,8 @@ public class BytesDeletedReporterTest {
 
   @Test
   public void typicalDryRun() {
-    bytesDeletedReporter = new BytesDeletedReporter(meterRegistry);
-    // bytesDeletedReporter = new BytesDeletedReporter(meterRegistry, true);
+    // bytesDeletedReporter = new BytesDeletedReporter(meterRegistry);
+    bytesDeletedReporter = new BytesDeletedReporter(meterRegistry, true);
     bytesDeletedReporter.reportTaggable(BYTES_DELETED, taggable, FileSystemType.S3);
     Counter counter = RequiredSearch.in(meterRegistry)
       .name("s3-" + DRY_RUN_METRIC_NAME)

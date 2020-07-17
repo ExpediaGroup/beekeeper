@@ -25,10 +25,9 @@ public class HiveMetadataCleaner implements MetadataCleaner {
   private HiveClient client;
   private DeletedMetadataReporter deletedMetadataReporter;
 
-  public HiveMetadataCleaner(HiveClient client, DeletedMetadataReporter deletedMetadataReporter, boolean dryRunEnabled) {
+  public HiveMetadataCleaner(HiveClient client, DeletedMetadataReporter deletedMetadataReporter) {
     this.client = client;
     this.deletedMetadataReporter = deletedMetadataReporter;
-    this.deletedMetadataReporter.isDryRunEnabled(dryRunEnabled);
   }
 
   @Override

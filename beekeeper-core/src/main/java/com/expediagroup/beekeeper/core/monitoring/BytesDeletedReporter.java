@@ -17,7 +17,6 @@ package com.expediagroup.beekeeper.core.monitoring;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -26,7 +25,7 @@ import io.micrometer.core.instrument.Tags;
 
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 
-@Service
+//@Service
 public class BytesDeletedReporter {
 
   private static final Logger log = LoggerFactory.getLogger(BytesDeletedReporter.class);
@@ -36,11 +35,11 @@ public class BytesDeletedReporter {
   private MeterRegistry meterRegistry;
   private String metricName = METRIC_NAME;
 
-  public BytesDeletedReporter(MeterRegistry meterRegistry) {
-    // public BytesDeletedReporter(MeterRegistry meterRegistry, boolean dryRunEnabled) {
+  public BytesDeletedReporter(MeterRegistry meterRegistry, boolean dryRunEnabled) {
     this.meterRegistry = meterRegistry;
-    // this.metricName = dryRunEnabled ? DRY_RUN_METRIC_NAME : METRIC_NAME;
+    this.metricName = dryRunEnabled ? DRY_RUN_METRIC_NAME : METRIC_NAME;
   }
+  // public BytesDeletedReporter(MeterRegistry meterRegistry, boolean dryRunEnabled) {
 
   public void reportTaggable(long bytesDeleted, Taggable taggable, FileSystemType fileSystemType) {
     log.info("Bytes deleted: {}", bytesDeleted);

@@ -43,12 +43,10 @@ public class S3PathCleaner implements PathCleaner {
   private BytesDeletedReporter bytesDeletedReporter;
 
   public S3PathCleaner(S3Client s3Client, SentinelFilesCleaner sentinelFilesCleaner,
-      BytesDeletedReporter bytesDeletedReporter,
-      boolean dryRunEnabled) {
+      BytesDeletedReporter bytesDeletedReporter) {
     this.s3Client = s3Client;
     this.sentinelFilesCleaner = sentinelFilesCleaner;
     this.bytesDeletedReporter = bytesDeletedReporter;
-    // this.bytesDeletedReporter.isDryRunEnabled(dryRunEnabled);
   }
 
   @Override

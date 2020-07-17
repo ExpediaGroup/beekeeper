@@ -34,8 +34,9 @@ public class DeletedMetadataReporter {
   private MeterRegistry meterRegistry;
   private String metricName = METRIC_NAME;
 
-  public DeletedMetadataReporter(MeterRegistry meterRegistry) {
+  public DeletedMetadataReporter(MeterRegistry meterRegistry, boolean dryRunEnabled) {
     this.meterRegistry = meterRegistry;
+    this.metricName = dryRunEnabled ? DRY_RUN_METRIC_NAME : METRIC_NAME;
   }
 
   public void reportTaggable(Taggable taggable, MetadataType metadataType) {
@@ -48,10 +49,6 @@ public class DeletedMetadataReporter {
 
   private Iterable<Tag> createTag(MetricTag metricTag) {
     return Tags.of(metricTag.getKey(), metricTag.getTag());
-  }
-
-  public void isDryRunEnabled(boolean dryRunEnabled) {
-    metricName = dryRunEnabled ? DRY_RUN_METRIC_NAME : METRIC_NAME;
   }
 
 }

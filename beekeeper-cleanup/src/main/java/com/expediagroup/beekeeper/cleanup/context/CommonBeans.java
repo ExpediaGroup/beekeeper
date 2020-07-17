@@ -26,6 +26,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -65,6 +67,13 @@ public class CommonBeans {
   }
 
   @Bean
+  BytesDeletedReporter bytesDeletedReporter(
+      MeterRegistry meterRegistry,
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+    return new BytesDeletedReporter(meterRegistry, dryRunEnabled);
+  }
+
+  @Bean
   public S3Client s3Client(AmazonS3 amazonS3, @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
     return new S3Client(amazonS3, dryRunEnabled);
   }
@@ -74,7 +83,7 @@ public class CommonBeans {
       S3Client s3Client,
       BytesDeletedReporter bytesDeletedReporter,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter, dryRunEnabled);
+    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
   }
 
   @Bean

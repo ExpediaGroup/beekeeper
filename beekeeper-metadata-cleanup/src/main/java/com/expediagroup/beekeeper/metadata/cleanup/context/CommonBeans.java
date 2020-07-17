@@ -85,11 +85,11 @@ public class CommonBeans {
     return new HiveClient(metaStoreClientSupplier.get(), dryRunEnabled);
   }
 
-  // TODO
-  // FIX
   @Bean
-  public DeletedMetadataReporter deletedMetadataReporter(MeterRegistry meterRegistry) {
-    return new DeletedMetadataReporter(meterRegistry);
+  public DeletedMetadataReporter deletedMetadataReporter(
+      MeterRegistry meterRegistry,
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+    return new DeletedMetadataReporter(meterRegistry, dryRunEnabled);
   }
 
   @Bean(name = "hiveTableCleaner")
@@ -97,7 +97,7 @@ public class CommonBeans {
       HiveClient hiveClient,
       DeletedMetadataReporter deletedMetadataReporter,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new HiveMetadataCleaner(hiveClient, deletedMetadataReporter, dryRunEnabled);
+    return new HiveMetadataCleaner(hiveClient, deletedMetadataReporter);
   }
 
   @Bean
@@ -116,14 +116,11 @@ public class CommonBeans {
     return AmazonS3ClientBuilder.standard().withEndpointConfiguration(endpointConfiguration).build();
   }
 
-  // TODO
-  // fix
   @Bean
   BytesDeletedReporter bytesDeletedReporter(
       MeterRegistry meterRegistry,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new BytesDeletedReporter(meterRegistry);
-    // return new BytesDeletedReporter(meterRegistry, dryRunEnabled);
+    return new BytesDeletedReporter(meterRegistry, dryRunEnabled);
   }
 
   @Bean
@@ -136,7 +133,7 @@ public class CommonBeans {
       S3Client s3Client,
       BytesDeletedReporter bytesDeletedReporter,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter, dryRunEnabled);
+    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
   }
 
   @Bean
