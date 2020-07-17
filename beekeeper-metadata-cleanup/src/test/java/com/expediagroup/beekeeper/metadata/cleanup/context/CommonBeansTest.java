@@ -22,6 +22,7 @@ import java.util.Collections;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,7 +52,6 @@ import com.hotels.hcommon.hive.metastore.client.supplier.HiveMetaStoreClientSupp
 @ExtendWith(MockitoExtension.class)
 public class CommonBeansTest {
 
-  // aws
   private static final String AWS_S3_ENDPOINT_PROPERTY = "aws.s3.endpoint";
   private static final String AWS_REGION_PROPERTY = "aws.region";
   private static final String REGION = "us-west-2";
@@ -59,10 +59,7 @@ public class CommonBeansTest {
   private static final String ENDPOINT = "endpoint";
   private static final String BUCKET = "bucket";
   private static final String KEY = "key";
-
-  // hive
   private final String metastoreUri = "thrift://localhost:1234";
-  // private @Mock HiveConf hiveConf;
 
   private Boolean dryRunEnabled = false;
   private final CommonBeans commonBeans = new CommonBeans();
@@ -72,44 +69,31 @@ public class CommonBeansTest {
   private @Mock DeletedMetadataReporter deletedMetadataReporter;
   private @Mock BytesDeletedReporter bytesDeletedReporter;
 
-  // check metastore client supplier
-  // check hive client
-  // check metadata cleaner
-  // check clean up service
-
-  // TODO
-  // aws stuff ????
-
-  @Test
-  public void typicalMetastoreClient() {
-
+  @BeforeEach
+  public void awsSetUp() {
+    System.setProperty(AWS_REGION_PROPERTY, REGION);
+    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, ENDPOINT);
   }
 
-  @Test
-  public void hiveClient() {
-
+  @AfterAll
+  public static void awsTearDown() {
+    System.clearProperty(AWS_REGION_PROPERTY);
+    System.clearProperty(AWS_S3_ENDPOINT_PROPERTY);
   }
 
-  // TODO
-  // FIX THIS TEST
-  // typical hive conf
   @Test
   public void typicalHiveConf() {
-    // HiveConf hiveConf = commonBeans.hiveConf(metastoreUri);
-    //
-    // assertThat(hiveConf.get(HiveConf.ConfVars.METASTOREURIS.varname)).isEqualTo(metastoreUri);
+    HiveConf hiveConf = commonBeans.hiveConf(metastoreUri);
+    assertThat(hiveConf.get(HiveConf.ConfVars.METASTOREURIS.varname)).isEqualTo(metastoreUri);
   }
 
-  // TODO
-  // whats expected here?
-  // hive conf when no metastore set
   @Test
   public void hiveConfFailure() {
-    // HiveConf hiveConf = commonBeans.hiveConf(null);
-
+    Assertions.assertThrows(IllegalArgumentException.class, () -> {
+      commonBeans.hiveConf(null);
+    });
   }
 
-  // metastoreclient Supplier
   @Test
   public void verifyMetaStoreClientSupplier() {
     CloseableMetaStoreClientFactory metaStoreClientFactory = commonBeans.metaStoreClientFactory();
@@ -120,36 +104,18 @@ public class CommonBeansTest {
     assertThat(metaStoreClientSupplier).isInstanceOf(HiveMetaStoreClientSupplier.class);
   }
 
-  // hive client
   @Test
   public void verifyHiveClient() {
     Supplier<CloseableMetaStoreClient> metaStoreClientSupplier = Mockito.mock(Supplier.class);
     HiveClient hiveClient = commonBeans.hiveClient(metaStoreClientSupplier, false);
     assertThat(hiveClient).isInstanceOf(HiveClient.class);
-    // TODO
-    // what else can be tested here?
   }
 
-  // metadata cleaner
   @Test
   public void verifyHiveMetadataCleaner() {
     HiveClient hiveClient = Mockito.mock(HiveClient.class);
     MetadataCleaner metadataCleaner = commonBeans.metadataCleaner(hiveClient, deletedMetadataReporter, dryRunEnabled);
     assertThat(metadataCleaner).isInstanceOf(HiveMetadataCleaner.class);
-  }
-
-  // *******************************
-  // AWS
-  @BeforeEach
-  public void setUp() {
-    System.setProperty(AWS_REGION_PROPERTY, REGION);
-    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, ENDPOINT);
-  }
-
-  @AfterAll
-  public static void tearDown() {
-    System.clearProperty(AWS_REGION_PROPERTY);
-    System.clearProperty(AWS_S3_ENDPOINT_PROPERTY);
   }
 
   @Test
@@ -168,7 +134,7 @@ public class CommonBeansTest {
 
   @Test
   public void verifyS3Client() {
-    AmazonS3 amazonS3 = commonBeans.amazonS3();
+    AmazonS3 amazonS3 = commonBeans.amazonS3Test();
     S3Client s3Client = new S3Client(amazonS3, false);
     S3Client beansS3Client = commonBeans.s3Client(amazonS3, false);
     assertThat(s3Client).isEqualToComparingFieldByField(beansS3Client);
@@ -180,8 +146,6 @@ public class CommonBeansTest {
     PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, bytesDeletedReporter, false);
     assertThat(pathCleaner).isInstanceOf(S3PathCleaner.class);
   }
-
-  // *******************************
 
   @Test
   public void verifyCleanupService() {

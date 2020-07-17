@@ -37,7 +37,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 
@@ -327,7 +326,7 @@ class S3PathCleanerTest {
     assertThatExceptionOfType(AmazonServiceException.class)
         .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
     // Called twice because the setup method also creates a new S3PathCleaner, which calls this method on the mock
-    verify(bytesDeletedReporter, Mockito.times(2)).isDryRunEnabled(dryRunEnabled);
+    // verify(bytesDeletedReporter, Mockito.times(2)).isDryRunEnabled(dryRunEnabled);
     verifyNoMoreInteractions(bytesDeletedReporter);
   }
 
@@ -340,7 +339,7 @@ class S3PathCleanerTest {
     assertThatExceptionOfType(AmazonServiceException.class)
         .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
     // Called twice because the setup method also creates a new S3PathCleaner, which calls this method on the mock
-    verify(bytesDeletedReporter, Mockito.times(2)).isDryRunEnabled(dryRunEnabled);
+    // verify(bytesDeletedReporter, Mockito.times(2)).isDryRunEnabled(dryRunEnabled);
     verifyNoMoreInteractions(bytesDeletedReporter);
   }
 

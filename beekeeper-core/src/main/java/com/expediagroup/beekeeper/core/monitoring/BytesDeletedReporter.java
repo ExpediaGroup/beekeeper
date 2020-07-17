@@ -17,7 +17,6 @@ package com.expediagroup.beekeeper.core.monitoring;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.micrometer.core.instrument.Counter;
@@ -37,9 +36,10 @@ public class BytesDeletedReporter {
   private MeterRegistry meterRegistry;
   private String metricName = METRIC_NAME;
 
-  @Autowired
   public BytesDeletedReporter(MeterRegistry meterRegistry) {
+    // public BytesDeletedReporter(MeterRegistry meterRegistry, boolean dryRunEnabled) {
     this.meterRegistry = meterRegistry;
+    // this.metricName = dryRunEnabled ? DRY_RUN_METRIC_NAME : METRIC_NAME;
   }
 
   public void reportTaggable(long bytesDeleted, Taggable taggable, FileSystemType fileSystemType) {
@@ -58,7 +58,4 @@ public class BytesDeletedReporter {
     return Tags.of(metricTag.getKey(), metricTag.getTag());
   }
 
-  public void isDryRunEnabled(boolean dryRunEnabled) {
-    this.metricName = dryRunEnabled ? DRY_RUN_METRIC_NAME : METRIC_NAME;
-  }
 }

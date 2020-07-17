@@ -92,6 +92,11 @@
       <version>${hadoop.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-mapreduce-client-core</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.hotels</groupId>
       <artifactId>hcommon-hive-metastore</artifactId>
       <version>${hcommon-hive-metastore.version}</version>
@@ -107,6 +112,13 @@
           <artifactId>hbase-client</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs</artifactId>
+      <version>${hadoop.version}</version>
     </dependency>
 
 

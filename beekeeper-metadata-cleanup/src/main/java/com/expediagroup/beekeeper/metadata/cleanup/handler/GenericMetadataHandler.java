@@ -49,21 +49,6 @@ public abstract class GenericMetadataHandler {
       String tableName,
       Pageable pageable);
 
-  // public abstract int getPageSize();
-
-  /**
-   * Processes a pageable entityHouseKeepingPath page.
-   *
-   * @param pageable Pageable to iterate through for dryRun
-   * @param page Page to get content from
-   * @param dryRunEnabled Dry Run boolean flag
-   * @implNote This parent handler expects the child's cleanupPath call to update & remove the record from this call
-   *           such that subsequent DB queries will not return the record. Hence why we only call next during dryRuns
-   *           where no updates occur.
-   * @implNote Note that we only expect pageable.next to be called during a dry run.
-   * @return Pageable to pass to query. In the case of dry runs, this is the next page.
-   */
-  
   /*-
    * Example entries:
    * no: db  | tblname | path  | part vals
@@ -82,47 +67,46 @@ public abstract class GenericMetadataHandler {
    * 
    */
 
-  // TODO
-  // I dont think there would be any worry about not returning the next page for normal runs. The only things which are
-  // returned are expired, so the only things which wil still remain are any partitioned tables which still have
-  // partitions, and once all the partitions have been deleted these should be fine to delete.
+  /**
+   * Processes a pageable entityHouseKeepingPath page.
+   *
+   * @param pageable Pageable to iterate through for dryRun
+   * @param page Page to get content from
+   * @param dryRunEnabled Dry Run boolean flag
+   * @implNote This parent handler expects the child's cleanupPath call to update & remove the record from this call
+   *           such that subsequent DB queries will not return the record. Hence why we only call next during dryRuns
+   *           where no updates occur.
+   * @implNote Note that we only expect pageable.next to be called during a dry run.
+   * @return Pageable to pass to query. In the case of dry runs, this is the next page.
+   */
   public Pageable processPage(Pageable pageable, Page<HousekeepingMetadata> page, boolean dryRunEnabled) {
     List<HousekeepingMetadata> pageContent = page.getContent();
 
-    // TODO
-    // why only pageable.next for dry run? - because the initial page of entries doesnt change.
-    // in normal runs these entries are deleted, so it will be refreshed
     if (dryRunEnabled) {
-      // pageContent.forEach(this::cleanupMetadata);
       pageContent.forEach(metadata -> cleanupMetadata(metadata, pageable));
       return pageable.next();
     } else {
-      // pageContent.forEach(this::cleanupContent);
       pageContent.forEach(metadata -> cleanupContent(metadata, pageable));
       return pageable;
     }
   }
 
-  // TODO
-  // what should this do for dry run???
-  private void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, Pageable pageable) {
+  private boolean cleanupMetadata(HousekeepingMetadata housekeepingMetadata, Pageable pageable) {
     MetadataCleaner metadataCleaner = getMetadataCleaner();
     PathCleaner pathCleaner = getPathCleaner();
-
     int numberOfRecords = getRecordCountForDatabaseAndTable(housekeepingMetadata.getDatabaseName(),
         housekeepingMetadata.getTableName(), pageable);
 
-    // TODO
-    // column needs to be added to the table
-    // partVals = housekeepingMetadata.getPartVals();
-    String partVals = "";
-    if (partVals == "" && numberOfRecords == 1) {
-      // either: unpartitioned table OR: partitioned table with no partitions. Can drop
+    String partitionName = housekeepingMetadata.getPartitionName();
+    if (partitionName == null && numberOfRecords == 1) {
       cleanUpTable(housekeepingMetadata, metadataCleaner, pathCleaner);
-    } else {
-      // partition entry - partVals has some value
-      cleanupPartition(housekeepingMetadata, metadataCleaner, pathCleaner);
+      return true;
     }
+    if (partitionName != null) {
+      cleanupPartition(housekeepingMetadata, metadataCleaner, pathCleaner);
+      return true;
+    }
+    return false;
   }
 
   private void cleanUpTable(
@@ -130,8 +114,7 @@ public abstract class GenericMetadataHandler {
       MetadataCleaner metadataCleaner,
       PathCleaner pathCleaner) {
     metadataCleaner.cleanupMetadata(housekeepingMetadata);
-    // TODO - wait for vedant to merge in changes
-    // pathCleaner.cleanupPath(housekeepingMetadata);
+    pathCleaner.cleanupPath(housekeepingMetadata);
   }
 
   private void cleanupPartition(
@@ -139,8 +122,7 @@ public abstract class GenericMetadataHandler {
       MetadataCleaner metadataCleaner,
       PathCleaner pathCleaner) {
     metadataCleaner.cleanupPartition(housekeepingMetadata);
-    // TODO - wait for vedant to merge in changes
-    // pathCleaner.cleanupPath(housekeepingMetadata);
+    pathCleaner.cleanupPath(housekeepingMetadata);
   }
 
   private void cleanupContent(HousekeepingMetadata housekeepingMetadata, Pageable pageable) {
@@ -148,8 +130,10 @@ public abstract class GenericMetadataHandler {
       log
           .info("Cleaning up metadata for table \"{}.{}\"", housekeepingMetadata.getDatabaseName(),
               housekeepingMetadata.getTableName());
-      cleanupMetadata(housekeepingMetadata, pageable);
-      updateAttemptsAndStatus(housekeepingMetadata, HousekeepingStatus.DELETED);
+      boolean deleted = cleanupMetadata(housekeepingMetadata, pageable);
+      if (deleted) {
+        updateAttemptsAndStatus(housekeepingMetadata, HousekeepingStatus.DELETED);
+      }
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingMetadata, HousekeepingStatus.FAILED);
       log

@@ -28,7 +28,7 @@ import com.google.common.base.Strings;
 
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 import com.expediagroup.beekeeper.core.path.PathCleaner;
@@ -48,15 +48,13 @@ public class S3PathCleaner implements PathCleaner {
     this.s3Client = s3Client;
     this.sentinelFilesCleaner = sentinelFilesCleaner;
     this.bytesDeletedReporter = bytesDeletedReporter;
-    this.bytesDeletedReporter.isDryRunEnabled(dryRunEnabled);
+    // this.bytesDeletedReporter.isDryRunEnabled(dryRunEnabled);
   }
 
   @Override
   @TimedTaggable("s3-paths-deleted")
-  public void cleanupPath(HousekeepingPath housekeepingPath) {
-    // public void cleanupPath(HousekeepingEntity housekeepingEntity) {
-    // TODO
-    S3SchemeURI s3SchemeURI = new S3SchemeURI(housekeepingPath.getPath());
+  public void cleanupPath(HousekeepingEntity housekeepingEntity) {
+    S3SchemeURI s3SchemeURI = new S3SchemeURI(housekeepingEntity.getPath());
     String key = s3SchemeURI.getKey();
     String bucket = s3SchemeURI.getBucket();
     S3BytesDeletedCalculator bytesDeletedCalculator = new S3BytesDeletedCalculator(s3Client);
@@ -66,12 +64,12 @@ public class S3PathCleaner implements PathCleaner {
         deleteFile(bucket, key, bytesDeletedCalculator);
       } else {
         deleteFilesInDirectory(bucket, key, bytesDeletedCalculator);
-        deleteSentinelFiles(s3SchemeURI, key, bucket, housekeepingPath.getTableName());
+        deleteSentinelFiles(s3SchemeURI, key, bucket, housekeepingEntity.getTableName());
       }
     } finally {
       long bytesDeleted = bytesDeletedCalculator.getBytesDeleted();
       if (bytesDeleted > 0) {
-        bytesDeletedReporter.reportTaggable(bytesDeleted, housekeepingPath, FileSystemType.S3);
+        bytesDeletedReporter.reportTaggable(bytesDeleted, housekeepingEntity, FileSystemType.S3);
       }
     }
   }

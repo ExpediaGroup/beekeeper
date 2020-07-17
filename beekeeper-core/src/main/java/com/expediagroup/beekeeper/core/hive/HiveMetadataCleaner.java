@@ -33,27 +33,21 @@ public class HiveMetadataCleaner implements MetadataCleaner {
 
   @Override
   public void cleanupMetadata(HousekeepingMetadata housekeepingMetadata) {
-    client.deleteMetadata(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
-    deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
+    boolean successfulDeletion = client
+        .deleteMetadata(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
+    if (successfulDeletion) {
+      deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
+    }
   }
 
   @Override
   public void cleanupPartition(HousekeepingMetadata housekeepingMetadata) {
-    // TODO
-    // partition value ???
-    // Vedant said he might have it come out as a comma separated string
-    // change from "year=2020,hour=01" to "year=2020/hour=01"
-    // check if need to change - not sure how we're going to be given it
-    String partitionName = "";
-    // formatPartitions(housekeepingMetadata.getPartitions());
-
-    client.dropPartition(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(), partitionName);
-    deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
-  }
-
-  // TODO
-  private String formatPartitions(String partitionName) {
-    return partitionName.replace(",", "/");
+    boolean successfulDeletion = client
+        .dropPartition(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(),
+            housekeepingMetadata.getPartitionName());
+    if (successfulDeletion) {
+      deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
+    }
   }
 
 }

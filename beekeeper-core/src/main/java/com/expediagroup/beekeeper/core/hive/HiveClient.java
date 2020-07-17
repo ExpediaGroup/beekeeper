@@ -26,20 +26,14 @@ import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 
 public class HiveClient {
 
-  private static final String BEEKEEPER_ALTER_PARTITION = "alter_partition";
-  private static final String BEEKEEPER_ALTER_TABLE = "alter_table";
-  private static final String BEEKEEPER_HIVE_EVENT_WHITELIST = "beekeeper.hive.event.whitelist";
-
   private static final Logger log = LoggerFactory.getLogger(HiveClient.class);
-  private static final String EXTERNAL_KEY = "EXTERNAL";
-  private static final String IS_EXTERNAL = "TRUE";
 
   private CloseableMetaStoreClient client;
   private final boolean dryRunEnabled;
 
   public HiveClient(CloseableMetaStoreClient client, boolean dryRunEnabled) {
-    this.dryRunEnabled = dryRunEnabled;
     this.client = client;
+    this.dryRunEnabled = dryRunEnabled;
   }
 
   /**
@@ -48,21 +42,25 @@ public class HiveClient {
    * @param database
    * @param tableName
    */
-  public void deleteMetadata(String database, String tableName) {
+  public boolean deleteMetadata(String database, String tableName) {
+    boolean tableDeleted = true;
     if (dryRunEnabled) {
-      log.info("Dry run - deleting metadata {}.{}", database, tableName);
+      log.info("Dry run - deleting metadata for table \"{}.{}\"", database, tableName);
     } else {
-      log.info("Deleting metadata {}.{}", database, tableName);
+      log.info("Deleting metadata for table \"{}.{}\"", database, tableName);
       try {
+        System.out.println(client);
         client.dropTable(database, tableName);
-
       } catch (NoSuchObjectException e) {
-        log.info("Could not delete metadata. Table not found: {}.{}", database, tableName);
+        log.info("Could not delete metadata. Table not found: \"{}.{}\"", database, tableName);
+        tableDeleted = false;
       } catch (TException e) {
-        throw new BeekeeperException("Unexpected exception when deleting metadata: " + database + "." + tableName + ".",
+        throw new BeekeeperException(
+            "Unexpected exception when deleting metadata: \"" + database + "." + tableName + "\".",
             e);
       }
     }
+    return tableDeleted;
   }
 
   /**
@@ -72,35 +70,35 @@ public class HiveClient {
    * @param tableName
    * @param partitionValue
    */
-  public void dropPartition(String databaseName, String tableName, String partitionName) {
+  public boolean dropPartition(String databaseName, String tableName, String partitionName) {
+    boolean partitionDeleted = true;
     if (dryRunEnabled) {
       log.info("Dry run - dropping partition \"{}\" from table \"{}.{}\"", partitionName, databaseName, tableName);
     } else {
       log.info("Dropping partition \"{}\" from table \"{}.{}\"", partitionName, databaseName, tableName);
-
       if (tableExists(databaseName, tableName)) {
-
         try {
-          // client.dropPartition(databaseName, tableName, partitionValue, false);
           client.dropPartition(databaseName, tableName, partitionName, false);
         } catch (NoSuchObjectException e) {
           log
               .info("Could not drop partition \"{}\" from table \"{}.{}\". Partition does not exist.", partitionName,
                   databaseName, tableName);
+          partitionDeleted = false;
         } catch (TException e) {
-          throw new BeekeeperException("Unexpected exception when dropping partition values: \""
+          throw new BeekeeperException("Unexpected exception when dropping partition \""
               + partitionName
-              + "\" from table: "
+              + "\" from table: \""
               + databaseName
               + "."
               + tableName
-              + ".", e);
+              + "\".", e);
         }
       } else {
         log.info("Could not drop partition from table \"{}.{}\". Table does not exist.", databaseName, tableName);
+        partitionDeleted = false;
       }
-
     }
+    return partitionDeleted;
   }
 
   private boolean tableExists(String databaseName, String tableName) {

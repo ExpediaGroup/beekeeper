@@ -27,15 +27,12 @@ import org.awaitility.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
-
-import com.amazonaws.services.s3.AmazonS3;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 
@@ -49,8 +46,6 @@ import com.expediagroup.beekeeper.core.error.BeekeeperException;
 class MetadataCleanupServiceSchedulerTest {
 
   private @MockBean MetadataCleanupService cleanupService;
-  private @MockBean AmazonS3 amazonS3;
-  private @Autowired MetadataCleanupServiceScheduler cleanupServiceScheduler;
 
   @Test
   void typical() {

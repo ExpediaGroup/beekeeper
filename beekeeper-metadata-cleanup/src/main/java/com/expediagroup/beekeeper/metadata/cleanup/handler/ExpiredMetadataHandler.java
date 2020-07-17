@@ -73,7 +73,6 @@ public class ExpiredMetadataHandler extends GenericMetadataHandler {
     return housekeepingMetadataRepository.findRecordsForCleanupByModifiedTimestamp(instant, pageable);
   }
 
-
   @Override
   public Page<HousekeepingMetadata> findMatchingRecords(
       String databaseName,

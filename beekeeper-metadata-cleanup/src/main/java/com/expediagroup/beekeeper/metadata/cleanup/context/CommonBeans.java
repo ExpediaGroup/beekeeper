@@ -27,7 +27,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
+import io.micrometer.core.instrument.MeterRegistry;
+
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -58,19 +59,9 @@ import com.hotels.hcommon.hive.metastore.client.supplier.HiveMetaStoreClientSupp
 public class CommonBeans {
 
   @Bean
-  public EC2ContainerCredentialsProviderWrapper ec2ContainerCredentialsProviderWrapper() {
-    return new EC2ContainerCredentialsProviderWrapper();
-  }
-
-  // TODO
-  // whats the metastore uri?
-  // where does the user specify it? - inside the properties file
-  @Bean
   public HiveConf hiveConf(@Value("${properties.metastore-uri}") String metastoreUri) {
     HiveConf conf = new HiveConf();
     conf.setVar(HiveConf.ConfVars.METASTOREURIS, metastoreUri);
-
-    // idk
     return conf;
   }
 
@@ -92,6 +83,13 @@ public class CommonBeans {
       Supplier<CloseableMetaStoreClient> metaStoreClientSupplier,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
     return new HiveClient(metaStoreClientSupplier.get(), dryRunEnabled);
+  }
+
+  // TODO
+  // FIX
+  @Bean
+  public DeletedMetadataReporter deletedMetadataReporter(MeterRegistry meterRegistry) {
+    return new DeletedMetadataReporter(meterRegistry);
   }
 
   @Bean(name = "hiveTableCleaner")
@@ -118,9 +116,20 @@ public class CommonBeans {
     return AmazonS3ClientBuilder.standard().withEndpointConfiguration(endpointConfiguration).build();
   }
 
+  // TODO
+  // fix
+  @Bean
+  BytesDeletedReporter bytesDeletedReporter(
+      MeterRegistry meterRegistry,
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+    return new BytesDeletedReporter(meterRegistry);
+    // return new BytesDeletedReporter(meterRegistry, dryRunEnabled);
+  }
+
   @Bean
   public S3Client s3Client(AmazonS3 amazonS3, @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new S3Client(amazonS3, dryRunEnabled);}
+    return new S3Client(amazonS3, dryRunEnabled);
+  }
 
   @Bean(name = "s3PathCleaner")
   PathCleaner pathCleaner(
@@ -134,7 +143,7 @@ public class CommonBeans {
   MetadataCleanupService cleanupService(
       List<GenericMetadataHandler> metadataHandlers,
       @Value("${properties.cleanup-page-size}") int pageSize,
-      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {return new PagingMetadataCleanupService(
-          metadataHandlers, pageSize, dryRunEnabled);
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+    return new PagingMetadataCleanupService(metadataHandlers, pageSize, dryRunEnabled);
   }
 }

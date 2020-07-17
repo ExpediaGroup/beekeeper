@@ -17,7 +17,6 @@ package com.expediagroup.beekeeper.core.monitoring;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -35,7 +34,6 @@ public class DeletedMetadataReporter {
   private MeterRegistry meterRegistry;
   private String metricName = METRIC_NAME;
 
-  @Autowired
   public DeletedMetadataReporter(MeterRegistry meterRegistry) {
     this.meterRegistry = meterRegistry;
   }
