@@ -15,7 +15,8 @@
  */
 package com.expediagroup.beekeeper.core.hive;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,7 +54,7 @@ public class HiveClientTest {
   public void typicalMetadataDelete() throws MetaException, NoSuchObjectException, TException {
     boolean result = hiveClient.deleteMetadata(DATABASE, TABLE_NAME);
     verify(client).dropTable(DATABASE, TABLE_NAME);
-    assertThat(result == true);
+    assertTrue(result);
   }
 
   @Test
@@ -61,7 +62,7 @@ public class HiveClientTest {
     when(client.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
     boolean result = hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
     verify(client).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME, false);
-    assertThat(result == true);
+    assertTrue(result);
   }
 
   @Test
@@ -69,7 +70,7 @@ public class HiveClientTest {
     hiveClient = new HiveClient(client, true);
     boolean result = hiveClient.deleteMetadata(DATABASE, TABLE_NAME);
     verify(client, never()).dropTable(DATABASE, TABLE_NAME);
-    assertThat(result == true);
+    assertTrue(result);
   }
 
   @Test
@@ -77,7 +78,7 @@ public class HiveClientTest {
     hiveClient = new HiveClient(client, true);
     boolean result = hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
     verify(client, never()).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME, false);
-    assertThat(result == true);
+    assertTrue(result);
   }
 
   @Test
@@ -85,7 +86,7 @@ public class HiveClientTest {
     when(client.tableExists(DATABASE, TABLE_NAME)).thenReturn(false);
     boolean result = hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
     verify(client, never()).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME, false);
-    assertThat(result == false);
+    assertFalse(result);
   }
 
   @Test
@@ -94,7 +95,7 @@ public class HiveClientTest {
     Mockito.doThrow(NoSuchObjectException.class).when(client).dropTable(DATABASE, TABLE_NAME);
     boolean result = hiveClient.deleteMetadata(DATABASE, TABLE_NAME);
     verify(client).dropTable(DATABASE, TABLE_NAME);
-    assertThat(result == false);
+    assertFalse(result);
   }
 
   @Test
@@ -107,7 +108,7 @@ public class HiveClientTest {
 
     boolean result = hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
     verify(client).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME, false);
-    assertThat(result == false);
+    assertFalse(result);
   }
 
   @Test

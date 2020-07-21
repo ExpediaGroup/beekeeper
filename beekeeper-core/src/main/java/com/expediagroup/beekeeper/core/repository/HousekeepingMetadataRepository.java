@@ -50,7 +50,7 @@ public interface HousekeepingMetadataRepository extends JpaRepository<Housekeepi
    * 
    * @param databaseName
    * @param tableName
-   * @return A page of entries from the HouseKeepingMetadata.
+   * @return A page of entries from the HousekeepingMetadata table.
    */
   @Query(value = "from HousekeepingMetadata t "
       + "where t.databaseName = :databaseName "
