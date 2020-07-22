@@ -29,6 +29,7 @@ import java.util.concurrent.Executors;
 
 import javax.persistence.Table;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.MySQLContainer;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
@@ -68,7 +69,8 @@ public abstract class BeekeeperIntegrationTestBase {
 
   protected final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
-  public BeekeeperIntegrationTestBase() throws SQLException {
+  @BeforeAll
+  protected static void initMysqlContainer() throws SQLException {
     mySQLContainer = ContainerTestUtils.mySqlContainer();
     mySQLContainer.start();
 
