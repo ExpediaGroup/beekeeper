@@ -33,11 +33,12 @@ public abstract class SqsMessageFile {
 
   protected String message;
   protected String tableLocation = "DELETEME";
-  String partitionLocation = "DELETEME";
-  String oldPartitionLocation = "DELETEME";
-  String oldTableLocation = "DELETEME";
-  String isUnreferenced = "false";
-  String isWhitelisted = "";
+  protected String partitionLocation = "DELETEME";
+  protected String oldPartitionLocation = "DELETEME";
+  protected String oldTableLocation = "DELETEME";
+  protected String isUnreferenced = "false";
+  protected String isExpired = "false";
+  protected String isWhitelisted = "";
 
   public abstract String getFormattedString();
 

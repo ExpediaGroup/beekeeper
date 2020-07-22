@@ -1,18 +1,3 @@
-/**
- * Copyright (C) 2019-2020 Expedia, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.expediagroup.beekeeper.integration;
 
 import static java.time.ZoneOffset.UTC;
@@ -20,6 +5,8 @@ import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
+
+import static com.amazonaws.auth.profile.internal.ProfileKeyConstants.REGION;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
@@ -31,8 +18,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -43,10 +28,8 @@ import org.apache.http.protocol.HttpCoreContext;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 
 import io.micrometer.core.instrument.Meter;
@@ -64,16 +47,7 @@ import com.expediagroup.beekeeper.integration.model.DropPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.DropTableSqsMessage;
 import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperSchedulerApiary;
 
-public class BeekeeperSchedulerApiaryIntegrationTest {
-
-  private static final int TIMEOUT = 5;
-  private static final String QUEUE = "apiary-receiver-queue";
-  private static final String REGION = "us-west-2";
-  private static final String BEEKEEPER_PATH_HOUSEKEEPING_TABLE = "housekeeping_path";
-  private static final String BEEKEEPER_METADATA_HOUSEKEEPING_TABLE = "housekeeping_metadata";
-  private static final String FLYWAY_TABLE = "flyway_schema_history";
-  private static final String AWS_ACCESS_KEY_ID = "accessKey";
-  private static final String AWS_SECRET_KEY = "secretKey";
+public class NewBeekeeperSchedulerApiaryIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final String CLEANUP_DELAY_UNREFERENCED = "P7D";
   private static final int CLEANUP_ATTEMPTS = 0;
@@ -84,67 +58,44 @@ public class BeekeeperSchedulerApiaryIntegrationTest {
   private static final String HEALTHCHECK_URI = "http://localhost:8080/actuator/health";
   private static final String PROMETHEUS_URI = "http://localhost:8080/actuator/prometheus";
 
+  private static final String QUEUE = "apiary-receiver-queue";
   private static final String SCHEDULED_EXPIRATION_METRIC = "paths-scheduled-expiration";
   private static final String SCHEDULED_ORPHANED_METRIC = "paths-scheduled";
 
   private static AmazonSQS amazonSQS;
   private static LocalStackContainer sqsContainer;
-  private static MySQLContainer mySQLContainer;
-  private static MySqlTestUtils mySqlTestUtils;
 
-  private final ExecutorService executorService = Executors.newFixedThreadPool(1);
-
-  @BeforeAll
-  static void init() throws SQLException {
+  public NewBeekeeperSchedulerApiaryIntegrationTest() throws SQLException {
+    System.out.println(Clock.systemUTC().instant().toString() + " SQL done");
     sqsContainer = ContainerTestUtils.awsContainer(SQS);
-    mySQLContainer = ContainerTestUtils.mySqlContainer();
     sqsContainer.start();
     System.out.println(Clock.systemUTC().instant().toString() + " SQS done");
-    mySQLContainer.start();
-    System.out.println(Clock.systemUTC().instant().toString() + " SQL done");
 
-    String jdbcUrl = mySQLContainer.getJdbcUrl() + "?useSSL=false";
-    String username = mySQLContainer.getUsername();
-    String password = mySQLContainer.getPassword();
     String queueUrl = ContainerTestUtils.queueUrl(sqsContainer, QUEUE);
-
-    System.setProperty("spring.datasource.url", jdbcUrl);
-    System.setProperty("spring.datasource.username", username);
-    System.setProperty("spring.datasource.password", password);
     System.setProperty("properties.apiary.queue-url", queueUrl);
-    System.setProperty("aws.accessKeyId", AWS_ACCESS_KEY_ID);
-    System.setProperty("aws.secretKey", AWS_SECRET_KEY);
-    System.setProperty("aws.region", REGION);
 
-    amazonSQS = ContainerTestUtils.sqsClient(sqsContainer, REGION);
+    amazonSQS = ContainerTestUtils.sqsClient(sqsContainer, AWS_REGION);
     amazonSQS.createQueue(QUEUE);
-
-    mySqlTestUtils = new MySqlTestUtils(jdbcUrl, username, password);
     System.out.println(Clock.systemUTC().instant().toString() + " DONE");
   }
 
-  @AfterAll
-  static void teardown() throws SQLException {
-    amazonSQS.shutdown();
-    mySqlTestUtils.close();
-    sqsContainer.stop();
-    mySQLContainer.stop();
-  }
-
   @BeforeEach
-  void setup() throws SQLException {
+  public void beforeEach() throws SQLException {
     amazonSQS.purgeQueue(new PurgeQueueRequest(ContainerTestUtils.queueUrl(sqsContainer, QUEUE)));
-    mySqlTestUtils.dropTable(BEEKEEPER_PATH_HOUSEKEEPING_TABLE);
-    mySqlTestUtils.dropTable(BEEKEEPER_METADATA_HOUSEKEEPING_TABLE);
-    mySqlTestUtils.dropTable(FLYWAY_TABLE);
+    dropTables();
     executorService.execute(() -> BeekeeperSchedulerApiary.main(new String[] {}));
     await().atMost(Duration.ONE_MINUTE).until(BeekeeperSchedulerApiary::isRunning);
   }
 
   @AfterEach
-  void stop() throws InterruptedException {
+  public void afterEach() throws InterruptedException {
     BeekeeperSchedulerApiary.stop();
     executorService.awaitTermination(5, TimeUnit.SECONDS);
+  }
+
+  @AfterAll
+  public static void teardown() throws SQLException {
+    closeMySQLConnectionAndDatabase();
   }
 
   @Test
@@ -152,9 +103,8 @@ public class BeekeeperSchedulerApiaryIntegrationTest {
     AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://tableLocation",
         "s3://oldTableLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.unreferencedRowsInTable(
-        BEEKEEPER_PATH_HOUSEKEEPING_TABLE) == 1);
-    List<HousekeepingPath> unreferencedPaths = mySqlTestUtils.getUnreferencedHousekeepingPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedHousekeepingPathsRowCount() == 1);
+    List<HousekeepingPath> unreferencedPaths = getUnreferencedHousekeepingPaths();
     assertUnreferencedPathFields(unreferencedPaths.get(0));
     assertThat(unreferencedPaths.get(0).getPath()).isEqualTo("s3://oldTableLocation");
   }
@@ -167,9 +117,8 @@ public class BeekeeperSchedulerApiaryIntegrationTest {
     alterTableSqsMessage.setTableLocation("s3://tableLocation2");
     alterTableSqsMessage.setOldTableLocation("s3://tableLocation");
     amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.unreferencedRowsInTable(
-        BEEKEEPER_PATH_HOUSEKEEPING_TABLE) == 2);
-    List<HousekeepingPath> unreferencedPaths = mySqlTestUtils.getUnreferencedHousekeepingPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedHousekeepingPathsRowCount() == 2);
+    List<HousekeepingPath> unreferencedPaths = getUnreferencedHousekeepingPaths();
 
     assertUnreferencedPathFields(unreferencedPaths.get(0));
     assertUnreferencedPathFields(unreferencedPaths.get(1));
@@ -191,9 +140,8 @@ public class BeekeeperSchedulerApiaryIntegrationTest {
         "s3://partitionLocation",
         true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterPartitionSqsMessage2.getFormattedString()));
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.unreferencedRowsInTable(
-        BEEKEEPER_PATH_HOUSEKEEPING_TABLE) == 2);
-    List<HousekeepingPath> unreferencedPaths = mySqlTestUtils.getUnreferencedHousekeepingPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedHousekeepingPathsRowCount() == 2);
+    List<HousekeepingPath> unreferencedPaths = getUnreferencedHousekeepingPaths();
 
     assertUnreferencedPathFields(unreferencedPaths.get(0));
     assertUnreferencedPathFields(unreferencedPaths.get(1));
@@ -210,13 +158,12 @@ public class BeekeeperSchedulerApiaryIntegrationTest {
             true, true)
     ).forEach(msg -> amazonSQS.sendMessage(sendMessageRequest(msg.getFormattedString())));
 
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.unreferencedRowsInTable(
-        BEEKEEPER_PATH_HOUSEKEEPING_TABLE) == 2);
-    List<HousekeepingPath> unreferencedPaths = mySqlTestUtils.getUnreferencedHousekeepingPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedHousekeepingPathsRowCount() == 2);
+    List<HousekeepingPath> unreferencedPaths = getUnreferencedHousekeepingPaths();
 
-    unreferencedPaths.forEach(hkPath -> assertUnreferencedPathFields(hkPath));
+    unreferencedPaths.forEach(this::assertUnreferencedPathFields);
     Set<String> unreferencedPathSet = unreferencedPaths.stream()
-        .map(hkPath -> hkPath.getPath())
+        .map(HousekeepingPath::getPath)
         .collect(Collectors.toSet());
     assertThat(unreferencedPathSet).isEqualTo(Set.of("s3://unreferencedPartitionLocation", "s3://partitionLocation"));
   }
@@ -228,9 +175,8 @@ public class BeekeeperSchedulerApiaryIntegrationTest {
     amazonSQS.sendMessage(sendMessageRequest(dropPartitionSqsMessage.getFormattedString()));
     dropPartitionSqsMessage.setPartitionLocation("s3://partitionLocation2");
     amazonSQS.sendMessage(sendMessageRequest(dropPartitionSqsMessage.getFormattedString()));
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.unreferencedRowsInTable(
-        BEEKEEPER_PATH_HOUSEKEEPING_TABLE) == 2);
-    List<HousekeepingPath> unreferencedPaths = mySqlTestUtils.getUnreferencedHousekeepingPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedHousekeepingPathsRowCount() == 2);
+    List<HousekeepingPath> unreferencedPaths = getUnreferencedHousekeepingPaths();
 
     assertUnreferencedPathFields(unreferencedPaths.get(0));
     assertUnreferencedPathFields(unreferencedPaths.get(1));
@@ -244,9 +190,8 @@ public class BeekeeperSchedulerApiaryIntegrationTest {
     amazonSQS.sendMessage(sendMessageRequest(dropTableSqsMessage.getFormattedString()));
     dropTableSqsMessage.setTableLocation("s3://tableLocation2");
     amazonSQS.sendMessage(sendMessageRequest(dropTableSqsMessage.getFormattedString()));
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> mySqlTestUtils.unreferencedRowsInTable(
-        BEEKEEPER_PATH_HOUSEKEEPING_TABLE) == 2);
-    List<HousekeepingPath> unreferencedPaths = mySqlTestUtils.getUnreferencedHousekeepingPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedHousekeepingPathsRowCount() == 2);
+    List<HousekeepingPath> unreferencedPaths = getUnreferencedHousekeepingPaths();
 
     assertUnreferencedPathFields(unreferencedPaths.get(0));
     assertUnreferencedPathFields(unreferencedPaths.get(1));
@@ -269,19 +214,6 @@ public class BeekeeperSchedulerApiaryIntegrationTest {
     HttpGet request = new HttpGet(PROMETHEUS_URI);
     await().atMost(30, TimeUnit.SECONDS)
         .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
-  }
-
-  private void assertMetrics(boolean isExpired) {
-    String pathMetric = isExpired ? SCHEDULED_EXPIRATION_METRIC : SCHEDULED_ORPHANED_METRIC;
-    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperSchedulerApiary.meterRegistry()).getRegistries();
-    assertThat(meterRegistry).hasSize(2);
-    meterRegistry.forEach(registry -> {
-      List<Meter> meters = registry.getMeters();
-      assertThat(meters)
-          .extracting("id", Meter.Id.class)
-          .extracting("name")
-          .contains(pathMetric);
-    });
   }
 
   private SendMessageRequest sendMessageRequest(String payload) {
@@ -310,6 +242,19 @@ public class BeekeeperSchedulerApiaryIntegrationTest {
 
     assertThat(savedPath.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS);
     assertThat(savedPath.getClientId()).isEqualTo(CLIENT_ID);
+  }
+
+  private void assertMetrics(boolean isExpired) {
+    String pathMetric = isExpired ? SCHEDULED_EXPIRATION_METRIC : SCHEDULED_ORPHANED_METRIC;
+    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperSchedulerApiary.meterRegistry()).getRegistries();
+    assertThat(meterRegistry).hasSize(2);
+    meterRegistry.forEach(registry -> {
+      List<Meter> meters = registry.getMeters();
+      assertThat(meters)
+          .extracting("id", Meter.Id.class)
+          .extracting("name")
+          .contains(pathMetric);
+    });
   }
 
   private boolean timestampWithinRangeInclusive(LocalDateTime timestamp, LocalDateTime lowerBound,

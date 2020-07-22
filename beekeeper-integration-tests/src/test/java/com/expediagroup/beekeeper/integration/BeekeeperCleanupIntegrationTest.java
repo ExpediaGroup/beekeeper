@@ -147,7 +147,7 @@ public class BeekeeperCleanupIntegrationTest {
     String path = "s3://" + BUCKET + "/" + OBJECT_KEY1;
     mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, path, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+        .until(() -> mySqlTestUtils.getHousekeepingPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
             .get(0)
             .getHousekeepingStatus() == DELETED);
 
@@ -167,7 +167,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+        .until(() -> mySqlTestUtils.getHousekeepingPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
             .get(0)
             .getHousekeepingStatus() == DELETED);
 
@@ -191,7 +191,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, absolutePath, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+        .until(() -> mySqlTestUtils.getHousekeepingPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
             .get(0)
             .getHousekeepingStatus() == DELETED);
 
@@ -209,7 +209,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, ABSOLUTE_PATH + "/", TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+        .until(() -> mySqlTestUtils.getHousekeepingPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
             .get(0)
             .getHousekeepingStatus() == DELETED);
 
@@ -233,7 +233,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+        .until(() -> mySqlTestUtils.getHousekeepingPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
             .get(0)
             .getHousekeepingStatus() == DELETED);
 
@@ -258,7 +258,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+        .until(() -> mySqlTestUtils.getHousekeepingPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
             .get(0)
             .getHousekeepingStatus() == DELETED);
 
@@ -276,7 +276,7 @@ public class BeekeeperCleanupIntegrationTest {
 
     mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, ABSOLUTE_PATH, TABLE_NAME);
     await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+        .until(() -> mySqlTestUtils.getHousekeepingPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
             .get(0)
             .getHousekeepingStatus() == DELETED);
 

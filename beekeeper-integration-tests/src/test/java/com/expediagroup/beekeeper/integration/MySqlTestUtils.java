@@ -20,13 +20,27 @@ import static java.time.ZoneOffset.UTC;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.CLEANUP_ATTEMPTS;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.CLEANUP_DELAY;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.CLEANUP_TIMESTAMP;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.CLIENT_ID;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.CREATION_TIMESTAMP;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.DATABASE_NAME;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.HOUSEKEEPING_STATUS;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.ID;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.LIFECYCLE_TYPE;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.MODIFIED_TIMESTAMP;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.PARTITION_NAME;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.PATH;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.TABLE_NAME;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.mapToHousekeepingMetadata;
+import static com.expediagroup.beekeeper.integration.ResultSetToHousekeepingEntityMapper.mapToHousekeepingPath;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -34,27 +48,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 
 class MySqlTestUtils {
 
-  private static final String DROP_TABLE = "DROP TABLE IF EXISTS beekeeper.%s;";
-  private static final String SELECT_TABLE = "SELECT * FROM beekeeper.%s where lifecycle_type = '%s' order by path;";
-  private static final String INSERT_PATH = "INSERT INTO beekeeper.%s (%s) VALUES (%s);";
-
-  private static final String CLEANUP_ATTEMPTS = "cleanup_attempts";
-  private static final String CLEANUP_DELAY = "cleanup_delay";
-  private static final String LIFECYCLE_TYPE = "lifecycle_type";
-  private static final String CLEANUP_TIMESTAMP = "cleanup_timestamp";
-  private static final String CLIENT_ID = "client_id";
-  private static final String CREATION_TIMESTAMP = "creation_timestamp";
-  private static final String DATABASE_NAME = "database_name";
-  private static final String ID = "id";
-  private static final String MODIFIED_TIMESTAMP = "modified_timestamp";
-  private static final String PATH = "path";
-  private static final String HOUSEKEEPING_STATUS = "housekeeping_status";
-  private static final String TABLE_NAME = "table_name";
+  private static final String DROP_TABLE = "DROP TABLE IF EXISTS %s.%s;";
+  private static final String SELECT_TABLE_WITH_WHERE = "SELECT * FROM %s.%s where lifecycle_type = '%s' order by path;";
+  private static final String SELECT_TABLE = "SELECT * FROM %s.%s %s;";
+  private static final String INSERT_TO_TABLE = "INSERT INTO %s.%s (%s) VALUES (%s);";
 
   private final Connection connection;
 
@@ -62,10 +64,50 @@ class MySqlTestUtils {
     connection = DriverManager.getConnection(jdbcUrl, username, password);
   }
 
+  void close() throws SQLException {
+    connection.close();
+  }
+
+  void insertToTable(String database, String table, String fields, String values) throws SQLException {
+    connection.createStatement().executeUpdate(format(INSERT_TO_TABLE, database, table, fields, values));
+  }
+
+  int getTableRowCount(String database, String table, String additionalFilters) throws SQLException {
+    return getTableRowCount(format(SELECT_TABLE, database, table, additionalFilters));
+  }
+
+  int getTableRowCount(String database, String table) throws SQLException {
+    return getTableRowCount(format(SELECT_TABLE, database, table, ""));
+  }
+
+  private int getTableRowCount(String statement) throws SQLException {
+    ResultSet resultSet = getTableRows(statement);
+    resultSet.last();
+    int rowsInTable = resultSet.getRow();
+    return rowsInTable;
+  }
+
+  ResultSet getTableRows(String database, String table, String additionalFilters) throws SQLException {
+    return getTableRows(format(SELECT_TABLE, database, table, additionalFilters));
+  }
+
+  ResultSet getTableRows(String database, String table) throws SQLException {
+    return getTableRows(format(SELECT_TABLE, database, table, ""));
+  }
+
+  private ResultSet getTableRows(String statement) throws SQLException {
+    return connection.createStatement().executeQuery(statement);
+  }
+
+  void dropTable(String database, String table) throws SQLException {
+    connection.createStatement().executeUpdate(format(DROP_TABLE, database, table));
+  }
+
   void insertPath(String beekeeperTableName, String path, String table) throws SQLException {
     String lifecycleType = UNREFERENCED.toString().toLowerCase();
 
-    String fields = String.join(", ", PATH, HOUSEKEEPING_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME, LIFECYCLE_TYPE);
+    String fields = String.join(", ", PATH, HOUSEKEEPING_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME,
+        LIFECYCLE_TYPE);
     String values = Stream.of(path, SCHEDULED.toString(), "PT1S", Timestamp.valueOf(LocalDateTime.now(UTC)
         .minus(1L, ChronoUnit.DAYS))
         .toString(), table, lifecycleType)
@@ -73,61 +115,60 @@ class MySqlTestUtils {
         .collect(Collectors.joining(", "));
 
     connection.createStatement()
-        .executeUpdate(format(INSERT_PATH, beekeeperTableName, fields, values));
+        .executeUpdate(format(INSERT_TO_TABLE, "beekeeper", beekeeperTableName, fields, values));
   }
 
-  int unreferencedRowsInTable(String beekeeperTableName) throws SQLException {
-    return rowsInTable(beekeeperTableName, UNREFERENCED.toString());
+  int unreferencedRowsInTable(String table) throws SQLException {
+    return rowsInTable("beekeeper", table, UNREFERENCED.toString());
   }
 
-  private int rowsInTable(String beekeeperTableName, String cleanupType) throws SQLException {
+  int unreferencedRowsInTable(String database, String table) throws SQLException {
+    return rowsInTable(database, table, UNREFERENCED.toString());
+  }
+
+  private int rowsInTable(String database, String table, String cleanupType) throws SQLException {
     ResultSet resultSet = connection.createStatement()
-        .executeQuery(format(SELECT_TABLE, beekeeperTableName, cleanupType));
+        .executeQuery(format(SELECT_TABLE_WITH_WHERE, database, table, cleanupType));
     resultSet.last();
     int rowsInTable = resultSet.getRow();
     return rowsInTable;
   }
 
-  void dropTable(String beekeeperTableName) throws SQLException {
-    connection.createStatement()
-        .executeUpdate(format(DROP_TABLE, beekeeperTableName));
+  void dropTable(String table) throws SQLException {
+    connection.createStatement().executeUpdate(format(DROP_TABLE, "beekeeper", table));
   }
 
-  void close() throws SQLException {
-    connection.close();
+  List<HousekeepingPath> getUnreferencedHousekeepingPaths(String beekeeperTableName) throws SQLException {
+    return getHousekeepingPaths(beekeeperTableName, UNREFERENCED.toString());
   }
 
-  List<HousekeepingPath> getUnreferencedPaths(String beekeeperTableName) throws SQLException {
-    return getPaths(beekeeperTableName, UNREFERENCED.toString());
+  List<HousekeepingPath> getHousekeepingPaths(String table, String cleanupType) throws SQLException {
+    return getHousekeepingPaths("beekeeper", table, cleanupType);
   }
 
-  List<HousekeepingPath> getPaths(String beekeeperTableName, String cleanupType) throws SQLException {
-    ResultSet resultSet = connection.createStatement().executeQuery(format(SELECT_TABLE, beekeeperTableName, cleanupType));
+  List<HousekeepingPath> getHousekeepingPaths(String database, String table, String lifecycleType)
+      throws SQLException {
+    ResultSet resultSet = connection.createStatement()
+        .executeQuery(format(SELECT_TABLE_WITH_WHERE, database, table, lifecycleType));
     List<HousekeepingPath> paths = new ArrayList<>();
+
     while (resultSet.next()) {
-      paths.add(map(resultSet));
+      paths.add(mapToHousekeepingPath(resultSet));
     }
+
     return paths;
   }
 
-  private HousekeepingPath map(ResultSet resultSet) throws SQLException {
-    HousekeepingPath path = new HousekeepingPath.Builder()
-        .id(resultSet.getLong(ID))
-        .path(resultSet.getString(PATH))
-        .housekeepingStatus(HousekeepingStatus.valueOf(resultSet.getString(HOUSEKEEPING_STATUS)))
-        .cleanupAttempts(resultSet.getInt(CLEANUP_ATTEMPTS))
-        .tableName(resultSet.getString(TABLE_NAME))
-        .databaseName(resultSet.getString(DATABASE_NAME))
-        .creationTimestamp(Timestamp.valueOf(resultSet.getString(CREATION_TIMESTAMP))
-            .toLocalDateTime())
-        .modifiedTimestamp(Timestamp.valueOf(resultSet.getString(MODIFIED_TIMESTAMP))
-            .toLocalDateTime())
-        .cleanupDelay(Duration.parse(resultSet.getString(CLEANUP_DELAY)))
-        .clientId(resultSet.getString(CLIENT_ID))
-        .lifecycleType(resultSet.getString(LIFECYCLE_TYPE))
-        .build();
-    path.setCleanupTimestamp(Timestamp.valueOf(resultSet.getString(CLEANUP_TIMESTAMP))
-        .toLocalDateTime());
-    return path;
+  List<HousekeepingMetadata> getHousekeepingMetadata(String database, String table, String lifecycleType)
+      throws SQLException {
+    ResultSet resultSet = connection.createStatement()
+        .executeQuery(format(SELECT_TABLE_WITH_WHERE, database, table, lifecycleType));
+    List<HousekeepingMetadata> metadata = new ArrayList<>();
+
+    while (resultSet.next()) {
+      metadata.add(mapToHousekeepingMetadata(resultSet));
+    }
+
+    return metadata;
   }
 }

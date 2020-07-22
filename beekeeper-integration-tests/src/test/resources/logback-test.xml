@@ -23,12 +23,13 @@
   </appender>
 
   <logger name="com.expediagroup.beekeeper" level="DEBUG"/>
+  <logger name="org.testcontainers" level="INFO"/>
 
   <root level="INFO">
     <appender-ref ref="STDOUT"/>
   </root>
 
-  <appender name="TEST" class="com.expediagroup.beekeeper.integration.TestAppender" />
+  <appender name="TEST" class="com.expediagroup.beekeeper.integration.TestAppender"/>
   <root level="ERROR">
     <appender-ref ref="TEST"/>
   </root>
