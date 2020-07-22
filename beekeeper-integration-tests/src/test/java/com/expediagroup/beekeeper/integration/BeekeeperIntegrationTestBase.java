@@ -38,7 +38,7 @@ public abstract class BeekeeperIntegrationTestBase {
 
   protected static final int TIMEOUT = 5;
 
-  //  protected static final String AWS_BUCKET = "test-path-bucket";
+  // protected static final String AWS_BUCKET = "test-path-bucket";
   protected static final String AWS_REGION = "us-west-2";
   protected static final String AWS_ACCESS_KEY_ID = "access-key";
   protected static final String AWS_SECRET_KEY = "secret-key";
@@ -47,17 +47,19 @@ public abstract class BeekeeperIntegrationTestBase {
   private static final String BEEKEEPER_DB_NAME = "beekeeper";
   private static final String BEEKEEPER_FLYWAY_TABLE = "flyway_schema_history";
   private static final String BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME = HousekeepingPath.class
-      .getAnnotation(Table.class).name();
+      .getAnnotation(Table.class)
+      .name();
   private static final String BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME = HousekeepingMetadata.class
-      .getAnnotation(Table.class).name();
+      .getAnnotation(Table.class)
+      .name();
 
   // FIELDS TO INSERT INTO BEEKEEPER TABLES
-  private static final String HOUSEKEEPING_PATH_FIELDS = String.join(",", ID, PATH, DATABASE_NAME, TABLE_NAME,
-      HOUSEKEEPING_STATUS, CREATION_TIMESTAMP, MODIFIED_TIMESTAMP, CLEANUP_TIMESTAMP, CLEANUP_DELAY, CLEANUP_ATTEMPTS,
-      CLIENT_ID, LIFECYCLE_TYPE);
-  private static final String HOUSEKEEPING_METADATA_FIELDS = String.join(",", ID, PATH, DATABASE_NAME, TABLE_NAME,
-      PARTITION_NAME, HOUSEKEEPING_STATUS, CREATION_TIMESTAMP, MODIFIED_TIMESTAMP, CLEANUP_TIMESTAMP, CLEANUP_DELAY,
-      CLEANUP_ATTEMPTS, CLIENT_ID, LIFECYCLE_TYPE);
+  private static final String HOUSEKEEPING_PATH_FIELDS = String
+      .join(",", ID, PATH, DATABASE_NAME, TABLE_NAME, HOUSEKEEPING_STATUS, CREATION_TIMESTAMP, MODIFIED_TIMESTAMP,
+          CLEANUP_TIMESTAMP, CLEANUP_DELAY, CLEANUP_ATTEMPTS, CLIENT_ID, LIFECYCLE_TYPE);
+  private static final String HOUSEKEEPING_METADATA_FIELDS = String
+      .join(",", ID, PATH, DATABASE_NAME, TABLE_NAME, PARTITION_NAME, HOUSEKEEPING_STATUS, CREATION_TIMESTAMP,
+          MODIFIED_TIMESTAMP, CLEANUP_TIMESTAMP, CLEANUP_DELAY, CLEANUP_ATTEMPTS, CLIENT_ID, LIFECYCLE_TYPE);
   private static final String LIFE_CYCLE_AND_ORDER_FILTER = "WHERE lifecycle_type = '%s' ORDER BY path";
 
   // MySQL Database Container and Utils
@@ -96,36 +98,40 @@ public abstract class BeekeeperIntegrationTestBase {
   }
 
   protected static void insertHousekeepingPath(HousekeepingPath path) throws SQLException {
-    String values = String.join(",", path.getId().toString(), path.getPath(), path.getDatabaseName(),
-        path.getTableName(), path.getHousekeepingStatus().toString(), path.getCreationTimestamp().toString(),
-        path.getModifiedTimestamp().toString(), path.getCleanupTimestamp().toString(),
-        path.getCleanupDelay().toString(), String.valueOf(path.getCleanupAttempts()), path.getClientId(),
-        path.getLifecycleType());
+    String values = String
+        .join(",", path.getId().toString(), path.getPath(), path.getDatabaseName(), path.getTableName(),
+            path.getHousekeepingStatus().toString(), path.getCreationTimestamp().toString(),
+            path.getModifiedTimestamp().toString(), path.getCleanupTimestamp().toString(),
+            path.getCleanupDelay().toString(), String.valueOf(path.getCleanupAttempts()), path.getClientId(),
+            path.getLifecycleType());
 
-    mySQLTestUtils.insertToTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME,
-        HOUSEKEEPING_PATH_FIELDS, values);
+    mySQLTestUtils
+        .insertToTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME, HOUSEKEEPING_PATH_FIELDS, values);
   }
 
   protected static void insertHousekeepingMetadata(HousekeepingMetadata metadata) throws SQLException {
-    String values = String.join(",", metadata.getId().toString(), metadata.getPath(), metadata.getDatabaseName(),
-        metadata.getTableName(), metadata.getPartitionName(), metadata.getHousekeepingStatus().toString(),
-        metadata.getCreationTimestamp().toString(), metadata.getModifiedTimestamp().toString(),
-        metadata.getCleanupTimestamp().toString(), metadata.getCleanupDelay().toString(),
-        String.valueOf(metadata.getCleanupAttempts()), metadata.getClientId(), metadata.getLifecycleType());
+    String values = String
+        .join(",", metadata.getId().toString(), metadata.getPath(), metadata.getDatabaseName(), metadata.getTableName(),
+            metadata.getPartitionName(), metadata.getHousekeepingStatus().toString(),
+            metadata.getCreationTimestamp().toString(), metadata.getModifiedTimestamp().toString(),
+            metadata.getCleanupTimestamp().toString(), metadata.getCleanupDelay().toString(),
+            String.valueOf(metadata.getCleanupAttempts()), metadata.getClientId(), metadata.getLifecycleType());
 
-    mySQLTestUtils.insertToTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME,
-        HOUSEKEEPING_PATH_FIELDS, values);
+    mySQLTestUtils
+        .insertToTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME, HOUSEKEEPING_PATH_FIELDS, values);
   }
 
   protected static int getUnreferencedHousekeepingPathsRowCount() throws SQLException {
-    return mySQLTestUtils.getTableRowCount(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME,
-        format(LIFE_CYCLE_AND_ORDER_FILTER, UNREFERENCED));
+    return mySQLTestUtils
+        .getTableRowCount(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME,
+            format(LIFE_CYCLE_AND_ORDER_FILTER, UNREFERENCED));
   }
 
   protected static List<HousekeepingPath> getUnreferencedHousekeepingPaths() throws SQLException {
     List<HousekeepingPath> paths = new ArrayList<>();
-    ResultSet resultSet = mySQLTestUtils.getTableRows(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME,
-        format(LIFE_CYCLE_AND_ORDER_FILTER, UNREFERENCED));
+    ResultSet resultSet = mySQLTestUtils
+        .getTableRows(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME,
+            format(LIFE_CYCLE_AND_ORDER_FILTER, UNREFERENCED));
 
     while (resultSet.next()) {
       paths.add(mapToHousekeepingPath(resultSet));
@@ -135,14 +141,16 @@ public abstract class BeekeeperIntegrationTestBase {
   }
 
   protected static int getExpiredHousekeepingMetadataRowCount() throws SQLException {
-    return mySQLTestUtils.getTableRowCount(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME,
-        format(LIFE_CYCLE_AND_ORDER_FILTER, EXPIRED));
+    return mySQLTestUtils
+        .getTableRowCount(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME,
+            format(LIFE_CYCLE_AND_ORDER_FILTER, EXPIRED));
   }
 
   protected static List<HousekeepingMetadata> getExpiredHousekeepingMetadata() throws SQLException {
     List<HousekeepingMetadata> metadata = new ArrayList<>();
-    ResultSet resultSet = mySQLTestUtils.getTableRows(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME,
-        format(LIFE_CYCLE_AND_ORDER_FILTER, EXPIRED));
+    ResultSet resultSet = mySQLTestUtils
+        .getTableRows(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME,
+            format(LIFE_CYCLE_AND_ORDER_FILTER, EXPIRED));
 
     while (resultSet.next()) {
       metadata.add(mapToHousekeepingMetadata(resultSet));

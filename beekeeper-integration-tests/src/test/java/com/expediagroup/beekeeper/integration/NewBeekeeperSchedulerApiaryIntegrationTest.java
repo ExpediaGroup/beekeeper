@@ -6,8 +6,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
-import static com.amazonaws.auth.profile.internal.ProfileKeyConstants.REGION;
-
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
@@ -100,8 +98,8 @@ public class NewBeekeeperSchedulerApiaryIntegrationTest extends BeekeeperIntegra
 
   @Test
   void unreferencedAlterTableEvent() throws SQLException, IOException {
-    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://tableLocation",
-        "s3://oldTableLocation", true, true);
+    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://tableLocation", "s3://oldTableLocation",
+        true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedHousekeepingPathsRowCount() == 1);
     List<HousekeepingPath> unreferencedPaths = getUnreferencedHousekeepingPaths();
@@ -111,8 +109,8 @@ public class NewBeekeeperSchedulerApiaryIntegrationTest extends BeekeeperIntegra
 
   @Test
   void unreferencedMultipleAlterTableEvents() throws SQLException, IOException {
-    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://tableLocation",
-        "s3://oldTableLocation", true, true);
+    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://tableLocation", "s3://oldTableLocation",
+        true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
     alterTableSqsMessage.setTableLocation("s3://tableLocation2");
     alterTableSqsMessage.setOldTableLocation("s3://tableLocation");
@@ -128,17 +126,11 @@ public class NewBeekeeperSchedulerApiaryIntegrationTest extends BeekeeperIntegra
 
   @Test
   void unreferencedAlterPartitionEvent() throws SQLException, IOException {
-    AlterPartitionSqsMessage alterPartitionSqsMessage = new AlterPartitionSqsMessage(
-        "s3://expiredTableLocation",
-        "s3://partitionLocation",
-        "s3://unreferencedPartitionLocation",
-        true, true);
+    AlterPartitionSqsMessage alterPartitionSqsMessage = new AlterPartitionSqsMessage("s3://expiredTableLocation",
+        "s3://partitionLocation", "s3://unreferencedPartitionLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterPartitionSqsMessage.getFormattedString()));
-    AlterPartitionSqsMessage alterPartitionSqsMessage2 = new AlterPartitionSqsMessage(
-        "s3://expiredTableLocation2",
-        "s3://partitionLocation2",
-        "s3://partitionLocation",
-        true, true);
+    AlterPartitionSqsMessage alterPartitionSqsMessage2 = new AlterPartitionSqsMessage("s3://expiredTableLocation2",
+        "s3://partitionLocation2", "s3://partitionLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterPartitionSqsMessage2.getFormattedString()));
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedHousekeepingPathsRowCount() == 2);
     List<HousekeepingPath> unreferencedPaths = getUnreferencedHousekeepingPaths();
@@ -151,18 +143,19 @@ public class NewBeekeeperSchedulerApiaryIntegrationTest extends BeekeeperIntegra
 
   @Test
   void unreferencedMultipleAlterPartitionEvent() throws IOException, SQLException {
-    List.of(
-        new AlterPartitionSqsMessage("s3://expiredTableLocation", "s3://partitionLocation",
+    List
+        .of(new AlterPartitionSqsMessage("s3://expiredTableLocation", "s3://partitionLocation",
             "s3://unreferencedPartitionLocation", true, true),
-        new AlterPartitionSqsMessage("s3://expiredTableLocation2", "s3://partitionLocation2", "s3://partitionLocation",
-            true, true)
-    ).forEach(msg -> amazonSQS.sendMessage(sendMessageRequest(msg.getFormattedString())));
+            new AlterPartitionSqsMessage("s3://expiredTableLocation2", "s3://partitionLocation2",
+                "s3://partitionLocation", true, true))
+        .forEach(msg -> amazonSQS.sendMessage(sendMessageRequest(msg.getFormattedString())));
 
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedHousekeepingPathsRowCount() == 2);
     List<HousekeepingPath> unreferencedPaths = getUnreferencedHousekeepingPaths();
 
     unreferencedPaths.forEach(this::assertUnreferencedPathFields);
-    Set<String> unreferencedPathSet = unreferencedPaths.stream()
+    Set<String> unreferencedPathSet = unreferencedPaths
+        .stream()
         .map(HousekeepingPath::getPath)
         .collect(Collectors.toSet());
     assertThat(unreferencedPathSet).isEqualTo(Set.of("s3://unreferencedPartitionLocation", "s3://partitionLocation"));
@@ -170,8 +163,7 @@ public class NewBeekeeperSchedulerApiaryIntegrationTest extends BeekeeperIntegra
 
   @Test
   void unreferencedDropPartitionEvent() throws SQLException, IOException {
-    DropPartitionSqsMessage dropPartitionSqsMessage = new DropPartitionSqsMessage(
-        "s3://partitionLocation", true, true);
+    DropPartitionSqsMessage dropPartitionSqsMessage = new DropPartitionSqsMessage("s3://partitionLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(dropPartitionSqsMessage.getFormattedString()));
     dropPartitionSqsMessage.setPartitionLocation("s3://partitionLocation2");
     amazonSQS.sendMessage(sendMessageRequest(dropPartitionSqsMessage.getFormattedString()));
@@ -204,7 +196,8 @@ public class NewBeekeeperSchedulerApiaryIntegrationTest extends BeekeeperIntegra
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
     HttpCoreContext context = new HttpCoreContext();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
@@ -212,8 +205,7 @@ public class NewBeekeeperSchedulerApiaryIntegrationTest extends BeekeeperIntegra
   public void prometheus() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(PROMETHEUS_URI);
-    await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
+    await().atMost(30, TimeUnit.SECONDS).until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
   private SendMessageRequest sendMessageRequest(String payload) {
@@ -234,11 +226,9 @@ public class NewBeekeeperSchedulerApiaryIntegrationTest extends BeekeeperIntegra
     assertThat(savedPath.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP);
     assertThat(savedPath.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP);
 
-    assertThat(timestampWithinRangeInclusive(
-        savedPath.getCleanupTimestamp(),
+    assertThat(timestampWithinRangeInclusive(savedPath.getCleanupTimestamp(),
         savedPath.getCreationTimestamp().plus(savedPath.getCleanupDelay()).minusSeconds(5),
-        savedPath.getCreationTimestamp().plus(savedPath.getCleanupDelay()).plusSeconds(5)
-    )).isTrue();
+        savedPath.getCreationTimestamp().plus(savedPath.getCleanupDelay()).plusSeconds(5))).isTrue();
 
     assertThat(savedPath.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS);
     assertThat(savedPath.getClientId()).isEqualTo(CLIENT_ID);
@@ -246,18 +236,18 @@ public class NewBeekeeperSchedulerApiaryIntegrationTest extends BeekeeperIntegra
 
   private void assertMetrics(boolean isExpired) {
     String pathMetric = isExpired ? SCHEDULED_EXPIRATION_METRIC : SCHEDULED_ORPHANED_METRIC;
-    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperSchedulerApiary.meterRegistry()).getRegistries();
+    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperSchedulerApiary.meterRegistry())
+        .getRegistries();
     assertThat(meterRegistry).hasSize(2);
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();
-      assertThat(meters)
-          .extracting("id", Meter.Id.class)
-          .extracting("name")
-          .contains(pathMetric);
+      assertThat(meters).extracting("id", Meter.Id.class).extracting("name").contains(pathMetric);
     });
   }
 
-  private boolean timestampWithinRangeInclusive(LocalDateTime timestamp, LocalDateTime lowerBound,
+  private boolean timestampWithinRangeInclusive(
+      LocalDateTime timestamp,
+      LocalDateTime lowerBound,
       LocalDateTime upperBound) {
     return !timestamp.isBefore(lowerBound) && !timestamp.isAfter(upperBound);
   }
