@@ -143,8 +143,8 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://unreferencedPartitionLocation");
-    assertUnreferencedPath(unreferencedPaths.get(1), "s3://partitionLocation");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://partitionLocation");
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://unreferencedPartitionLocation");
   }
 
   @Test
@@ -159,8 +159,8 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://unreferencedPartitionLocation");
-    assertUnreferencedPath(unreferencedPaths.get(1), "s3://partitionLocation");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://partitionLocation");
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://unreferencedPartitionLocation");
   }
 
   @Test

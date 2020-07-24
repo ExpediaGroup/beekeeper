@@ -123,9 +123,7 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
     String path = "s3://" + BUCKET + "/" + OBJECT_KEY1;
     insertUnreferencedPath(path);
     await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getUnreferencedPaths()
-            .get(0)
-            .getHousekeepingStatus() == DELETED);
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     // deleting a file shouldn't delete a folder sentinel
@@ -143,9 +141,7 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
 
     insertUnreferencedPath(ABSOLUTE_PATH);
     await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getUnreferencedPaths()
-            .get(0)
-            .getHousekeepingStatus() == DELETED);
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -167,9 +163,7 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
 
     insertUnreferencedPath(absolutePath);
     await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getUnreferencedPaths()
-            .get(0)
-            .getHousekeepingStatus() == DELETED);
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, objectKey1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, objectKey2)).isFalse();
@@ -185,9 +179,7 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
 
     insertUnreferencedPath(ABSOLUTE_PATH + "/");
     await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getUnreferencedPaths()
-            .get(0)
-            .getHousekeepingStatus() == DELETED);
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -209,9 +201,7 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
 
     insertUnreferencedPath(ABSOLUTE_PATH);
     await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getUnreferencedPaths()
-            .get(0)
-            .getHousekeepingStatus() == DELETED);
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -234,9 +224,7 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
 
     insertUnreferencedPath(ABSOLUTE_PATH);
     await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getUnreferencedPaths()
-            .get(0)
-            .getHousekeepingStatus() == DELETED);
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
@@ -252,9 +240,7 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
 
     insertUnreferencedPath(ABSOLUTE_PATH);
     await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getUnreferencedPaths()
-            .get(0)
-            .getHousekeepingStatus() == DELETED);
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
