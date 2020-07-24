@@ -42,12 +42,12 @@ public class MySqlTestUtils {
     connection.createStatement().executeUpdate(format(INSERT_TO_TABLE, database, table, fields, values));
   }
 
-  public int getTableRowCount(String database, String table, String additionalFilters) throws SQLException {
-    return getTableRowCount(format(SELECT_TABLE, database, table, additionalFilters));
-  }
-
   public int getTableRowCount(String database, String table) throws SQLException {
     return getTableRowCount(format(SELECT_TABLE, database, table, ""));
+  }
+
+  public int getTableRowCount(String database, String table, String additionalFilters) throws SQLException {
+    return getTableRowCount(format(SELECT_TABLE, database, table, additionalFilters));
   }
 
   private int getTableRowCount(String statement) throws SQLException {
@@ -72,19 +72,4 @@ public class MySqlTestUtils {
   public void dropTable(String database, String table) throws SQLException {
     connection.createStatement().executeUpdate(format(DROP_TABLE, database, table));
   }
-
-//  public void insertPath(String beekeeperTableName, String path, String table) throws SQLException {
-//    String lifecycleType = UNREFERENCED.toString().toLowerCase();
-//
-//    String fields = String.join(", ", PATH, HOUSEKEEPING_STATUS, CLEANUP_DELAY, CLEANUP_TIMESTAMP, TABLE_NAME,
-//        LIFECYCLE_TYPE);
-//    String values = Stream.of(path, SCHEDULED.toString(), "PT1S", Timestamp.valueOf(LocalDateTime.now(UTC)
-//        .minus(1L, ChronoUnit.DAYS))
-//        .toString(), table, lifecycleType)
-//        .map(s -> "\"" + s + "\"")
-//        .collect(Collectors.joining(", "));
-//
-//    connection.createStatement()
-//        .executeUpdate(format(INSERT_TO_TABLE, "beekeeper", beekeeperTableName, fields, values));
-//  }
 }

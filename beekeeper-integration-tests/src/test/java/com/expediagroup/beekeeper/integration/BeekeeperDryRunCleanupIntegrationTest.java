@@ -20,7 +20,6 @@ import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
-import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_S3_BUCKET;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
@@ -57,12 +56,13 @@ public class BeekeeperDryRunCleanupIntegrationTest extends BeekeeperIntegrationT
 
   private static final int TIMEOUT = 30;
 
+  private static final String BUCKET = "test-path-bucket";
   private static final String DB_AND_TABLE_PREFIX = DATABASE_NAME_VALUE + "/" + TABLE_NAME_VALUE;
   private static final String OBJECT_KEY_ROOT = DB_AND_TABLE_PREFIX + "/id1/partition1";
   private static final String OBJECT_KEY1 = DB_AND_TABLE_PREFIX + "/id1/partition1/file1";
   private static final String OBJECT_KEY2 = DB_AND_TABLE_PREFIX + "/id1/partition1/file2";
   private static final String OBJECT_KEY_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition1_$folder$";
-  private static final String ABSOLUTE_PATH = "s3://" + AWS_S3_BUCKET + "/" + OBJECT_KEY_ROOT;
+  private static final String ABSOLUTE_PATH = "s3://" + BUCKET + "/" + OBJECT_KEY_ROOT;
 
   private static final String OBJECT_KEY_OTHER = DB_AND_TABLE_PREFIX + "/id1/partition10/file1";
   private static final String OBJECT_KEY_OTHER_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition10_$folder$";
@@ -88,7 +88,7 @@ public class BeekeeperDryRunCleanupIntegrationTest extends BeekeeperIntegrationT
     System.setProperty("aws.s3.endpoint", ContainerTestUtils.awsServiceEndpoint(s3Container, S3));
 
     amazonS3 = ContainerTestUtils.s3Client(s3Container, AWS_REGION);
-    amazonS3.createBucket(new CreateBucketRequest(AWS_S3_BUCKET, AWS_REGION));
+    amazonS3.createBucket(new CreateBucketRequest(BUCKET, AWS_REGION));
   }
 
   @AfterAll
@@ -99,9 +99,9 @@ public class BeekeeperDryRunCleanupIntegrationTest extends BeekeeperIntegrationT
 
   @BeforeEach
   public void setup() {
-    amazonS3.listObjectsV2(AWS_S3_BUCKET)
+    amazonS3.listObjectsV2(BUCKET)
         .getObjectSummaries()
-        .forEach(object -> amazonS3.deleteObject(AWS_S3_BUCKET, object.getKey()));
+        .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
     executorService.execute(() -> BeekeeperCleanup.main(new String[] {}));
     await().atMost(Duration.ONE_MINUTE)
         .until(BeekeeperCleanup::isRunning);
@@ -118,29 +118,29 @@ public class BeekeeperDryRunCleanupIntegrationTest extends BeekeeperIntegrationT
 
   @Test
   public void filesNotDeletedInDirectory() throws SQLException {
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY1, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY2, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY_OTHER, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY_SENTINEL, "");
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY_OTHER_SENTINEL, "");
+    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
+    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER_SENTINEL, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLineFromS3Client(OBJECT_KEY_SENTINEL));
 
-    assertThat(amazonS3.doesObjectExist(AWS_S3_BUCKET, OBJECT_KEY1)).isTrue();
-    assertThat(amazonS3.doesObjectExist(AWS_S3_BUCKET, OBJECT_KEY2)).isTrue();
-    assertThat(amazonS3.doesObjectExist(AWS_S3_BUCKET, OBJECT_KEY_SENTINEL)).isTrue();
-    assertThat(amazonS3.doesObjectExist(AWS_S3_BUCKET, OBJECT_KEY_OTHER)).isTrue();
-    assertThat(amazonS3.doesObjectExist(AWS_S3_BUCKET, OBJECT_KEY_OTHER_SENTINEL)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_OTHER)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_OTHER_SENTINEL)).isTrue();
   }
 
   @Test
   public void logsForDirectory() throws SQLException {
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY1, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY2, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY_OTHER, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY_SENTINEL, "");
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY_OTHER_SENTINEL, "");
+    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
+    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER_SENTINEL, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLineFromS3Client(OBJECT_KEY_SENTINEL));
@@ -150,11 +150,11 @@ public class BeekeeperDryRunCleanupIntegrationTest extends BeekeeperIntegrationT
 
   @Test
   public void logsForFile() throws SQLException {
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY1, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY_OTHER, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY_SENTINEL, "");
+    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
 
-    String filePath = "s3://" + AWS_S3_BUCKET + "/" + OBJECT_KEY1;
+    String filePath = "s3://" + BUCKET + "/" + OBJECT_KEY1;
     insertUnreferencedPath(filePath);
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLineFromS3Client(OBJECT_KEY1));
 
@@ -165,11 +165,11 @@ public class BeekeeperDryRunCleanupIntegrationTest extends BeekeeperIntegrationT
   public void logsForParentDeletion() throws SQLException {
     String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
     String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY1, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY2, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY_SENTINEL, "");
-    amazonS3.putObject(AWS_S3_BUCKET, parentSentinel, "");
-    amazonS3.putObject(AWS_S3_BUCKET, tableSentinel, "");
+    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
+    amazonS3.putObject(BUCKET, parentSentinel, "");
+    amazonS3.putObject(BUCKET, tableSentinel, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLineFromS3Client(parentSentinel));
@@ -181,12 +181,12 @@ public class BeekeeperDryRunCleanupIntegrationTest extends BeekeeperIntegrationT
   public void logsForNonEmptyParentDeletion() throws SQLException {
     String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
     String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY1, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY2, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY_SENTINEL, "");
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY_OTHER, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, parentSentinel, "");
-    amazonS3.putObject(AWS_S3_BUCKET, tableSentinel, "");
+    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
+    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
+    amazonS3.putObject(BUCKET, parentSentinel, "");
+    amazonS3.putObject(BUCKET, tableSentinel, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLineFromS3Client(OBJECT_KEY_SENTINEL));
@@ -196,14 +196,14 @@ public class BeekeeperDryRunCleanupIntegrationTest extends BeekeeperIntegrationT
 
   @Test
   public void metrics() throws SQLException {
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY1, CONTENT);
-    amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY_SENTINEL, "");
+    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLineFromS3Client(OBJECT_KEY_SENTINEL));
 
-    assertThat(amazonS3.doesObjectExist(AWS_S3_BUCKET, OBJECT_KEY1)).isTrue();
-    assertThat(amazonS3.doesObjectExist(AWS_S3_BUCKET, OBJECT_KEY_SENTINEL)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isTrue();
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(this::assertMetrics);
   }
 
