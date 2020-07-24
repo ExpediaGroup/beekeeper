@@ -15,32 +15,38 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
+import static com.expedia.apiary.extensions.receiver.common.event.EventType.DROP_PARTITION;
+
 import java.io.IOException;
-import java.net.URL;
+import java.net.URISyntaxException;
 
-import com.expedia.apiary.extensions.receiver.common.event.EventType;
+import com.google.gson.JsonPrimitive;
 
-public class DropPartitionSqsMessage extends SqsMessageFile {
-
-  private static final URL DROP_PARTITION_FILE = SqsMessageFile.class.getResource("/drop_partition.json");
-
-  DropPartitionSqsMessage() throws IOException {
-    setMessageFromFile(DROP_PARTITION_FILE);
-  }
+public class DropPartitionSqsMessage extends SqsMessage {
 
   public DropPartitionSqsMessage(
       String partitionLocation,
-      Boolean isUnreferenced,
-      Boolean isWhitelisted
-  ) throws IOException {
-    setMessageFromFile(DROP_PARTITION_FILE);
+      boolean isUnreferenced,
+      boolean isWhitelisted
+  ) throws IOException, URISyntaxException {
+    super(DROP_PARTITION);
+    setTableLocation(DUMMY_LOCATION);
     setPartitionLocation(partitionLocation);
+    setPartitionKeys(DUMMY_PARTITION_KEYS);
+    setPartitionValues(DUMMY_PARTITION_VALUES);
     setUnreferenced(isUnreferenced);
-    setWhitelisted(EventType.DROP_PARTITION, isWhitelisted);
+    setWhitelisted(isWhitelisted);
   }
 
-  @Override
-  public String getFormattedString() {
-    return String.format(message, partitionLocation, isUnreferenced, isWhitelisted);
+  public void setPartitionLocation(String partitionLocation) {
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_PARTITION_LOCATION_KEY, new JsonPrimitive(partitionLocation));
+  }
+
+  public void setPartitionKeys(String partitionKeys) {
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_PARTITION_KEYS_KEY, PARSER.parse(partitionKeys).getAsJsonObject());
+  }
+
+  public void setPartitionValues(String partitionValues) {
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_PARTITION_VALUES_KEY, PARSER.parse(partitionValues).getAsJsonArray());
   }
 }

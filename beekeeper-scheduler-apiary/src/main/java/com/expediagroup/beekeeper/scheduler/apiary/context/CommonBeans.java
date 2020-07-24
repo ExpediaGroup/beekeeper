@@ -27,8 +27,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.retry.annotation.EnableRetry;
 
+import com.expedia.apiary.extensions.receiver.common.event.AddPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
+import com.expedia.apiary.extensions.receiver.common.event.CreateTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
@@ -110,7 +112,10 @@ public class CommonBeans {
   public MessageEventHandler expiredHousekeepingMetadataMessageEventHandler(
       @Qualifier("expiredHousekeepingMetadataGenerator") HousekeepingEntityGenerator generator) {
     List<Class<? extends ListenerEvent>> eventClasses = List.of(
-        AlterTableEvent.class
+        CreateTableEvent.class,
+        AlterTableEvent.class,
+        AddPartitionEvent.class,
+        AlterPartitionEvent.class
     );
 
     List<ListenerEventFilter> filters = List.of(

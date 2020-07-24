@@ -37,8 +37,8 @@ public interface HousekeepingMetadataRepository extends JpaRepository<Housekeepi
   @Query(value = "from HousekeepingMetadata t "
       + "where t.databaseName = :databaseName "
       + "and t.tableName = :tableName "
-      + "and t.partitionName = :partitionName "
+      + "and (t.partitionName = :partitionName or t.partitionName is NULL) " // To handle special null case
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
-  Optional<HousekeepingMetadata> findRecordForCleanupByDatabaseAndTable(@Param("databaseName") String databaseName,
+  Optional<HousekeepingMetadata> findRecordForCleanupByDbTableAndPartitionName(@Param("databaseName") String databaseName,
       @Param("tableName") String tableName, @Param("partitionName") String partitionName);
 }

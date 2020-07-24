@@ -60,7 +60,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
   public void typicalCreateScheduleForHousekeeping() {
     HousekeepingMetadata metadata = createEntityHousekeepingTable();
 
-    when(housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME,
+    when(housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME,
         PARTITION_NAME)).thenReturn(Optional.empty());
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
@@ -74,13 +74,14 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     HousekeepingMetadata metadata = createEntityHousekeepingTable();
     metadata.setCleanupDelay(Duration.parse("P30D"));
 
-    when(housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME,
+    when(housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME,
         PARTITION_NAME)).thenReturn(Optional.of(existingTable));
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
 
-    verify(housekeepingMetadataRepository).findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME,
+    verify(housekeepingMetadataRepository).findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME,
         PARTITION_NAME);
+    verify(existingTable).setPath(metadata.getPath());
     verify(existingTable).setHousekeepingStatus(metadata.getHousekeepingStatus());
     verify(existingTable).setClientId(metadata.getClientId());
     verify(existingTable).setCleanupDelay(metadata.getCleanupDelay());

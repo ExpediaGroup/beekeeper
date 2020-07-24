@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.integration;
+package com.expediagroup.beekeeper.integration.utils;
 
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;

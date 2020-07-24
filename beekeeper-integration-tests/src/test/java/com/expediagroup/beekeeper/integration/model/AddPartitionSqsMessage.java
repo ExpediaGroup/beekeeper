@@ -15,32 +15,38 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
+import static com.expedia.apiary.extensions.receiver.common.event.EventType.ADD_PARTITION;
+
 import java.io.IOException;
-import java.net.URL;
+import java.net.URISyntaxException;
 
-import com.expedia.apiary.extensions.receiver.common.event.EventType;
+import com.google.gson.JsonPrimitive;
 
-public class AddPartitionSqsMessage extends SqsMessageFile {
-
-  private static final URL ADD_PARTITION_FILE = SqsMessageFile.class.getResource("/add_partition.json");
-
-  AddPartitionSqsMessage() throws IOException {
-    setMessageFromFile(ADD_PARTITION_FILE);
-  }
+public class AddPartitionSqsMessage extends SqsMessage {
 
   public AddPartitionSqsMessage(
       String partitionLocation,
-      Boolean isUnreferenced,
-      Boolean isWhitelisted
-  ) throws IOException {
-    setMessageFromFile(ADD_PARTITION_FILE);
+      String partitionKeys,
+      String partitionValues,
+      boolean isExpired
+  ) throws IOException, URISyntaxException {
+    super(ADD_PARTITION);
+    setTableLocation(DUMMY_LOCATION);
     setPartitionLocation(partitionLocation);
-    setUnreferenced(isUnreferenced);
-    setWhitelisted(EventType.ADD_PARTITION, isWhitelisted);
+    setPartitionKeys(partitionKeys);
+    setPartitionValues(partitionValues);
+    setExpired(isExpired);
   }
 
-  @Override
-  public String getFormattedString() {
-    return String.format(message, partitionLocation, isUnreferenced, isWhitelisted);
+  private void setPartitionLocation(String partitionLocation) {
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_PARTITION_LOCATION_KEY, new JsonPrimitive(partitionLocation));
+  }
+
+  private void setPartitionKeys(String partitionKeys) {
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_PARTITION_KEYS_KEY, PARSER.parse(partitionKeys).getAsJsonObject());
+  }
+
+  private void setPartitionValues(String partitionValues) {
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_PARTITION_VALUES_KEY, PARSER.parse(partitionValues).getAsJsonArray());
   }
 }

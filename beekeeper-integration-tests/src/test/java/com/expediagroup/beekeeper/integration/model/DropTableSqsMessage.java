@@ -15,32 +15,21 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
+import static com.expedia.apiary.extensions.receiver.common.event.EventType.DROP_TABLE;
+
 import java.io.IOException;
-import java.net.URL;
+import java.net.URISyntaxException;
 
-import com.expedia.apiary.extensions.receiver.common.event.EventType;
-
-public class DropTableSqsMessage extends SqsMessageFile {
-
-  private static final URL DROP_TABLE_FILE = SqsMessageFile.class.getResource("/drop_table.json");
-
-  DropTableSqsMessage() throws IOException {
-    setMessageFromFile(DROP_TABLE_FILE);
-  }
+public class DropTableSqsMessage extends SqsMessage {
 
   public DropTableSqsMessage(
       String tableLocation,
-      Boolean isUnreferenced,
-      Boolean isWhitelisted
-  ) throws IOException {
-    setMessageFromFile(DROP_TABLE_FILE);
+      boolean isUnreferenced,
+      boolean isWhitelisted
+  ) throws IOException, URISyntaxException {
+    super(DROP_TABLE);
     setTableLocation(tableLocation);
     setUnreferenced(isUnreferenced);
-    setWhitelisted(EventType.DROP_TABLE, isWhitelisted);
-  }
-
-  @Override
-  public String getFormattedString() {
-    return String.format(message, tableLocation, isUnreferenced, isWhitelisted);
+    setWhitelisted(isWhitelisted);
   }
 }

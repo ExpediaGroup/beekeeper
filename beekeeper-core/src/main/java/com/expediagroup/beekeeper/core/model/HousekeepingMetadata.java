@@ -123,6 +123,10 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return path;
   }
 
+  public void setPath(String path) {
+    this.path = path;
+  }
+
   @Override
   public String getDatabaseName() {
     return databaseName;
@@ -143,6 +147,10 @@ public class HousekeepingMetadata implements HousekeepingEntity {
 
   public String getPartitionName() {
     return partitionName;
+  }
+
+  public void setPartitionName(String partitionName) {
+    this.partitionName = partitionName;
   }
 
   @Override

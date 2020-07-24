@@ -65,7 +65,7 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
   }
 
   private HousekeepingMetadata createOrUpdateHousekeepingMetadata(HousekeepingMetadata housekeepingMetadata) {
-    Optional<HousekeepingMetadata> housekeepingMetadataOptional = housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(
+    Optional<HousekeepingMetadata> housekeepingMetadataOptional = housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(
         housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(),
         housekeepingMetadata.getPartitionName());
 
@@ -74,6 +74,7 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
     }
 
     HousekeepingMetadata existingHousekeepingMetadata = housekeepingMetadataOptional.get();
+    existingHousekeepingMetadata.setPath(housekeepingMetadata.getPath());
     existingHousekeepingMetadata.setHousekeepingStatus(housekeepingMetadata.getHousekeepingStatus());
     existingHousekeepingMetadata.setClientId(housekeepingMetadata.getClientId());
     existingHousekeepingMetadata.setCleanupDelay(housekeepingMetadata.getCleanupDelay());
