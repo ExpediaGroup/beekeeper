@@ -94,11 +94,11 @@ public abstract class GenericMetadataHandler {
   private boolean cleanupMetadata(HousekeepingMetadata housekeepingMetadata, Pageable pageable) {
     MetadataCleaner metadataCleaner = getMetadataCleaner();
     PathCleaner pathCleaner = getPathCleaner();
-    int numberOfRecords = getRecordCountForDatabaseAndTable(housekeepingMetadata.getDatabaseName(),
+    int partitionCount = getPartitionCountForDatabaseAndTable(housekeepingMetadata.getDatabaseName(),
         housekeepingMetadata.getTableName(), pageable);
 
     String partitionName = housekeepingMetadata.getPartitionName();
-    if (partitionName == null && numberOfRecords == 1) {
+    if (partitionName == null && partitionCount == 0) {
       cleanUpTable(housekeepingMetadata, metadataCleaner, pathCleaner);
       return true;
     }
@@ -149,14 +149,17 @@ public abstract class GenericMetadataHandler {
     getHousekeepingMetadataRepository().save(housekeepingMetadata);
   }
 
-  private int getRecordCountForDatabaseAndTable(String databaseName, String tableName, Pageable pageable) {
+  private int getPartitionCountForDatabaseAndTable(String databaseName, String tableName, Pageable pageable) {
     Page<HousekeepingMetadata> page = findMatchingRecords(databaseName, tableName, pageable);
-    int recordCount = 0;
+    int partitionCount = 0;
     while (!page.getContent().isEmpty()) {
-      recordCount += page.getContent().size();
+      List<HousekeepingMetadata> pageContent = page.getContent();
+      for (HousekeepingMetadata metadata : pageContent) {
+        partitionCount += (metadata.getPartitionName() != null) ? 1 : 0;
+      }
       page = findMatchingRecords(databaseName, tableName, pageable.next());
     }
-    return recordCount;
+    return partitionCount;
   }
 
 }

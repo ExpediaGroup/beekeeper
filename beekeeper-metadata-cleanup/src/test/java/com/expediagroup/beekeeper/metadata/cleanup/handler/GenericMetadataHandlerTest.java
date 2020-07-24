@@ -109,9 +109,13 @@ public class GenericMetadataHandlerTest {
   @Test
   public void partitionedTableNotDeleted() {
     PageImpl<HousekeepingMetadata> mockPageWithMultipleEntries = Mockito.mock(PageImpl.class);
+    HousekeepingMetadata mockMetadata2 = Mockito.mock(HousekeepingMetadata.class);
+
     when(housekeepingMetadataRepository.findRecordsForGivenDatabaseAndTable(DATABASE, TABLE_NAME, mockPageable))
         .thenReturn(mockPageWithMultipleEntries);
-    when(mockPageWithMultipleEntries.getContent()).thenReturn(List.of(mockMetadata, mockMetadata));
+    when(mockPageWithMultipleEntries.getContent()).thenReturn(List.of(mockMetadata, mockMetadata2));
+    when(mockMetadata.getPartitionName()).thenReturn(null);
+    when(mockMetadata2.getPartitionName()).thenReturn(PARTITION_NAME);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(metadataCleaner, never()).cleanupMetadata(mockMetadata);
