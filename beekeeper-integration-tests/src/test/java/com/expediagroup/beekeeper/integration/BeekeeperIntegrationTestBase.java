@@ -194,7 +194,7 @@ public abstract class BeekeeperIntegrationTestBase {
         .id(id++)
         .path(path)
         .databaseName(DATABASE_NAME_VALUE)
-        .tableName(TABLE_NAME_FIELD)
+        .tableName(TABLE_NAME_VALUE)
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(CREATION_TIMESTAMP_VALUE)
         .modifiedTimestamp(CREATION_TIMESTAMP_VALUE)

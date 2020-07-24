@@ -23,6 +23,8 @@ import static com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_S3_BUCKET;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -56,14 +58,15 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
 
   private static final int TIMEOUT = 30;
 
-  private static final String OBJECT_KEY_ROOT = "database/table/id1/partition1";
-  private static final String OBJECT_KEY1 = "database/table/id1/partition1/file1";
-  private static final String OBJECT_KEY2 = "database/table/id1/partition1/file2";
-  private static final String OBJECT_KEY_SENTINEL = "database/table/id1/partition1_$folder$";
+  private static final String DB_AND_TABLE_PREFIX = DATABASE_NAME_VALUE + "/" + TABLE_NAME_VALUE;
+  private static final String OBJECT_KEY_ROOT = DB_AND_TABLE_PREFIX + "/id1/partition1";
+  private static final String OBJECT_KEY1 = DB_AND_TABLE_PREFIX + "/id1/partition1/file1";
+  private static final String OBJECT_KEY2 = DB_AND_TABLE_PREFIX + "/id1/partition1/file2";
+  private static final String OBJECT_KEY_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition1_$folder$";
   private static final String ABSOLUTE_PATH = "s3://" + AWS_S3_BUCKET + "/" + OBJECT_KEY_ROOT;
 
-  private static final String OBJECT_KEY_OTHER = "database/table/id1/partition10/file1";
-  private static final String OBJECT_KEY_OTHER_SENTINEL = "database/table/id1/partition10_$folder$";
+  private static final String OBJECT_KEY_OTHER = DB_AND_TABLE_PREFIX + "/id1/partition10/file1";
+  private static final String OBJECT_KEY_OTHER_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition10_$folder$";
 
   private static final String SCHEDULER_DELAY_MS = "5000";
   private static final String CONTENT = "Content";
@@ -153,7 +156,7 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
 
   @Test
   public void cleanupPathsForDirectoryWithSpace() throws SQLException {
-    String objectKeyRoot = "database/table/ /id1/partition1";
+    String objectKeyRoot = DB_AND_TABLE_PREFIX + "/ /id1/partition1";
     String objectKey1 = objectKeyRoot + "/file1";
     String objectKey2 = objectKeyRoot + "/file2";
     String objectKeySentinel = objectKeyRoot + "_$folder$";
@@ -194,8 +197,8 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
 
   @Test
   public void cleanupSentinelForParent() throws SQLException {
-    String parentSentinel = "database/table/id1_$folder$";
-    String tableSentinel = "database/table_$folder$";
+    String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
+    String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
     String databaseSentinel = "database_$folder$";
     amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY2, CONTENT);
@@ -220,8 +223,8 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
 
   @Test
   public void cleanupSentinelForNonEmptyParent() throws SQLException {
-    String parentSentinel = "database/table/id1_$folder$";
-    String tableSentinel = "database/table_$folder$";
+    String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
+    String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
     amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY2, CONTENT);
     amazonS3.putObject(AWS_S3_BUCKET, OBJECT_KEY_SENTINEL, "");

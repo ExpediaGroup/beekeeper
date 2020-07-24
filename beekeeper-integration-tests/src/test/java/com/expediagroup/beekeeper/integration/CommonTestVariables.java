@@ -2,7 +2,6 @@ package com.expediagroup.beekeeper.integration;
 
 import static java.time.ZoneOffset.UTC;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
