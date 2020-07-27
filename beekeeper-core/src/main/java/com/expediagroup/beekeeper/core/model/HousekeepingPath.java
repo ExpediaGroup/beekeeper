@@ -192,7 +192,7 @@ public class HousekeepingPath implements HousekeepingEntity {
 
   public void setCleanupDelay(Duration cleanupDelay) {
     this.cleanupDelay = cleanupDelay;
-    this.cleanupTimestamp = this.creationTimestamp.plus(cleanupDelay);
+    cleanupTimestamp = creationTimestamp.plus(cleanupDelay);
   }
 
   @Override

@@ -201,7 +201,7 @@ public class HousekeepingMetadata implements HousekeepingEntity {
 
   public void setCleanupDelay(Duration cleanupDelay) {
     this.cleanupDelay = cleanupDelay;
-    this.cleanupTimestamp = this.creationTimestamp.plus(cleanupDelay);
+    cleanupTimestamp = creationTimestamp.plus(cleanupDelay);
   }
 
   @Override
@@ -312,5 +312,4 @@ public class HousekeepingMetadata implements HousekeepingEntity {
       return creationTimestamp.plus(cleanupDelay);
     }
   }
-
 }

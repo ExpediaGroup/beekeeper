@@ -340,7 +340,6 @@ public class HousekeepingMetadataRepositoryTest {
         .build();
   }
 
-
   private void compare(HousekeepingMetadata expected, HousekeepingMetadata actual) {
     assertThat(actual.getPath()).isEqualTo(expected.getPath());
     assertThat(actual.getDatabaseName()).isEqualTo(expected.getDatabaseName());
