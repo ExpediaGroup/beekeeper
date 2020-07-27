@@ -11,11 +11,6 @@
 
   <artifactId>beekeeper-cleanup</artifactId>
 
-  <properties>
-    <aws.version>1.11.532</aws.version>
-    <s3mock.version>0.2.5</s3mock.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>com.expediagroup</groupId>
@@ -33,11 +28,6 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-s3</artifactId>
-      <version>${aws.version}</version>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>

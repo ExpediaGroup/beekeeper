@@ -21,5 +21,5 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @EnableScheduling
-@ComponentScan({ "com.expediagroup.beekeeper.cleanup.service", "com.expediagroup.beekeeper.core.path" })
+@ComponentScan({ "com.expediagroup.beekeeper.cleanup.service" })
 public class TestConfig {}

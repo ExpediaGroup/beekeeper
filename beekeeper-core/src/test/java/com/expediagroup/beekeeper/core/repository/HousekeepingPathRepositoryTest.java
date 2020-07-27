@@ -60,6 +60,9 @@ public class HousekeepingPathRepositoryTest {
   private static final Duration CLEANUP_DELAY = Duration.parse("P3D");
   private static final LocalDateTime CLEANUP_TIMESTAMP = CREATION_TIMESTAMP.plus(CLEANUP_DELAY);
 
+  private static final int PAGE = 0;
+  private static final int PAGE_SIZE = 500;
+
   @Autowired
   private HousekeepingPathRepository housekeepingPathRepository;
 
@@ -142,7 +145,7 @@ public class HousekeepingPathRepositoryTest {
     housekeepingPathRepository.save(path);
 
     Page<HousekeepingPath> result = housekeepingPathRepository
-        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(0, 500));
+        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().get(0).getPath()).isEqualTo("path");
   }
 
@@ -153,7 +156,7 @@ public class HousekeepingPathRepositoryTest {
     housekeepingPathRepository.save(path);
 
     Page<HousekeepingPath> result = housekeepingPathRepository
-        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(), PageRequest.of(0, 500));
+        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(), PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().size()).isEqualTo(0);
   }
 
@@ -175,7 +178,7 @@ public class HousekeepingPathRepositoryTest {
     housekeepingPathRepository.save(housekeepingPath3);
 
     Page<HousekeepingPath> result = housekeepingPathRepository
-        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(0, 500));
+        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().size()).isEqualTo(2);
   }
 
@@ -194,7 +197,7 @@ public class HousekeepingPathRepositoryTest {
     housekeepingPathRepository.save(housekeepingPath2);
 
     List<HousekeepingPath> result = housekeepingPathRepository
-        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(0, 500))
+        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE))
         .getContent();
     assertThat(result.get(0).getPath()).isEqualTo(path1);
     assertThat(result.get(1).getPath()).isEqualTo(path2);

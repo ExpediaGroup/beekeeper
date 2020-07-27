@@ -111,8 +111,10 @@ public class CommonBeans {
     String s3Endpoint = System.getProperty("aws.s3.endpoint");
     String region = System.getProperty("aws.region");
 
-    EndpointConfiguration endpointConfiguration = new EndpointConfiguration(s3Endpoint, region);
-    return AmazonS3ClientBuilder.standard().withEndpointConfiguration(endpointConfiguration).build();
+    return AmazonS3ClientBuilder
+        .standard()
+        .withEndpointConfiguration(new EndpointConfiguration(s3Endpoint, region))
+        .build();
   }
 
   @Bean
