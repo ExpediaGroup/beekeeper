@@ -201,7 +201,7 @@ public class HousekeepingMetadata implements HousekeepingEntity {
 
   public void setCleanupDelay(Duration cleanupDelay) {
     this.cleanupDelay = cleanupDelay;
-    this.cleanupTimestamp = this.creationTimestamp.plus(cleanupDelay);
+    cleanupTimestamp = creationTimestamp.plus(cleanupDelay);
   }
 
   @Override
@@ -214,7 +214,7 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return format(
         "%s(path=%s, databaseName=%s, tableName=%s, partitionName=%s, housekeepingStatus=%s, creationTimestamp=%s, modifiedTimestamp=%s, cleanupTimestamp=%s, cleanupDelay=%s, cleanupAttempts=%s, clientId=%s, lifecycleType=%s)",
         HousekeepingMetadata.class.getSimpleName(), path, databaseName, tableName, partitionName, housekeepingStatus,
-        creationTimestamp, modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, lifecycleType, clientId);
+        creationTimestamp, modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, clientId, lifecycleType);
   }
 
   public static final class Builder {
