@@ -62,7 +62,6 @@ public abstract class HousekeepingEntityGeneratorTestBase {
 
   protected void assertHousekeepingEntity(HousekeepingEntity housekeepingEntity,
       LifecycleEventType lifecycleEventType) {
-    System.out.println(housekeepingEntity);
     LocalDateTime creationTimestamp = LocalDateTime.now(FIXED_CLOCK);
     assertThat(LifecycleEventType.valueOf(housekeepingEntity.getLifecycleType())).isEqualTo(lifecycleEventType);
     assertThat(housekeepingEntity.getPath()).isEqualTo(PATH);
