@@ -15,34 +15,47 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
+import static com.expedia.apiary.extensions.receiver.common.event.EventType.ALTER_TABLE;
+
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
+
 import java.io.IOException;
-import java.net.URL;
+import java.net.URISyntaxException;
 
-import com.expedia.apiary.extensions.receiver.common.event.EventType;
+import com.google.gson.JsonPrimitive;
 
-public class AlterTableSqsMessage extends SqsMessageFile {
-
-  private static final URL ALTER_TABLE_FILE = SqsMessageFile.class.getResource("/alter_table.json");
-
-  AlterTableSqsMessage() throws IOException {
-    setMessageFromFile(ALTER_TABLE_FILE);
-  }
+public class AlterTableSqsMessage extends SqsMessage {
 
   public AlterTableSqsMessage(
       String tableLocation,
       String oldTableLocation,
-      Boolean isUnreferenced,
-      Boolean isWhitelisted
-  ) throws IOException {
-    setMessageFromFile(ALTER_TABLE_FILE);
+      boolean isUnreferenced,
+      boolean isWhitelisted
+  ) throws IOException, URISyntaxException {
+    super(ALTER_TABLE);
     setTableLocation(tableLocation);
     setOldTableLocation(oldTableLocation);
+    setOldTableName(TABLE_NAME_VALUE);
     setUnreferenced(isUnreferenced);
-    setWhitelisted(EventType.ALTER_TABLE, isWhitelisted);
+    setWhitelisted(isWhitelisted);
   }
 
-  @Override
-  public String getFormattedString() {
-    return String.format(message, tableLocation, oldTableLocation, isUnreferenced, isWhitelisted);
+  public AlterTableSqsMessage(
+      String tableLocation,
+      boolean isExpired
+  ) throws IOException, URISyntaxException {
+    super(ALTER_TABLE);
+    setTableLocation(tableLocation);
+    setOldTableLocation(DUMMY_LOCATION);
+    setOldTableName(TABLE_NAME_VALUE);
+    setExpired(isExpired);
+  }
+
+  public void setOldTableLocation(String oldTableLocation) {
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_OLD_LOCATION_KEY, new JsonPrimitive(oldTableLocation));
+  }
+
+  public void setOldTableName(String oldTableName) {
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_OLD_NAME_KEY, new JsonPrimitive(oldTableName));
   }
 }

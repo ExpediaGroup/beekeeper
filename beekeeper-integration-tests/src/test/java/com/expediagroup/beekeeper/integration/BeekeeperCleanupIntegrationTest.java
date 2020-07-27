@@ -20,7 +20,10 @@ import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter.METRIC_NAME;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -38,7 +41,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 
 import io.micrometer.core.instrument.Meter;
@@ -49,105 +51,79 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 
 import com.expediagroup.beekeeper.cleanup.BeekeeperCleanup;
-import com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 
-public class BeekeeperCleanupIntegrationTest {
+public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
 
-  private static final String REGION = "us-west-2";
+  private static final int TIMEOUT = 30;
+
   private static final String BUCKET = "test-path-bucket";
-
-  private static final String OBJECT_KEY_ROOT = "database/table/id1/partition1";
-  private static final String OBJECT_KEY1 = "database/table/id1/partition1/file1";
-  private static final String OBJECT_KEY2 = "database/table/id1/partition1/file2";
-  private static final String OBJECT_KEY_SENTINEL = "database/table/id1/partition1_$folder$";
+  private static final String DB_AND_TABLE_PREFIX = DATABASE_NAME_VALUE + "/" + TABLE_NAME_VALUE;
+  private static final String OBJECT_KEY_ROOT = DB_AND_TABLE_PREFIX + "/id1/partition1";
+  private static final String OBJECT_KEY1 = DB_AND_TABLE_PREFIX + "/id1/partition1/file1";
+  private static final String OBJECT_KEY2 = DB_AND_TABLE_PREFIX + "/id1/partition1/file2";
+  private static final String OBJECT_KEY_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition1_$folder$";
   private static final String ABSOLUTE_PATH = "s3://" + BUCKET + "/" + OBJECT_KEY_ROOT;
 
-  private static final String OBJECT_KEY_OTHER = "database/table/id1/partition10/file1";
-  private static final String OBJECT_KEY_OTHER_SENTINEL = "database/table/id1/partition10_$folder$";
+  private static final String OBJECT_KEY_OTHER = DB_AND_TABLE_PREFIX + "/id1/partition10/file1";
+  private static final String OBJECT_KEY_OTHER_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition10_$folder$";
 
-  private static final String TABLE_NAME = "table";
-  private static final String BEEKEEPER_PATH_HOUSEKEEPING_TABLE = "housekeeping_path";
-  private static final String BEEKEEPER_METADATA_HOUSEKEEPING_TABLE = "housekeeping_metadata";
-  private static final String FLYWAY_TABLE = "flyway_schema_history";
   private static final String SCHEDULER_DELAY_MS = "5000";
-  private static final String AWS_ACCESS_KEY_ID = "accessKey";
-  private static final String AWS_SECRET_KEY = "secretKey";
   private static final String CONTENT = "Content";
   private static final String HEALTHCHECK_URI = "http://localhost:8008/actuator/health";
   private static final String PROMETHEUS_URI = "http://localhost:8008/actuator/prometheus";
 
   private static AmazonS3 amazonS3;
   private static LocalStackContainer s3Container;
-  private static MySQLContainer mySQLContainer;
-  private static MySqlTestUtils mySqlTestUtils;
 
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   @BeforeAll
-  static void init() throws SQLException {
+  public static void init() {
     s3Container = ContainerTestUtils.awsContainer(S3);
-    mySQLContainer = ContainerTestUtils.mySqlContainer();
     s3Container.start();
-    mySQLContainer.start();
 
-    String jdbcUrl = mySQLContainer.getJdbcUrl() + "?useSSL=false";
-    String username = mySQLContainer.getUsername();
-    String password = mySQLContainer.getPassword();
-
-    System.setProperty("spring.datasource.url", jdbcUrl);
-    System.setProperty("spring.datasource.username", username);
-    System.setProperty("spring.datasource.password", password);
     System.setProperty("spring.profiles.active", "test");
     System.setProperty("properties.scheduler-delay-ms", SCHEDULER_DELAY_MS);
     System.setProperty("properties.dry-run-enabled", "false");
     System.setProperty("aws.s3.endpoint", ContainerTestUtils.awsServiceEndpoint(s3Container, S3));
-    System.setProperty("aws.accessKeyId", AWS_ACCESS_KEY_ID);
-    System.setProperty("aws.secretKey", AWS_SECRET_KEY);
-    System.setProperty("aws.region", REGION);
 
-    amazonS3 = ContainerTestUtils.s3Client(s3Container, REGION);
-    amazonS3.createBucket(new CreateBucketRequest(BUCKET, REGION));
-
-    mySqlTestUtils = new MySqlTestUtils(jdbcUrl, username, password);
+    amazonS3 = ContainerTestUtils.s3Client(s3Container, AWS_REGION);
+    amazonS3.createBucket(new CreateBucketRequest(BUCKET, AWS_REGION));
   }
 
   @AfterAll
-  static void teardown() throws SQLException {
+  public static void teardown() {
     amazonS3.shutdown();
-    mySqlTestUtils.close();
     s3Container.stop();
-    mySQLContainer.stop();
   }
 
   @BeforeEach
-  void setup() throws SQLException {
+  public void setup() {
     amazonS3.listObjectsV2(BUCKET)
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
-    mySqlTestUtils.dropTable(BEEKEEPER_PATH_HOUSEKEEPING_TABLE);
-    mySqlTestUtils.dropTable(BEEKEEPER_METADATA_HOUSEKEEPING_TABLE);
-    mySqlTestUtils.dropTable(FLYWAY_TABLE);
     executorService.execute(() -> BeekeeperCleanup.main(new String[] {}));
     await().atMost(Duration.ONE_MINUTE)
         .until(BeekeeperCleanup::isRunning);
   }
 
   @AfterEach
-  void stop() throws InterruptedException {
+  public void stop() throws InterruptedException {
     BeekeeperCleanup.stop();
     executorService.awaitTermination(5, TimeUnit.SECONDS);
   }
 
   @Test
-  void cleanupPathsForFile() throws SQLException {
+  public void cleanupPathsForFile() throws SQLException {
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
 
     String path = "s3://" + BUCKET + "/" + OBJECT_KEY1;
-    mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, path, TABLE_NAME);
-    await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+    insertUnreferencedPath(path);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths()
             .get(0)
             .getHousekeepingStatus() == DELETED);
 
@@ -158,16 +134,16 @@ public class BeekeeperCleanupIntegrationTest {
   }
 
   @Test
-  void cleanupPathsForDirectory() throws SQLException {
+  public void cleanupPathsForDirectory() throws SQLException {
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
     amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER_SENTINEL, "");
 
-    mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, ABSOLUTE_PATH, TABLE_NAME);
-    await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+    insertUnreferencedPath(ABSOLUTE_PATH);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths()
             .get(0)
             .getHousekeepingStatus() == DELETED);
 
@@ -179,8 +155,8 @@ public class BeekeeperCleanupIntegrationTest {
   }
 
   @Test
-  void cleanupPathsForDirectoryWithSpace() throws SQLException {
-    String objectKeyRoot = "database/table/ /id1/partition1";
+  public void cleanupPathsForDirectoryWithSpace() throws SQLException {
+    String objectKeyRoot = DB_AND_TABLE_PREFIX + "/ /id1/partition1";
     String objectKey1 = objectKeyRoot + "/file1";
     String objectKey2 = objectKeyRoot + "/file2";
     String objectKeySentinel = objectKeyRoot + "_$folder$";
@@ -189,9 +165,9 @@ public class BeekeeperCleanupIntegrationTest {
     amazonS3.putObject(BUCKET, objectKey2, CONTENT);
     amazonS3.putObject(BUCKET, objectKeySentinel, "");
 
-    mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, absolutePath, TABLE_NAME);
-    await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+    insertUnreferencedPath(absolutePath);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths()
             .get(0)
             .getHousekeepingStatus() == DELETED);
 
@@ -201,15 +177,15 @@ public class BeekeeperCleanupIntegrationTest {
   }
 
   @Test
-  void cleanupPathsForDirectoryWithTrailingSlash() throws SQLException {
+  public void cleanupPathsForDirectoryWithTrailingSlash() throws SQLException {
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
 
-    mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, ABSOLUTE_PATH + "/", TABLE_NAME);
-    await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+    insertUnreferencedPath(ABSOLUTE_PATH + "/");
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths()
             .get(0)
             .getHousekeepingStatus() == DELETED);
 
@@ -220,9 +196,9 @@ public class BeekeeperCleanupIntegrationTest {
   }
 
   @Test
-  void cleanupSentinelForParent() throws SQLException {
-    String parentSentinel = "database/table/id1_$folder$";
-    String tableSentinel = "database/table_$folder$";
+  public void cleanupSentinelForParent() throws SQLException {
+    String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
+    String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
     String databaseSentinel = "database_$folder$";
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
@@ -231,9 +207,9 @@ public class BeekeeperCleanupIntegrationTest {
     amazonS3.putObject(BUCKET, tableSentinel, "");
     amazonS3.putObject(BUCKET, databaseSentinel, "");
 
-    mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, ABSOLUTE_PATH, TABLE_NAME);
-    await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+    insertUnreferencedPath(ABSOLUTE_PATH);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths()
             .get(0)
             .getHousekeepingStatus() == DELETED);
 
@@ -246,9 +222,9 @@ public class BeekeeperCleanupIntegrationTest {
   }
 
   @Test
-  void cleanupSentinelForNonEmptyParent() throws SQLException {
-    String parentSentinel = "database/table/id1_$folder$";
-    String tableSentinel = "database/table_$folder$";
+  public void cleanupSentinelForNonEmptyParent() throws SQLException {
+    String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
+    String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
@@ -256,9 +232,9 @@ public class BeekeeperCleanupIntegrationTest {
     amazonS3.putObject(BUCKET, parentSentinel, "");
     amazonS3.putObject(BUCKET, tableSentinel, "");
 
-    mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, ABSOLUTE_PATH, TABLE_NAME);
-    await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+    insertUnreferencedPath(ABSOLUTE_PATH);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths()
             .get(0)
             .getHousekeepingStatus() == DELETED);
 
@@ -270,13 +246,13 @@ public class BeekeeperCleanupIntegrationTest {
   }
 
   @Test
-  void metrics() throws SQLException {
+  public void metrics() throws SQLException {
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
 
-    mySqlTestUtils.insertPath(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, ABSOLUTE_PATH, TABLE_NAME);
-    await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> mySqlTestUtils.getPaths(BEEKEEPER_PATH_HOUSEKEEPING_TABLE, UNREFERENCED.toString())
+    insertUnreferencedPath(ABSOLUTE_PATH);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths()
             .get(0)
             .getHousekeepingStatus() == DELETED);
 
@@ -291,7 +267,7 @@ public class BeekeeperCleanupIntegrationTest {
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-          .contains("cleanup-job", "s3-paths-deleted", "s3-" + BytesDeletedReporter.METRIC_NAME);
+          .contains("cleanup-job", "s3-paths-deleted", "s3-" + METRIC_NAME);
     });
   }
 
@@ -299,7 +275,7 @@ public class BeekeeperCleanupIntegrationTest {
   public void healthCheck() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
-    await().atMost(30, TimeUnit.SECONDS)
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
@@ -307,7 +283,7 @@ public class BeekeeperCleanupIntegrationTest {
   public void prometheus() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(PROMETHEUS_URI);
-    await().atMost(30, TimeUnit.SECONDS)
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 }

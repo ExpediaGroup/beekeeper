@@ -31,7 +31,7 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 @Component
 public class WhitelistedListenerEventFilter implements ListenerEventFilter {
 
-  private static final String BEEKEEPER_HIVE_EVENT_WHITELIST = "beekeeper.hive.event.whitelist";
+  public static final String BEEKEEPER_HIVE_EVENT_WHITELIST = "beekeeper.hive.event.whitelist";
 
   @Override
   public boolean isFiltered(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {

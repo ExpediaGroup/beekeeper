@@ -18,6 +18,7 @@ package com.expediagroup.beekeeper.integration.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
@@ -29,78 +30,82 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 
-public class SqsMessageFileTest {
+public class SqsMessageTest {
 
-  private static final Logger log = LoggerFactory.getLogger(SqsMessageFileTest.class);
-  private final Set<String> commonKeys = Set.of("protocolVersion", "eventType", "tableParameters",
+  private static final Logger log = LoggerFactory.getLogger(SqsMessageTest.class);
+
+  private static final String DUMMY_VAL = "s3://location";
+  private static final Set<String> COMMON_KEYS = Set.of("protocolVersion", "eventType", "tableParameters",
       "dbName", "tableName", "tableLocation");
 
   @Test
-  public void testCreateTableFormat() throws IOException {
+  public void testCreateTableFormat() throws IOException, URISyntaxException {
     Set<String> specificKeys = new HashSet<>();
-    CreateTableSqsMessage message = new CreateTableSqsMessage();
+    CreateTableSqsMessage message = new CreateTableSqsMessage(DUMMY_VAL, true);
     assertKeys(message, specificKeys, "CREATE_TABLE");
   }
 
   @Test
-  public void testAddPartitionFormat() throws IOException {
+  public void testAddPartitionFormat() throws IOException, URISyntaxException {
     Set<String> specificKeys = Set.of(
         "partitionKeys",
         "partitionValues",
         "partitionLocation",
         "tableParameters");
-    AddPartitionSqsMessage message = new AddPartitionSqsMessage();
+    AddPartitionSqsMessage message = new AddPartitionSqsMessage(DUMMY_VAL, DUMMY_VAL, DUMMY_VAL, true);
     assertKeys(message, specificKeys, "ADD_PARTITION");
   }
 
   @Test
-  public void testAlterPartitionFormat() throws IOException {
+  public void testAlterPartitionFormat() throws IOException, URISyntaxException {
     Set<String> specificKeys = Set.of(
         "partitionKeys",
         "partitionValues",
         "partitionLocation",
         "oldPartitionValues",
         "oldPartitionLocation");
-    AlterPartitionSqsMessage message = new AlterPartitionSqsMessage();
+    AlterPartitionSqsMessage message = new AlterPartitionSqsMessage(DUMMY_VAL, DUMMY_VAL, DUMMY_VAL, true, true);
     assertKeys(message, specificKeys, "ALTER_PARTITION");
   }
 
   @Test
-  public void testAlterTableFormat() throws IOException {
+  public void testAlterTableFormat() throws IOException, URISyntaxException {
     Set<String> specificKeys = Set.of(
         "oldTableName",
         "oldTableLocation");
-    AlterTableSqsMessage message = new AlterTableSqsMessage();
+    AlterTableSqsMessage message = new AlterTableSqsMessage(DUMMY_VAL, DUMMY_VAL, true, true);
     assertKeys(message, specificKeys, "ALTER_TABLE");
   }
 
   @Test
-  public void testDropPartitionFormat() throws IOException {
+  public void testDropPartitionFormat() throws IOException, URISyntaxException {
     Set<String> specificKeys = Set.of(
         "partitionKeys",
         "partitionValues",
         "partitionLocation",
         "tableParameters");
-    DropPartitionSqsMessage message = new DropPartitionSqsMessage();
+    DropPartitionSqsMessage message = new DropPartitionSqsMessage(DUMMY_VAL, true, true);
     assertKeys(message, specificKeys, "DROP_PARTITION");
   }
 
   @Test
-  public void testDropTableFormat() throws IOException {
+  public void testDropTableFormat() throws IOException, URISyntaxException {
     Set<String> specificKeys = new HashSet<>();
-    DropTableSqsMessage message = new DropTableSqsMessage();
+    DropTableSqsMessage message = new DropTableSqsMessage(DUMMY_VAL, true, true);
     assertKeys(message, specificKeys, "DROP_TABLE");
   }
 
-  private void assertKeys(SqsMessageFile sqsMessageFile, Set<String> specificKeys, String eventType) {
+  private void assertKeys(SqsMessage sqsMessage, Set<String> specificKeys, String eventType) {
     SortedSet<String> mergedSet = new TreeSet<>() {{
       addAll(specificKeys);
-      addAll(commonKeys);
+      addAll(COMMON_KEYS);
     }};
 
-    JsonObject object = sqsMessageFile.getNestedJsonObject();
+    JsonObject object = sqsMessage.getApiaryEventMessageJsonObject();
 
     assertThat(object.get("eventType").getAsString()).isEqualTo(eventType);
     assertThat(object.keySet()).isEqualTo(mergedSet);
+
+    System.out.println(sqsMessage.getFormattedString());
   }
 }
