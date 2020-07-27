@@ -128,6 +128,13 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
     return builder.build();
   }
 
+  /**
+   * Method to merge partition keys and values to create the partition name.
+   *
+   * @param keys List of partition keys e.g. ["event_date", "event_hour"].
+   * @param values List of partition values e.g ["2020-01-01", "0"].
+   * @return Partition name e.g. event_date=2020-01-01/event_hour=0
+   */
   private String generatePartitionName(List<String> keys, List<String> values) {
     return IntStream.range(0, keys.size())
         .mapToObj(i -> keys.get(i) + "=" + values.get(i))

@@ -64,6 +64,9 @@ public class HousekeepingMetadataRepositoryTest {
   private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
   private static final Duration CLEANUP_DELAY = Duration.parse("P3D");
   private static final LocalDateTime CLEANUP_TIMESTAMP = CREATION_TIMESTAMP.plus(CLEANUP_DELAY);
+  
+  private static final int PAGE = 0;
+  private static final int PAGE_SIZE = 500;
 
   @Autowired
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
@@ -153,7 +156,7 @@ public class HousekeepingMetadataRepositoryTest {
     housekeepingMetadataRepository.save(table);
 
     Page<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(0, 500));
+        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().get(0).getDatabaseName()).isEqualTo(DATABASE_NAME);
     assertThat(result.getContent().get(0).getTableName()).isEqualTo(TABLE_NAME);
   }
@@ -165,7 +168,7 @@ public class HousekeepingMetadataRepositoryTest {
     housekeepingMetadataRepository.save(table);
 
     Page<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(), PageRequest.of(0, 500));
+        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(), PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().size()).isEqualTo(0);
   }
 
@@ -183,7 +186,7 @@ public class HousekeepingMetadataRepositoryTest {
     housekeepingMetadataRepository.save(housekeepingTable3);
 
     Page<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(0, 500));
+        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().size()).isEqualTo(2);
   }
 
@@ -201,7 +204,7 @@ public class HousekeepingMetadataRepositoryTest {
     housekeepingMetadataRepository.save(housekeepingTable2);
 
     List<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(0, 500))
+        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE))
         .getContent();
     assertThat(result.get(0).getDatabaseName()).isEqualTo(DATABASE_NAME);
     assertThat(result.get(0).getTableName()).isEqualTo(table1);

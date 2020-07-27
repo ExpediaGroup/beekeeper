@@ -205,7 +205,7 @@ public class HousekeepingPath implements HousekeepingEntity {
     return format(
         "%s(path=%s, databaseName=%s, tableName=%s, housekeepingStatus=%s, creationTimestamp=%s, modifiedTimestamp=%s, cleanupTimestamp=%s, cleanupDelay=%s, cleanupAttempts=%s, clientId=%s, lifecycleType=%s)",
         HousekeepingPath.class.getSimpleName(), path, databaseName, tableName, housekeepingStatus, creationTimestamp,
-        modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, lifecycleType, clientId);
+        modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, clientId, lifecycleType);
   }
 
   public static final class Builder {

@@ -141,6 +141,9 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     this.tableName = tableName;
   }
 
+  /**
+   * @return The full name of the partition in hive e.g. event_date=2020-01-01/event_hour=0
+   */
   public String getPartitionName() {
     return partitionName;
   }
@@ -211,7 +214,7 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return format(
         "%s(path=%s, databaseName=%s, tableName=%s, partitionName=%s, housekeepingStatus=%s, creationTimestamp=%s, modifiedTimestamp=%s, cleanupTimestamp=%s, cleanupDelay=%s, cleanupAttempts=%s, clientId=%s, lifecycleType=%s)",
         HousekeepingMetadata.class.getSimpleName(), path, databaseName, tableName, partitionName, housekeepingStatus,
-        creationTimestamp, modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, lifecycleType, clientId);
+        creationTimestamp, modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, clientId, lifecycleType);
   }
 
   public static final class Builder {
