@@ -141,6 +141,9 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     this.tableName = tableName;
   }
 
+  /**
+   * @return The full name of the partition in hive e.g. event_date=2020-01-01/event_hour=0
+   */
   public String getPartitionName() {
     return partitionName;
   }
