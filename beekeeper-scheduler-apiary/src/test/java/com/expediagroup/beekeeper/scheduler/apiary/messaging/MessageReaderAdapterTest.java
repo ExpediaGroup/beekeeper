@@ -48,7 +48,7 @@ public class MessageReaderAdapterTest {
   @Mock private MessageReader delegate;
   @Mock private MessageEvent messageEvent;
   @Mock private HousekeepingPath path;
-  @Mock private HousekeepingMetadata table;
+  @Mock private HousekeepingMetadata metadata;
   @Mock private MessageEventHandler unreferencedEventHandler;
   @Mock private MessageEventHandler expiredEventHandler;
   private MessageReaderAdapter messageReaderAdapter;
@@ -56,7 +56,7 @@ public class MessageReaderAdapterTest {
 
   @BeforeEach
   public void beforeEach() {
-    housekeepingEntities = List.of(path, table);
+    housekeepingEntities = List.of(path, metadata);
     messageReaderAdapter = new MessageReaderAdapter(delegate, List.of(unreferencedEventHandler, expiredEventHandler));
   }
 
@@ -64,7 +64,7 @@ public class MessageReaderAdapterTest {
   public void typicalRead() {
     when(delegate.read()).thenReturn(Optional.of(messageEvent));
     when(unreferencedEventHandler.handleMessage(messageEvent)).thenReturn(List.of(path));
-    when(expiredEventHandler.handleMessage(messageEvent)).thenReturn(List.of(table));
+    when(expiredEventHandler.handleMessage(messageEvent)).thenReturn(List.of(metadata));
 
     Optional<BeekeeperEvent> read = messageReaderAdapter.read();
     assertThat(read).isPresent();

@@ -57,8 +57,16 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class HousekeepingMetadataRepositoryTest {
 
-  private static String DATABASE_NAME = "database";
-  private static String TABLE_NAME = "table";
+  private static final String PATH = "path";
+  private static final String DATABASE_NAME = "database";
+  private static final String TABLE_NAME = "table";
+  private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
+  private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
+  private static final Duration CLEANUP_DELAY = Duration.parse("P3D");
+  private static final LocalDateTime CLEANUP_TIMESTAMP = CREATION_TIMESTAMP.plus(CLEANUP_DELAY);
+  
+  private static final int PAGE = 0;
+  private static final int PAGE_SIZE = 500;
 
   @Autowired
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
@@ -77,8 +85,10 @@ public class HousekeepingMetadataRepositoryTest {
     List<HousekeepingMetadata> tables = housekeepingMetadataRepository.findAll();
     assertThat(tables.size()).isEqualTo(1);
     HousekeepingMetadata savedTable = tables.get(0);
+    assertThat(savedTable.getPath()).isEqualTo(PATH);
     assertThat(savedTable.getDatabaseName()).isEqualTo(DATABASE_NAME);
     assertThat(savedTable.getTableName()).isEqualTo(TABLE_NAME);
+    assertThat(savedTable.getPartitionName()).isEqualTo(PARTITION_NAME);
     assertThat(savedTable.getHousekeepingStatus()).isEqualTo(SCHEDULED);
     assertThat(savedTable.getCleanupDelay()).isEqualTo(Duration.parse("P3D"));
     assertThat(savedTable.getCreationTimestamp()).isNotNull();
@@ -143,11 +153,10 @@ public class HousekeepingMetadataRepositoryTest {
   @Test
   public void findRecordsForCleanupByModifiedTimestamp() {
     HousekeepingMetadata table = createEntityHousekeepingTable();
-    table.setCleanupTimestamp(LocalDateTime.now(ZoneId.of("UTC")));
     housekeepingMetadataRepository.save(table);
 
     Page<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(ZoneId.of("UTC")), PageRequest.of(0, 500));
+        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().get(0).getDatabaseName()).isEqualTo(DATABASE_NAME);
     assertThat(result.getContent().get(0).getTableName()).isEqualTo(TABLE_NAME);
   }
@@ -159,51 +168,43 @@ public class HousekeepingMetadataRepositoryTest {
     housekeepingMetadataRepository.save(table);
 
     Page<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(), PageRequest.of(0, 500));
+        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(), PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().size()).isEqualTo(0);
   }
 
   @Test
   public void findRecordsForCleanupByModifiedTimestampMixedHousekeepingStatus() {
-    LocalDateTime now = LocalDateTime.now(ZoneId.of("UTC"));
-
     HousekeepingMetadata housekeepingTable1 = createEntityHousekeepingTable();
-    housekeepingTable1.setCleanupTimestamp(now);
     housekeepingMetadataRepository.save(housekeepingTable1);
 
     HousekeepingMetadata housekeepingTable2 = createEntityHousekeepingTable();
-    housekeepingTable2.setCleanupTimestamp(now);
     housekeepingTable2.setHousekeepingStatus(FAILED);
     housekeepingMetadataRepository.save(housekeepingTable2);
 
     HousekeepingMetadata housekeepingTable3 = createEntityHousekeepingTable();
-    housekeepingTable3.setCleanupTimestamp(now);
     housekeepingTable3.setHousekeepingStatus(DELETED);
     housekeepingMetadataRepository.save(housekeepingTable3);
 
     Page<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(ZoneId.of("UTC")), PageRequest.of(0, 500));
+        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().size()).isEqualTo(2);
   }
 
   @Test
   public void findRecordsForCleanupByModifiedTimestampRespectsOrder() {
-    LocalDateTime now = LocalDateTime.now(ZoneId.of("UTC"));
     String table1 = "table1";
     String table2 = "table2";
 
     HousekeepingMetadata housekeepingTable1 = createEntityHousekeepingTable();
-    housekeepingTable1.setCleanupTimestamp(now);
     housekeepingTable1.setTableName(table1);
     housekeepingMetadataRepository.save(housekeepingTable1);
 
     HousekeepingMetadata housekeepingTable2 = createEntityHousekeepingTable();
-    housekeepingTable2.setCleanupTimestamp(now);
     housekeepingTable2.setTableName(table2);
     housekeepingMetadataRepository.save(housekeepingTable2);
 
     List<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(ZoneId.of("UTC")), PageRequest.of(0, 500))
+        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE))
         .getContent();
     assertThat(result.get(0).getDatabaseName()).isEqualTo(DATABASE_NAME);
     assertThat(result.get(0).getTableName()).isEqualTo(table1);
@@ -217,7 +218,7 @@ public class HousekeepingMetadataRepositoryTest {
     housekeepingMetadataRepository.save(table);
 
     Optional<HousekeepingMetadata> result = housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(
-        DATABASE_NAME, TABLE_NAME);
+        DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
 
     assertTrue(result.isPresent());
     compare(result.get(), table);
@@ -230,7 +231,7 @@ public class HousekeepingMetadataRepositoryTest {
     housekeepingMetadataRepository.save(table);
 
     Optional<HousekeepingMetadata> result = housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(
-        DATABASE_NAME, TABLE_NAME);
+        DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
 
     assertTrue(result.isEmpty());
   }
@@ -245,29 +246,32 @@ public class HousekeepingMetadataRepositoryTest {
     housekeepingMetadataRepository.save(housekeepingTable2);
 
     Optional<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME);
+        .findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
 
     assertTrue(result.isPresent());
     compare(result.get(), housekeepingTable1);
   }
 
   private HousekeepingMetadata createEntityHousekeepingTable() {
-    LocalDateTime creationTimestamp = LocalDateTime.now(ZoneId.of("UTC"));
     return new HousekeepingMetadata.Builder()
+        .path(PATH)
         .databaseName(DATABASE_NAME)
         .tableName(TABLE_NAME)
+        .partitionName(PARTITION_NAME)
         .housekeepingStatus(SCHEDULED)
-        .creationTimestamp(creationTimestamp)
-        .modifiedTimestamp(creationTimestamp)
-        .cleanupDelay(Duration.parse("P3D"))
+        .creationTimestamp(CREATION_TIMESTAMP)
+        .modifiedTimestamp(CREATION_TIMESTAMP)
+        .cleanupDelay(CLEANUP_DELAY)
         .cleanupAttempts(0)
         .lifecycleType(EXPIRED.toString())
         .build();
   }
 
   private void compare(HousekeepingMetadata expected, HousekeepingMetadata actual) {
+    assertThat(actual.getPath()).isEqualTo(expected.getPath());
     assertThat(actual.getDatabaseName()).isEqualTo(expected.getDatabaseName());
     assertThat(actual.getTableName()).isEqualTo(expected.getTableName());
+    assertThat(actual.getPartitionName()).isEqualTo(expected.getPartitionName());
     assertThat(actual.getHousekeepingStatus()).isEqualTo(expected.getHousekeepingStatus());
     assertThat(actual.getCreationTimestamp()).isEqualTo(expected.getCreationTimestamp());
     assertThat(actual.getModifiedTimestamp()).isEqualTo(expected.getModifiedTimestamp());

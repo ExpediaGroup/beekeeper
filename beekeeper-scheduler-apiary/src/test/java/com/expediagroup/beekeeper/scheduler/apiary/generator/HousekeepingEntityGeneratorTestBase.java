@@ -38,6 +38,7 @@ import com.expediagroup.beekeeper.scheduler.apiary.generator.utils.CleanupDelayE
 public abstract class HousekeepingEntityGeneratorTestBase {
 
   protected static final String CLIENT_ID = "client-id";
+  protected static final String PATH = "path";
   protected static final String DATABASE = "database";
   protected static final String TABLE = "table";
   protected static final Integer CLEANUP_ATTEMPTS = 0;
@@ -63,9 +64,10 @@ public abstract class HousekeepingEntityGeneratorTestBase {
       LifecycleEventType lifecycleEventType) {
     LocalDateTime creationTimestamp = LocalDateTime.now(FIXED_CLOCK);
     assertThat(LifecycleEventType.valueOf(housekeepingEntity.getLifecycleType())).isEqualTo(lifecycleEventType);
-    assertThat(housekeepingEntity.getHousekeepingStatus()).isEqualTo(SCHEDULED);
+    assertThat(housekeepingEntity.getPath()).isEqualTo(PATH);
     assertThat(housekeepingEntity.getTableName()).isEqualTo(TABLE);
     assertThat(housekeepingEntity.getDatabaseName()).isEqualTo(DATABASE);
+    assertThat(housekeepingEntity.getHousekeepingStatus()).isEqualTo(SCHEDULED);
     assertThat(housekeepingEntity.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS);
     assertThat(housekeepingEntity.getCleanupDelay()).isEqualTo(CLEANUP_DELAY);
     assertThat(housekeepingEntity.getCleanupTimestamp()).isEqualTo(creationTimestamp.plus(CLEANUP_DELAY));

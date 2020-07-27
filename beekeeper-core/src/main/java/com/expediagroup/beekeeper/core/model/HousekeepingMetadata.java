@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.core.model;
 
+import static java.lang.String.format;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -41,11 +43,17 @@ public class HousekeepingMetadata implements HousekeepingEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @Column(name = "path", nullable = false)
+  private String path;
+
   @Column(name = "database_name", nullable = false)
   private String databaseName;
 
   @Column(name = "table_name", nullable = false)
   private String tableName;
+
+  @Column(name = "partition_name")
+  private String partitionName;
 
   @Column(name = "housekeeping_status", nullable = false)
   @Enumerated(EnumType.STRING)
@@ -77,13 +85,15 @@ public class HousekeepingMetadata implements HousekeepingEntity {
 
   }
 
-  private HousekeepingMetadata(Long id, String databaseName, String tableName, HousekeepingStatus housekeepingStatus,
-      LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,
-      LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts, String lifecycleType,
-      String clientId) {
+  private HousekeepingMetadata(Long id, String path, String databaseName, String tableName,
+      String partitionName, HousekeepingStatus housekeepingStatus, LocalDateTime creationTimestamp,
+      LocalDateTime modifiedTimestamp, LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts,
+      String lifecycleType, String clientId) {
     this.id = id;
+    this.path = path;
     this.databaseName = databaseName;
     this.tableName = tableName;
+    this.partitionName = partitionName;
     this.housekeepingStatus = housekeepingStatus;
     this.creationTimestamp = creationTimestamp;
     this.modifiedTimestamp = modifiedTimestamp;
@@ -109,6 +119,11 @@ public class HousekeepingMetadata implements HousekeepingEntity {
   }
 
   @Override
+  public String getPath() {
+    return path;
+  }
+
+  @Override
   public String getDatabaseName() {
     return databaseName;
   }
@@ -126,6 +141,13 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     this.tableName = tableName;
   }
 
+  /**
+   * @return The full name of the partition in hive e.g. event_date=2020-01-01/event_hour=0
+   */
+  public String getPartitionName() {
+    return partitionName;
+  }
+
   @Override
   public HousekeepingStatus getHousekeepingStatus() {
     return housekeepingStatus;
@@ -140,17 +162,9 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return creationTimestamp;
   }
 
-  public void setCreationTimestamp(LocalDateTime creationTimestamp) {
-    this.creationTimestamp = creationTimestamp;
-  }
-
   @Override
   public LocalDateTime getModifiedTimestamp() {
     return modifiedTimestamp;
-  }
-
-  public void setModifiedTimestamp(LocalDateTime modifiedTimestamp) {
-    this.modifiedTimestamp = modifiedTimestamp;
   }
 
   @Override
@@ -195,11 +209,21 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return new MetricTag("table", String.join(".", databaseName, tableName));
   }
 
+  @Override
+  public String toString() {
+    return format(
+        "%s(path=%s, databaseName=%s, tableName=%s, partitionName=%s, housekeepingStatus=%s, creationTimestamp=%s, modifiedTimestamp=%s, cleanupTimestamp=%s, cleanupDelay=%s, cleanupAttempts=%s, clientId=%s, lifecycleType=%s)",
+        HousekeepingMetadata.class.getSimpleName(), path, databaseName, tableName, partitionName, housekeepingStatus,
+        creationTimestamp, modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, clientId, lifecycleType);
+  }
+
   public static final class Builder {
 
     private Long id;
+    private String path;
     private String databaseName;
     private String tableName;
+    private String partitionName;
     private HousekeepingStatus housekeepingStatus;
     private LocalDateTime creationTimestamp;
     private LocalDateTime modifiedTimestamp;
@@ -215,6 +239,11 @@ public class HousekeepingMetadata implements HousekeepingEntity {
       return this;
     }
 
+    public HousekeepingMetadata.Builder path(String path) {
+      this.path = path;
+      return this;
+    }
+
     public HousekeepingMetadata.Builder databaseName(String databaseName) {
       this.databaseName = databaseName;
       return this;
@@ -222,6 +251,11 @@ public class HousekeepingMetadata implements HousekeepingEntity {
 
     public HousekeepingMetadata.Builder tableName(String tableName) {
       this.tableName = tableName;
+      return this;
+    }
+
+    public HousekeepingMetadata.Builder partitionName(String partitionName) {
+      this.partitionName = partitionName;
       return this;
     }
 
@@ -263,8 +297,9 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     public HousekeepingMetadata build() {
       LocalDateTime cleanupTimestamp = configureCleanupTimestamp();
 
-      return new HousekeepingMetadata(id, databaseName, tableName, housekeepingStatus, creationTimestamp,
-          modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, lifecycleType, clientId);
+      return new HousekeepingMetadata(id, path, databaseName, tableName, partitionName, housekeepingStatus,
+          creationTimestamp, modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, lifecycleType,
+          clientId);
     }
 
     private LocalDateTime configureCleanupTimestamp() {

@@ -30,6 +30,8 @@ public interface HousekeepingEntity extends Taggable {
 
   String getTableName();
 
+  String getPath();
+
   HousekeepingStatus getHousekeepingStatus();
 
   Duration getCleanupDelay();
