@@ -64,7 +64,7 @@ public class HousekeepingMetadataRepositoryTest {
   private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
   private static final Duration CLEANUP_DELAY = Duration.parse("P3D");
   private static final LocalDateTime CLEANUP_TIMESTAMP = CREATION_TIMESTAMP.plus(CLEANUP_DELAY);
-  
+
   private static final int PAGE = 0;
   private static final int PAGE_SIZE = 500;
 
