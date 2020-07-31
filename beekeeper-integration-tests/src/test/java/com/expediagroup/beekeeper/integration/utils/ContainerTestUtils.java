@@ -61,6 +61,7 @@ public class ContainerTestUtils {
         region);
 
     // build with disableChunkedEncoding to be able to create empty files
+
     return AmazonS3ClientBuilder.standard()
         .withEndpointConfiguration(endpointConfiguration)
         .disableChunkedEncoding()
