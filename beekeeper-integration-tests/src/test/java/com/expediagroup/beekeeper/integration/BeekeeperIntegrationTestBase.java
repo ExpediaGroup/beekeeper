@@ -56,6 +56,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
@@ -63,6 +65,7 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.MySqlTestUtils;
 
+@Testcontainers
 public abstract class BeekeeperIntegrationTestBase {
 
   // AWS VARIABLES
@@ -90,16 +93,14 @@ public abstract class BeekeeperIntegrationTestBase {
       + " ORDER BY " + PATH_FIELD;
 
   // MySQL DB CONTAINER AND UTILS
-  private static MySQLContainer mySQLContainer;
+  @Container
+  private static final MySQLContainer mySQLContainer = ContainerTestUtils.mySqlContainer();
   private static MySqlTestUtils mySQLTestUtils;
 
   protected final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   @BeforeAll
   protected static void initMySQLContainer() throws SQLException {
-    mySQLContainer = ContainerTestUtils.mySqlContainer();
-    mySQLContainer.start();
-
     String jdbcUrl = mySQLContainer.getJdbcUrl() + "?useSSL=false";
     String username = mySQLContainer.getUsername();
     String password = mySQLContainer.getPassword();
@@ -117,7 +118,6 @@ public abstract class BeekeeperIntegrationTestBase {
   @AfterAll
   protected static void destroyMySQLContainer() throws SQLException {
     mySQLTestUtils.close();
-    mySQLContainer.stop();
   }
 
   @BeforeEach
