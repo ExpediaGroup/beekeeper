@@ -54,6 +54,7 @@ public class AlterPartitionSqsMessage extends SqsMessage {
     setOldPartitionLocation(DUMMY_LOCATION);
     setPartitionKeys(partitionKeys);
     setPartitionValues(partitionValues);
+    setOldPartitionValues(DUMMY_PARTITION_VALUES);
     setExpired(isExpired);
   }
 

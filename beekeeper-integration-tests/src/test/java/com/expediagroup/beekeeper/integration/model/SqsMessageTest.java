@@ -17,6 +17,10 @@ package com.expediagroup.beekeeper.integration.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static com.expediagroup.beekeeper.integration.model.SqsMessage.DUMMY_LOCATION;
+import static com.expediagroup.beekeeper.integration.model.SqsMessage.DUMMY_PARTITION_KEYS;
+import static com.expediagroup.beekeeper.integration.model.SqsMessage.DUMMY_PARTITION_VALUES;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashSet;
@@ -25,23 +29,18 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 
 public class SqsMessageTest {
 
-  private static final Logger log = LoggerFactory.getLogger(SqsMessageTest.class);
-
-  private static final String DUMMY_VAL = "s3://location";
   private static final Set<String> COMMON_KEYS = Set.of("protocolVersion", "eventType", "tableParameters",
       "dbName", "tableName", "tableLocation");
 
   @Test
   public void testCreateTableFormat() throws IOException, URISyntaxException {
     Set<String> specificKeys = new HashSet<>();
-    CreateTableSqsMessage message = new CreateTableSqsMessage(DUMMY_VAL, true);
+    CreateTableSqsMessage message = new CreateTableSqsMessage(DUMMY_LOCATION, true);
     assertKeys(message, specificKeys, "CREATE_TABLE");
   }
 
@@ -52,7 +51,8 @@ public class SqsMessageTest {
         "partitionValues",
         "partitionLocation",
         "tableParameters");
-    AddPartitionSqsMessage message = new AddPartitionSqsMessage(DUMMY_VAL, DUMMY_VAL, DUMMY_VAL, true);
+    AddPartitionSqsMessage message = new AddPartitionSqsMessage(DUMMY_LOCATION, DUMMY_PARTITION_KEYS,
+        DUMMY_PARTITION_VALUES, true);
     assertKeys(message, specificKeys, "ADD_PARTITION");
   }
 
@@ -64,7 +64,8 @@ public class SqsMessageTest {
         "partitionLocation",
         "oldPartitionValues",
         "oldPartitionLocation");
-    AlterPartitionSqsMessage message = new AlterPartitionSqsMessage(DUMMY_VAL, DUMMY_VAL, DUMMY_VAL, true, true);
+    AlterPartitionSqsMessage message = new AlterPartitionSqsMessage(DUMMY_LOCATION, DUMMY_PARTITION_KEYS,
+        DUMMY_PARTITION_VALUES, true);
     assertKeys(message, specificKeys, "ALTER_PARTITION");
   }
 
@@ -73,7 +74,7 @@ public class SqsMessageTest {
     Set<String> specificKeys = Set.of(
         "oldTableName",
         "oldTableLocation");
-    AlterTableSqsMessage message = new AlterTableSqsMessage(DUMMY_VAL, DUMMY_VAL, true, true);
+    AlterTableSqsMessage message = new AlterTableSqsMessage(DUMMY_LOCATION, true);
     assertKeys(message, specificKeys, "ALTER_TABLE");
   }
 
@@ -84,14 +85,14 @@ public class SqsMessageTest {
         "partitionValues",
         "partitionLocation",
         "tableParameters");
-    DropPartitionSqsMessage message = new DropPartitionSqsMessage(DUMMY_VAL, true, true);
+    DropPartitionSqsMessage message = new DropPartitionSqsMessage(DUMMY_LOCATION, true, true);
     assertKeys(message, specificKeys, "DROP_PARTITION");
   }
 
   @Test
   public void testDropTableFormat() throws IOException, URISyntaxException {
     Set<String> specificKeys = new HashSet<>();
-    DropTableSqsMessage message = new DropTableSqsMessage(DUMMY_VAL, true, true);
+    DropTableSqsMessage message = new DropTableSqsMessage(DUMMY_LOCATION, true, true);
     assertKeys(message, specificKeys, "DROP_TABLE");
   }
 
@@ -105,7 +106,5 @@ public class SqsMessageTest {
 
     assertThat(object.get("eventType").getAsString()).isEqualTo(eventType);
     assertThat(object.keySet()).isEqualTo(mergedSet);
-
-    System.out.println(sqsMessage.getFormattedString());
   }
 }

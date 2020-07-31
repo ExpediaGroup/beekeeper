@@ -40,14 +40,15 @@ public interface HousekeepingMetadataRepository extends JpaRepository<Housekeepi
       + "and t.tableName = :tableName "
       + "and (t.partitionName = :partitionName or t.partitionName is NULL) " // To handle special null case
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
-  Optional<HousekeepingMetadata> findRecordForCleanupByDbTableAndPartitionName(@Param("databaseName") String databaseName,
+  Optional<HousekeepingMetadata> findRecordForCleanupByDbTableAndPartitionName(
+      @Param("databaseName") String databaseName,
       @Param("tableName") String tableName, @Param("partitionName") String partitionName);
 
   /**
    * This method returns all the records for a database and table name pair. Each unpartitioned table will have a single
    * entry in the HousekeepingMetadata table. If a table is partitioned there will be multiple entries for it in the
    * HousekeepingMetadata table - one for each partition, and another for the table itself.
-   * 
+   *
    * @param databaseName
    * @param tableName
    * @return A page of entries from the HousekeepingMetadata table.

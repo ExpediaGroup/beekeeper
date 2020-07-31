@@ -76,8 +76,8 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
     HousekeepingMetadata existingHousekeepingMetadata = housekeepingMetadataOptional.get();
     existingHousekeepingMetadata.setPath(housekeepingMetadata.getPath());
     existingHousekeepingMetadata.setHousekeepingStatus(housekeepingMetadata.getHousekeepingStatus());
-    existingHousekeepingMetadata.setClientId(housekeepingMetadata.getClientId());
     existingHousekeepingMetadata.setCleanupDelay(housekeepingMetadata.getCleanupDelay());
+    existingHousekeepingMetadata.setClientId(housekeepingMetadata.getClientId());
 
     return existingHousekeepingMetadata;
   }
