@@ -1,3 +1,18 @@
+/**
+ * Copyright (C) 2019-2020 Expedia, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.expediagroup.beekeeper.integration.utils;
 
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
@@ -29,15 +44,15 @@ public class HiveTestUtils {
   private final List<FieldSchema> PARTITION_COLUMNS = Arrays
       .asList(new FieldSchema("continent", "string", ""), new FieldSchema("country", "string", ""));
 
-  public Table createUnpartitionedTable(HiveMetaStoreClient metastoreClient, String location) throws TException {
-    return createTable(metastoreClient, location, false);
+  public Table createUnpartitionedTable(HiveMetaStoreClient metastoreClient, String path) throws TException {
+    return createTable(metastoreClient, path, false);
   }
 
-  public Table createPartitionedTable(HiveMetaStoreClient metastoreClient, String location) throws TException {
-    return createTable(metastoreClient, location, true);
+  public Table createPartitionedTable(HiveMetaStoreClient metastoreClient, String path) throws TException {
+    return createTable(metastoreClient, path, true);
   }
 
-  private Table createTable(HiveMetaStoreClient metastoreClient, String location, boolean partitioned)
+  private Table createTable(HiveMetaStoreClient metastoreClient, String path, boolean partitioned)
     throws TException {
 
     Table hiveTable = new Table();
@@ -53,7 +68,7 @@ public class HiveTestUtils {
     sd.setCols(DATA_COLUMNS);
 
     // ******
-    sd.setLocation(location);
+    sd.setLocation(path);
 
     sd.setParameters(new HashMap<String, String>());
     sd.setInputFormat(TextInputFormat.class.getName());
