@@ -94,16 +94,16 @@ public abstract class BeekeeperIntegrationTestBase {
 
   // MySQL DB CONTAINER AND UTILS
   @Container
-  private static final MySQLContainer mySQLContainer = ContainerTestUtils.mySqlContainer();
+  private static final MySQLContainer MY_SQL_CONTAINER = ContainerTestUtils.mySqlContainer();
   private static MySqlTestUtils mySQLTestUtils;
 
   protected final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   @BeforeAll
   protected static void initMySQLContainer() throws SQLException {
-    String jdbcUrl = mySQLContainer.getJdbcUrl() + "?useSSL=false";
-    String username = mySQLContainer.getUsername();
-    String password = mySQLContainer.getPassword();
+    String jdbcUrl = MY_SQL_CONTAINER.getJdbcUrl() + "?useSSL=false";
+    String username = MY_SQL_CONTAINER.getUsername();
+    String password = MY_SQL_CONTAINER.getPassword();
 
     System.setProperty("spring.datasource.url", jdbcUrl);
     System.setProperty("spring.datasource.username", username);
