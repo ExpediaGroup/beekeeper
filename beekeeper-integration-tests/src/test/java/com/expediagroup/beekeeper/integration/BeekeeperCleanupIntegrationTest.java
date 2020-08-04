@@ -42,6 +42,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -53,6 +55,7 @@ import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.expediagroup.beekeeper.cleanup.BeekeeperCleanup;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 
+@Testcontainers
 public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 30;
@@ -73,29 +76,26 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
   private static final String HEALTHCHECK_URI = "http://localhost:8008/actuator/health";
   private static final String PROMETHEUS_URI = "http://localhost:8008/actuator/prometheus";
 
+  @Container
+  private static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
   private static AmazonS3 amazonS3;
-  private static LocalStackContainer s3Container;
 
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   @BeforeAll
   public static void init() {
-    s3Container = ContainerTestUtils.awsContainer(S3);
-    s3Container.start();
-
     System.setProperty("spring.profiles.active", "test");
     System.setProperty("properties.scheduler-delay-ms", SCHEDULER_DELAY_MS);
     System.setProperty("properties.dry-run-enabled", "false");
-    System.setProperty("aws.s3.endpoint", ContainerTestUtils.awsServiceEndpoint(s3Container, S3));
+    System.setProperty("aws.s3.endpoint", ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3));
 
-    amazonS3 = ContainerTestUtils.s3Client(s3Container, AWS_REGION);
+    amazonS3 = ContainerTestUtils.s3Client(S3_CONTAINER, AWS_REGION);
     amazonS3.createBucket(new CreateBucketRequest(BUCKET, AWS_REGION));
   }
 
   @AfterAll
   public static void teardown() {
     amazonS3.shutdown();
-    s3Container.stop();
   }
 
   @BeforeEach

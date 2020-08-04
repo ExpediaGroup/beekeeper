@@ -19,7 +19,7 @@ import static java.nio.file.Files.readString;
 
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
-import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_DELAY_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 import static com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter.BEEKEEPER_HIVE_EVENT_WHITELIST;
@@ -84,13 +84,13 @@ public abstract class SqsMessage {
   public void setUnreferenced(boolean isUnreferenced) {
     JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
     tableParameters.add(UNREFERENCED.getTableParameterName(), new JsonPrimitive(String.valueOf(isUnreferenced)));
-    tableParameters.add(UNREFERENCED_DATA_RETENTION_PERIOD_PROPERTY_KEY, new JsonPrimitive(CLEANUP_DELAY_VALUE));
+    tableParameters.add(UNREFERENCED_DATA_RETENTION_PERIOD_PROPERTY_KEY, new JsonPrimitive(SHORT_CLEANUP_DELAY_VALUE));
   }
 
   public void setExpired(boolean isExpired) {
     JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
     tableParameters.add(EXPIRED.getTableParameterName(), new JsonPrimitive(String.valueOf(isExpired)));
-    tableParameters.add(EXPIRED_DATA_RETENTION_PERIOD_PROPERTY_KEY, new JsonPrimitive(CLEANUP_DELAY_VALUE));
+    tableParameters.add(EXPIRED_DATA_RETENTION_PERIOD_PROPERTY_KEY, new JsonPrimitive(SHORT_CLEANUP_DELAY_VALUE));
   }
 
   public void setWhitelisted(boolean isWhitelisted) {

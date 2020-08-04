@@ -60,7 +60,6 @@ public class CommonBeans {
 
   @Bean
   public HiveConf hiveConf(@Value("${properties.metastore-uri}") String metastoreUri) {
-    System.out.println("******* inside common beans. URI - " + metastoreUri);
     HiveConf conf = new HiveConf();
     conf.setVar(HiveConf.ConfVars.METASTOREURIS, metastoreUri);
     return conf;
@@ -83,9 +82,6 @@ public class CommonBeans {
   public HiveClient hiveClient(
       Supplier<CloseableMetaStoreClient> metaStoreClientSupplier,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-
-    // CloseableMetaStoreClient client = metaStoreClientSupplier.get();
-    System.out.println("Testing: " + metaStoreClientSupplier);
     return new HiveClient(metaStoreClientSupplier.get(), dryRunEnabled);
   }
 

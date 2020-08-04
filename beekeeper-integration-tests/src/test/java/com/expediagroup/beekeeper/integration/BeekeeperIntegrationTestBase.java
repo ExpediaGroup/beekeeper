@@ -24,7 +24,6 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REG
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_ATTEMPTS_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_ATTEMPTS_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_DELAY_FIELD;
-import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_TIMESTAMP_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLIENT_ID_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CREATION_TIMESTAMP_FIELD;
@@ -34,9 +33,11 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABAS
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.HOUSEKEEPING_STATUS_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.ID_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.LIFECYCLE_TYPE_FIELD;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.LONG_CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.MODIFIED_TIMESTAMP_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.PARTITION_NAME_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.PATH_FIELD;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 import static com.expediagroup.beekeeper.integration.utils.ResultSetToHousekeepingEntityMapper.mapToHousekeepingMetadata;
@@ -56,6 +57,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
@@ -63,6 +66,7 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.MySqlTestUtils;
 
+@Testcontainers
 public abstract class BeekeeperIntegrationTestBase {
 
   // AWS VARIABLES
@@ -90,16 +94,14 @@ public abstract class BeekeeperIntegrationTestBase {
       + " ORDER BY " + PATH_FIELD;
 
   // MySQL DB CONTAINER AND UTILS
-  private static MySQLContainer mySQLContainer;
+  @Container
+  private static final MySQLContainer mySQLContainer = ContainerTestUtils.mySqlContainer();
   private static MySqlTestUtils mySQLTestUtils;
 
   protected final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   @BeforeAll
   protected static void initMySQLContainer() throws SQLException {
-    mySQLContainer = ContainerTestUtils.mySqlContainer();
-    mySQLContainer.start();
-
     String jdbcUrl = mySQLContainer.getJdbcUrl() + "?useSSL=false";
     String username = mySQLContainer.getUsername();
     String password = mySQLContainer.getPassword();
@@ -117,7 +119,6 @@ public abstract class BeekeeperIntegrationTestBase {
   @AfterAll
   protected static void destroyMySQLContainer() throws SQLException {
     mySQLTestUtils.close();
-    mySQLContainer.stop();
   }
 
   @BeforeEach
@@ -144,14 +145,37 @@ public abstract class BeekeeperIntegrationTestBase {
         .insertToTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME, HOUSEKEEPING_PATH_FIELDS, values);
   }
 
+  /**
+   * Inserts metadata with a cleanup delay of 1 second.
+   * 
+   * @param path
+   * @param partitionName
+   * @throws SQLException
+   */
   protected void insertExpiredMetadata(String path, String partitionName)
       throws SQLException {
-    HousekeepingMetadata metadata = createHousekeepingMetadata(path, partitionName, EXPIRED);
-    String values = Stream.of(metadata.getId().toString(), metadata.getPath(), metadata.getDatabaseName(),
-        metadata.getTableName(), metadata.getPartitionName(), metadata.getHousekeepingStatus().toString(),
-        metadata.getCreationTimestamp().toString(), metadata.getModifiedTimestamp().toString(),
-        metadata.getCleanupTimestamp().toString(), metadata.getCleanupDelay().toString(),
-        String.valueOf(metadata.getCleanupAttempts()), metadata.getClientId(), metadata.getLifecycleType())
+    insertMetadata(path, partitionName, SHORT_CLEANUP_DELAY_VALUE);
+  }
+
+  /**
+   * Inserts metadata with a cleanup delay of 3 days.
+   * 
+   * @param path
+   * @param partitionName
+   * @throws SQLException
+   */
+  protected void insertNonExpiredMetadata(String path, String partitionName) throws SQLException {
+    insertMetadata(path, partitionName, LONG_CLEANUP_DELAY_VALUE);
+  }
+
+  private void insertMetadata(String path, String partitionName, String cleanupDelay) throws SQLException {
+    HousekeepingMetadata metadata = createHousekeepingMetadata(path, partitionName, EXPIRED, cleanupDelay);
+    String values = Stream
+        .of(metadata.getId().toString(), metadata.getPath(), metadata.getDatabaseName(), metadata.getTableName(),
+            metadata.getPartitionName(), metadata.getHousekeepingStatus().toString(),
+            metadata.getCreationTimestamp().toString(), metadata.getModifiedTimestamp().toString(),
+            metadata.getCleanupTimestamp().toString(), metadata.getCleanupDelay().toString(),
+            String.valueOf(metadata.getCleanupAttempts()), metadata.getClientId(), metadata.getLifecycleType())
         .map(s -> s == null ? null : "\"" + s + "\"")
         .collect(Collectors.joining(", "));
 
@@ -213,7 +237,7 @@ public abstract class BeekeeperIntegrationTestBase {
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(CREATION_TIMESTAMP_VALUE)
         .modifiedTimestamp(CREATION_TIMESTAMP_VALUE)
-        .cleanupDelay(Duration.parse(CLEANUP_DELAY_VALUE))
+        .cleanupDelay(Duration.parse(SHORT_CLEANUP_DELAY_VALUE))
         .cleanupAttempts(CLEANUP_ATTEMPTS_VALUE)
         .lifecycleType(lifecycleEventType.toString())
         .clientId(CLIENT_ID_FIELD)
@@ -221,7 +245,8 @@ public abstract class BeekeeperIntegrationTestBase {
   }
 
   private HousekeepingMetadata createHousekeepingMetadata(String path, String partitionName,
-      LifecycleEventType lifecycleEventType) {
+      LifecycleEventType lifecycleEventType,
+      String cleanupDelay) {
     return new HousekeepingMetadata.Builder()
         .id(id++)
         .path(path)
@@ -231,7 +256,7 @@ public abstract class BeekeeperIntegrationTestBase {
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(CREATION_TIMESTAMP_VALUE)
         .modifiedTimestamp(CREATION_TIMESTAMP_VALUE)
-        .cleanupDelay(Duration.parse(CLEANUP_DELAY_VALUE))
+        .cleanupDelay(Duration.parse(cleanupDelay))
         .cleanupAttempts(CLEANUP_ATTEMPTS_VALUE)
         .lifecycleType(lifecycleEventType.toString())
         .clientId(CLIENT_ID_FIELD)

@@ -23,7 +23,7 @@ import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_ATTEMPTS_VALUE;
-import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_DELAY_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLIENT_ID_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CREATION_TIMESTAMP_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
@@ -46,6 +46,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -63,6 +65,7 @@ import com.expediagroup.beekeeper.integration.model.CreateTableSqsMessage;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperSchedulerApiary;
 
+@Testcontainers
 public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 5;
@@ -79,30 +82,27 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   private static final String LOCATION_A = "s3://location-a";
   private static final String LOCATION_B = "s3://location-b";
 
+  @Container
+  private static final LocalStackContainer SQS_CONTAINER = ContainerTestUtils.awsContainer(SQS);
   private static AmazonSQS amazonSQS;
-  private static LocalStackContainer sqsContainer;
 
   @BeforeAll
   public static void init() {
-    sqsContainer = ContainerTestUtils.awsContainer(SQS);
-    sqsContainer.start();
-
-    String queueUrl = ContainerTestUtils.queueUrl(sqsContainer, QUEUE);
+    String queueUrl = ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE);
     System.setProperty("properties.apiary.queue-url", queueUrl);
 
-    amazonSQS = ContainerTestUtils.sqsClient(sqsContainer, AWS_REGION);
+    amazonSQS = ContainerTestUtils.sqsClient(SQS_CONTAINER, AWS_REGION);
     amazonSQS.createQueue(QUEUE);
   }
 
   @AfterAll
   public static void teardown() {
     amazonSQS.shutdown();
-    sqsContainer.close();
   }
 
   @BeforeEach
   public void setup() {
-    amazonSQS.purgeQueue(new PurgeQueueRequest(ContainerTestUtils.queueUrl(sqsContainer, QUEUE)));
+    amazonSQS.purgeQueue(new PurgeQueueRequest(ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE)));
     executorService.execute(() -> BeekeeperSchedulerApiary.main(new String[] {}));
     await().atMost(Duration.ONE_MINUTE).until(BeekeeperSchedulerApiary::isRunning);
   }
@@ -215,7 +215,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   }
 
   private SendMessageRequest sendMessageRequest(String payload) {
-    return new SendMessageRequest(ContainerTestUtils.queueUrl(sqsContainer, QUEUE), payload);
+    return new SendMessageRequest(ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE), payload);
   }
 
   private void assertExpiredMetadata(HousekeepingMetadata actual, String expectedPath, String partitionName) {
@@ -233,7 +233,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     assertThat(actual.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
     assertThat(actual.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
     assertThat(actual.getCleanupTimestamp()).isEqualTo(actual.getCreationTimestamp().plus(actual.getCleanupDelay()));
-    assertThat(actual.getCleanupDelay()).isEqualTo(java.time.Duration.parse(CLEANUP_DELAY_VALUE));
+    assertThat(actual.getCleanupDelay()).isEqualTo(java.time.Duration.parse(SHORT_CLEANUP_DELAY_VALUE));
     assertThat(actual.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS_VALUE);
     assertThat(actual.getClientId()).isEqualTo(CLIENT_ID_VALUE);
     assertThat(actual.getLifecycleType()).isEqualTo(EXPIRED.toString());

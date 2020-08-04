@@ -23,7 +23,7 @@ import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_ATTEMPTS_VALUE;
-import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_DELAY_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLIENT_ID_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CREATION_TIMESTAMP_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
@@ -46,6 +46,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -63,6 +64,7 @@ import com.expediagroup.beekeeper.integration.model.DropTableSqsMessage;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperSchedulerApiary;
 
+@Testcontainers
 public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 5;
@@ -89,7 +91,6 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   @AfterAll
   public static void teardown() {
     amazonSQS.shutdown();
-    sqsContainer.close();
   }
 
   @BeforeEach
@@ -222,7 +223,7 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     assertThat(actual.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE);
     assertThat(actual.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE);
     assertThat(actual.getCleanupTimestamp()).isEqualTo(actual.getCreationTimestamp().plus(actual.getCleanupDelay()));
-    assertThat(actual.getCleanupDelay()).isEqualTo(java.time.Duration.parse(CLEANUP_DELAY_VALUE));
+    assertThat(actual.getCleanupDelay()).isEqualTo(java.time.Duration.parse(SHORT_CLEANUP_DELAY_VALUE));
     assertThat(actual.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS_VALUE);
     assertThat(actual.getClientId()).isEqualTo(CLIENT_ID_VALUE);
     assertThat(actual.getLifecycleType()).isEqualTo(UNREFERENCED.toString());
