@@ -15,6 +15,9 @@
  */
 package com.expediagroup.beekeeper.integration;
 
+import static org.apache.hadoop.fs.s3a.Constants.ACCESS_KEY;
+import static org.apache.hadoop.fs.s3a.Constants.ENDPOINT;
+import static org.apache.hadoop.fs.s3a.Constants.SECRET_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,6 +26,8 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.LONG_CLEANUP_DELAY_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
 import java.sql.SQLException;
@@ -61,82 +66,62 @@ import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
 public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 30;
-
-  private static final String BUCKET = "test-path-bucket";
-  private static final String DB_AND_TABLE_PREFIX = DATABASE_NAME_VALUE + "/" + TABLE_NAME_VALUE;
-
-  public static final String PART_00000 = "part-00000";
-  private static final String PARTITIONS = "event_date/event_hour/event_type";
-
-  private static final String PARTITIONED_OBJECT_KEY_ROOT = DB_AND_TABLE_PREFIX
-      + "/id1/"
-      + PARTITIONS
-      + "/"
-      + PART_00000;
-
-  private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
-  private static final String TABLE_DATA = "1\tadam\tlondon\n2\tsusan\tglasgow\n";
-
-  private static final String PARTITIONED_OBJECT_KEY1 = DB_AND_TABLE_PREFIX
-      + "/id1/"
-      + PARTITION_NAME
-      + "/"
-      + PART_00000;
-  // private static final String OBJECT_KEY2 = DB_AND_TABLE_PREFIX + "/id1/" + PARTITIONS + "/file2";
-
-  // not sure if this is needed
-  private static final String PARTITIONED_OBJECT_KEY_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition1_$folder$";
-
-  private static final String PARTITIONED_TABLE_LOCATION = "s3a://" + BUCKET + "/" + DB_AND_TABLE_PREFIX;
-  private static final String PARTITION_LOCATION = "s3a://" + BUCKET + "/" + PARTITIONED_OBJECT_KEY1;
-
-  private static final String UNPARTITIONED_OBJECT_KEY1 = DB_AND_TABLE_PREFIX + "/id1";
-  private static final String UNPARTITIONED_OBJECT_KEY_SENTINEL = DB_AND_TABLE_PREFIX + "/id1_$folder$";
-  private static final String UNPARTITIONED_OBJECT_KEY_ROOT = DB_AND_TABLE_PREFIX + "/id1";
-  private static final String UNPARTITIONED_ABSOLUTE_PATH = "s3a://" + BUCKET + "/" + UNPARTITIONED_OBJECT_KEY_ROOT;
-
-  private static final String PARTITION_OBJECT_KEY_OTHER = DB_AND_TABLE_PREFIX + "/id1/partition10/file1";
-  private static final String PARTITION_OBJECT_KEY_OTHER_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition10_$folder$";
-  // private static final String UNPARTITION_OBJECT_KEY_OTHER = DB_AND_TABLE_PREFIX + "/id1/partition10/file1";
-  // private static final String UNPARTITION_OBJECT_KEY_OTHER_SENTINEL = DB_AND_TABLE_PREFIX +
-  // "/id1/partition10_$folder$";
+  private static final String SCHEDULER_DELAY_MS = "5000";
 
   private static final String S3_ACCESS_KEY = "access";
   private static final String S3_SECRET_KEY = "secret";
-  private static final String CONTENT = "Content";
-  private static final String SCHEDULER_DELAY_MS = "5000";
 
-  private static AmazonS3 amazonS3;
+  private static final String BUCKET = "test-path-bucket";
+  private static final String TABLE_DATA = "1\tadam\tlondon\n2\tsusan\tglasgow\n";
+  private static final String PARTITIONED_TABLE_NAME = TABLE_NAME_VALUE + "_partitioned";
+  private static final String UNPARTITIONED_TABLE_NAME = TABLE_NAME_VALUE + "_unpartitioned";
 
-  // @Container
+  private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
+  private static final List<String> PARTITION_VALUES = List.of("2020-01-01", "0", "A");
+
+  private static final String ROOT_PATH = "s3a://" + BUCKET + "/" + DATABASE_NAME_VALUE + "/";
+
+  private static final String PARTITIONED_TABLE_PATH = ROOT_PATH + PARTITIONED_TABLE_NAME + "/id1";
+  private static final String PARTITION_ROOT_PATH = ROOT_PATH + "some_location/id1";
+  private static final String PARTITION_PATH = PARTITION_ROOT_PATH + "/" + PARTITION_NAME + "/file1";
+  private static final String PARTITIONED_TABLE_OBJECT_KEY = DATABASE_NAME_VALUE
+      + "/"
+      + PARTITIONED_TABLE_NAME
+      + "/id1";
+
+  private static final String PARTITIONED_OBJECT_KEY = DATABASE_NAME_VALUE
+      + "/some_location/id1/"
+      + PARTITION_NAME
+      + "/file1";
+
+  private static final String UNPARTITIONED_TABLE_PATH = ROOT_PATH + UNPARTITIONED_TABLE_NAME + "/id1";
+  private static final String UNPARTITIONED_OBJECT_KEY = DATABASE_NAME_VALUE
+      + "/"
+      + UNPARTITIONED_TABLE_NAME
+      + "/id1/file1";
+
   @Rule
   public static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
   static {
     S3_CONTAINER.start();
   }
 
-  private static final String endpoint = ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3);
+  private static AmazonS3 amazonS3;
+  private static final String S3_ENDPOINT = ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3);
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
-  // TODO
-  // use the variables for the names - dont hard code
   private static Map<String, String> metastoreProperties = ImmutableMap
       .<String, String>builder()
-      .put("fs.s3a.endpoint", endpoint)
-      .put("fs.s3a.access.key", S3_ACCESS_KEY)
-      .put("fs.s3a.secret.key", S3_SECRET_KEY)
+      .put(ENDPOINT, S3_ENDPOINT)
+      .put(ACCESS_KEY, S3_ACCESS_KEY)
+      .put(SECRET_KEY, S3_SECRET_KEY)
       .build();
 
   @RegisterExtension
-  public static ThriftHiveMetaStoreJUnitExtension thriftHiveMetaStore = new ThriftHiveMetaStoreJUnitExtension(
+  public ThriftHiveMetaStoreJUnitExtension thriftHiveMetaStore = new ThriftHiveMetaStoreJUnitExtension(
       DATABASE_NAME_VALUE, metastoreProperties);
 
-  // public static @Rule ThriftHiveMetaStoreJUnitRule thriftHiveMetaStore = new ThriftHiveMetaStoreJUnitRule(
-  // DATABASE_NAME_VALUE,
-  // metastoreProperties);
-
   private HiveTestUtils hiveTestUtils = new HiveTestUtils();
-
   private HiveMetaStoreClient metastoreClient;
 
   @BeforeAll
@@ -144,7 +129,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     System.setProperty("spring.profiles.active", "test");
     System.setProperty("properties.scheduler-delay-ms", SCHEDULER_DELAY_MS);
     System.setProperty("properties.dry-run-enabled", "false");
-    System.setProperty("aws.s3.endpoint", endpoint);
+    System.setProperty("aws.s3.endpoint", S3_ENDPOINT);
     System.setProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation", "true");
     System.setProperty("com.amazonaws.services.s3.disablePutObjectMD5Validation", "true");
 
@@ -161,7 +146,6 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   @BeforeEach
   public void setup() {
     metastoreClient = thriftHiveMetaStore.client();
-    System.out.println("***** client: " + metastoreClient + " uri: " + thriftHiveMetaStore.getThriftConnectionUri());
     System.setProperty("properties.metastore-uri", thriftHiveMetaStore.getThriftConnectionUri());
 
     amazonS3
@@ -174,170 +158,179 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @AfterEach
   public void stop() throws InterruptedException {
-    System.out.println("**** Inside the after each method. Stopping beekeeper and terminating executor service.");
-
     BeekeeperMetadataCleanup.stop();
     executorService.awaitTermination(5, TimeUnit.SECONDS);
   }
 
-  // TODO
-  // fix rejected execution exception
-  // // whats going on?
-  // // how can it be fixed?
-  // // looks like the container gets shut down - but which one? does it matter that our execute service is shut down?
-  // // i think the order is our after each, then the thrift version - would this have any effect?????
-
-  // add in auto-start container stuff
-  // // will need to figure out how to wait for it to be set up before the thrift metastore is made
-
   @Test
   public void cleanupUnpartitionedTable() throws TException, SQLException {
-    // create table
-    hiveTestUtils.createUnpartitionedTable(metastoreClient, UNPARTITIONED_ABSOLUTE_PATH);
+    hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
+    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, TABLE_DATA);
 
-    // add to s3 bucket
-    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY1, TABLE_DATA);
-    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY_SENTINEL, "");
-
-    insertExpiredMetadata(UNPARTITIONED_ABSOLUTE_PATH, null);
+    insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
     await()
         .atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
 
-    // check table is dropped
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
-    // check the correct s3 file is removed
-    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY1)).isFalse();
-    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY_SENTINEL)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY)).isFalse();
+  }
+
+  @Test
+  public void cleanupTwoTables() throws TException, SQLException {
+    String tempPath = "s3a://test-path-bucket/some_database/some_other_table/id1";
+    hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTable(metastoreClient, tempPath, TABLE_NAME_VALUE + "2", false);
+    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, TABLE_DATA);
+    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY + "0", TABLE_DATA);
+
+    insertExpiredMetadata(TABLE_NAME_VALUE, UNPARTITIONED_TABLE_PATH, null, SHORT_CLEANUP_DELAY_VALUE);
+    insertExpiredMetadata(TABLE_NAME_VALUE + "2", tempPath, null, SHORT_CLEANUP_DELAY_VALUE);
+
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
+
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE + "2")).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY + "0")).isFalse();
   }
 
   @Test
   public void cleanupPartitionedTable() throws Exception {
-    // create table
-    Table table = hiveTestUtils.createPartitionedTable(metastoreClient, PARTITION_LOCATION);
+    Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
 
-    // "event_date=2020-01-01/event_hour=0/event_type=A
+    hiveTestUtils.addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, table, PARTITION_VALUES, TABLE_DATA);
+
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
+    amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
+
+    insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
+    insertExpiredMetadata(PARTITION_PATH, PARTITION_NAME);
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(1).getHousekeepingStatus() == DELETED);
+
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isFalse();
+  }
+
+  // TODO
+  // this test is throwing out an error
+  @Test
+  public void cleanupPartitionButNotTable() throws Exception {
+    Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
+
+    hiveTestUtils.addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, table, PARTITION_VALUES, TABLE_DATA);
     hiveTestUtils
-        .addPartitionsToTable(metastoreClient, PARTITIONED_TABLE_LOCATION, table, List.of("2020-01-01", "0", "A"),
-            TABLE_DATA);
+        .addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, table, List.of("2020-01-01", "1", "B"), TABLE_DATA);
 
-    // add to s3 bucket
-    amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY1, TABLE_DATA);
+    String partition2Name = "event_date=2020-01-01/event_hour=1/event_type=B";
+    String partition2Path = PARTITION_ROOT_PATH + "/" + partition2Name + "/file1";
+    String partition2ObjectKey = DATABASE_NAME_VALUE + "/some_location/id1/" + partition2Name + "/file1";
 
-    insertExpiredMetadata(PARTITIONED_TABLE_LOCATION, null);
-    insertExpiredMetadata(PARTITION_LOCATION, PARTITION_NAME);
-    // wait for run
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
+    amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
+    amazonS3.putObject(BUCKET, partition2ObjectKey, TABLE_DATA);
+
+    insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
+    insertExpiredMetadata(PARTITION_PATH, PARTITION_NAME);
+    insertExpiredMetadata(TABLE_NAME_VALUE, partition2Path, partition2Name, LONG_CLEANUP_DELAY_VALUE);
+
     await()
         .atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
 
-    // check table is dropped
-    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
-    // check the correct s3 file is removed
-    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY1)).isFalse();
-  }
-
-  // clean up table only if its expired
-  // dont clean up partition table with existing partitions
-
-  @Test
-  public void cleanupPartitionButNotTable() throws Exception {
-    Table table = hiveTestUtils.createPartitionedTable(metastoreClient, PARTITION_LOCATION);
-
-    hiveTestUtils
-        .addPartitionsToTable(metastoreClient, PARTITIONED_TABLE_LOCATION, table, List.of("2020-01-01", "0", "A"),
-            TABLE_DATA);
-    hiveTestUtils
-        .addPartitionsToTable(metastoreClient, PARTITIONED_TABLE_LOCATION, table, List.of("2020-01-01", "1", "B"),
-            TABLE_DATA);
-
-    System.out.println(metastoreClient.listPartitions(DATABASE_NAME_VALUE, TABLE_NAME_VALUE, (short) 1));
-    String partition2Name = "event_date=2020-01-01/event_hour=1/event_type=B";
-    String partition2Location = partition2Name + "/" + PART_00000;
-
-    // add to s3 bucket
-    amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY1, TABLE_DATA);
-    amazonS3.putObject(BUCKET, DB_AND_TABLE_PREFIX + partition2Location, TABLE_DATA);
-
-    insertExpiredMetadata(PARTITIONED_TABLE_LOCATION, null);
-    insertExpiredMetadata(PARTITION_LOCATION, PARTITION_NAME);
-    insertNonExpiredMetadata(PARTITIONED_TABLE_LOCATION + "/" + partition2Location, partition2Name);
-
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getExpiredMetadata().get(2).getHousekeepingStatus() == DELETED);
-
-    // check table is not dropped
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
-
     List<Partition> partitions = metastoreClient.listPartitions(DATABASE_NAME_VALUE, TABLE_NAME_VALUE, (short) 1);
-    List<String> partitionValues = partitions.get(0).getValues();
-
-    // check that the second partition still exists
     assertEquals(partitions.size(), 1);
-    assertEquals(partitionValues, List.of("2020-01-01", "1", "B"));
-
-    // check the correct s3 file is removed
-    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY1)).isFalse();
+    assertEquals(partitions.get(0).getValues(), List.of("2020-01-01", "1", "B"));
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, partition2ObjectKey)).isTrue();
   }
 
   @Test
   public void cleanupPartitionedTableWithNoPartitions() throws Exception {
-    hiveTestUtils.createPartitionedTable(metastoreClient, PARTITION_LOCATION);
+    hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
 
-    amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY1, TABLE_DATA);
-    insertExpiredMetadata(PARTITIONED_TABLE_LOCATION, null);
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
+    insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
     await()
         .atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
 
-    // check table is dropped
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
-    // check the correct s3 file is removed
-    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY1)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isFalse();
   }
 
+  // TODO
+  // this will cause an infinite loop because the housekeeping status will never be changed to 'deleted'
+  // is there some way to get around this?
   // @Test
-  // public void test() throws TException {
-  // String path = "s3a://" + BUCKET + "/" + PARTITIONED_OBJECT_KEY1;
+  // public void dontCleanupPartitionedTableWithNonExpiredPartition() throws Exception {
+  // Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
   //
-  // HiveMetaStoreClient client = thriftHiveMetaStore.client();
-  // String uri = thriftHiveMetaStore.getThriftConnectionUri();
-  // System.out.println("TESTING - " + client + " AND URI = " + uri);
+  // hiveTestUtils
+  // .addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, table, PARTITION_VALUES, TABLE_DATA);
   //
-  // hiveTestUtils.createUnpartitionedTable(client, path);
+  // amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
+  // amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
   //
-  // boolean result = client.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE);
-  // System.out.println("************** RESULT: " + result);
+  // insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
+  // insertExpiredMetadata(TABLE_NAME_VALUE, PARTITION_PATH, PARTITION_NAME, LONG_CLEANUP_DELAY_VALUE);
+  //
+  // await()
+  // .atMost(TIMEOUT, TimeUnit.SECONDS)
+  // .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
+  //
+  // // check table is not dropped
+  // assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
+  //
+  // // check that the second partition still exists
+  // List<Partition> partitions = metastoreClient.listPartitions(DATABASE_NAME_VALUE, TABLE_NAME_VALUE, (short) 1);
+  // assertEquals(partitions.size(), 1);
+  // assertEquals(partitions.get(0).getValues(), PARTITION_VALUES);
+  // assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isFalse();
   // }
 
-  // TODO
-  // add some metadata to the HousekeepingMetadata table
+  @Test
+  public void cleanupMultipleTablesOfMixedType() throws Exception {
+    hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, UNPARTITIONED_TABLE_NAME, false);
 
-  // setup
-  // need some kind of hive object can test with
+    Table partitionedTable = hiveTestUtils
+        .createTable(metastoreClient, PARTITIONED_TABLE_PATH, PARTITIONED_TABLE_NAME, true);
+    hiveTestUtils
+        .addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, partitionedTable, PARTITION_VALUES, TABLE_DATA);
 
-  // utils
-  // need to have some hive test utils
-  // will have a hive metastore
-  // like circus train
-  // // create unpartitioned table
-  // // create partitioned table
+    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, TABLE_DATA);
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
+    amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
 
-  // will also need to make use of the amazon s3 stuff
-  // set up some paths
-  // make sure theyre deleted
+    insertExpiredMetadata(UNPARTITIONED_TABLE_NAME, UNPARTITIONED_TABLE_PATH, null, SHORT_CLEANUP_DELAY_VALUE);
+    insertExpiredMetadata(PARTITIONED_TABLE_NAME, PARTITIONED_TABLE_PATH, null, SHORT_CLEANUP_DELAY_VALUE);
+    insertExpiredMetadata(PARTITIONED_TABLE_NAME, PARTITION_PATH, PARTITION_NAME, SHORT_CLEANUP_DELAY_VALUE);
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(1).getHousekeepingStatus() == DELETED);
 
-  // use the integration test base
-  // insertExpiredMetadata
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, UNPARTITIONED_TABLE_NAME)).isFalse();
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, PARTITIONED_TABLE_NAME)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isFalse();
+  }
 
-  // TODO - tests
-  // test the cleanup for partitioned tables
-  // test the cleanup for unpartitioned tables
-  // // isnt deleted if there are existing partitions
-  // // is deleted when there are no existing partitions
-  // test the cleanup for a partition on a table
-  // check that paths are still deleted if the table doesnt exist
-  // check that paths are still deleted if the partition doesnt exist
+  @Test
+  public void onlyCleanupLocationWhenTableExists() {
+
+  }
+
+  @Test
+  public void onlyCleanupLocationWhenPartitionExists() {
+
+  }
 
 }

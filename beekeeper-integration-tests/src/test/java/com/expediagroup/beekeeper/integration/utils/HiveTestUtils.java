@@ -49,52 +49,33 @@ public class HiveTestUtils {
 
   public static final String PART_00000 = "part-00000";
 
-  public Table createUnpartitionedTable(HiveMetaStoreClient metastoreClient, String path) throws TException {
-    return createTable(metastoreClient, path, false);
-  }
-
-  public Table createPartitionedTable(HiveMetaStoreClient metastoreClient, String path) throws TException {
-    return createTable(metastoreClient, path, true);
-  }
-
-  private Table createTable(HiveMetaStoreClient metastoreClient, String path, boolean partitioned) throws TException {
-
+  public Table createTable(HiveMetaStoreClient metastoreClient, String path, String tableName, boolean partitioned)
+    throws TException {
     Table hiveTable = new Table();
     hiveTable.setDbName(DATABASE_NAME_VALUE);
-    hiveTable.setTableName(TABLE_NAME_VALUE);
+    hiveTable.setTableName(tableName);
     hiveTable.setTableType(TableType.EXTERNAL_TABLE.name());
     hiveTable.putToParameters("EXTERNAL", "TRUE");
     if (partitioned) {
       hiveTable.setPartitionKeys(PARTITION_COLUMNS);
     }
-
     StorageDescriptor sd = new StorageDescriptor();
     sd.setCols(DATA_COLUMNS);
-
-    // ******
     sd.setLocation(path);
-
     sd.setParameters(new HashMap<String, String>());
     sd.setInputFormat(TextInputFormat.class.getName());
     sd.setOutputFormat(TextOutputFormat.class.getName());
     sd.setSerdeInfo(new SerDeInfo());
     sd.getSerdeInfo().setSerializationLib("org.apache.hadoop.hive.serde2.OpenCSVSerde");
-
     hiveTable.setSd(sd);
     metastoreClient.createTable(hiveTable);
-
-    // ColumnStatisticsDesc statsDesc = new ColumnStatisticsDesc(true, database, table);
-    // ColumnStatisticsData statsData = new ColumnStatisticsData(_Fields.LONG_STATS, new LongColumnStatsData(1L, 2L));
-    // ColumnStatisticsObj cso1 = new ColumnStatisticsObj("id", "bigint", statsData);
-    // List<ColumnStatisticsObj> statsObj = Collections.singletonList(cso1);
-    // metastoreClient.updateTableColumnStatistics(new ColumnStatistics(statsDesc, statsObj));
 
     return hiveTable;
   }
 
   /**
    * @param metastoreClient
-   * @param tableUri
+   * @param path of the table
    * @param hiveTable
    * @param partitionValues The list of partition values, e.g. ["2020-01-01", "0", "A"]
    * @param dataEntry The data to add to the table, e.g. "1\tadam\tlondon\n2\tsusan\tglasgow\n"
@@ -111,28 +92,14 @@ public class HiveTestUtils {
     String eventDate = "/event_date=" + partitionValues.get(0); // 2020-01-01
     String eventHour = eventDate + "/event_hour=" + partitionValues.get(1); // 0
     String eventType = eventHour + "/event_type=" + partitionValues.get(2); // A
-    String partitionFileLocation = TABLE_NAME_VALUE + eventType;
-
-    String fileKey = String.format("%s/%s/%s", DATABASE_NAME_VALUE, partitionFileLocation, PART_00000);
-
     URI partitionUri = URI.create(path + eventType);
-    //
     
-    // URI partitionLocation = URI
-    // .create(String
-    // .format("%s/%s/%s/%s/%s", DATABASE_NAME_VALUE, TABLE_NAME_VALUE, "event_date=" + partitionValues.get(0),
-    // "event_hour=" + partitionValues.get(1), "event_type=" + partitionValues.get(2)));
-
-    // File dataFile = new File(partitionLocation.getPath(), PART_00000);
-    // FileUtils.writeStringToFile(dataFile, dataEntry, UTF_8);
-
     metastoreClient
         .add_partitions(
             Collections
                 .singletonList(newTablePartition(hiveTable,
                     List.of(partitionValues.get(0), partitionValues.get(1), partitionValues.get(2)),
                     partitionUri)));
-    
   }
 
   public static URI toUri(String baseLocation) {

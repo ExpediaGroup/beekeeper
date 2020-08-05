@@ -19,8 +19,8 @@ import static java.nio.file.Files.readString;
 
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
-import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 import static com.expediagroup.beekeeper.scheduler.apiary.filter.WhitelistedListenerEventFilter.BEEKEEPER_HIVE_EVENT_WHITELIST;
 import static com.expediagroup.beekeeper.scheduler.apiary.generator.ExpiredHousekeepingMetadataGenerator.EXPIRED_DATA_RETENTION_PERIOD_PROPERTY_KEY;

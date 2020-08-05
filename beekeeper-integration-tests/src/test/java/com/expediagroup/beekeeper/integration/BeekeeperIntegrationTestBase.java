@@ -33,7 +33,6 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABAS
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.HOUSEKEEPING_STATUS_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.ID_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.LIFECYCLE_TYPE_FIELD;
-import static com.expediagroup.beekeeper.integration.CommonTestVariables.LONG_CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.MODIFIED_TIMESTAMP_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.PARTITION_NAME_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.PATH_FIELD;
@@ -145,31 +144,13 @@ public abstract class BeekeeperIntegrationTestBase {
         .insertToTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME, HOUSEKEEPING_PATH_FIELDS, values);
   }
 
-  /**
-   * Inserts metadata with a cleanup delay of 1 second.
-   * 
-   * @param path
-   * @param partitionName
-   * @throws SQLException
-   */
-  protected void insertExpiredMetadata(String path, String partitionName)
-      throws SQLException {
-    insertMetadata(path, partitionName, SHORT_CLEANUP_DELAY_VALUE);
+  protected void insertExpiredMetadata(String path, String partitionName) throws SQLException {
+    insertExpiredMetadata(TABLE_NAME_VALUE, path, partitionName, SHORT_CLEANUP_DELAY_VALUE);
   }
 
-  /**
-   * Inserts metadata with a cleanup delay of 3 days.
-   * 
-   * @param path
-   * @param partitionName
-   * @throws SQLException
-   */
-  protected void insertNonExpiredMetadata(String path, String partitionName) throws SQLException {
-    insertMetadata(path, partitionName, LONG_CLEANUP_DELAY_VALUE);
-  }
-
-  private void insertMetadata(String path, String partitionName, String cleanupDelay) throws SQLException {
-    HousekeepingMetadata metadata = createHousekeepingMetadata(path, partitionName, EXPIRED, cleanupDelay);
+  protected void insertExpiredMetadata(String tableName, String path, String partitionName, String cleanupDelay)
+    throws SQLException {
+    HousekeepingMetadata metadata = createHousekeepingMetadata(tableName, path, partitionName, EXPIRED, cleanupDelay);
     String values = Stream
         .of(metadata.getId().toString(), metadata.getPath(), metadata.getDatabaseName(), metadata.getTableName(),
             metadata.getPartitionName(), metadata.getHousekeepingStatus().toString(),
@@ -244,14 +225,17 @@ public abstract class BeekeeperIntegrationTestBase {
         .build();
   }
 
-  private HousekeepingMetadata createHousekeepingMetadata(String path, String partitionName,
+  private HousekeepingMetadata createHousekeepingMetadata(
+      String tableName,
+      String path,
+      String partitionName,
       LifecycleEventType lifecycleEventType,
       String cleanupDelay) {
     return new HousekeepingMetadata.Builder()
         .id(id++)
         .path(path)
         .databaseName(DATABASE_NAME_VALUE)
-        .tableName(TABLE_NAME_VALUE)
+        .tableName(tableName)
         .partitionName(partitionName)
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(CREATION_TIMESTAMP_VALUE)
@@ -262,4 +246,5 @@ public abstract class BeekeeperIntegrationTestBase {
         .clientId(CLIENT_ID_FIELD)
         .build();
   }
+  
 }
