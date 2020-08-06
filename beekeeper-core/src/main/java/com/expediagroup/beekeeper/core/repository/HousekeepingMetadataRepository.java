@@ -47,9 +47,10 @@ public interface HousekeepingMetadataRepository extends JpaRepository<Housekeepi
    * This method returns all the records for a database and table name pair. Each unpartitioned table will have a single
    * entry in the HousekeepingMetadata table. If a table is partitioned there will be multiple entries for it in the
    * HousekeepingMetadata table - one for each partition, and another for the table itself.
-   * 
+   *
    * @param databaseName
    * @param tableName
+   * @param pageable
    * @return A page of entries from the HousekeepingMetadata table.
    */
   @Query(value = "from HousekeepingMetadata t "

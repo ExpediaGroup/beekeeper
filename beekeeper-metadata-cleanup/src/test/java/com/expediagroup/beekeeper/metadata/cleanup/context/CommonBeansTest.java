@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.metadata.cleanup.context;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.URL;
 import java.util.Collections;
@@ -23,7 +24,6 @@ import java.util.function.Supplier;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -92,7 +92,7 @@ public class CommonBeansTest {
 
   @Test
   public void hiveConfFailure() {
-    Assertions.assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(IllegalArgumentException.class, () -> {
       commonBeans.hiveConf(null);
     });
   }

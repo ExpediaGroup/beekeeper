@@ -49,24 +49,6 @@ public abstract class GenericMetadataHandler {
       String tableName,
       Pageable pageable);
 
-  /*-
-   * Example entries:
-   * no: db  | tblname | path  | part vals
-   * 1   db1 | tbl1    | path1 | null             <- unpartitioned
-   * 2   db1 | tbl2    | path2 | null             <- partitioned
-   * 3   db1 | tbl2    | path2 | year=2020,hour=2 <- partition for above 
-   * 
-   * Assume the above records are returned, the table entry 1 (unpartitioned) will be dropped. 
-   * For entry 2, tbl2 will not be dropped, since the number of records for db1.tbl2 = 2. 
-   * For entry 3, this partition will be dropped from the table. Now the repository looks like:
-   * 
-   * no: db  | tblname | path  | part vals
-   * 1   db1 | tbl2    | path2 | null             <- partitioned
-   * 
-   * and this time, when entry 1 is returned, the number of records for db1.tbl2 = 1, so this table is dropped. 
-   * 
-   */
-
   /**
    * Processes a pageable entityHouseKeepingPath page.
    *

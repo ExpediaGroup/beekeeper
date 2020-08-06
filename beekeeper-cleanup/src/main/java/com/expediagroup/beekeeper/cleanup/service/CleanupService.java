@@ -20,7 +20,7 @@ import java.time.Instant;
 public interface CleanupService {
 
   /**
-   * Cleans up all paths and tables which are older than {@code referenceTime}.
+   * Deletes all paths and tables which are older than {@code referenceTime}.
    *
    * @param referenceTime Deletion reference time.
    */
