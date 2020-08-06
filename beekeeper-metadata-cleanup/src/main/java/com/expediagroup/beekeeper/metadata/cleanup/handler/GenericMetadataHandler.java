@@ -113,16 +113,20 @@ public abstract class GenericMetadataHandler {
       HousekeepingMetadata housekeepingMetadata,
       MetadataCleaner metadataCleaner,
       PathCleaner pathCleaner) {
-    metadataCleaner.cleanupMetadata(housekeepingMetadata);
-    pathCleaner.cleanupPath(housekeepingMetadata);
+    boolean successfulDeletion = metadataCleaner.dropTable(housekeepingMetadata);
+    if (successfulDeletion) {
+      pathCleaner.cleanupPath(housekeepingMetadata);
+    }
   }
 
   private void cleanupPartition(
       HousekeepingMetadata housekeepingMetadata,
       MetadataCleaner metadataCleaner,
       PathCleaner pathCleaner) {
-    metadataCleaner.cleanupPartition(housekeepingMetadata);
-    pathCleaner.cleanupPath(housekeepingMetadata);
+    boolean successfulDeletion = metadataCleaner.dropPartition(housekeepingMetadata);
+    if (successfulDeletion) {
+      pathCleaner.cleanupPath(housekeepingMetadata);
+    }
   }
 
   private void cleanupContent(HousekeepingMetadata housekeepingMetadata, Pageable pageable) {

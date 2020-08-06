@@ -43,8 +43,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 
-import com.expediagroup.beekeeper.cleanup.BeekeeperCleanup;
 import com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
 
 @ExtendWith(MockitoExtension.class)
 class BeekeeperDryRunCleanupIntegrationTest {
@@ -123,9 +123,9 @@ class BeekeeperDryRunCleanupIntegrationTest {
     mySqlTestUtils.dropTable(BEEKEEPER_PATH_HOUSEKEEPING_TABLE);
     mySqlTestUtils.dropTable(BEEKEEPER_METADATA_HOUSEKEEPING_TABLE);
     mySqlTestUtils.dropTable(FLYWAY_TABLE);
-    executorService.execute(() -> BeekeeperCleanup.main(new String[] {}));
+    executorService.execute(() -> BeekeeperPathCleanup.main(new String[] {}));
     await().atMost(Duration.ONE_MINUTE)
-        .until(BeekeeperCleanup::isRunning);
+        .until(BeekeeperPathCleanup::isRunning);
 
     // clear all logs before asserting them
     appender.clear();
@@ -133,7 +133,7 @@ class BeekeeperDryRunCleanupIntegrationTest {
 
   @AfterEach
   void stop() throws InterruptedException {
-    BeekeeperCleanup.stop();
+    BeekeeperPathCleanup.stop();
     executorService.awaitTermination(2, TimeUnit.SECONDS);
   }
 
@@ -229,7 +229,7 @@ class BeekeeperDryRunCleanupIntegrationTest {
   }
 
   private boolean assertMetrics() {
-    MeterRegistry meterRegistry = BeekeeperCleanup.meterRegistry();
+    MeterRegistry meterRegistry = BeekeeperPathCleanup.meterRegistry();
     List<Meter> meters = meterRegistry.getMeters();
     assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
         .contains("cleanup-job", "s3-paths-deleted", "s3-" + BytesDeletedReporter.DRY_RUN_METRIC_NAME);

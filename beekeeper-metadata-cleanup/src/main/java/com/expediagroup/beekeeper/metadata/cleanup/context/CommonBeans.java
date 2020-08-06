@@ -34,17 +34,17 @@ import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
-import com.expediagroup.beekeeper.core.aws.S3Client;
-import com.expediagroup.beekeeper.core.aws.S3PathCleaner;
-import com.expediagroup.beekeeper.core.aws.S3SentinelFilesCleaner;
-import com.expediagroup.beekeeper.core.hive.HiveClient;
-import com.expediagroup.beekeeper.core.hive.HiveMetadataCleaner;
+import com.expediagroup.beekeeper.cleanup.aws.S3Client;
+import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
+import com.expediagroup.beekeeper.cleanup.aws.S3SentinelFilesCleaner;
+import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
+import com.expediagroup.beekeeper.cleanup.hive.HiveMetadataCleaner;
+import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.core.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.core.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.core.path.PathCleaner;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.GenericMetadataHandler;
-import com.expediagroup.beekeeper.metadata.cleanup.service.MetadataCleanupService;
 import com.expediagroup.beekeeper.metadata.cleanup.service.PagingMetadataCleanupService;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
@@ -137,7 +137,7 @@ public class CommonBeans {
   }
 
   @Bean
-  MetadataCleanupService cleanupService(
+  CleanupService cleanupService(
       List<GenericMetadataHandler> metadataHandlers,
       @Value("${properties.cleanup-page-size}") int pageSize,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {

@@ -9,12 +9,12 @@
     <version>3.0.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>beekeeper-cleanup</artifactId>
+  <artifactId>beekeeper-path-cleanup</artifactId>
 
   <dependencies>
     <dependency>
       <groupId>com.expediagroup</groupId>
-      <artifactId>beekeeper-core</artifactId>
+      <artifactId>beekeeper-cleanup</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <!-- if this is on classpath then not-null checks in objects persisted via JPA are ignored -->
@@ -73,16 +73,6 @@
 
     <!-- test -->
     <dependency>
-      <groupId>org.awaitility</groupId>
-      <artifactId>awaitility</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
       <scope>test</scope>
@@ -108,7 +98,7 @@
         <version>${springframework.boot.version}</version>
         <configuration>
           <classifier>spring-boot</classifier>
-          <mainClass>com.expediagroup.beekeeper.cleanup.BeekeeperCleanup</mainClass>
+          <mainClass>com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup</mainClass>
           <executable>true</executable>
         </configuration>
         <executions>

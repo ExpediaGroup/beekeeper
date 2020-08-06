@@ -30,8 +30,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import com.expediagroup.beekeeper.core.aws.S3PathCleaner;
-import com.expediagroup.beekeeper.core.hive.HiveMetadataCleaner;
+import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
+import com.expediagroup.beekeeper.cleanup.hive.HiveMetadataCleaner;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 @ExtendWith(MockitoExtension.class)

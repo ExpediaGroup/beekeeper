@@ -36,16 +36,16 @@ import io.micrometer.core.instrument.MeterRegistry;
 
 import com.amazonaws.services.s3.AmazonS3;
 
-import com.expediagroup.beekeeper.core.aws.S3Client;
-import com.expediagroup.beekeeper.core.aws.S3PathCleaner;
-import com.expediagroup.beekeeper.core.hive.HiveClient;
-import com.expediagroup.beekeeper.core.hive.HiveMetadataCleaner;
+import com.expediagroup.beekeeper.cleanup.aws.S3Client;
+import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
+import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
+import com.expediagroup.beekeeper.cleanup.hive.HiveMetadataCleaner;
+import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.core.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.core.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.core.path.PathCleaner;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
-import com.expediagroup.beekeeper.metadata.cleanup.service.MetadataCleanupService;
 import com.expediagroup.beekeeper.metadata.cleanup.service.PagingMetadataCleanupService;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
@@ -154,7 +154,7 @@ public class CommonBeansTest {
 
   @Test
   public void verifyCleanupService() {
-    MetadataCleanupService cleanupService = commonBeans.cleanupService(Collections.emptyList(), 2, dryRunEnabled);
+    CleanupService cleanupService = commonBeans.cleanupService(Collections.emptyList(), 2, dryRunEnabled);
     assertThat(cleanupService).isInstanceOf(PagingMetadataCleanupService.class);
   }
 

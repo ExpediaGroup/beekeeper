@@ -48,8 +48,8 @@ import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 
-import com.expediagroup.beekeeper.cleanup.BeekeeperCleanup;
 import com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
 
 public class BeekeeperCleanupIntegrationTest {
 
@@ -127,14 +127,14 @@ public class BeekeeperCleanupIntegrationTest {
     mySqlTestUtils.dropTable(BEEKEEPER_PATH_HOUSEKEEPING_TABLE);
     mySqlTestUtils.dropTable(BEEKEEPER_METADATA_HOUSEKEEPING_TABLE);
     mySqlTestUtils.dropTable(FLYWAY_TABLE);
-    executorService.execute(() -> BeekeeperCleanup.main(new String[] {}));
+    executorService.execute(() -> BeekeeperPathCleanup.main(new String[] {}));
     await().atMost(Duration.ONE_MINUTE)
-        .until(BeekeeperCleanup::isRunning);
+        .until(BeekeeperPathCleanup::isRunning);
   }
 
   @AfterEach
   void stop() throws InterruptedException {
-    BeekeeperCleanup.stop();
+    BeekeeperPathCleanup.stop();
     executorService.awaitTermination(5, TimeUnit.SECONDS);
   }
 
@@ -286,7 +286,7 @@ public class BeekeeperCleanupIntegrationTest {
   }
 
   private void assertMetrics() {
-    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperCleanup.meterRegistry()).getRegistries();
+    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperPathCleanup.meterRegistry()).getRegistries();
     assertThat(meterRegistry).hasSize(2);
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();
