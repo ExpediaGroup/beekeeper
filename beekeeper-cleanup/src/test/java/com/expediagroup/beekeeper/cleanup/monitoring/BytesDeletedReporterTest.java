@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.core.monitoring;
+package com.expediagroup.beekeeper.cleanup.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import static com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter.DRY_RUN_METRIC_NAME;
-import static com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter.METRIC_NAME;
+import static com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter.DRY_RUN_METRIC_NAME;
+import static com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter.METRIC_NAME;
 
+import com.expediagroup.beekeeper.core.monitoring.MetricTag;
+import com.expediagroup.beekeeper.core.monitoring.Taggable;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +41,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Statistic;
 import io.micrometer.core.instrument.search.RequiredSearch;
 
-import com.expediagroup.beekeeper.core.TestApplication;
+import com.expediagroup.beekeeper.cleanup.TestApplication;
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 
 @ExtendWith(SpringExtension.class)
@@ -52,7 +55,8 @@ public class BytesDeletedReporterTest {
   private static final long BYTES_DELETED = 10;
 
   private @Autowired MeterRegistry meterRegistry;
-  private @Mock Taggable taggable;
+  private @Mock
+  Taggable taggable;
   private BytesDeletedReporter bytesDeletedReporter;
 
   @BeforeEach
@@ -69,10 +73,10 @@ public class BytesDeletedReporterTest {
       .name("s3-" + METRIC_NAME)
       .tags("table", TABLE)
       .counter();
-    assertThat(counter).isNotNull();
-    assertThat(counter.measure().iterator()).toIterable().extracting("statistic")
+    Assertions.assertThat(counter).isNotNull();
+    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("statistic")
       .containsExactly(Statistic.COUNT);
-    assertThat(counter.measure().iterator()).toIterable().extracting("value")
+    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("value")
       .containsExactly((double) BYTES_DELETED * 2);
   }
 
@@ -84,10 +88,10 @@ public class BytesDeletedReporterTest {
       .name("s3-" + DRY_RUN_METRIC_NAME)
       .tags("table", TABLE)
       .counter();
-    assertThat(counter).isNotNull();
-    assertThat(counter.measure().iterator()).toIterable().extracting("statistic")
+    Assertions.assertThat(counter).isNotNull();
+    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("statistic")
       .containsExactly(Statistic.COUNT);
-    assertThat(counter.measure().iterator()).toIterable().extracting("value")
+    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("value")
       .containsExactly((double) BYTES_DELETED);
   }
 
@@ -105,15 +109,15 @@ public class BytesDeletedReporterTest {
       .name("s3-" + METRIC_NAME)
       .tags("table", "database2.table2")
       .counter();
-    assertThat(counter1).isNotNull();
-    assertThat(counter2).isNotNull();
-    assertThat(counter1.measure().iterator()).toIterable().extracting("statistic")
+    Assertions.assertThat(counter1).isNotNull();
+    Assertions.assertThat(counter2).isNotNull();
+    Assertions.assertThat(counter1.measure().iterator()).toIterable().extracting("statistic")
       .containsExactly(Statistic.COUNT);
-    assertThat(counter1.measure().iterator()).toIterable().extracting("value")
+    Assertions.assertThat(counter1.measure().iterator()).toIterable().extracting("value")
       .containsExactly((double) BYTES_DELETED);
-    assertThat(counter2.measure().iterator()).toIterable().extracting("statistic")
+    Assertions.assertThat(counter2.measure().iterator()).toIterable().extracting("statistic")
       .containsExactly(Statistic.COUNT);
-    assertThat(counter2.measure().iterator()).toIterable().extracting("value")
+    Assertions.assertThat(counter2.measure().iterator()).toIterable().extracting("value")
       .containsExactly((double) BYTES_DELETED * 2);
   }
 

@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.core.monitoring;
+package com.expediagroup.beekeeper.cleanup.monitoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import static com.expediagroup.beekeeper.core.monitoring.DeletedMetadataReporter.DRY_RUN_METRIC_NAME;
-import static com.expediagroup.beekeeper.core.monitoring.DeletedMetadataReporter.METRIC_NAME;
+import static com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter.DRY_RUN_METRIC_NAME;
+import static com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter.METRIC_NAME;
 
+import com.expediagroup.beekeeper.core.monitoring.MetricTag;
+import com.expediagroup.beekeeper.core.monitoring.Taggable;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +41,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Statistic;
 import io.micrometer.core.instrument.search.RequiredSearch;
 
-import com.expediagroup.beekeeper.core.TestApplication;
+import com.expediagroup.beekeeper.cleanup.TestApplication;
 import com.expediagroup.beekeeper.core.config.MetadataType;
 
 @ExtendWith(SpringExtension.class)
@@ -54,7 +57,8 @@ public class DeletedMetadataReporterTest {
       .join("-", MetadataType.HIVE_TABLE.toString().toLowerCase(), DRY_RUN_METRIC_NAME);
 
   private @Autowired MeterRegistry meterRegistry;
-  private @Mock Taggable taggable;
+  private @Mock
+  Taggable taggable;
   private DeletedMetadataReporter deletedMetadataReporter;
 
   @BeforeEach
@@ -68,9 +72,9 @@ public class DeletedMetadataReporterTest {
     deletedMetadataReporter.reportTaggable(taggable, MetadataType.HIVE_TABLE);
 
     Counter counter = RequiredSearch.in(meterRegistry).name(tableCounterName).tags("table", TABLE).counter();
-    assertThat(counter).isNotNull();
-    assertThat(counter.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
-    assertThat(counter.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
+    Assertions.assertThat(counter).isNotNull();
+    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
+    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
   }
 
   @Test
@@ -79,9 +83,9 @@ public class DeletedMetadataReporterTest {
     deletedMetadataReporter.reportTaggable(taggable, MetadataType.HIVE_TABLE);
 
     Counter counter = RequiredSearch.in(meterRegistry).name(dryRunTableCounterName).tags("table", TABLE).counter();
-    assertThat(counter).isNotNull();
-    assertThat(counter.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
-    assertThat(counter.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
+    Assertions.assertThat(counter).isNotNull();
+    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
+    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
   }
 
   @Test
@@ -92,17 +96,17 @@ public class DeletedMetadataReporterTest {
     deletedMetadataReporter.reportTaggable(taggable2, MetadataType.HIVE_TABLE);
 
     Counter counter = RequiredSearch.in(meterRegistry).name(tableCounterName).tags("table", TABLE).counter();
-    assertThat(counter).isNotNull();
-    assertThat(counter.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
-    assertThat(counter.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
+    Assertions.assertThat(counter).isNotNull();
+    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
+    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
     Counter counter2 = RequiredSearch
         .in(meterRegistry)
         .name(tableCounterName)
         .tags("table", "database2.table2")
         .counter();
-    assertThat(counter2).isNotNull();
-    assertThat(counter2.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
-    assertThat(counter2.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
+    Assertions.assertThat(counter2).isNotNull();
+    Assertions.assertThat(counter2.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
+    Assertions.assertThat(counter2.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
   }
 
 }

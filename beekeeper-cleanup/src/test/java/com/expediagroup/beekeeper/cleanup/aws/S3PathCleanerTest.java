@@ -52,7 +52,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 
 @ExtendWith(MockitoExtension.class)
 class S3PathCleanerTest {

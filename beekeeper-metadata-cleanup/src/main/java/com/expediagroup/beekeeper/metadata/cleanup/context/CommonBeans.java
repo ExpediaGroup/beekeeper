@@ -40,10 +40,10 @@ import com.expediagroup.beekeeper.cleanup.aws.S3SentinelFilesCleaner;
 import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
 import com.expediagroup.beekeeper.cleanup.hive.HiveMetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
-import com.expediagroup.beekeeper.core.metadata.MetadataCleaner;
-import com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter;
-import com.expediagroup.beekeeper.core.monitoring.DeletedMetadataReporter;
-import com.expediagroup.beekeeper.core.path.PathCleaner;
+import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
+import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
+import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.GenericMetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.service.PagingMetadataCleanupService;
 

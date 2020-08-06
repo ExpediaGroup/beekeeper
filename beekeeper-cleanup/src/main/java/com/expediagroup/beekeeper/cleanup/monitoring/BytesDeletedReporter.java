@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.core.monitoring;
+package com.expediagroup.beekeeper.cleanup.monitoring;
 
+import com.expediagroup.beekeeper.core.monitoring.MetricTag;
+import com.expediagroup.beekeeper.core.monitoring.Taggable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,31 +25,35 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 
-import com.expediagroup.beekeeper.core.config.MetadataType;
+import com.expediagroup.beekeeper.core.config.FileSystemType;
 
-public class DeletedMetadataReporter {
+public class BytesDeletedReporter {
 
-  private static final Logger log = LoggerFactory.getLogger(DeletedMetadataReporter.class);
-  public static final String METRIC_NAME = "deleted-metadata";
+  private static final Logger log = LoggerFactory.getLogger(BytesDeletedReporter.class);
+  public static final String METRIC_NAME = "bytes-deleted";
   public static final String DRY_RUN_METRIC_NAME = "dry-run-" + METRIC_NAME;
 
   private MeterRegistry meterRegistry;
   private String metricName;
 
-  public DeletedMetadataReporter(MeterRegistry meterRegistry, boolean dryRunEnabled) {
+  public BytesDeletedReporter(MeterRegistry meterRegistry, boolean dryRunEnabled) {
     this.meterRegistry = meterRegistry;
     this.metricName = dryRunEnabled ? DRY_RUN_METRIC_NAME : METRIC_NAME;
   }
 
-  public void reportTaggable(Taggable taggable, MetadataType metadataType) {
-    MetricTag tag = taggable.getMetricTag();
-    log.info("Deleted metadata: {}", tag.getTag()); // tagged as database.table
-    String metadataMetricName = String.join("-", metadataType.toString().toLowerCase(), metricName);
-    Counter counter = Counter.builder(metadataMetricName).tags(createTag(tag)).register(meterRegistry);
-    counter.increment();
+  public void reportTaggable(long bytesDeleted, Taggable taggable, FileSystemType fileSystemType) {
+    log.info("Bytes deleted: {}", bytesDeleted);
+    String fileSystemMetricName = String.join("-", fileSystemType.toString()
+      .toLowerCase(), metricName);
+    Counter counter = Counter
+        .builder(fileSystemMetricName)
+        .baseUnit("bytes")
+        .tags(tags(taggable.getMetricTag()))
+        .register(meterRegistry);
+    counter.increment(bytesDeleted);
   }
 
-  private Iterable<Tag> createTag(MetricTag metricTag) {
+  private Iterable<Tag> tags(MetricTag metricTag) {
     return Tags.of(metricTag.getKey(), metricTag.getTag());
   }
 

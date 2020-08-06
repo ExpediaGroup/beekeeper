@@ -29,10 +29,10 @@ import com.google.common.base.Strings;
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
-import com.expediagroup.beekeeper.core.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
-import com.expediagroup.beekeeper.core.path.PathCleaner;
-import com.expediagroup.beekeeper.core.path.SentinelFilesCleaner;
+import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
+import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
 
 public class S3PathCleaner implements PathCleaner {
 

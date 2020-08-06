@@ -19,7 +19,7 @@ import java.util.Optional;
 
 import com.amazonaws.services.s3.AmazonS3URI;
 
-import com.expediagroup.beekeeper.core.path.SentinelFilesCleaner;
+import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
 
 public class S3SentinelFilesCleaner implements SentinelFilesCleaner {
 

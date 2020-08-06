@@ -16,9 +16,9 @@
 package com.expediagroup.beekeeper.cleanup.hive;
 
 import com.expediagroup.beekeeper.core.config.MetadataType;
-import com.expediagroup.beekeeper.core.metadata.MetadataCleaner;
+import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
-import com.expediagroup.beekeeper.core.monitoring.DeletedMetadataReporter;
+import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 
 public class HiveMetadataCleaner implements MetadataCleaner {
 

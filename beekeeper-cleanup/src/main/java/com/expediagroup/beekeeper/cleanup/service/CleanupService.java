@@ -20,9 +20,9 @@ import java.time.Instant;
 public interface CleanupService {
 
   /**
-   * Cleans up all HousekeepingMetadata entries which are older than {@code referenceTime}.
+   * Cleans up all paths and tables which are older than {@code referenceTime}.
    *
-   * @param referenceTime HousekeepingMetadata deletion reference time.
+   * @param referenceTime Deletion reference time.
    */
   void cleanUp(Instant referenceTime);
 
