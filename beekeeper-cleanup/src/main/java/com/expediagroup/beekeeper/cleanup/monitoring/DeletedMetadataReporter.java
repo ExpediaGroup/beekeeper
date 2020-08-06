@@ -15,8 +15,6 @@
  */
 package com.expediagroup.beekeeper.cleanup.monitoring;
 
-import com.expediagroup.beekeeper.core.monitoring.MetricTag;
-import com.expediagroup.beekeeper.core.monitoring.Taggable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +24,8 @@ import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 
 import com.expediagroup.beekeeper.core.config.MetadataType;
+import com.expediagroup.beekeeper.core.monitoring.MetricTag;
+import com.expediagroup.beekeeper.core.monitoring.Taggable;
 
 public class DeletedMetadataReporter {
 
@@ -52,5 +52,4 @@ public class DeletedMetadataReporter {
   private Iterable<Tag> createTag(MetricTag metricTag) {
     return Tags.of(metricTag.getKey(), metricTag.getTag());
   }
-
 }

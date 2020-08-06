@@ -72,9 +72,9 @@ public class DeletedMetadataReporterTest {
     deletedMetadataReporter.reportTaggable(taggable, MetadataType.HIVE_TABLE);
 
     Counter counter = RequiredSearch.in(meterRegistry).name(tableCounterName).tags("table", TABLE).counter();
-    Assertions.assertThat(counter).isNotNull();
-    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
-    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
+    assertThat(counter).isNotNull();
+    assertThat(counter.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
+    assertThat(counter.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
   }
 
   @Test
@@ -83,9 +83,9 @@ public class DeletedMetadataReporterTest {
     deletedMetadataReporter.reportTaggable(taggable, MetadataType.HIVE_TABLE);
 
     Counter counter = RequiredSearch.in(meterRegistry).name(dryRunTableCounterName).tags("table", TABLE).counter();
-    Assertions.assertThat(counter).isNotNull();
-    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
-    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
+    assertThat(counter).isNotNull();
+    assertThat(counter.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
+    assertThat(counter.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
   }
 
   @Test
@@ -96,17 +96,17 @@ public class DeletedMetadataReporterTest {
     deletedMetadataReporter.reportTaggable(taggable2, MetadataType.HIVE_TABLE);
 
     Counter counter = RequiredSearch.in(meterRegistry).name(tableCounterName).tags("table", TABLE).counter();
-    Assertions.assertThat(counter).isNotNull();
-    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
-    Assertions.assertThat(counter.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
+    assertThat(counter).isNotNull();
+    assertThat(counter.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
+    assertThat(counter.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
     Counter counter2 = RequiredSearch
         .in(meterRegistry)
         .name(tableCounterName)
         .tags("table", "database2.table2")
         .counter();
-    Assertions.assertThat(counter2).isNotNull();
-    Assertions.assertThat(counter2.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
-    Assertions.assertThat(counter2.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
+    assertThat(counter2).isNotNull();
+    assertThat(counter2.measure().iterator()).toIterable().extracting("statistic").containsExactly(Statistic.COUNT);
+    assertThat(counter2.measure().iterator()).toIterable().extracting("value").containsExactly((double) 1);
   }
 
 }

@@ -26,13 +26,13 @@ import org.slf4j.LoggerFactory;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.base.Strings;
 
+import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
+import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
-import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
-import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
-import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
 
 public class S3PathCleaner implements PathCleaner {
 
@@ -85,8 +85,8 @@ public class S3PathCleaner implements PathCleaner {
     List<S3ObjectSummary> objectSummaries = s3Client.listObjects(bucket, key);
     bytesDeletedCalculator.storeFileSizes(objectSummaries);
     List<String> keys = objectSummaries.stream()
-      .map(S3ObjectSummary::getKey)
-      .collect(Collectors.toList());
+        .map(S3ObjectSummary::getKey)
+        .collect(Collectors.toList());
     List<String> deletedKeys = s3Client.deleteObjects(bucket, keys);
     bytesDeletedCalculator.calculateBytesDeleted(deletedKeys);
     int totalFiles = keys.size();
@@ -94,11 +94,11 @@ public class S3PathCleaner implements PathCleaner {
     if (successfulDeletes != totalFiles) {
       keys.removeAll(deletedKeys);
       String failedDeletions = keys.stream()
-        .map(k -> format("'%s'", k))
-        .collect(Collectors.joining(", "));
+          .map(k -> format("'%s'", k))
+          .collect(Collectors.joining(", "));
       throw new BeekeeperException(
           format("Not all files could be deleted at path \"%s/%s\"; deleted %s/%s objects. Objects not deleted: %s.",
-            bucket, key, successfulDeletes, totalFiles, failedDeletions));
+              bucket, key, successfulDeletes, totalFiles, failedDeletions));
     }
   }
 
@@ -137,5 +137,4 @@ public class S3PathCleaner implements PathCleaner {
     String tableDirectory = "/" + tableName + "/";
     return !Strings.isNullOrEmpty(tableName) && parent.contains(tableDirectory) && !parent.endsWith("/" + tableName);
   }
-
 }

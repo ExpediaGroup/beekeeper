@@ -15,8 +15,6 @@
  */
 package com.expediagroup.beekeeper.cleanup.monitoring;
 
-import com.expediagroup.beekeeper.core.monitoring.MetricTag;
-import com.expediagroup.beekeeper.core.monitoring.Taggable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +24,8 @@ import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 
 import com.expediagroup.beekeeper.core.config.FileSystemType;
+import com.expediagroup.beekeeper.core.monitoring.MetricTag;
+import com.expediagroup.beekeeper.core.monitoring.Taggable;
 
 public class BytesDeletedReporter {
 
@@ -44,7 +44,7 @@ public class BytesDeletedReporter {
   public void reportTaggable(long bytesDeleted, Taggable taggable, FileSystemType fileSystemType) {
     log.info("Bytes deleted: {}", bytesDeleted);
     String fileSystemMetricName = String.join("-", fileSystemType.toString()
-      .toLowerCase(), metricName);
+        .toLowerCase(), metricName);
     Counter counter = Counter
         .builder(fileSystemMetricName)
         .baseUnit("bytes")
@@ -56,5 +56,4 @@ public class BytesDeletedReporter {
   private Iterable<Tag> tags(MetricTag metricTag) {
     return Tags.of(metricTag.getKey(), metricTag.getTag());
   }
-
 }

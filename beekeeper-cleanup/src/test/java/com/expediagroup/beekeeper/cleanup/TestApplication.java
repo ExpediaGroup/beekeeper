@@ -15,14 +15,15 @@
  */
 package com.expediagroup.beekeeper.cleanup;
 
+import java.util.TimeZone;
+
+import javax.annotation.PostConstruct;
+
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-
-import javax.annotation.PostConstruct;
-import java.util.TimeZone;
 
 @SpringBootApplication
 @EnableConfigurationProperties
@@ -35,5 +36,4 @@ public class TestApplication {
   void started() {
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
   }
-
 }
