@@ -32,8 +32,8 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 
 import com.amazonaws.services.s3.AmazonS3;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @ExtendWith(MockitoExtension.class)
 class S3DryRunPathCleanerTest {

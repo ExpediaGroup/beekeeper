@@ -47,9 +47,9 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
+import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
-import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.path.cleanup.TestApplication;
 import com.expediagroup.beekeeper.path.cleanup.handler.UnreferencedPathHandler;

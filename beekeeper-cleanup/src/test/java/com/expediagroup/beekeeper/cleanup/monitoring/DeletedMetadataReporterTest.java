@@ -21,9 +21,6 @@ import static org.mockito.Mockito.when;
 import static com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter.DRY_RUN_METRIC_NAME;
 import static com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter.METRIC_NAME;
 
-import com.expediagroup.beekeeper.core.monitoring.MetricTag;
-import com.expediagroup.beekeeper.core.monitoring.Taggable;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,6 +40,8 @@ import io.micrometer.core.instrument.search.RequiredSearch;
 
 import com.expediagroup.beekeeper.cleanup.TestApplication;
 import com.expediagroup.beekeeper.core.config.MetadataType;
+import com.expediagroup.beekeeper.core.monitoring.MetricTag;
+import com.expediagroup.beekeeper.core.monitoring.Taggable;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)

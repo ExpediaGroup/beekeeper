@@ -25,9 +25,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.core.config.MetadataType;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
-import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 
 @ExtendWith(MockitoExtension.class)
 public class HiveMetadataCleanerTest {

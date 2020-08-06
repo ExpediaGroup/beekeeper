@@ -35,9 +35,9 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.expediagroup.beekeeper.cleanup.aws.S3Client;
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.aws.S3SentinelFilesCleaner;
-import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
+import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.path.cleanup.handler.GenericPathHandler;
 import com.expediagroup.beekeeper.path.cleanup.service.PagingPathCleanupService;
 
