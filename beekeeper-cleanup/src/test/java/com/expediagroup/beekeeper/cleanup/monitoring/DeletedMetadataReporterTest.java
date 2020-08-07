@@ -56,8 +56,7 @@ public class DeletedMetadataReporterTest {
       .join("-", MetadataType.HIVE_TABLE.toString().toLowerCase(), DRY_RUN_METRIC_NAME);
 
   private @Autowired MeterRegistry meterRegistry;
-  private @Mock
-  Taggable taggable;
+  private @Mock Taggable taggable;
   private DeletedMetadataReporter deletedMetadataReporter;
 
   @BeforeEach

@@ -28,15 +28,19 @@ import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.thrift.TException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 
+@ExtendWith(MockitoExtension.class)
 public class HiveClientTest {
 
-  private CloseableMetaStoreClient client = Mockito.mock(CloseableMetaStoreClient.class);
+  private @Mock CloseableMetaStoreClient client;
 
   private static final String DATABASE = "database";
   private static final String TABLE_NAME = "tableName";
@@ -90,7 +94,6 @@ public class HiveClientTest {
 
   @Test
   public void dontThrowErrorWhenTableAlreadyDeleted() throws MetaException, NoSuchObjectException, TException {
-    when(client.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
     Mockito.doThrow(NoSuchObjectException.class).when(client).dropTable(DATABASE, TABLE_NAME);
     boolean result = hiveClient.dropTable(DATABASE, TABLE_NAME);
     verify(client).dropTable(DATABASE, TABLE_NAME);

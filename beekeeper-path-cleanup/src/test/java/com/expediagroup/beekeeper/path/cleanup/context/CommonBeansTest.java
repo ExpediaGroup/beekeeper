@@ -51,6 +51,8 @@ class CommonBeansTest {
   private static final String ENDPOINT = "endpoint";
   private static final String BUCKET = "bucket";
   private static final String KEY = "key";
+
+  private boolean dryRunEnabled = false;
   private final CommonBeans commonBeans = new CommonBeans();
   private @Mock HousekeepingPathRepository repository;
   private @Mock PathCleaner pathCleaner;
@@ -86,14 +88,14 @@ class CommonBeansTest {
   @Test
   void s3Client() {
     AmazonS3 amazonS3 = commonBeans.amazonS3();
-    S3Client s3Client = new S3Client(amazonS3, false);
-    S3Client beansS3Client = commonBeans.s3Client(amazonS3, false);
+    S3Client s3Client = new S3Client(amazonS3, dryRunEnabled);
+    S3Client beansS3Client = commonBeans.s3Client(amazonS3, dryRunEnabled);
     assertThat(s3Client).isEqualToComparingFieldByField(beansS3Client);
   }
 
   @Test
   void verifyS3pathCleaner() {
-    S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), false);
+    S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), dryRunEnabled);
     MeterRegistry meterRegistry = mock(GraphiteMeterRegistry.class);
     
     PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, bytesDeletedReporter);
@@ -102,7 +104,7 @@ class CommonBeansTest {
 
   @Test
   void cleanupService() {
-    CleanupService cleanupService = commonBeans.cleanupService(Collections.emptyList(), 2, false);
+    CleanupService cleanupService = commonBeans.cleanupService(Collections.emptyList(), 2, dryRunEnabled);
     assertThat(cleanupService).isInstanceOf(PagingPathCleanupService.class);
   }
 }

@@ -75,7 +75,7 @@ class S3PathCleanerTest {
   private S3Client s3Client;
   private S3SentinelFilesCleaner s3SentinelFilesCleaner;
   private @Mock BytesDeletedReporter bytesDeletedReporter;
-  private Boolean dryRunEnabled = false;
+  private boolean dryRunEnabled = false;
 
   private S3PathCleaner s3PathCleaner;
 

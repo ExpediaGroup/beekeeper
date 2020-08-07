@@ -54,8 +54,7 @@ public class BytesDeletedReporterTest {
   private static final long BYTES_DELETED = 10;
 
   private @Autowired MeterRegistry meterRegistry;
-  private @Mock
-  Taggable taggable;
+  private @Mock Taggable taggable;
   private BytesDeletedReporter bytesDeletedReporter;
 
   @BeforeEach

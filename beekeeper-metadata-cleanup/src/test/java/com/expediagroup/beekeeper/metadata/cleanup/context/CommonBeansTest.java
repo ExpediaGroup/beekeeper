@@ -64,7 +64,7 @@ public class CommonBeansTest {
   private static final String KEY = "key";
   private final String metastoreUri = "thrift://localhost:1234";
 
-  private Boolean dryRunEnabled = false;
+  private boolean dryRunEnabled = false;
   private final CommonBeans commonBeans = new CommonBeans();
   private @Mock HousekeepingPathRepository repository;
   private @Mock MetadataCleaner metadataCleaner;
