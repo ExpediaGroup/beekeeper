@@ -37,8 +37,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import com.expediagroup.beekeeper.core.aws.S3PathCleaner;
-import com.expediagroup.beekeeper.core.hive.HiveMetadataCleaner;
+import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
+import com.expediagroup.beekeeper.cleanup.hive.HiveMetadataCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
@@ -81,11 +81,12 @@ public class GenericMetadataHandlerTest {
   @Test
   public void typicalRunCleaningTable() {
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);
+    when(metadataCleaner.dropTable(Mockito.any())).thenReturn(true);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
-    verify(metadataCleaner).cleanupMetadata(mockMetadata);
+    verify(metadataCleaner).dropTable(mockMetadata);
     verify(pathCleaner).cleanupPath(mockMetadata);
-    verify(metadataCleaner, never()).cleanupPartition(mockMetadata);
+    verify(metadataCleaner, never()).dropPartition(mockMetadata);
     verify(mockMetadata).setCleanupAttempts(1);
     verify(mockMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(mockMetadata);
@@ -95,11 +96,12 @@ public class GenericMetadataHandlerTest {
   @Test
   public void typicalRunCleaningPartition() {
     when(mockMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
+    when(metadataCleaner.dropPartition(Mockito.any())).thenReturn(true);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
-    verify(metadataCleaner).cleanupPartition(mockMetadata);
+    verify(metadataCleaner).dropPartition(mockMetadata);
     verify(pathCleaner).cleanupPath(mockMetadata);
-    verify(metadataCleaner, never()).cleanupMetadata(mockMetadata);
+    verify(metadataCleaner, never()).dropTable(mockMetadata);
     verify(mockMetadata).setCleanupAttempts(1);
     verify(mockMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(mockMetadata);
@@ -118,9 +120,9 @@ public class GenericMetadataHandlerTest {
     when(mockMetadata2.getPartitionName()).thenReturn(PARTITION_NAME);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
-    verify(metadataCleaner, never()).cleanupMetadata(mockMetadata);
+    verify(metadataCleaner, never()).dropTable(mockMetadata);
     verify(pathCleaner, never()).cleanupPath(mockMetadata);
-    verify(metadataCleaner, never()).cleanupPartition(mockMetadata);
+    verify(metadataCleaner, never()).dropPartition(mockMetadata);
     verify(mockMetadata, never()).setCleanupAttempts(1);
     verify(mockMetadata, never()).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository, never()).save(mockMetadata);
@@ -129,10 +131,12 @@ public class GenericMetadataHandlerTest {
 
   @Test
   public void typicalDryRunCleaningTable() {
+    when(metadataCleaner.dropTable(Mockito.any())).thenReturn(true);
+
     Pageable pageable = handler.processPage(mockPageable, mockPage, true);
-    verify(metadataCleaner).cleanupMetadata(mockMetadata);
+    verify(metadataCleaner).dropTable(mockMetadata);
     verify(pathCleaner).cleanupPath(mockMetadata);
-    verify(metadataCleaner, never()).cleanupPartition(mockMetadata);
+    verify(metadataCleaner, never()).dropPartition(mockMetadata);
     verifyNoMoreInteractions(mockMetadata);
     verify(mockMetadata, never()).setCleanupAttempts(1);
     verify(mockMetadata, never()).setHousekeepingStatus(DELETED);
@@ -147,11 +151,12 @@ public class GenericMetadataHandlerTest {
         .thenReturn(mockPageWithPartition);
     when(mockPageWithPartition.getContent()).thenReturn(List.of(mockMetadata, mockMetadata));
     when(mockMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
+    when(metadataCleaner.dropPartition(Mockito.any())).thenReturn(true);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, true);
-    verify(metadataCleaner).cleanupPartition(mockMetadata);
+    verify(metadataCleaner).dropPartition(mockMetadata);
     verify(pathCleaner).cleanupPath(mockMetadata);
-    verify(metadataCleaner, never()).cleanupMetadata(mockMetadata);
+    verify(metadataCleaner, never()).dropTable(mockMetadata);
     verifyNoMoreInteractions(mockMetadata);
     verify(mockMetadata, never()).setCleanupAttempts(1);
     verify(mockMetadata, never()).setHousekeepingStatus(DELETED);
@@ -160,10 +165,41 @@ public class GenericMetadataHandlerTest {
   }
 
   @Test
+  public void dontCleanupPathWhenTableDoesntExist() {
+    when(metadataCleaner.dropTable(Mockito.any())).thenReturn(false);
+    when(mockMetadata.getCleanupAttempts()).thenReturn(0);
+
+    Pageable pageable = handler.processPage(mockPageable, mockPage, false);
+    verify(metadataCleaner).dropTable(mockMetadata);
+    verify(pathCleaner, never()).cleanupPath(mockMetadata);
+    verify(metadataCleaner, never()).dropPartition(mockMetadata);
+    verify(mockMetadata).setCleanupAttempts(1);
+    verify(mockMetadata).setHousekeepingStatus(DELETED);
+    verify(housekeepingMetadataRepository).save(mockMetadata);
+    assertThat(pageable).isEqualTo(pageable);
+  }
+
+  @Test
+  public void dontCleanupPathWhenPartitionDoesntExist() {
+    when(metadataCleaner.dropPartition(Mockito.any())).thenReturn(false);
+    when(mockMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
+
+    Pageable pageable = handler.processPage(mockPageable, mockPage, false);
+    verify(metadataCleaner).dropPartition(mockMetadata);
+    verify(pathCleaner, never()).cleanupPath(mockMetadata);
+    verify(metadataCleaner, never()).dropTable(mockMetadata);
+    verify(mockMetadata).setCleanupAttempts(1);
+    verify(mockMetadata).setHousekeepingStatus(DELETED);
+    verify(housekeepingMetadataRepository).save(mockMetadata);
+    assertThat(pageable).isEqualTo(pageable);
+  }
+
+  @Test
   public void expectedMetadataCleanupFailure() {
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);
-    doThrow(RuntimeException.class).when(metadataCleaner).cleanupMetadata(mockMetadata);
+    doThrow(RuntimeException.class).when(metadataCleaner).dropTable(mockMetadata);
     when(mockPage.getContent()).thenReturn(List.of(mockMetadata));
+
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(mockMetadata).setCleanupAttempts(1);
@@ -175,6 +211,7 @@ public class GenericMetadataHandlerTest {
   @Test
   public void expectedPathCleanupFailure() {
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);
+    when(metadataCleaner.dropTable(Mockito.any())).thenReturn(true);
     doThrow(RuntimeException.class).when(pathCleaner).cleanupPath(mockMetadata);
     when(mockPage.getContent()).thenReturn(List.of(mockMetadata));
 
@@ -193,7 +230,7 @@ public class GenericMetadataHandlerTest {
     when(mockPageWithPartition.getContent()).thenReturn(List.of(mockMetadata, mockMetadata));
     when(mockMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);
-    doThrow(RuntimeException.class).when(metadataCleaner).cleanupPartition(mockMetadata);
+    doThrow(RuntimeException.class).when(metadataCleaner).dropPartition(mockMetadata);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(mockMetadata).setCleanupAttempts(1);

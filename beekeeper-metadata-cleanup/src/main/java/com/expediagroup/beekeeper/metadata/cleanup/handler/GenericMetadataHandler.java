@@ -23,11 +23,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.expediagroup.beekeeper.core.metadata.MetadataCleaner;
+import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
+import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
-import com.expediagroup.beekeeper.core.path.PathCleaner;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 public abstract class GenericMetadataHandler {
@@ -48,24 +48,6 @@ public abstract class GenericMetadataHandler {
       String databaseName,
       String tableName,
       Pageable pageable);
-
-  /*-
-   * Example entries:
-   * no: db  | tblname | path  | part vals
-   * 1   db1 | tbl1    | path1 | null             <- unpartitioned
-   * 2   db1 | tbl2    | path2 | null             <- partitioned
-   * 3   db1 | tbl2    | path2 | year=2020,hour=2 <- partition for above 
-   * 
-   * Assume the above records are returned, the table entry 1 (unpartitioned) will be dropped. 
-   * For entry 2, tbl2 will not be dropped, since the number of records for db1.tbl2 = 2. 
-   * For entry 3, this partition will be dropped from the table. Now the repository looks like:
-   * 
-   * no: db  | tblname | path  | part vals
-   * 1   db1 | tbl2    | path2 | null             <- partitioned
-   * 
-   * and this time, when entry 1 is returned, the number of records for db1.tbl2 = 1, so this table is dropped. 
-   * 
-   */
 
   /**
    * Processes a pageable entityHouseKeepingPath page.
@@ -113,16 +95,20 @@ public abstract class GenericMetadataHandler {
       HousekeepingMetadata housekeepingMetadata,
       MetadataCleaner metadataCleaner,
       PathCleaner pathCleaner) {
-    metadataCleaner.cleanupMetadata(housekeepingMetadata);
-    pathCleaner.cleanupPath(housekeepingMetadata);
+    boolean successfulDeletion = metadataCleaner.dropTable(housekeepingMetadata);
+    if (successfulDeletion) {
+      pathCleaner.cleanupPath(housekeepingMetadata);
+    }
   }
 
   private void cleanupPartition(
       HousekeepingMetadata housekeepingMetadata,
       MetadataCleaner metadataCleaner,
       PathCleaner pathCleaner) {
-    metadataCleaner.cleanupPartition(housekeepingMetadata);
-    pathCleaner.cleanupPath(housekeepingMetadata);
+    boolean successfulDeletion = metadataCleaner.dropPartition(housekeepingMetadata);
+    if (successfulDeletion) {
+      pathCleaner.cleanupPath(housekeepingMetadata);
+    }
   }
 
   private void cleanupContent(HousekeepingMetadata housekeepingMetadata, Pageable pageable) {

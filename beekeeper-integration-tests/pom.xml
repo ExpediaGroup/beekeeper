@@ -19,7 +19,7 @@
   <dependencies>
     <dependency>
       <groupId>com.expediagroup</groupId>
-      <artifactId>beekeeper-cleanup</artifactId>
+      <artifactId>beekeeper-path-cleanup</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

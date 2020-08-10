@@ -15,9 +15,10 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>beekeeper-cleanup</module>
     <module>beekeeper-core</module>
+    <module>beekeeper-cleanup</module>
     <module>beekeeper-metadata-cleanup</module>
+    <module>beekeeper-path-cleanup</module>
     <module>beekeeper-scheduler</module>
     <module>beekeeper-scheduler-apiary</module>
     <module>beekeeper-integration-tests</module>

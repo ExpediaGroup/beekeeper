@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.core.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -276,7 +277,7 @@ public class HousekeepingMetadataRepositoryTest {
     Page<HousekeepingMetadata> result = housekeepingMetadataRepository
         .findRecordsForGivenDatabaseAndTable(DATABASE_NAME, TABLE_NAME, PageRequest.of(0, 500));
 
-    assertTrue(result.getContent().size() == 2);
+    assertEquals(2, result.getContent().size());
     compare(result.getContent().get(0), housekeepingTable1);
     compare(result.getContent().get(1), housekeepingTable2);
   }
@@ -304,7 +305,7 @@ public class HousekeepingMetadataRepositoryTest {
     Page<HousekeepingMetadata> result = housekeepingMetadataRepository
         .findRecordsForGivenDatabaseAndTable(DATABASE_NAME, TABLE_NAME, PageRequest.of(0, 500));
 
-    assertTrue(result.getContent().size() == 1);
+    assertEquals(1, result.getContent().size());
     compare(result.getContent().get(0), housekeepingTable1);
   }
 
@@ -319,7 +320,7 @@ public class HousekeepingMetadataRepositoryTest {
     Page<HousekeepingMetadata> result = housekeepingMetadataRepository
         .findRecordsForGivenDatabaseAndTable(DATABASE_NAME, TABLE_NAME, PageRequest.of(0, 500));
 
-    assertTrue(result.getContent().size() == 1);
+    assertEquals(1, result.getContent().size());
     compare(result.getContent().get(0), housekeepingTable2);
   }
 

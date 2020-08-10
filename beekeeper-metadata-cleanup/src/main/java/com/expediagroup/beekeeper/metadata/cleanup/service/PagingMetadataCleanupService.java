@@ -29,11 +29,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.micrometer.core.annotation.Timed;
 
+import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.GenericMetadataHandler;
 
-public class PagingMetadataCleanupService implements MetadataCleanupService {
+public class PagingMetadataCleanupService implements CleanupService {
 
   private final List<GenericMetadataHandler> metadataHandlers;
   private final boolean dryRunEnabled;

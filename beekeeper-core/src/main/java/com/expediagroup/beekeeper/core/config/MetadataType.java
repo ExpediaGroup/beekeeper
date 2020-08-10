@@ -16,8 +16,6 @@
 package com.expediagroup.beekeeper.core.config;
 
 public enum MetadataType {
-
   HIVE_TABLE,
   HIVE_PARTITION
-
 }
