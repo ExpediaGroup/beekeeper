@@ -38,7 +38,7 @@ public class HiveClient {
 
   /**
    * Will drop the table from the database. Error is not thrown if table not found.
-   * 
+   *
    * @param databaseName
    * @param tableName
    */
@@ -47,16 +47,18 @@ public class HiveClient {
     if (dryRunEnabled) {
       log.info("Dry run - dropping table \"{}.{}\"", databaseName, tableName);
     } else {
-      log.info("Dropping table \"{}.{}\"", databaseName, tableName);
-      try {
-        client.dropTable(databaseName, tableName);
-      } catch (NoSuchObjectException e) {
+      if (tableExists(databaseName, tableName)) {
+        try {
+          log.info("Dropping table \"{}.{}\"", databaseName, tableName);
+          client.dropTable(databaseName, tableName);
+        } catch (TException e) {
+          throw new BeekeeperException(
+              "Unexpected exception when dropping table: \"" + databaseName + "." + tableName + "\".",
+              e);
+        }
+      } else {
         log.info("Could not drop table: table not found: \"{}.{}\"", databaseName, tableName);
         tableDeleted = false;
-      } catch (TException e) {
-        throw new BeekeeperException(
-            "Unexpected exception when dropping table: \"" + databaseName + "." + tableName + "\".",
-            e);
       }
     }
     return tableDeleted;
@@ -64,7 +66,7 @@ public class HiveClient {
 
   /**
    * Will drop the partition from the table. Error is not thrown if the table or partition are not found.
-   * 
+   *
    * @param databaseName
    * @param tableName
    * @param partitionName expected format: "event_date=2020-01-01/event_hour=0/event_type=A"
@@ -74,9 +76,10 @@ public class HiveClient {
     if (dryRunEnabled) {
       log.info("Dry run - dropping partition \"{}\" from table \"{}.{}\"", partitionName, databaseName, tableName);
     } else {
-      log.info("Dropping partition \"{}\" from table \"{}.{}\"", partitionName, databaseName, tableName);
       if (tableExists(databaseName, tableName)) {
         try {
+          log.info("Dropping partition \"{}\" from table \"{}.{}\"", partitionName, databaseName, tableName);
+
           client.dropPartition(databaseName, tableName, partitionName, false);
         } catch (NoSuchObjectException e) {
           log
@@ -108,5 +111,4 @@ public class HiveClient {
           "Unexpected exception when checking if table \"" + databaseName + "." + tableName + "\" exists.", e);
     }
   }
-
 }

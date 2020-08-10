@@ -53,11 +53,10 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
-import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
 
 @Testcontainers
-public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
+public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 30;
 

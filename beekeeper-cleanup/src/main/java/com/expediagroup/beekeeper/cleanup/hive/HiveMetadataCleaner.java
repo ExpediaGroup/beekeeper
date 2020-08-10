@@ -19,6 +19,7 @@ import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.core.config.MetadataType;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 
 public class HiveMetadataCleaner implements MetadataCleaner {
 
@@ -31,6 +32,7 @@ public class HiveMetadataCleaner implements MetadataCleaner {
   }
 
   @Override
+  @TimedTaggable("hive-tables-deleted")
   public boolean dropTable(HousekeepingMetadata housekeepingMetadata) {
     boolean successfulDeletion = client
         .dropTable(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
@@ -41,6 +43,7 @@ public class HiveMetadataCleaner implements MetadataCleaner {
   }
 
   @Override
+  @TimedTaggable("hive-partitions-deleted")
   public boolean dropPartition(HousekeepingMetadata housekeepingMetadata) {
     boolean successfulDeletion = client
         .dropPartition(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(),

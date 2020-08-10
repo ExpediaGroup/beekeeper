@@ -55,7 +55,7 @@ import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
 
 @Testcontainers
 @ExtendWith(MockitoExtension.class)
-public class BeekeeperDryRunCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
+public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 30;
 

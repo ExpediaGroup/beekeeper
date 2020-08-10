@@ -23,6 +23,7 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
+import static com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter.METRIC_NAME;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
@@ -33,6 +34,7 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_N
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +42,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.thrift.TException;
 import org.awaitility.Duration;
 import org.junit.Rule;
@@ -52,13 +57,19 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
+
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.google.common.collect.ImmutableMap;
 
+import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.HiveTestUtils;
 import com.expediagroup.beekeeper.metadata.cleanup.BeekeeperMetadataCleanup;
+import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
 
 import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
 
@@ -67,6 +78,8 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   private static final int TIMEOUT = 30;
   private static final String SCHEDULER_DELAY_MS = "5000";
+  private static final String HEALTHCHECK_URI = "http://localhost:8008/actuator/health";
+  private static final String PROMETHEUS_URI = "http://localhost:8008/actuator/prometheus";
 
   private static final String S3_ACCESS_KEY = "access";
   private static final String S3_SECRET_KEY = "secret";
@@ -177,27 +190,6 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   }
 
   @Test
-  public void cleanupTwoTables() throws TException, SQLException {
-    String tempPath = "s3a://test-path-bucket/some_database/some_other_table/id1";
-    hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
-    hiveTestUtils.createTable(metastoreClient, tempPath, TABLE_NAME_VALUE + "2", false);
-    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, TABLE_DATA);
-    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY + "0", TABLE_DATA);
-
-    insertExpiredMetadata(TABLE_NAME_VALUE, UNPARTITIONED_TABLE_PATH, null, SHORT_CLEANUP_DELAY_VALUE);
-    insertExpiredMetadata(TABLE_NAME_VALUE + "2", tempPath, null, SHORT_CLEANUP_DELAY_VALUE);
-
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
-
-    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
-    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE + "2")).isFalse();
-    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY)).isFalse();
-    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY + "0")).isFalse();
-  }
-
-  @Test
   public void cleanupPartitionedTable() throws Exception {
     Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
 
@@ -217,8 +209,6 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isFalse();
   }
 
-  // TODO
-  // this test is throwing out an error
   @Test
   public void cleanupPartitionButNotTable() throws Exception {
     Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
@@ -253,7 +243,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   }
 
   @Test
-  public void cleanupPartitionedTableWithNoPartitions() throws Exception {
+  public void cleanupPartitionedTableWithNoPartitions() throws TException, SQLException {
     hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
 
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
@@ -265,36 +255,6 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isFalse();
   }
-
-  // TODO
-  // this will cause an infinite loop because the housekeeping status will never be changed to 'deleted'
-  // is there some way to get around this?
-  // @Test
-  // public void dontCleanupPartitionedTableWithNonExpiredPartition() throws Exception {
-  // Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
-  //
-  // hiveTestUtils
-  // .addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, table, PARTITION_VALUES, TABLE_DATA);
-  //
-  // amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
-  // amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
-  //
-  // insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
-  // insertExpiredMetadata(TABLE_NAME_VALUE, PARTITION_PATH, PARTITION_NAME, LONG_CLEANUP_DELAY_VALUE);
-  //
-  // await()
-  // .atMost(TIMEOUT, TimeUnit.SECONDS)
-  // .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
-  //
-  // // check table is not dropped
-  // assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
-  //
-  // // check that the second partition still exists
-  // List<Partition> partitions = metastoreClient.listPartitions(DATABASE_NAME_VALUE, TABLE_NAME_VALUE, (short) 1);
-  // assertEquals(partitions.size(), 1);
-  // assertEquals(partitions.get(0).getValues(), PARTITION_VALUES);
-  // assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isFalse();
-  // }
 
   @Test
   public void cleanupMultipleTablesOfMixedType() throws Exception {
@@ -324,13 +284,83 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   }
 
   @Test
-  public void onlyCleanupLocationWhenTableExists() {
+  public void onlyCleanupLocationWhenTableExists() throws SQLException {
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
+    insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
 
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
+
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isTrue();
   }
 
   @Test
-  public void onlyCleanupLocationWhenPartitionExists() {
+  public void onlyCleanupLocationWhenPartitionExists() throws TException, SQLException {
+    Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
 
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
+    amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
+
+    insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
+    insertExpiredMetadata(PARTITION_PATH, PARTITION_NAME);
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(1).getHousekeepingStatus() == DELETED);
+
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isTrue();
   }
+
+
+  @Test
+  public void metrics() throws SQLException, TException {
+    Table table = hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
+    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, "");
+
+    insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
+
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY)).isFalse();
+    assertMetrics();
+  }
+
+  private void assertMetrics() {
+    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperMetadataCleanup.meterRegistry()).getRegistries();
+    assertThat(meterRegistry).hasSize(2);
+    meterRegistry.forEach(registry -> {
+      List<Meter> meters = registry.getMeters();
+      assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
+          .contains("cleanup-job", "hive-tables-deleted", "hive-table-" + METRIC_NAME);
+    });
+  }
+
+  // TODO
+  // fix test
+  @Test
+  public void healthCheck() {
+    CloseableHttpClient client = HttpClientBuilder.create().build();
+    HttpGet request = new HttpGet(HEALTHCHECK_URI);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
+  }
+
+  // TODO
+  // fix test
+  @Test
+  public void prometheus() {
+    CloseableHttpClient client = HttpClientBuilder.create().build();
+    HttpGet request = new HttpGet(PROMETHEUS_URI);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
+  }
+
+
+  // TODO
+  // use 'log lines' like in the dry run path cleanup - when you cant wait for something to say 'deleted'
+  // do this in dry run also
 
 }

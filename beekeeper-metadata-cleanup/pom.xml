@@ -22,6 +22,13 @@
       <groupId>com.expediagroup</groupId>
       <artifactId>beekeeper-cleanup</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <!-- if this is on classpath then not-null checks in objects persisted via JPA are ignored -->
+        <exclusion>
+          <groupId>org.hibernate.validator</groupId>
+          <artifactId>hibernate-validator</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -35,23 +42,11 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
-     <!--  <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions> -->
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-mapreduce-client-core</artifactId>
       <version>${hadoop.version}</version>
-      <!-- <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions> -->
     </dependency>
     <dependency>
       <groupId>org.apache.hive</groupId>

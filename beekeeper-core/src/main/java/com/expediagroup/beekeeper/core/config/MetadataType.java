@@ -16,6 +16,16 @@
 package com.expediagroup.beekeeper.core.config;
 
 public enum MetadataType {
-  HIVE_TABLE,
-  HIVE_PARTITION
+  HIVE_TABLE("hive-table"),
+  HIVE_PARTITION("hive-partition");
+
+  private final String typeName;
+
+  MetadataType(String typeName) {
+    this.typeName = typeName;
+  }
+
+  public String getTypeName() {
+    return typeName;
+  }
 }
