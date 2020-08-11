@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +51,6 @@ public class GenericMetadataHandlerTest {
   private @Mock Pageable mockPageable;
   private @Mock Pageable nextPageable;
   private @Mock PageImpl<HousekeepingMetadata> mockPage;
-  private @Mock PageImpl<HousekeepingMetadata> nextPage;
 
   private ExpiredMetadataHandler handler;
 
@@ -63,25 +61,20 @@ public class GenericMetadataHandlerTest {
   @BeforeEach
   public void init() {
     when(mockPage.getContent()).thenReturn(List.of(mockMetadata));
-    when(nextPage.getContent()).thenReturn(Collections.emptyList());
-
     when(mockMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(mockMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(mockMetadata.getPartitionName()).thenReturn(null);
-
-    when(housekeepingMetadataRepository.findRecordsForGivenDatabaseAndTable(DATABASE, TABLE_NAME, mockPageable))
-        .thenReturn(mockPage);
-    when(housekeepingMetadataRepository.findRecordsForGivenDatabaseAndTable(DATABASE, TABLE_NAME, nextPageable))
-        .thenReturn(nextPage);
-    when(mockPageable.next()).thenReturn(nextPageable);
 
     handler = new ExpiredMetadataHandler(housekeepingMetadataRepository, metadataCleaner, pathCleaner);
   }
 
   @Test
-  public void typicalRunCleaningTable() {
+  public void typicalRunDroppingTable() {
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);
-    when(metadataCleaner.dropTable(Mockito.any())).thenReturn(true);
+    when(
+        housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
+        .thenReturn(Long.valueOf(0));
+    when(metadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(metadataCleaner).dropTable(mockMetadata);
@@ -94,9 +87,10 @@ public class GenericMetadataHandlerTest {
   }
 
   @Test
-  public void typicalRunCleaningPartition() {
+  public void typicalRunDroppingPartition() {
     when(mockMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(metadataCleaner.dropPartition(Mockito.any())).thenReturn(true);
+    when(metadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(metadataCleaner).dropPartition(mockMetadata);
@@ -109,15 +103,9 @@ public class GenericMetadataHandlerTest {
   }
 
   @Test
-  public void partitionedTableNotDeleted() {
-    PageImpl<HousekeepingMetadata> mockPageWithMultipleEntries = Mockito.mock(PageImpl.class);
-    HousekeepingMetadata mockMetadata2 = Mockito.mock(HousekeepingMetadata.class);
-
-    when(housekeepingMetadataRepository.findRecordsForGivenDatabaseAndTable(DATABASE, TABLE_NAME, mockPageable))
-        .thenReturn(mockPageWithMultipleEntries);
-    when(mockPageWithMultipleEntries.getContent()).thenReturn(List.of(mockMetadata, mockMetadata2));
-    when(mockMetadata.getPartitionName()).thenReturn(null);
-    when(mockMetadata2.getPartitionName()).thenReturn(PARTITION_NAME);
+  public void tableWithExistingPartitionNotDeleted() {
+    when(housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
+        .thenReturn(Long.valueOf(1));
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(metadataCleaner, never()).dropTable(mockMetadata);
@@ -131,7 +119,11 @@ public class GenericMetadataHandlerTest {
 
   @Test
   public void typicalDryRunCleaningTable() {
-    when(metadataCleaner.dropTable(Mockito.any())).thenReturn(true);
+    when(mockPageable.next()).thenReturn(nextPageable);
+    when(
+        housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
+        .thenReturn(Long.valueOf(0));
+    when(metadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, true);
     verify(metadataCleaner).dropTable(mockMetadata);
@@ -147,10 +139,9 @@ public class GenericMetadataHandlerTest {
   @Test
   public void typicalDryRunCleaningPartition() {
     PageImpl<HousekeepingMetadata> mockPageWithPartition = Mockito.mock(PageImpl.class);
-    when(housekeepingMetadataRepository.findRecordsForGivenDatabaseAndTable(DATABASE, TABLE_NAME, mockPageable))
-        .thenReturn(mockPageWithPartition);
-    when(mockPageWithPartition.getContent()).thenReturn(List.of(mockMetadata, mockMetadata));
+    when(mockPageable.next()).thenReturn(nextPageable);
     when(mockMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
+    when(metadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
     when(metadataCleaner.dropPartition(Mockito.any())).thenReturn(true);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, true);
@@ -165,14 +156,33 @@ public class GenericMetadataHandlerTest {
   }
 
   @Test
-  public void dontCleanupPathWhenTableDoesntExist() {
-    when(metadataCleaner.dropTable(Mockito.any())).thenReturn(false);
+  public void dontCleanupTableOrPathWhenTableDoesntExist() {
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);
+    when(
+        housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
+        .thenReturn(Long.valueOf(0));
+    when(metadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(false);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
-    verify(metadataCleaner).dropTable(mockMetadata);
+    verify(metadataCleaner, never()).dropTable(mockMetadata);
     verify(pathCleaner, never()).cleanupPath(mockMetadata);
     verify(metadataCleaner, never()).dropPartition(mockMetadata);
+    verify(mockMetadata).setCleanupAttempts(1);
+    verify(mockMetadata).setHousekeepingStatus(DELETED);
+    verify(housekeepingMetadataRepository).save(mockMetadata);
+    assertThat(pageable).isEqualTo(pageable);
+  }
+
+  @Test
+  public void dontCleanupPartitionWhenTableDoesntExist(){
+    when(mockMetadata.getCleanupAttempts()).thenReturn(0);
+    when(mockMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
+    when(metadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(false);
+
+    Pageable pageable = handler.processPage(mockPageable, mockPage, false);
+    verify(metadataCleaner, never()).dropPartition(mockMetadata);
+    verify(pathCleaner, never()).cleanupPath(mockMetadata);
+    verify(metadataCleaner, never()).dropTable(mockMetadata);
     verify(mockMetadata).setCleanupAttempts(1);
     verify(mockMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(mockMetadata);
@@ -183,6 +193,7 @@ public class GenericMetadataHandlerTest {
   public void dontCleanupPathWhenPartitionDoesntExist() {
     when(metadataCleaner.dropPartition(Mockito.any())).thenReturn(false);
     when(mockMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
+    when(metadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(metadataCleaner).dropPartition(mockMetadata);
@@ -195,11 +206,14 @@ public class GenericMetadataHandlerTest {
   }
 
   @Test
-  public void expectedMetadataCleanupFailure() {
+  public void expectedTableCleanupFailure() {
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);
+    when(
+        housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
+        .thenReturn(Long.valueOf(0));
     doThrow(RuntimeException.class).when(metadataCleaner).dropTable(mockMetadata);
     when(mockPage.getContent()).thenReturn(List.of(mockMetadata));
-
+    when(metadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(mockMetadata).setCleanupAttempts(1);
@@ -211,9 +225,9 @@ public class GenericMetadataHandlerTest {
   @Test
   public void expectedPathCleanupFailure() {
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);
-    when(metadataCleaner.dropTable(Mockito.any())).thenReturn(true);
     doThrow(RuntimeException.class).when(pathCleaner).cleanupPath(mockMetadata);
     when(mockPage.getContent()).thenReturn(List.of(mockMetadata));
+    when(metadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(mockMetadata).setCleanupAttempts(1);
@@ -225,12 +239,10 @@ public class GenericMetadataHandlerTest {
   @Test
   public void expectedPartitionCleanupFailure() {
     PageImpl<HousekeepingMetadata> mockPageWithPartition = Mockito.mock(PageImpl.class);
-    when(housekeepingMetadataRepository.findRecordsForGivenDatabaseAndTable(DATABASE, TABLE_NAME, mockPageable))
-        .thenReturn(mockPageWithPartition);
-    when(mockPageWithPartition.getContent()).thenReturn(List.of(mockMetadata, mockMetadata));
     when(mockMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);
     doThrow(RuntimeException.class).when(metadataCleaner).dropPartition(mockMetadata);
+    when(metadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
 
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(mockMetadata).setCleanupAttempts(1);
@@ -238,5 +250,4 @@ public class GenericMetadataHandlerTest {
     verify(housekeepingMetadataRepository).save(mockMetadata);
     assertThat(pageable).isEqualTo(pageable);
   }
-
 }

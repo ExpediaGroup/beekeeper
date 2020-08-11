@@ -254,19 +254,17 @@ public class HousekeepingMetadataRepositoryTest {
   }
 
   @Test
-  public void findRecordsForGivenDatabaseAndTable() {
+  public void findRecordsForGivenDatabaseAndTableWherePartitionIsNotNull() {
     HousekeepingMetadata housekeepingTable1 = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(housekeepingTable1);
 
-    HousekeepingMetadata housekeepingTable2 = createUnpartitionedEntityHousekeepingTable();
+    HousekeepingMetadata housekeepingTable2 = createEntityHouseKeepingTable(DATABASE_NAME, TABLE_NAME +"2", null);
     housekeepingMetadataRepository.save(housekeepingTable2);
 
-    Page<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordsForGivenDatabaseAndTable(DATABASE_NAME, TABLE_NAME, PageRequest.of(0, 500));
+    long result = housekeepingMetadataRepository
+        .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(2, result.getContent().size());
-    compare(result.getContent().get(0), housekeepingTable1);
-    compare(result.getContent().get(1), housekeepingTable2);
+    assertEquals(Long.valueOf(1), result);
   }
 
   @Test
@@ -275,10 +273,10 @@ public class HousekeepingMetadataRepositoryTest {
         PARTITION_NAME);
     housekeepingMetadataRepository.save(housekeepingTable1);
 
-    Page<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordsForGivenDatabaseAndTable(DATABASE_NAME, TABLE_NAME, PageRequest.of(0, 500));
+    long result = housekeepingMetadataRepository
+        .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME, TABLE_NAME);
 
-    assertTrue(result.isEmpty());
+    assertEquals(Long.valueOf(0), result);
   }
 
   @Test
@@ -289,11 +287,10 @@ public class HousekeepingMetadataRepositoryTest {
         PARTITION_NAME);
     housekeepingMetadataRepository.save(housekeepingTable2);
 
-    Page<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordsForGivenDatabaseAndTable(DATABASE_NAME, TABLE_NAME, PageRequest.of(0, 500));
+    long result = housekeepingMetadataRepository
+        .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(1, result.getContent().size());
-    compare(result.getContent().get(0), housekeepingTable1);
+    assertEquals(Long.valueOf(1), result);
   }
 
   @Test
@@ -304,11 +301,10 @@ public class HousekeepingMetadataRepositoryTest {
     HousekeepingMetadata housekeepingTable2 = createUnpartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(housekeepingTable2);
 
-    Page<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordsForGivenDatabaseAndTable(DATABASE_NAME, TABLE_NAME, PageRequest.of(0, 500));
+    long result = housekeepingMetadataRepository
+        .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(1, result.getContent().size());
-    compare(result.getContent().get(0), housekeepingTable2);
+    assertEquals(Long.valueOf(0), result);
   }
 
   private HousekeepingMetadata createUnpartitionedEntityHousekeepingTable() {

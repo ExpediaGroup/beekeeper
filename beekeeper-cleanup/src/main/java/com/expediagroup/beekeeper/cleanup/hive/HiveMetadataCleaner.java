@@ -19,6 +19,7 @@ import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.core.config.MetadataType;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 
 public class HiveMetadataCleaner implements MetadataCleaner {
 
@@ -31,24 +32,30 @@ public class HiveMetadataCleaner implements MetadataCleaner {
   }
 
   @Override
-  public boolean dropTable(HousekeepingMetadata housekeepingMetadata) {
-    boolean successfulDeletion = client
+  @TimedTaggable("hive-table-deleted")
+  public void dropTable(HousekeepingMetadata housekeepingMetadata) {
+    client
         .dropTable(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
-    if (successfulDeletion) {
-      deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
-    }
-    return successfulDeletion;
+//    if (tableDeleted) {
+    deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
+//    }
+//    return tableDeleted;
   }
 
   @Override
+  @TimedTaggable("hive-partition-deleted")
   public boolean dropPartition(HousekeepingMetadata housekeepingMetadata) {
-    boolean successfulDeletion = client
+    boolean partitionDeleted = client
         .dropPartition(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(),
             housekeepingMetadata.getPartitionName());
-    if (successfulDeletion) {
+    if (partitionDeleted) {
       deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
     }
-    return successfulDeletion;
+    return partitionDeleted;
   }
 
+  @Override
+  public boolean tableExists(String databaseName, String tableName) {
+    return client.tableExists(databaseName, tableName);
+  }
 }

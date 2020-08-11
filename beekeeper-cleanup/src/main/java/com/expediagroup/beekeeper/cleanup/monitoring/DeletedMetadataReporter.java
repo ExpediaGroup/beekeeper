@@ -30,7 +30,7 @@ import com.expediagroup.beekeeper.core.monitoring.Taggable;
 public class DeletedMetadataReporter {
 
   private static final Logger log = LoggerFactory.getLogger(DeletedMetadataReporter.class);
-  public static final String METRIC_NAME = "deleted-metadata";
+  public static final String METRIC_NAME = "metadata-deleted";
   public static final String DRY_RUN_METRIC_NAME = "dry-run-" + METRIC_NAME;
 
   private MeterRegistry meterRegistry;
@@ -44,7 +44,7 @@ public class DeletedMetadataReporter {
   public void reportTaggable(Taggable taggable, MetadataType metadataType) {
     MetricTag tag = taggable.getMetricTag();
     log.info("Deleted metadata: {}", tag.getTag()); // tagged as database.table
-    String metadataMetricName = String.join("-", metadataType.toString().toLowerCase(), metricName);
+    String metadataMetricName = String.join("-", metadataType.getTypeName(), metricName);
     Counter counter = Counter.builder(metadataMetricName).tags(createTag(tag)).register(meterRegistry);
     counter.increment();
   }

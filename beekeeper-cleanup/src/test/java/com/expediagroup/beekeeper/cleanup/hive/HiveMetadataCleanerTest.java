@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.cleanup.hive;
 
+
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,12 +50,8 @@ public class HiveMetadataCleanerTest {
   }
 
   @Test
-  public void typicalMetadataCleanup() {
-    when(hiveClient.dropTable(DATABASE, TABLE_NAME)).thenReturn(true);
+  public void typicalTableCleanup() {
     cleaner.dropTable(housekeepingMetadata);
-    verify(housekeepingMetadata).getDatabaseName();
-    verify(housekeepingMetadata).getTableName();
-    verify(hiveClient).dropTable(DATABASE, TABLE_NAME);
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
   }
 
@@ -62,27 +59,17 @@ public class HiveMetadataCleanerTest {
   public void typicalPartitionDrop() {
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME)).thenReturn(true);
-    cleaner.dropPartition(housekeepingMetadata);
-    verify(housekeepingMetadata).getDatabaseName();
-    verify(housekeepingMetadata).getTableName();
-    verify(hiveClient).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
-    verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
-  }
 
-  @Test
-  public void dontReportWhenTableNotDeleted() {
-    when(hiveClient.dropTable(DATABASE, TABLE_NAME)).thenReturn(false);
-    cleaner.dropTable(housekeepingMetadata);
-    verify(hiveClient).dropTable(DATABASE, TABLE_NAME);
-    verify(deletedMetadataReporter, never()).reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
+    cleaner.dropPartition(housekeepingMetadata);
+    verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
 
   @Test
   public void dontReportWhenPartitionNotDropped() {
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME)).thenReturn(false);
+
     cleaner.dropPartition(housekeepingMetadata);
-    verify(hiveClient).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
     verify(deletedMetadataReporter, never()).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
 

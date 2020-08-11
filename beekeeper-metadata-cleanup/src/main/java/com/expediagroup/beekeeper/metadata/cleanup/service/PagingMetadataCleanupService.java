@@ -50,7 +50,7 @@ public class PagingMetadataCleanupService implements CleanupService {
   }
 
   @Override
-  @Timed("cleanup-job")
+  @Timed("metadata-cleanup-job")
   public void cleanUp(Instant referenceTime) {
     try {
       metadataHandlers.forEach(handler -> pagingCleanup(handler, referenceTime));
