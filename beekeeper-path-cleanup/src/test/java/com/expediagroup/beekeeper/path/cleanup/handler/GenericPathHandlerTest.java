@@ -39,7 +39,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class GenericHandlerTest {
+public class GenericPathHandlerTest {
 
   @Mock private HousekeepingPathRepository housekeepingPathRepository;
   @Mock private S3PathCleaner pathCleaner;
