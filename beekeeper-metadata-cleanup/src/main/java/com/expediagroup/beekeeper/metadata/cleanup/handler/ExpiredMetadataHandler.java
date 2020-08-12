@@ -74,11 +74,10 @@ public class ExpiredMetadataHandler extends GenericMetadataHandler {
   }
 
   @Override
-  public Page<HousekeepingMetadata> findMatchingRecords(
+  public Long countPartitionsForDatabaseAndTable(
       String databaseName,
-      String tableName,
-      Pageable pageable) {
-    return housekeepingMetadataRepository.findRecordsForGivenDatabaseAndTable(databaseName, tableName, pageable);
+      String tableName) {
+    return housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(databaseName, tableName);
   }
 
 }

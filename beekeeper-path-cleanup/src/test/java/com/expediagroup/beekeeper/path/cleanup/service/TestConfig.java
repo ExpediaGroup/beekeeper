@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.cleanup.service;
+package com.expediagroup.beekeeper.path.cleanup.service;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -21,5 +21,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @EnableScheduling
-@ComponentScan({ "com.expediagroup.beekeeper.cleanup.service" })
+@ComponentScan({ "com.expediagroup.beekeeper.cleanup.service",
+                 "com.expediagroup.beekeeper.cleanup.path",
+                 "com.expediagroup.beekeeper.metadata.cleanup.service"})
 public class TestConfig {}

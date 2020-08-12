@@ -45,21 +45,17 @@ public interface HousekeepingMetadataRepository extends JpaRepository<Housekeepi
       @Param("tableName") String tableName, @Param("partitionName") String partitionName);
 
   /**
-   * This method returns all the records for a database and table name pair. Each unpartitioned table will have a single
-   * entry in the HousekeepingMetadata table. If a table is partitioned there will be multiple entries for it in the
-   * HousekeepingMetadata table - one for each partition, and another for the table itself.
+   * This method returns the count of all records for a database and table name pair where the partitionName is not null.
    *
    * @param databaseName
    * @param tableName
-   * @param pageable
-   * @return A page of entries from the HousekeepingMetadata table.
+   * @return A count of the number of partitions on this table.
    */
-  @Query(value = "from HousekeepingMetadata t "
+  @Query(value = "select count(partitionName) from HousekeepingMetadata t "
       + "where t.databaseName = :databaseName "
       + "and t.tableName = :tableName "
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
-  Page<HousekeepingMetadata> findRecordsForGivenDatabaseAndTable(
+  Long countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(
       @Param("databaseName") String databaseName,
-      @Param("tableName") String tableName,
-      Pageable pageable);
+      @Param("tableName") String tableName);
 }

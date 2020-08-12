@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.cleanup.metadata;
+package com.expediagroup.beekeeper.metadata.cleanup.service;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-public interface MetadataCleaner {
-
-  void dropTable(HousekeepingMetadata housekeepingMetadata);
-
-  boolean dropPartition(HousekeepingMetadata housekeepingMetadata);
-
-  boolean tableExists(String databaseName, String tableName);
-}
+@Configuration
+@EnableScheduling
+@ComponentScan({ "com.expediagroup.beekeeper.cleanup.service",
+                 "com.expediagroup.beekeeper.cleanup.metadata",
+                 "com.expediagroup.beekeeper.metadata.cleanup.service"})
+public class TestConfig {}

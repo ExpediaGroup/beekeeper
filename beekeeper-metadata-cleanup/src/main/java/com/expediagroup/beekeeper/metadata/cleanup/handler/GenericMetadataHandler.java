@@ -44,26 +44,22 @@ public abstract class GenericMetadataHandler {
 
   public abstract Page<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable);
 
-  public abstract Page<HousekeepingMetadata> findMatchingRecords(
-      String databaseName,
-      String tableName,
-      Pageable pageable);
+  public abstract Long countPartitionsForDatabaseAndTable(String databaseName, String tableName);
 
   /**
-   * Processes a pageable entityHouseKeepingPath page.
+   * Processes a pageable HouseKeepingMetadata page.
    *
    * @param pageable Pageable to iterate through for dryRun
    * @param page Page to get content from
    * @param dryRunEnabled Dry Run boolean flag
-   * @implNote This parent handler expects the child's cleanupPath call to update & remove the record from this call
-   *           such that subsequent DB queries will not return the record. Hence why we only call next during dryRuns
-   *           where no updates occur.
-   * @implNote Note that we only expect pageable.next to be called during a dry run.
    * @return Pageable to pass to query. In the case of dry runs, this is the next page.
+   * @implNote This parent handler expects the child's cleanupMetadata call to update & remove the record from this call
+   * such that subsequent DB queries will not return the record. Hence why we only call next during dryRuns
+   * where no updates occur.
+   * @implNote Note that we only expect pageable.next to be called during a dry run.
    */
   public Pageable processPage(Pageable pageable, Page<HousekeepingMetadata> page, boolean dryRunEnabled) {
     List<HousekeepingMetadata> pageContent = page.getContent();
-
     if (dryRunEnabled) {
       pageContent.forEach(metadata -> cleanupMetadata(metadata, pageable));
       return pageable.next();
@@ -76,17 +72,17 @@ public abstract class GenericMetadataHandler {
   private boolean cleanupMetadata(HousekeepingMetadata housekeepingMetadata, Pageable pageable) {
     MetadataCleaner metadataCleaner = getMetadataCleaner();
     PathCleaner pathCleaner = getPathCleaner();
-    int partitionCount = getPartitionCountForDatabaseAndTable(housekeepingMetadata.getDatabaseName(),
-        housekeepingMetadata.getTableName(), pageable);
-
     String partitionName = housekeepingMetadata.getPartitionName();
-    if (partitionName == null && partitionCount == 0) {
-      cleanUpTable(housekeepingMetadata, metadataCleaner, pathCleaner);
-      return true;
-    }
     if (partitionName != null) {
       cleanupPartition(housekeepingMetadata, metadataCleaner, pathCleaner);
       return true;
+    } else {
+      Long partitionCount = countPartitionsForDatabaseAndTable(housekeepingMetadata.getDatabaseName(),
+          housekeepingMetadata.getTableName());
+      if (partitionName == null && partitionCount == Long.valueOf(0)) {
+        cleanUpTable(housekeepingMetadata, metadataCleaner, pathCleaner);
+        return true;
+      }
     }
     return false;
   }
@@ -95,9 +91,13 @@ public abstract class GenericMetadataHandler {
       HousekeepingMetadata housekeepingMetadata,
       MetadataCleaner metadataCleaner,
       PathCleaner pathCleaner) {
-    boolean successfulDeletion = metadataCleaner.dropTable(housekeepingMetadata);
-    if (successfulDeletion) {
+    String databaseName = housekeepingMetadata.getDatabaseName();
+    String tableName = housekeepingMetadata.getTableName();
+    if (metadataCleaner.tableExists(databaseName, tableName)) {
+      metadataCleaner.dropTable(housekeepingMetadata);
       pathCleaner.cleanupPath(housekeepingMetadata);
+    } else {
+      log.info("Cannot drop table \"{}.{}\". Table does not exist.", databaseName, tableName);
     }
   }
 
@@ -105,9 +105,17 @@ public abstract class GenericMetadataHandler {
       HousekeepingMetadata housekeepingMetadata,
       MetadataCleaner metadataCleaner,
       PathCleaner pathCleaner) {
-    boolean successfulDeletion = metadataCleaner.dropPartition(housekeepingMetadata);
-    if (successfulDeletion) {
-      pathCleaner.cleanupPath(housekeepingMetadata);
+    String databaseName = housekeepingMetadata.getDatabaseName();
+    String tableName = housekeepingMetadata.getTableName();
+    if (metadataCleaner.tableExists(databaseName, tableName)) {
+      boolean partitionDeleted = metadataCleaner.dropPartition(housekeepingMetadata);
+      if (partitionDeleted) {
+        pathCleaner.cleanupPath(housekeepingMetadata);
+      }
+    } else {
+      log.info(
+          "Cannot drop partition \"{}\" from table \"{}.{}\". Table does not exist.",
+          housekeepingMetadata.getPartitionName(), databaseName, tableName);
     }
   }
 
@@ -134,18 +142,4 @@ public abstract class GenericMetadataHandler {
     housekeepingMetadata.setHousekeepingStatus(status);
     getHousekeepingMetadataRepository().save(housekeepingMetadata);
   }
-
-  private int getPartitionCountForDatabaseAndTable(String databaseName, String tableName, Pageable pageable) {
-    Page<HousekeepingMetadata> page = findMatchingRecords(databaseName, tableName, pageable);
-    int partitionCount = 0;
-    while (!page.getContent().isEmpty()) {
-      List<HousekeepingMetadata> pageContent = page.getContent();
-      for (HousekeepingMetadata metadata : pageContent) {
-        partitionCount += (metadata.getPartitionName() != null) ? 1 : 0;
-      }
-      page = findMatchingRecords(databaseName, tableName, pageable.next());
-    }
-    return partitionCount;
-  }
-
 }

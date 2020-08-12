@@ -34,7 +34,7 @@ import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class UnreferencedHandlerTest {
+public class UnreferencedPathHandlerTest {
 
   @Mock private HousekeepingPathRepository housekeepingPathRepository;
   @Mock private S3PathCleaner s3PathCleaner;

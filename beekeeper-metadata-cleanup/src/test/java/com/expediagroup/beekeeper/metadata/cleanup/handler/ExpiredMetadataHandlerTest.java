@@ -77,13 +77,13 @@ public class ExpiredMetadataHandlerTest {
   }
 
   @Test
-  public void verifyHousekeepingMetadataMatchingRecordFetch() {
+  public void verifyHousekeepingMetadataCountRecordFetch() {
     LocalDateTime now = LocalDateTime.now();
     Pageable emptyPageable = PageRequest.of(0, 1);
     String databaseName = "database";
     String tableName = "table_name";
-    handler.findMatchingRecords(databaseName, "table_name", emptyPageable);
-    verify(metadataRepository).findRecordsForGivenDatabaseAndTable(databaseName, tableName, emptyPageable);
+    handler.countPartitionsForDatabaseAndTable(databaseName, "table_name");
+    verify(metadataRepository).countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(databaseName, tableName);
   }
 
 }

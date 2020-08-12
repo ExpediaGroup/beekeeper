@@ -47,7 +47,7 @@ public class PagingPathCleanupService implements CleanupService {
   }
 
   @Override
-  @Timed("cleanup-job")
+  @Timed("path-cleanup-job")
   public void cleanUp(Instant referenceTime) {
     try {
       pathHandlers.forEach(handler -> pagingCleanup(handler, referenceTime));

@@ -42,26 +42,19 @@ public class HiveClient {
    * @param databaseName
    * @param tableName
    */
-  public boolean dropTable(String databaseName, String tableName) {
-    boolean tableDeleted = true;
+  public void dropTable(String databaseName, String tableName) {
     if (dryRunEnabled) {
       log.info("Dry run - dropping table \"{}.{}\"", databaseName, tableName);
     } else {
-      if (tableExists(databaseName, tableName)) {
-        try {
-          log.info("Dropping table \"{}.{}\"", databaseName, tableName);
-          client.dropTable(databaseName, tableName);
-        } catch (TException e) {
-          throw new BeekeeperException(
-              "Unexpected exception when dropping table: \"" + databaseName + "." + tableName + "\".",
-              e);
-        }
-      } else {
-        log.info("Could not drop table: table not found: \"{}.{}\"", databaseName, tableName);
-        tableDeleted = false;
+      try {
+        log.info("Dropping table \"{}.{}\"", databaseName, tableName);
+        client.dropTable(databaseName, tableName);
+      } catch (TException e) {
+        throw new BeekeeperException(
+            "Unexpected exception when dropping table: \"" + databaseName + "." + tableName + "\".",
+            e);
       }
     }
-    return tableDeleted;
   }
 
   /**
@@ -76,34 +69,28 @@ public class HiveClient {
     if (dryRunEnabled) {
       log.info("Dry run - dropping partition \"{}\" from table \"{}.{}\"", partitionName, databaseName, tableName);
     } else {
-      if (tableExists(databaseName, tableName)) {
-        try {
-          log.info("Dropping partition \"{}\" from table \"{}.{}\"", partitionName, databaseName, tableName);
-
-          client.dropPartition(databaseName, tableName, partitionName, false);
-        } catch (NoSuchObjectException e) {
-          log
-              .info("Could not drop partition \"{}\" from table \"{}.{}\". Partition does not exist.", partitionName,
-                  databaseName, tableName);
-          partitionDeleted = false;
-        } catch (TException e) {
-          throw new BeekeeperException("Unexpected exception when dropping partition \""
-              + partitionName
-              + "\" from table: \""
-              + databaseName
-              + "."
-              + tableName
-              + "\".", e);
-        }
-      } else {
-        log.info("Could not drop partition from table \"{}.{}\". Table does not exist.", databaseName, tableName);
+      try {
+        log.info("Dropping partition \"{}\" from table \"{}.{}\"", partitionName, databaseName, tableName);
+        client.dropPartition(databaseName, tableName, partitionName, false);
+      } catch (NoSuchObjectException e) {
+        log
+            .info("Could not drop partition \"{}\" from table \"{}.{}\". Partition does not exist.", partitionName,
+                databaseName, tableName);
         partitionDeleted = false;
+      } catch (TException e) {
+        throw new BeekeeperException("Unexpected exception when dropping partition \""
+            + partitionName
+            + "\" from table: \""
+            + databaseName
+            + "."
+            + tableName
+            + "\".", e);
       }
     }
     return partitionDeleted;
   }
 
-  private boolean tableExists(String databaseName, String tableName) {
+  public boolean tableExists(String databaseName, String tableName) {
     try {
       return client.tableExists(databaseName, tableName);
     } catch (TException e) {

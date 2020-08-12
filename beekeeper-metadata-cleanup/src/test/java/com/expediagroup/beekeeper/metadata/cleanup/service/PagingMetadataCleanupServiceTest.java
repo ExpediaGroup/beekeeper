@@ -81,7 +81,7 @@ public class PagingMetadataCleanupServiceTest {
 
   @BeforeEach
   public void init() {
-    when(metadataCleaner.dropTable(Mockito.any())).thenReturn(true);
+    when(metadataCleaner.tableExists(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     when(metadataCleaner.dropPartition(Mockito.any())).thenReturn(true);
     handlers = List.of(new ExpiredMetadataHandler(metadataRepository, metadataCleaner, pathCleaner));
     pagingCleanupService = new PagingMetadataCleanupService(handlers, 2, false);
@@ -184,7 +184,7 @@ public class PagingMetadataCleanupServiceTest {
   @Test
   void metadataCleanerException() {
     Mockito
-        .doReturn(true)
+        .doNothing()
         .doThrow(new BeekeeperException("Error"))
         .when(metadataCleaner)
         .dropTable(Mockito.any(HousekeepingMetadata.class));
