@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.cleanup.service;
+package com.expediagroup.beekeeper.metadata.cleanup.service;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,6 +37,8 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import com.amazonaws.services.s3.AmazonS3;
 
+import com.expediagroup.beekeeper.cleanup.service.CleanupService;
+import com.expediagroup.beekeeper.cleanup.service.CleanupServiceScheduler;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 
 @ExtendWith(SpringExtension.class)
