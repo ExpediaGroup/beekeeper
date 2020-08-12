@@ -50,13 +50,13 @@ public class HiveMetadataCleanerTest {
   }
 
   @Test
-  public void typicalTableCleanup() {
+  public void typicalDropTable() {
     cleaner.dropTable(housekeepingMetadata);
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
   }
 
   @Test
-  public void typicalPartitionDrop() {
+  public void typicalDropPartition() {
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME)).thenReturn(true);
 

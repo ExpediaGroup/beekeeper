@@ -77,7 +77,7 @@ public class ExpiredMetadataHandlerTest {
   }
 
   @Test
-  public void verifyHousekeepingMetadataMatchingRecordFetch() {
+  public void verifyHousekeepingMetadataCountRecordFetch() {
     LocalDateTime now = LocalDateTime.now();
     Pageable emptyPageable = PageRequest.of(0, 1);
     String databaseName = "database";

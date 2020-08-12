@@ -254,7 +254,7 @@ public class HousekeepingMetadataRepositoryTest {
   }
 
   @Test
-  public void findRecordsForGivenDatabaseAndTableWherePartitionIsNotNull() {
+  public void countPartitionsForGivenDatabaseAndTableWherePartitionIsNotNull() {
     HousekeepingMetadata housekeepingTable1 = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(housekeepingTable1);
 
@@ -268,7 +268,7 @@ public class HousekeepingMetadataRepositoryTest {
   }
 
   @Test
-  public void findRecordsForGivenDatabaseAndTableEmpty() {
+  public void countPartitionsForGivenDatabaseAndTableEmpty() {
     HousekeepingMetadata housekeepingTable1 = createEntityHouseKeepingTable(DATABASE_NAME + "1", TABLE_NAME + "1",
         PARTITION_NAME);
     housekeepingMetadataRepository.save(housekeepingTable1);
@@ -280,7 +280,7 @@ public class HousekeepingMetadataRepositoryTest {
   }
 
   @Test
-  public void findRecordsForGivenDatabaseAndTableMultipleDatabaseEntries() {
+  public void countPartitionsForGivenDatabaseAndTableMultipleDatabaseEntries() {
     HousekeepingMetadata housekeepingTable1 = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(housekeepingTable1);
     HousekeepingMetadata housekeepingTable2 = createEntityHouseKeepingTable(DATABASE_NAME + "1", TABLE_NAME + "1",
@@ -294,7 +294,7 @@ public class HousekeepingMetadataRepositoryTest {
   }
 
   @Test
-  public void findRecordsForGivenDatabaseAndTableMixedHousekeepingStatus() {
+  public void countPartitionsForGivenDatabaseAndTableMixedHousekeepingStatus() {
     HousekeepingMetadata housekeepingTable1 = createPartitionedEntityHousekeepingTable();
     housekeepingTable1.setHousekeepingStatus(DELETED);
     housekeepingMetadataRepository.save(housekeepingTable1);

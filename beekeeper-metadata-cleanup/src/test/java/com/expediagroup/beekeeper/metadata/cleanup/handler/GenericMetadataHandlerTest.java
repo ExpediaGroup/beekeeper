@@ -118,7 +118,7 @@ public class GenericMetadataHandlerTest {
   }
 
   @Test
-  public void typicalDryRunCleaningTable() {
+  public void typicalDryRunDroppingTable() {
     when(mockPageable.next()).thenReturn(nextPageable);
     when(
         housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
@@ -137,7 +137,7 @@ public class GenericMetadataHandlerTest {
   }
 
   @Test
-  public void typicalDryRunCleaningPartition() {
+  public void typicalDryRunDroppingPartition() {
     PageImpl<HousekeepingMetadata> mockPageWithPartition = Mockito.mock(PageImpl.class);
     when(mockPageable.next()).thenReturn(nextPageable);
     when(mockMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
@@ -156,7 +156,7 @@ public class GenericMetadataHandlerTest {
   }
 
   @Test
-  public void dontCleanupTableOrPathWhenTableDoesntExist() {
+  public void dontDropTableOrPathWhenTableDoesntExist() {
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);
     when(
         housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
@@ -174,7 +174,7 @@ public class GenericMetadataHandlerTest {
   }
 
   @Test
-  public void dontCleanupPartitionWhenTableDoesntExist(){
+  public void dontDropPartitionWhenTableDoesntExist(){
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);
     when(mockMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(metadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(false);
@@ -190,7 +190,7 @@ public class GenericMetadataHandlerTest {
   }
 
   @Test
-  public void dontCleanupPathWhenPartitionDoesntExist() {
+  public void dontDropPathWhenPartitionDoesntExist() {
     when(metadataCleaner.dropPartition(Mockito.any())).thenReturn(false);
     when(mockMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(metadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
@@ -206,7 +206,7 @@ public class GenericMetadataHandlerTest {
   }
 
   @Test
-  public void expectedTableCleanupFailure() {
+  public void expectedTableDropFailure() {
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);
     when(
         housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
@@ -223,7 +223,7 @@ public class GenericMetadataHandlerTest {
   }
 
   @Test
-  public void expectedPathCleanupFailure() {
+  public void expectedPathDeleteFailure() {
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);
     doThrow(RuntimeException.class).when(pathCleaner).cleanupPath(mockMetadata);
     when(mockPage.getContent()).thenReturn(List.of(mockMetadata));
@@ -237,7 +237,7 @@ public class GenericMetadataHandlerTest {
   }
 
   @Test
-  public void expectedPartitionCleanupFailure() {
+  public void expectedPartitionDropFailure() {
     PageImpl<HousekeepingMetadata> mockPageWithPartition = Mockito.mock(PageImpl.class);
     when(mockMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(mockMetadata.getCleanupAttempts()).thenReturn(0);

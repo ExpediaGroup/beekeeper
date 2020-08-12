@@ -44,25 +44,22 @@ public abstract class GenericMetadataHandler {
 
   public abstract Page<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable);
 
-  public abstract Long countPartitionsForDatabaseAndTable(
-      String databaseName,
-      String tableName);
+  public abstract Long countPartitionsForDatabaseAndTable(String databaseName, String tableName);
 
   /**
-   * Processes a pageable entityHouseKeepingPath page.
+   * Processes a pageable HouseKeepingMetadata page.
    *
    * @param pageable Pageable to iterate through for dryRun
    * @param page Page to get content from
    * @param dryRunEnabled Dry Run boolean flag
    * @return Pageable to pass to query. In the case of dry runs, this is the next page.
-   * @implNote This parent handler expects the child's cleanupPath call to update & remove the record from this call
+   * @implNote This parent handler expects the child's cleanupMetadata call to update & remove the record from this call
    * such that subsequent DB queries will not return the record. Hence why we only call next during dryRuns
    * where no updates occur.
    * @implNote Note that we only expect pageable.next to be called during a dry run.
    */
   public Pageable processPage(Pageable pageable, Page<HousekeepingMetadata> page, boolean dryRunEnabled) {
     List<HousekeepingMetadata> pageContent = page.getContent();
-
     if (dryRunEnabled) {
       pageContent.forEach(metadata -> cleanupMetadata(metadata, pageable));
       return pageable.next();
