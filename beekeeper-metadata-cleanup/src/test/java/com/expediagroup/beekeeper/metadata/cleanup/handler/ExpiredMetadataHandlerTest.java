@@ -20,7 +20,9 @@ import static org.mockito.Mockito.verify;
 
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,16 +39,12 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository
 @ExtendWith(MockitoExtension.class)
 public class ExpiredMetadataHandlerTest {
 
-  @Mock
-  private HousekeepingMetadataRepository metadataRepository;
-  
-  @Mock 
-  private HiveMetadataCleaner hiveCleaner;
+  private @Mock HousekeepingMetadataRepository metadataRepository;
+  private @Mock HiveMetadataCleaner hiveCleaner;
+  private @Mock S3PathCleaner s3Cleaner;
 
-  @Mock
-  private S3PathCleaner s3Cleaner;
-  
   private ExpiredMetadataHandler handler;
+  private static final LocalDateTime CLEANUP_INSTANCE = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
 
   @BeforeEach
   public void init() {
@@ -78,12 +76,18 @@ public class ExpiredMetadataHandlerTest {
 
   @Test
   public void verifyHousekeepingMetadataCountRecordFetch() {
-    LocalDateTime now = LocalDateTime.now();
-    Pageable emptyPageable = PageRequest.of(0, 1);
     String databaseName = "database";
     String tableName = "table_name";
-    handler.countPartitionsForDatabaseAndTable(databaseName, "table_name");
+    handler.countPartitionsForDatabaseAndTable(CLEANUP_INSTANCE, databaseName, "table_name", false);
     verify(metadataRepository).countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(databaseName, tableName);
   }
 
+  @Test
+  public void verifyHousekeepingMetadataDryRunCountRecordFetch() {
+    String databaseName = "database";
+    String tableName = "table_name";
+    handler.countPartitionsForDatabaseAndTable(CLEANUP_INSTANCE, databaseName, "table_name", true);
+    verify(metadataRepository).countRecordsForDryRunWherePartitionIsNotNullOrExpired(CLEANUP_INSTANCE, databaseName,
+        tableName);
+  }
 }

@@ -44,7 +44,7 @@ public abstract class GenericMetadataHandler {
 
   public abstract Page<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable);
 
-  public abstract Long countPartitionsForDatabaseAndTable(String databaseName, String tableName);
+  public abstract Long countPartitionsForDatabaseAndTable(LocalDateTime instant, String databaseName, String tableName, boolean dryRunEnabled);
 
   /**
    * Processes a pageable HouseKeepingMetadata page.
@@ -58,18 +58,19 @@ public abstract class GenericMetadataHandler {
    * where no updates occur.
    * @implNote Note that we only expect pageable.next to be called during a dry run.
    */
-  public Pageable processPage(Pageable pageable, Page<HousekeepingMetadata> page, boolean dryRunEnabled) {
+  public Pageable processPage(Pageable pageable, LocalDateTime instant, Page<HousekeepingMetadata> page,
+      boolean dryRunEnabled) {
     List<HousekeepingMetadata> pageContent = page.getContent();
     if (dryRunEnabled) {
-      pageContent.forEach(metadata -> cleanupMetadata(metadata, pageable));
+      pageContent.forEach(metadata -> cleanupMetadata(metadata, instant, true));
       return pageable.next();
     } else {
-      pageContent.forEach(metadata -> cleanupContent(metadata, pageable));
+      pageContent.forEach(metadata -> cleanupContent(metadata, instant, false));
       return pageable;
     }
   }
 
-  private boolean cleanupMetadata(HousekeepingMetadata housekeepingMetadata, Pageable pageable) {
+  private boolean cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled) {
     MetadataCleaner metadataCleaner = getMetadataCleaner();
     PathCleaner pathCleaner = getPathCleaner();
     String partitionName = housekeepingMetadata.getPartitionName();
@@ -77,8 +78,8 @@ public abstract class GenericMetadataHandler {
       cleanupPartition(housekeepingMetadata, metadataCleaner, pathCleaner);
       return true;
     } else {
-      Long partitionCount = countPartitionsForDatabaseAndTable(housekeepingMetadata.getDatabaseName(),
-          housekeepingMetadata.getTableName());
+      Long partitionCount = countPartitionsForDatabaseAndTable(instant, housekeepingMetadata.getDatabaseName(),
+          housekeepingMetadata.getTableName(), dryRunEnabled);
       if (partitionName == null && partitionCount == Long.valueOf(0)) {
         cleanUpTable(housekeepingMetadata, metadataCleaner, pathCleaner);
         return true;
@@ -119,12 +120,12 @@ public abstract class GenericMetadataHandler {
     }
   }
 
-  private void cleanupContent(HousekeepingMetadata housekeepingMetadata, Pageable pageable) {
+  private void cleanupContent(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled) {
     try {
       log
           .info("Cleaning up metadata for table \"{}.{}\"", housekeepingMetadata.getDatabaseName(),
               housekeepingMetadata.getTableName());
-      boolean deleted = cleanupMetadata(housekeepingMetadata, pageable);
+      boolean deleted = cleanupMetadata(housekeepingMetadata, instant, dryRunEnabled);
       if (deleted) {
         updateAttemptsAndStatus(housekeepingMetadata, HousekeepingStatus.DELETED);
       }

@@ -75,8 +75,13 @@ public class ExpiredMetadataHandler extends GenericMetadataHandler {
 
   @Override
   public Long countPartitionsForDatabaseAndTable(
+      LocalDateTime instant,
       String databaseName,
-      String tableName) {
+      String tableName,
+      boolean dryRunEnabled) {
+    if (dryRunEnabled){
+      return housekeepingMetadataRepository.countRecordsForDryRunWherePartitionIsNotNullOrExpired(instant, databaseName, tableName);
+    }
     return housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(databaseName, tableName);
   }
 

@@ -67,7 +67,7 @@ public class PagingMetadataCleanupService implements CleanupService {
     Page<HousekeepingMetadata> page = handler.findRecordsToClean(instant, pageable);
 
     while (!page.getContent().isEmpty()) {
-      pageable = handler.processPage(pageable, page, dryRunEnabled);
+      pageable = handler.processPage(pageable, instant, page, dryRunEnabled);
       page = handler.findRecordsToClean(instant, pageable);
     }
   }
