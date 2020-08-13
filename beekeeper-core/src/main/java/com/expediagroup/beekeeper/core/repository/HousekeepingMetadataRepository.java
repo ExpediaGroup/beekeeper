@@ -58,4 +58,23 @@ public interface HousekeepingMetadataRepository extends JpaRepository<Housekeepi
   Long countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(
       @Param("databaseName") String databaseName,
       @Param("tableName") String tableName);
+
+  /**
+   * This method is used for dry runs since the entries are not being updated. It counts the number of partitions on a
+   * table which have not yet expired, i.e. they will not be cleaned up in this instant.
+   *
+   * @param instant
+   * @param databaseName
+   * @param tableName
+   * @return A count of the number of existing partitions on this table
+   */
+  @Query(value = "select count(partitionName) from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED') "
+      + "and t.cleanupTimestamp >= :instant")
+  Long countRecordsForDryRunWherePartitionIsNotNullOrExpired(
+      @Param("instant") LocalDateTime instant,
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName);
 }

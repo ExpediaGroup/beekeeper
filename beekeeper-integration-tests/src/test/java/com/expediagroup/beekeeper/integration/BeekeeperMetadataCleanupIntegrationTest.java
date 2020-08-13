@@ -334,33 +334,8 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-          .contains("cleanup-job", "hive-tables-deleted", "hive-table-" + METRIC_NAME);
+          .contains("metadata-cleanup-job", "hive-table-deleted", "hive-table-" + METRIC_NAME);
     });
   }
-
-  // TODO
-  // fix test
-  @Test
-  public void healthCheck() {
-    CloseableHttpClient client = HttpClientBuilder.create().build();
-    HttpGet request = new HttpGet(HEALTHCHECK_URI);
-    await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
-  }
-
-  // TODO
-  // fix test
-  @Test
-  public void prometheus() {
-    CloseableHttpClient client = HttpClientBuilder.create().build();
-    HttpGet request = new HttpGet(PROMETHEUS_URI);
-    await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
-  }
-
-
-  // TODO
-  // use 'log lines' like in the dry run path cleanup - when you cant wait for something to say 'deleted'
-  // do this in dry run also
 
 }

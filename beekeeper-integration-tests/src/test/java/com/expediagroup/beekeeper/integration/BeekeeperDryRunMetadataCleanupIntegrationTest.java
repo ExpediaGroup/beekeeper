@@ -7,11 +7,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
-import static com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter.DRY_RUN_METRIC_NAME;
-import static com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter.METRIC_NAME;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.LONG_CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
 import java.sql.SQLException;
@@ -35,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
@@ -46,11 +46,12 @@ import com.google.common.collect.ImmutableMap;
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.HiveTestUtils;
+import com.expediagroup.beekeeper.integration.utils.TestAppender;
 import com.expediagroup.beekeeper.metadata.cleanup.BeekeeperMetadataCleanup;
 
 import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
 
-public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperIntegrationTestBase  {
+public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 30;
   private static final String SCHEDULER_DELAY_MS = "5000";
@@ -82,11 +83,13 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
       + "/file1";
 
   private static final String UNPARTITIONED_TABLE_PATH = ROOT_PATH + UNPARTITIONED_TABLE_NAME + "/id1";
-  private static final String UNPARTITIONED_OBJECT_KEY = DATABASE_NAME_VALUE
+  private static final String UNPARTITIONED_TABLE_OBJECT_KEY = DATABASE_NAME_VALUE
       + "/"
       + UNPARTITIONED_TABLE_NAME
-      + "/id1/file1";
+      + "/id1";
 
+  private static final String S3_CLIENT_CLASS_NAME = "S3Client";
+  private static final String HIVE_CLIENT_CLASS_NAME = "HiveClient";
 
   @Rule
   public static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
@@ -97,6 +100,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   private static AmazonS3 amazonS3;
   private static final String S3_ENDPOINT = ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3);
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
+  private final TestAppender appender = new TestAppender();
 
   private static Map<String, String> metastoreProperties = ImmutableMap
       .<String, String>builder()
@@ -142,6 +146,9 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
     executorService.execute(() -> BeekeeperMetadataCleanup.main(new String[] {}));
     await().atMost(Duration.ONE_MINUTE).until(BeekeeperMetadataCleanup::isRunning);
+
+    // clear all logs before asserting them
+    appender.clear();
   }
 
   @AfterEach
@@ -150,25 +157,25 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
     executorService.awaitTermination(5, TimeUnit.SECONDS);
   }
 
-
   @Test
-  public void dryRunCleanupUnpartitionedTable() throws TException, SQLException {
+  public void dryRunDropUnpartitionedTable() throws TException, SQLException {
     hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
-    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, TABLE_DATA);
+    amazonS3.putObject(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
 
     insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
+
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLine(UNPARTITIONED_TABLE_OBJECT_KEY));
+
+    assertHiveClientLogs(1);
+    assertS3ClientLogs(1);
 
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
-    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY)).isTrue();
   }
 
   @Test
-  public void dryRunCleanupPartitionedTable() throws Exception {
+  public void dryRunDropPartitionedTable() throws Exception {
     Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
-
     hiveTestUtils.addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, table, PARTITION_VALUES, TABLE_DATA);
 
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
@@ -176,37 +183,99 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
     insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
     insertExpiredMetadata(PARTITION_PATH, PARTITION_NAME);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getExpiredMetadata().get(1).getHousekeepingStatus() == DELETED);
 
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLine(PARTITIONED_OBJECT_KEY));
+
+    assertHiveClientLogs(2);
+    assertS3ClientLogs(2);
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
     assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isTrue();
     assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isTrue();
   }
 
   @Test
+  public void dryRunDontDropPartitionedTable() throws Exception {
+    Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
+    hiveTestUtils.addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, table, PARTITION_VALUES, TABLE_DATA);
+    hiveTestUtils
+        .addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, table, List.of("2020-01-01", "1", "B"), TABLE_DATA);
+
+    String partition2Name = "event_date=2020-01-01/event_hour=1/event_type=B";
+    String partition2Path = PARTITION_ROOT_PATH + "/" + partition2Name + "/file1";
+    String partition2ObjectKey = DATABASE_NAME_VALUE + "/some_location/id1/" + partition2Name + "/file1";
+
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
+    amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
+    amazonS3.putObject(BUCKET, partition2ObjectKey, TABLE_DATA);
+
+    insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
+    insertExpiredMetadata(PARTITION_PATH, PARTITION_NAME);
+    insertExpiredMetadata(TABLE_NAME_VALUE, partition2Path, partition2Name, LONG_CLEANUP_DELAY_VALUE);
+
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLine(PARTITIONED_OBJECT_KEY));
+
+    assertHiveClientLogs(1);
+    assertS3ClientLogs(1);
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, partition2ObjectKey)).isTrue();
+  }
+
+  @Test
   public void dryRunMetrics() throws SQLException, TException {
     Table table = hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
-    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, "");
+    amazonS3.putObject(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY, "");
 
     insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
-    await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLine("\"" + DATABASE_NAME_VALUE
+        + "." + TABLE_NAME_VALUE + "\""));
 
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
-    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY)).isTrue();
     assertMetrics();
   }
+
   private void assertMetrics() {
     Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperMetadataCleanup.meterRegistry()).getRegistries();
     assertThat(meterRegistry).hasSize(2);
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-          .contains("cleanup-job", "hive-tables-deleted", "hive-table-" + DRY_RUN_METRIC_NAME);
+          .contains("metadata-cleanup-job", "hive-table-deleted",
+              "hive-table-" + DeletedMetadataReporter.DRY_RUN_METRIC_NAME);
     });
   }
 
+  private boolean logsContainLine(String messageFragment) {
+    for (ILoggingEvent event : TestAppender.events) {
+      boolean messageIsInLogs = event.getFormattedMessage().contains(messageFragment);
+      if (messageIsInLogs) {
+        return true;
+      }
+    }
+    return false;
+  }
 
+  private void assertS3ClientLogs(int expected) {
+    int logsFromS3Client = 0;
+    List<ILoggingEvent> events = TestAppender.events;
+    for (ILoggingEvent event : events) {
+      if (event.getLoggerName().contains(S3_CLIENT_CLASS_NAME)) {
+        logsFromS3Client++;
+      }
+    }
+    assertThat(logsFromS3Client).isEqualTo(expected);
+  }
+
+  private void assertHiveClientLogs(int expected) {
+    int logsFromHiveClient = 0;
+    List<ILoggingEvent> events = TestAppender.events;
+    for (ILoggingEvent event : events) {
+      if (event.getLoggerName().contains(HIVE_CLIENT_CLASS_NAME)) {
+        logsFromHiveClient++;
+      }
+    }
+    assertThat(logsFromHiveClient).isEqualTo(expected);
+  }
 }
