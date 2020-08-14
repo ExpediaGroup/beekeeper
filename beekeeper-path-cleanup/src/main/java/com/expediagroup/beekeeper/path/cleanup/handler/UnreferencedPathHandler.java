@@ -27,13 +27,11 @@ import org.springframework.stereotype.Component;
 
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @Component
 public class UnreferencedPathHandler extends GenericPathHandler {
 
-  private final PathCleaner pathCleaner;
   private final HousekeepingPathRepository housekeepingPathRepository;
 
   @Autowired
@@ -41,20 +39,9 @@ public class UnreferencedPathHandler extends GenericPathHandler {
       HousekeepingPathRepository housekeepingPathRepository,
       @Qualifier("s3PathCleaner") PathCleaner pathCleaner
   ) {
+    super(housekeepingPathRepository, pathCleaner, UNREFERENCED);
     this.housekeepingPathRepository = housekeepingPathRepository;
-    this.pathCleaner = pathCleaner;
   }
-
-  @Override
-  public LifecycleEventType getLifecycleType() {
-    return UNREFERENCED;
-  }
-
-  @Override
-  public PathCleaner getPathCleaner() { return pathCleaner; }
-
-  @Override
-  public HousekeepingPathRepository getHousekeepingPathRepository() { return housekeepingPathRepository; }
 
   @Override
   public Page<HousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable) {

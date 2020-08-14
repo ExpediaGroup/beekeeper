@@ -35,7 +35,7 @@ public class HiveMetadataCleaner implements MetadataCleaner {
   @TimedTaggable("hive-table-deleted")
   public void dropTable(HousekeepingMetadata housekeepingMetadata) {
     client
-        .dropTable(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
+        .dropTableIfExists(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
     deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
   }
 

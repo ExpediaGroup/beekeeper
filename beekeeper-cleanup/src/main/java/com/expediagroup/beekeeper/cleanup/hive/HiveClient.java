@@ -37,18 +37,20 @@ public class HiveClient {
   }
 
   /**
-   * Will drop the table from the database. Error is not thrown if table not found.
+   * Will drop the table from the database if it exists.
    *
    * @param databaseName
    * @param tableName
    */
-  public void dropTable(String databaseName, String tableName) {
+  public void dropTableIfExists(String databaseName, String tableName) {
     if (dryRunEnabled) {
       log.info("Dry run - dropping table \"{}.{}\"", databaseName, tableName);
     } else {
       try {
         log.info("Dropping table \"{}.{}\"", databaseName, tableName);
         client.dropTable(databaseName, tableName);
+      } catch (NoSuchObjectException e){
+        log.info("Could not drop table: table not found: \"{}.{}\"", databaseName, tableName);
       } catch (TException e) {
         throw new BeekeeperException(
             "Unexpected exception when dropping table: \"" + databaseName + "." + tableName + "\".",

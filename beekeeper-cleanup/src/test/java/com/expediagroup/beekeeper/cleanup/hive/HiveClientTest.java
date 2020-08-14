@@ -52,28 +52,28 @@ public class HiveClientTest {
   }
 
   @Test
-  public void typicalDropTable() throws MetaException, NoSuchObjectException, TException {
-    hiveClient.dropTable(DATABASE, TABLE_NAME);
+  public void typicalDropTable() throws TException {
+    hiveClient.dropTableIfExists(DATABASE, TABLE_NAME);
     verify(client).dropTable(DATABASE, TABLE_NAME);
   }
 
   @Test
-  public void typicalDropPartition() throws NoSuchObjectException, MetaException, TException {
+  public void typicalDropPartition() throws TException {
     boolean result = hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
     verify(client).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME, false);
     assertTrue(result);
   }
 
   @Test
-  public void typicalDropTableDryRun() throws MetaException, NoSuchObjectException, TException {
+  public void typicalDropTableDryRun() throws TException {
     hiveClient = new HiveClient(client, true);
 
-    hiveClient.dropTable(DATABASE, TABLE_NAME);
+    hiveClient.dropTableIfExists(DATABASE, TABLE_NAME);
     verify(client, never()).dropTable(DATABASE, TABLE_NAME);
   }
 
   @Test
-  public void typicalDropPartitionDryRun() throws NoSuchObjectException, MetaException, TException {
+  public void typicalDropPartitionDryRun() throws TException {
     hiveClient = new HiveClient(client, true);
     boolean result = hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
     verify(client, never()).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME, false);
@@ -81,7 +81,14 @@ public class HiveClientTest {
   }
 
   @Test
-  public void dontThrowErrorWhenPartitionAlreadyDropped() throws MetaException, NoSuchObjectException, TException {
+  public void dontThrowErrorWhenTableAlreadyDropped() throws TException {
+    Mockito.doThrow(NoSuchObjectException.class).when(client).dropTable(DATABASE, TABLE_NAME);
+    hiveClient.dropTableIfExists(DATABASE, TABLE_NAME);
+    verify(client).dropTable(DATABASE, TABLE_NAME);
+  }
+
+  @Test
+  public void dontThrowErrorWhenPartitionAlreadyDropped() throws TException {
     Mockito
         .doThrow(NoSuchObjectException.class)
         .when(client)
@@ -93,15 +100,15 @@ public class HiveClientTest {
   }
 
   @Test
-  public void throwsExceptionForDropTable() throws MetaException, NoSuchObjectException, TException {
+  public void throwsExceptionForDropTable() throws TException {
     Mockito.doThrow(MetaException.class).when(client).dropTable(DATABASE, TABLE_NAME);
     assertThrows(BeekeeperException.class, () -> {
-      hiveClient.dropTable(DATABASE, TABLE_NAME);
+      hiveClient.dropTableIfExists(DATABASE, TABLE_NAME);
     });
   }
 
   @Test
-  public void throwsExceptionForDropPartition() throws MetaException, NoSuchObjectException, TException {
+  public void throwsExceptionForDropPartition() throws TException {
     Mockito.doThrow(MetaException.class).when(client).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME, false);
     assertThrows(BeekeeperException.class, () -> {
       hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);

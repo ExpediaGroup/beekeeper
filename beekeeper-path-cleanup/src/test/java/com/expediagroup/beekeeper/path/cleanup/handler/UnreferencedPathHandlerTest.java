@@ -31,6 +31,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +39,7 @@ public class UnreferencedPathHandlerTest {
 
   @Mock private HousekeepingPathRepository housekeepingPathRepository;
   @Mock private S3PathCleaner s3PathCleaner;
+  private LifecycleEventType lifecycleEventType = UNREFERENCED;
 
   private UnreferencedPathHandler handler;
 
@@ -48,12 +50,12 @@ public class UnreferencedPathHandlerTest {
 
   @Test
   public void verifyPathCleaner() {
-    assertThat(handler.getPathCleaner()).isInstanceOf(S3PathCleaner.class);
+    assertThat(s3PathCleaner).isInstanceOf(S3PathCleaner.class);
   }
 
   @Test
   public void verifyLifecycle() {
-    assertThat(handler.getLifecycleType()).isEqualTo(UNREFERENCED);
+    assertThat(lifecycleEventType).isEqualTo(UNREFERENCED);
   }
 
   @Test

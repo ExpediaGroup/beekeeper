@@ -30,21 +30,23 @@ import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
-public abstract class GenericMetadataHandler {
+public abstract class GenericMetadataHandler implements MetadataHandler {
 
   private final Logger log = LoggerFactory.getLogger(GenericMetadataHandler.class);
 
-  public abstract HousekeepingMetadataRepository getHousekeepingMetadataRepository();
+  private HousekeepingMetadataRepository housekeepingMetadataRepository;
+  private MetadataCleaner metadataCleaner;
+  private PathCleaner pathCleaner;
+  private LifecycleEventType lifecycleEventType;
 
-  public abstract LifecycleEventType getLifecycleType();
+  public GenericMetadataHandler(HousekeepingMetadataRepository housekeepingMetadataRepository, MetadataCleaner metadataCleaner, PathCleaner pathCleaner, LifecycleEventType lifecycleEventType){
+    this.housekeepingMetadataRepository = housekeepingMetadataRepository;
+    this.metadataCleaner = metadataCleaner;
+    this.pathCleaner = pathCleaner;
+    this.lifecycleEventType = lifecycleEventType;
+  }
 
-  public abstract MetadataCleaner getMetadataCleaner();
-
-  public abstract PathCleaner getPathCleaner();
-
-  public abstract Page<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable);
-
-  public abstract Long countPartitionsForDatabaseAndTable(LocalDateTime instant, String databaseName, String tableName, boolean dryRunEnabled);
+  protected abstract Long countPartitionsForDatabaseAndTable(LocalDateTime instant, String databaseName, String tableName, boolean dryRunEnabled);
 
   /**
    * Processes a pageable HouseKeepingMetadata page.
@@ -71,8 +73,6 @@ public abstract class GenericMetadataHandler {
   }
 
   private boolean cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled) {
-    MetadataCleaner metadataCleaner = getMetadataCleaner();
-    PathCleaner pathCleaner = getPathCleaner();
     String partitionName = housekeepingMetadata.getPartitionName();
     if (partitionName != null) {
       cleanupPartition(housekeepingMetadata, metadataCleaner, pathCleaner);
@@ -141,6 +141,6 @@ public abstract class GenericMetadataHandler {
   private void updateAttemptsAndStatus(HousekeepingMetadata housekeepingMetadata, HousekeepingStatus status) {
     housekeepingMetadata.setCleanupAttempts(housekeepingMetadata.getCleanupAttempts() + 1);
     housekeepingMetadata.setHousekeepingStatus(status);
-    getHousekeepingMetadataRepository().save(housekeepingMetadata);
+    housekeepingMetadataRepository.save(housekeepingMetadata);
   }
 }
