@@ -32,16 +32,16 @@ import io.micrometer.core.annotation.Timed;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
-import com.expediagroup.beekeeper.metadata.cleanup.handler.GenericMetadataHandler;
+import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
 
 public class PagingMetadataCleanupService implements CleanupService {
 
-  private final List<GenericMetadataHandler> metadataHandlers;
+  private final List<MetadataHandler> metadataHandlers;
   private final boolean dryRunEnabled;
   private final int pageSize;
 
   public PagingMetadataCleanupService(
-      List<GenericMetadataHandler> metadataHandlers,
+      List<MetadataHandler> metadataHandlers,
       int pageSize,
       boolean dryRunEnabled) {
     this.metadataHandlers = metadataHandlers;
@@ -60,7 +60,7 @@ public class PagingMetadataCleanupService implements CleanupService {
   }
 
   @Transactional
-  private void pagingCleanup(GenericMetadataHandler handler, Instant referenceTime) {
+  private void pagingCleanup(MetadataHandler handler, Instant referenceTime) {
     Pageable pageable = PageRequest.of(0, pageSize).first();
 
     LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);

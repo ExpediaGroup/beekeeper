@@ -46,6 +46,7 @@ import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
+import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.service.PagingMetadataCleanupService;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
@@ -69,6 +70,7 @@ public class CommonBeansTest {
   private @Mock HousekeepingPathRepository repository;
   private @Mock MetadataCleaner metadataCleaner;
   private @Mock PathCleaner pathCleaner;
+  private @Mock MetadataHandler metadataHandler;
 
   private @Autowired MeterRegistry meterRegistry;
 
@@ -154,7 +156,7 @@ public class CommonBeansTest {
 
   @Test
   public void verifyCleanupService() {
-    CleanupService cleanupService = commonBeans.cleanupService(Collections.emptyList(), 2, dryRunEnabled);
+    CleanupService cleanupService = commonBeans.cleanupService(metadataHandler, 2, dryRunEnabled);
     assertThat(cleanupService).isInstanceOf(PagingMetadataCleanupService.class);
   }
 

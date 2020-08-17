@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -44,7 +45,9 @@ import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
-import com.expediagroup.beekeeper.metadata.cleanup.handler.GenericMetadataHandler;
+import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
+import com.expediagroup.beekeeper.metadata.cleanup.cleaner.ExpiredMetadataCleanup;
+import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.service.PagingMetadataCleanupService;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
@@ -136,11 +139,25 @@ public class CommonBeans {
     return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
   }
 
+  @Bean(name = "expiredMetadataCleanup")
+  public ExpiredMetadataCleanup expiredMetadataCleanup(
+      HousekeepingMetadataRepository housekeepingMetadataRepository,
+      @Qualifier("hiveTableCleaner") MetadataCleaner metadataCleaner,
+      @Qualifier("s3PathCleaner") PathCleaner pathCleaner) {
+    return new ExpiredMetadataCleanup(housekeepingMetadataRepository, metadataCleaner, pathCleaner);
+  }
+
+  @Bean(name = "expiredMetadataCleanupHandler")
+  public MetadataHandler expiredMetadataCleanupHandler(
+      @Qualifier("expiredMetadataCleanup") ExpiredMetadataCleanup expiredMetadataCleanup) {
+    return new MetadataHandler(expiredMetadataCleanup);
+  }
+
   @Bean
   CleanupService cleanupService(
-      List<GenericMetadataHandler> metadataHandlers,
+      @Qualifier("expiredMetadataCleanupHandler") MetadataHandler expiredMetadataCleanupHandler,
       @Value("${properties.cleanup-page-size}") int pageSize,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new PagingMetadataCleanupService(metadataHandlers, pageSize, dryRunEnabled);
+    return new PagingMetadataCleanupService(List.of(expiredMetadataCleanupHandler), pageSize, dryRunEnabled);
   }
 }
