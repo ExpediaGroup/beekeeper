@@ -83,7 +83,8 @@ public class PagingMetadataCleanupServiceTest {
   public void init() {
     when(metadataCleaner.tableExists(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     when(metadataCleaner.dropPartition(Mockito.any())).thenReturn(true);
-    handlers = List.of(new MetadataHandler(new ExpiredMetadataCleanup(metadataRepository, metadataCleaner, pathCleaner)));
+    handlers = List.of(
+        new MetadataHandler(new ExpiredMetadataCleanup(metadataRepository, metadataCleaner, pathCleaner)));
     pagingCleanupService = new PagingMetadataCleanupService(handlers, 2, false);
   }
 

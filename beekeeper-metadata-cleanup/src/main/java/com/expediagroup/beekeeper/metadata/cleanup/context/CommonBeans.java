@@ -155,9 +155,9 @@ public class CommonBeans {
 
   @Bean
   CleanupService cleanupService(
-      @Qualifier("expiredMetadataCleanupHandler") MetadataHandler expiredMetadataCleanupHandler,
+          List<MetadataHandler> metadataHandlers,
       @Value("${properties.cleanup-page-size}") int pageSize,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new PagingMetadataCleanupService(List.of(expiredMetadataCleanupHandler), pageSize, dryRunEnabled);
+    return new PagingMetadataCleanupService(metadataHandlers, pageSize, dryRunEnabled);
   }
 }
