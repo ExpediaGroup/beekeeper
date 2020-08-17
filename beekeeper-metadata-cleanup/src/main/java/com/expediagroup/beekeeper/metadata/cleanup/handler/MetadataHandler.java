@@ -36,6 +36,7 @@ public class MetadataHandler {
    * Processes a pageable HouseKeepingMetadata page.
    *
    * @param pageable Pageable to iterate through for dryRun
+   * @param instant Instant at which the cleanup is taking place
    * @param page Page to get content from
    * @param dryRunEnabled Dry Run boolean flag
    * @return Pageable to pass to query. In the case of dry runs, this is the next page.
