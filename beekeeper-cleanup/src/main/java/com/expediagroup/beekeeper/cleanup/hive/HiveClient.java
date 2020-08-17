@@ -60,7 +60,7 @@ public class HiveClient {
   }
 
   /**
-   * Will drop the partition from the table. Error is not thrown if the table or partition are not found.
+   * Will drop the partition from the table if it exists.
    *
    * @param databaseName
    * @param tableName

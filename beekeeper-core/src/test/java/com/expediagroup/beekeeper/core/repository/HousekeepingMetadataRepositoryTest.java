@@ -264,7 +264,7 @@ public class HousekeepingMetadataRepositoryTest {
     long result = housekeepingMetadataRepository
         .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(Long.valueOf(1), result);
+    assertEquals(1L, result);
   }
 
   @Test
@@ -276,7 +276,7 @@ public class HousekeepingMetadataRepositoryTest {
     long result = housekeepingMetadataRepository
         .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(Long.valueOf(0), result);
+    assertEquals(0L, result);
   }
 
   @Test
@@ -290,7 +290,7 @@ public class HousekeepingMetadataRepositoryTest {
     long result = housekeepingMetadataRepository
         .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(Long.valueOf(1), result);
+    assertEquals(1L, result);
   }
 
   @Test
@@ -304,7 +304,7 @@ public class HousekeepingMetadataRepositoryTest {
     long result = housekeepingMetadataRepository
         .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(Long.valueOf(0), result);
+    assertEquals(0L, result);
   }
 
   @Test
@@ -315,7 +315,7 @@ public class HousekeepingMetadataRepositoryTest {
     long result = housekeepingMetadataRepository.countRecordsForDryRunWherePartitionIsNotNullOrExpired(
         CLEANUP_TIMESTAMP, DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(Long.valueOf(1), result);
+    assertEquals(1L, result);
   }
 
   @Test
@@ -327,7 +327,7 @@ public class HousekeepingMetadataRepositoryTest {
     long result = housekeepingMetadataRepository.countRecordsForDryRunWherePartitionIsNotNullOrExpired(
         CLEANUP_TIMESTAMP, DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(Long.valueOf(0), result);
+    assertEquals(0L, result);
   }
 
   @Test
@@ -338,7 +338,7 @@ public class HousekeepingMetadataRepositoryTest {
     long result = housekeepingMetadataRepository.countRecordsForDryRunWherePartitionIsNotNullOrExpired(
         CLEANUP_TIMESTAMP, DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(Long.valueOf(0), result);
+    assertEquals(0L, result);
   }
 
   private HousekeepingMetadata createUnpartitionedEntityHousekeepingTable() {
