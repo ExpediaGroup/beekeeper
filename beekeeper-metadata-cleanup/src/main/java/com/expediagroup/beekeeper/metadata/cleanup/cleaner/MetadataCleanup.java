@@ -26,7 +26,5 @@ public interface MetadataCleanup {
 
   Page<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable);
 
-  void cleanupContent(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled);
-
-  boolean cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled);
+  void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled);
 }

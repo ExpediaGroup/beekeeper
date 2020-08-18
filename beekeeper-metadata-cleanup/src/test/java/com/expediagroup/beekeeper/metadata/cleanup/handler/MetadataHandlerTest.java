@@ -57,7 +57,7 @@ public class MetadataHandlerTest {
     when(mockPage.getContent()).thenReturn(List.of(housekeepingMetadata));
 
     handler.processPage(mockPageable, CLEANUP_INSTANCE, mockPage, false);
-    verify(expiredMetadataCleanup).cleanupContent(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(expiredMetadataCleanup).cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(mockPageable, never()).next();
   }
 

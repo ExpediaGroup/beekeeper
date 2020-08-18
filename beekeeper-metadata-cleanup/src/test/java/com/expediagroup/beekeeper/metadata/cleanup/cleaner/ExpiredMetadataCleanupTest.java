@@ -101,7 +101,7 @@ public class ExpiredMetadataCleanupTest {
         .thenReturn(Long.valueOf(0));
     when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
 
-    expiredMetadataCleanup.cleanupContent(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    expiredMetadataCleanup.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(hiveMetadataCleaner).dropTable(housekeepingMetadata);
     verify(s3PathCleaner).cleanupPath(housekeepingMetadata);
     verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata);
@@ -119,7 +119,7 @@ public class ExpiredMetadataCleanupTest {
     when(hiveMetadataCleaner.dropPartition(Mockito.any())).thenReturn(true);
     when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
 
-    expiredMetadataCleanup.cleanupContent(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    expiredMetadataCleanup.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(s3PathCleaner).cleanupPath(housekeepingMetadata);
     verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
     verify(housekeepingMetadata).setCleanupAttempts(1);
@@ -136,7 +136,7 @@ public class ExpiredMetadataCleanupTest {
         TABLE_NAME))
         .thenReturn(Long.valueOf(1));
 
-    expiredMetadataCleanup.cleanupContent(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    expiredMetadataCleanup.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
     verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
     verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata);
@@ -157,7 +157,7 @@ public class ExpiredMetadataCleanupTest {
         .thenReturn(Long.valueOf(0));
     when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(false);
 
-    expiredMetadataCleanup.cleanupContent(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    expiredMetadataCleanup.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
     verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
     verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata);
@@ -174,7 +174,7 @@ public class ExpiredMetadataCleanupTest {
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(false);
 
-    expiredMetadataCleanup.cleanupContent(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    expiredMetadataCleanup.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata);
     verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
     verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
@@ -191,7 +191,7 @@ public class ExpiredMetadataCleanupTest {
     when(hiveMetadataCleaner.dropPartition(Mockito.any())).thenReturn(false);
     when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
 
-    expiredMetadataCleanup.cleanupContent(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    expiredMetadataCleanup.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
     verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
     verify(housekeepingMetadata).setCleanupAttempts(1);
@@ -212,7 +212,7 @@ public class ExpiredMetadataCleanupTest {
     when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
     doThrow(RuntimeException.class).when(hiveMetadataCleaner).dropTable(housekeepingMetadata);
 
-    expiredMetadataCleanup.cleanupContent(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    expiredMetadataCleanup.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(FAILED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
@@ -227,7 +227,7 @@ public class ExpiredMetadataCleanupTest {
     when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
     doThrow(RuntimeException.class).when(s3PathCleaner).cleanupPath(housekeepingMetadata);
 
-    expiredMetadataCleanup.cleanupContent(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    expiredMetadataCleanup.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(FAILED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
@@ -242,7 +242,7 @@ public class ExpiredMetadataCleanupTest {
     when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
     doThrow(RuntimeException.class).when(hiveMetadataCleaner).dropPartition(housekeepingMetadata);
 
-    expiredMetadataCleanup.cleanupContent(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    expiredMetadataCleanup.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(FAILED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);

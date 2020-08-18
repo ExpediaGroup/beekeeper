@@ -53,12 +53,29 @@ public class ExpiredMetadataCleanup implements MetadataCleanup {
     return housekeepingMetadataRepository.findRecordsForCleanupByModifiedTimestamp(instant, pageable);
   }
 
+  /**
+   * Cleans up the HousekeepingMetadata.
+   *
+   * @param housekeepingMetadata
+   * @param instant
+   * @param dryRunEnabled
+   * @implNote HousekeepingMetadata objects are not updated in dry-run mode.
+   */
   @Override
-  public void cleanupContent(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled) {
+  public void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled) {
+    if (dryRunEnabled) {
+      cleanup(housekeepingMetadata, instant, dryRunEnabled);
+    } else {
+      cleanupAndUpdate(housekeepingMetadata, instant, dryRunEnabled);
+    }
+  }
+
+  private void cleanupAndUpdate(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant,
+      boolean dryRunEnabled) {
     try {
       log.info("Cleaning up metadata for table \"{}.{}\"", housekeepingMetadata.getDatabaseName(),
           housekeepingMetadata.getTableName());
-      boolean deleted = cleanupMetadata(housekeepingMetadata, instant, dryRunEnabled);
+      boolean deleted = cleanup(housekeepingMetadata, instant, dryRunEnabled);
       if (deleted) {
         updateAttemptsAndStatus(housekeepingMetadata, DELETED);
       }
@@ -70,8 +87,7 @@ public class ExpiredMetadataCleanup implements MetadataCleanup {
     }
   }
 
-  @Override
-  public boolean cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant,
+  private boolean cleanup(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant,
       boolean dryRunEnabled) {
     String partitionName = housekeepingMetadata.getPartitionName();
     if (partitionName != null) {
@@ -110,7 +126,7 @@ public class ExpiredMetadataCleanup implements MetadataCleanup {
         pathCleaner.cleanupPath(housekeepingMetadata);
       }
     } else {
-      log.info("Cannot drop partition \"{}\" from table \"{}.{}\". Partition does not exist.",
+      log.info("Cannot drop partition \"{}\" from table \"{}.{}\". Table does not exist.",
           housekeepingMetadata.getPartitionName(), databaseName, tableName);
     }
   }
