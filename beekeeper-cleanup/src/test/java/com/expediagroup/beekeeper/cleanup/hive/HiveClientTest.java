@@ -53,7 +53,7 @@ public class HiveClientTest {
 
   @Test
   public void typicalDropTable() throws TException {
-    hiveClient.dropTableIfExists(DATABASE, TABLE_NAME);
+    hiveClient.dropTable(DATABASE, TABLE_NAME);
     verify(client).dropTable(DATABASE, TABLE_NAME);
   }
 
@@ -68,7 +68,7 @@ public class HiveClientTest {
   public void typicalDropTableDryRun() throws TException {
     hiveClient = new HiveClient(client, true);
 
-    hiveClient.dropTableIfExists(DATABASE, TABLE_NAME);
+    hiveClient.dropTable(DATABASE, TABLE_NAME);
     verify(client, never()).dropTable(DATABASE, TABLE_NAME);
   }
 
@@ -83,7 +83,7 @@ public class HiveClientTest {
   @Test
   public void dontThrowErrorWhenTableAlreadyDropped() throws TException {
     Mockito.doThrow(NoSuchObjectException.class).when(client).dropTable(DATABASE, TABLE_NAME);
-    hiveClient.dropTableIfExists(DATABASE, TABLE_NAME);
+    hiveClient.dropTable(DATABASE, TABLE_NAME);
     verify(client).dropTable(DATABASE, TABLE_NAME);
   }
 
@@ -103,7 +103,7 @@ public class HiveClientTest {
   public void throwsExceptionForDropTable() throws TException {
     Mockito.doThrow(MetaException.class).when(client).dropTable(DATABASE, TABLE_NAME);
     assertThrows(BeekeeperException.class, () -> {
-      hiveClient.dropTableIfExists(DATABASE, TABLE_NAME);
+      hiveClient.dropTable(DATABASE, TABLE_NAME);
     });
   }
 

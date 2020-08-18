@@ -42,7 +42,7 @@ public class HiveClient {
    * @param databaseName
    * @param tableName
    */
-  public void dropTableIfExists(String databaseName, String tableName) {
+  public void dropTable(String databaseName, String tableName) {
     if (dryRunEnabled) {
       log.info("Dry run - dropping table \"{}.{}\"", databaseName, tableName);
     } else {
