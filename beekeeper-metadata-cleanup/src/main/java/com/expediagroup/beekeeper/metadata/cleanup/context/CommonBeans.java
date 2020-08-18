@@ -46,7 +46,7 @@ import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
-import com.expediagroup.beekeeper.metadata.cleanup.cleaner.ExpiredMetadataCleanup;
+import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.service.PagingMetadataCleanupService;
 
@@ -139,18 +139,12 @@ public class CommonBeans {
     return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
   }
 
-  @Bean(name = "expiredMetadataCleanup")
-  public ExpiredMetadataCleanup expiredMetadataCleanup(
+  @Bean(name = "expiredMetadataHandler")
+  public ExpiredMetadataHandler expiredMetadataHandler(
       HousekeepingMetadataRepository housekeepingMetadataRepository,
       @Qualifier("hiveTableCleaner") MetadataCleaner metadataCleaner,
       @Qualifier("s3PathCleaner") PathCleaner pathCleaner) {
-    return new ExpiredMetadataCleanup(housekeepingMetadataRepository, metadataCleaner, pathCleaner);
-  }
-
-  @Bean(name = "expiredMetadataCleanupHandler")
-  public MetadataHandler expiredMetadataCleanupHandler(
-      @Qualifier("expiredMetadataCleanup") ExpiredMetadataCleanup expiredMetadataCleanup) {
-    return new MetadataHandler(expiredMetadataCleanup);
+    return new ExpiredMetadataHandler(housekeepingMetadataRepository, metadataCleaner, pathCleaner);
   }
 
   @Bean

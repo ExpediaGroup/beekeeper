@@ -21,39 +21,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
-import com.expediagroup.beekeeper.metadata.cleanup.cleaner.MetadataCleanup;
 
-public class MetadataHandler {
+public interface MetadataHandler {
 
-  private final MetadataCleanup metadataCleanup;
+  Page<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable);
 
-  public MetadataHandler(MetadataCleanup metadataCleanup) {
-    this.metadataCleanup = metadataCleanup;
-  }
-
-  /**
-   * Processes a pageable HouseKeepingMetadata page.
-   *
-   * @param pageable Pageable to iterate through for dryRun
-   * @param instant Instant at which the cleanup is taking place
-   * @param page Page to get content from
-   * @param dryRunEnabled Dry Run boolean flag
-   * @return Pageable to pass to query. In the case of dry runs, this is the next page.
-   * @implNote This handler expects the cleanupMetadata call to update & remove the record from this call
-   * such that subsequent DB queries will not return the record. Hence why we only call next during dryRuns
-   * where no updates occur.
-   * @implNote Note that we only expect pageable.next to be called during a dry run.
-   */
-  public Pageable processPage(Pageable pageable, LocalDateTime instant, Page<HousekeepingMetadata> page,
-      boolean dryRunEnabled) {
-    page.getContent().forEach(metadata -> metadataCleanup.cleanupMetadata(metadata, instant, dryRunEnabled));
-    if (dryRunEnabled) {
-      return pageable.next();
-    }
-    return pageable;
-  }
-
-  public Page<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable) {
-    return metadataCleanup.findRecordsToClean(instant, pageable);
-  }
+  void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled);
 }

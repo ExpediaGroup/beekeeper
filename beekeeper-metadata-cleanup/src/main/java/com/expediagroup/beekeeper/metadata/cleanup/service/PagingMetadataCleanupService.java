@@ -59,6 +59,11 @@ public class PagingMetadataCleanupService implements CleanupService {
     }
   }
 
+  /**
+   * @param handler MetadataHandler which will cleanup the records
+   * @param referenceTime Instant at which the cleanup is taking place
+   * @implNote No updates occur to records during dry runs.
+   */
   @Transactional
   private void pagingCleanup(MetadataHandler handler, Instant referenceTime) {
     Pageable pageable = PageRequest.of(0, pageSize).first();
@@ -67,9 +72,18 @@ public class PagingMetadataCleanupService implements CleanupService {
     Page<HousekeepingMetadata> page = handler.findRecordsToClean(instant, pageable);
 
     while (!page.getContent().isEmpty()) {
-      pageable = handler.processPage(pageable, instant, page, dryRunEnabled);
+      pageable = processPage(handler, pageable, instant, page, dryRunEnabled);
       page = handler.findRecordsToClean(instant, pageable);
     }
   }
 
+  private Pageable processPage(MetadataHandler handler, Pageable pageable, LocalDateTime instant,
+      Page<HousekeepingMetadata> page,
+      boolean dryRunEnabled) {
+    page.getContent().forEach(metadata -> handler.cleanupMetadata(metadata, instant, dryRunEnabled));
+    if (dryRunEnabled) {
+      return pageable.next();
+    }
+    return pageable;
+  }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.metadata.cleanup.cleaner;
+package com.expediagroup.beekeeper.metadata.cleanup.handler;
 
 import static org.apache.commons.lang.math.NumberUtils.LONG_ZERO;
 
@@ -33,15 +33,15 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
-public class ExpiredMetadataCleanup implements MetadataCleanup {
+public class ExpiredMetadataHandler implements MetadataHandler {
 
-  private final Logger log = LoggerFactory.getLogger(ExpiredMetadataCleanup.class);
+  private final Logger log = LoggerFactory.getLogger(ExpiredMetadataHandler.class);
 
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
   private final MetadataCleaner metadataCleaner;
   private final PathCleaner pathCleaner;
 
-  public ExpiredMetadataCleanup(HousekeepingMetadataRepository housekeepingMetadataRepository,
+  public ExpiredMetadataHandler(HousekeepingMetadataRepository housekeepingMetadataRepository,
       MetadataCleaner metadataCleaner, PathCleaner pathCleaner) {
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
     this.metadataCleaner = metadataCleaner;
@@ -54,12 +54,12 @@ public class ExpiredMetadataCleanup implements MetadataCleanup {
   }
 
   /**
-   * Cleans up the HousekeepingMetadata.
+   * Cleans up the HousekeepingMetadata records which have expired.
    *
-   * @param housekeepingMetadata
-   * @param instant
+   * @param housekeepingMetadata Record to cleanup
+   * @param instant Instant the cleanup is happening
    * @param dryRunEnabled
-   * @implNote HousekeepingMetadata objects are not updated in dry-run mode.
+   * @implNote HousekeepingMetadata records are not updated in dry-run mode.
    */
   @Override
   public void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled) {

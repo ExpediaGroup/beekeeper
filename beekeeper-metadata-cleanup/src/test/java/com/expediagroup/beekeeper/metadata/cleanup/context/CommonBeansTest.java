@@ -45,8 +45,7 @@ import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
-import com.expediagroup.beekeeper.metadata.cleanup.cleaner.ExpiredMetadataCleanup;
-import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
+import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.service.PagingMetadataCleanupService;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
@@ -70,7 +69,6 @@ public class CommonBeansTest {
   private @Mock HousekeepingMetadataRepository metadataRepository;
   private @Mock MetadataCleaner metadataCleaner;
   private @Mock PathCleaner pathCleaner;
-  private @Mock MetadataHandler metadataHandler;
   private @Mock MeterRegistry meterRegistry;
 
   @BeforeEach
@@ -154,21 +152,17 @@ public class CommonBeansTest {
   }
 
   @Test
-  public void verifyExpiredMetadataCleanup(){
-    ExpiredMetadataCleanup expiredMetadataCleanup = commonBeans.expiredMetadataCleanup(metadataRepository, metadataCleaner, pathCleaner);
-    assertThat(expiredMetadataCleanup).isInstanceOf(ExpiredMetadataCleanup.class);
-  }
-
-  @Test
-  public void verifyExpiredMetadataCleanupHandler(){
-    ExpiredMetadataCleanup expiredMetadataCleanup = commonBeans.expiredMetadataCleanup(metadataRepository, metadataCleaner, pathCleaner);
-    assertThat(commonBeans.expiredMetadataCleanupHandler(expiredMetadataCleanup)).isInstanceOf(MetadataHandler.class);
+  public void verifyExpiredMetadataHandler() {
+    ExpiredMetadataHandler expiredMetadataHandler = commonBeans.expiredMetadataHandler(metadataRepository,
+        metadataCleaner, pathCleaner);
+    assertThat(expiredMetadataHandler).isInstanceOf(ExpiredMetadataHandler.class);
   }
 
   @Test
   public void verifyCleanupService() {
-    CleanupService cleanupService = commonBeans.cleanupService(List.of(metadataHandler), 2, dryRunEnabled);
+    CleanupService cleanupService = commonBeans.cleanupService(
+        List.of(commonBeans.expiredMetadataHandler(metadataRepository, metadataCleaner, pathCleaner)), 2,
+        dryRunEnabled);
     assertThat(cleanupService).isInstanceOf(PagingMetadataCleanupService.class);
   }
-
 }

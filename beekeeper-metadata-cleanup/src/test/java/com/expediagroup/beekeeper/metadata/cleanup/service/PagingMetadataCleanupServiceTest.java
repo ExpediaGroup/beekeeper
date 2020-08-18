@@ -58,7 +58,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.metadata.cleanup.TestApplication;
-import com.expediagroup.beekeeper.metadata.cleanup.cleaner.ExpiredMetadataCleanup;
+import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
 
 @ExtendWith(SpringExtension.class)
@@ -75,16 +75,15 @@ public class PagingMetadataCleanupServiceTest {
   private @MockBean MetadataCleaner metadataCleaner;
   private @MockBean PathCleaner pathCleaner;
 
-  private List<MetadataHandler> handlers = new ArrayList<>();
-
   private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
+
+  private List<MetadataHandler> handlers = new ArrayList<>();
 
   @BeforeEach
   public void init() {
     when(metadataCleaner.tableExists(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     when(metadataCleaner.dropPartition(Mockito.any())).thenReturn(true);
-    handlers = List.of(
-        new MetadataHandler(new ExpiredMetadataCleanup(metadataRepository, metadataCleaner, pathCleaner)));
+    handlers = List.of(new ExpiredMetadataHandler(metadataRepository, metadataCleaner, pathCleaner));
     pagingCleanupService = new PagingMetadataCleanupService(handlers, 2, false);
   }
 
