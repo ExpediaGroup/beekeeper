@@ -59,7 +59,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.metadata.cleanup.TestApplication;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
-import com.expediagroup.beekeeper.metadata.cleanup.handler.GenericMetadataHandler;
+import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -75,9 +75,9 @@ public class PagingMetadataCleanupServiceTest {
   private @MockBean MetadataCleaner metadataCleaner;
   private @MockBean PathCleaner pathCleaner;
 
-  private List<GenericMetadataHandler> handlers = new ArrayList<>();
-
   private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
+
+  private List<MetadataHandler> handlers = new ArrayList<>();
 
   @BeforeEach
   public void init() {

@@ -49,7 +49,7 @@ public class HiveClient {
       try {
         log.info("Dropping table \"{}.{}\"", databaseName, tableName);
         client.dropTable(databaseName, tableName);
-      } catch (NoSuchObjectException e){
+      } catch (NoSuchObjectException e) {
         log.info("Could not drop table: table not found: \"{}.{}\"", databaseName, tableName);
       } catch (TException e) {
         throw new BeekeeperException(
