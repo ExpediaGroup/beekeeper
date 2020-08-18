@@ -319,7 +319,7 @@ public class HousekeepingMetadataRepositoryTest {
   }
 
   @Test
-  public void dryRunCountPartitionsFor1PartitionedTableEmpty() {
+  public void dryRunCountPartitionsForPartitionedTableEmpty() {
     HousekeepingMetadata housekeepingTable = createPartitionedEntityHousekeepingTable();
     housekeepingTable.setHousekeepingStatus(DELETED);
     housekeepingMetadataRepository.save(housekeepingTable);
