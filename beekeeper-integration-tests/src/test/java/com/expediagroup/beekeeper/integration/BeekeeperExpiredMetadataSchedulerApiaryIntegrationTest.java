@@ -69,6 +69,8 @@ import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperSchedulerApiary;
 public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 5;
+  private static final String APIARY_QUEUE_URL_PROPERTY = "properties.apiary.queue-url";
+
   private static final String QUEUE = "apiary-receiver-queue";
   private static final String SCHEDULED_EXPIRED_METRIC = "metadata-scheduled";
   private static final String HEALTHCHECK_URI = "http://localhost:8080/actuator/health";
@@ -89,7 +91,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   @BeforeAll
   public static void init() {
     String queueUrl = ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE);
-    System.setProperty("properties.apiary.queue-url", queueUrl);
+    System.setProperty(APIARY_QUEUE_URL_PROPERTY, queueUrl);
 
     amazonSQS = ContainerTestUtils.sqsClient(SQS_CONTAINER, AWS_REGION);
     amazonSQS.createQueue(QUEUE);
@@ -97,6 +99,8 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
 
   @AfterAll
   public static void teardown() {
+    System.clearProperty(APIARY_QUEUE_URL_PROPERTY);
+
     amazonSQS.shutdown();
   }
 

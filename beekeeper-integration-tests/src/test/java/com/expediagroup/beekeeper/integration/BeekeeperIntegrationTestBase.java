@@ -68,6 +68,14 @@ import com.expediagroup.beekeeper.integration.utils.MySqlTestUtils;
 @Testcontainers
 public abstract class BeekeeperIntegrationTestBase {
 
+  // SYSTEM PROPERTIES
+  private static final String SPRING_DATASOURCE_URL_PROPERTY = "spring.datasource.url";
+  private static final String SPRING_DATASOURCE_USERNAME_PROPERTY = "spring.datasource.username";
+  private static final String SPRING_DATASOURCE_PASSWORD_PROPERTY = "spring.datasource.password";
+  private static final String AWS_REGION_PROPERTY = "aws.region";
+  private static final String AWS_ACCESS_KEY_ID_PROPERTY = "aws.accessKeyId";
+  private static final String AWS_SECRET_KEY_PROPERTY = "aws.secretKey";
+
   // AWS VARIABLES
   private static final String AWS_ACCESS_KEY_ID = "access-key";
   private static final String AWS_SECRET_KEY = "secret-key";
@@ -105,18 +113,25 @@ public abstract class BeekeeperIntegrationTestBase {
     String username = MY_SQL_CONTAINER.getUsername();
     String password = MY_SQL_CONTAINER.getPassword();
 
-    System.setProperty("spring.datasource.url", jdbcUrl);
-    System.setProperty("spring.datasource.username", username);
-    System.setProperty("spring.datasource.password", password);
-    System.setProperty("aws.region", AWS_REGION);
-    System.setProperty("aws.accessKeyId", AWS_ACCESS_KEY_ID);
-    System.setProperty("aws.secretKey", AWS_SECRET_KEY);
+    System.setProperty(SPRING_DATASOURCE_URL_PROPERTY, jdbcUrl);
+    System.setProperty(SPRING_DATASOURCE_USERNAME_PROPERTY, username);
+    System.setProperty(SPRING_DATASOURCE_PASSWORD_PROPERTY, password);
+    System.setProperty(AWS_REGION_PROPERTY, AWS_REGION);
+    System.setProperty(AWS_ACCESS_KEY_ID_PROPERTY, AWS_ACCESS_KEY_ID);
+    System.setProperty(AWS_SECRET_KEY_PROPERTY, AWS_SECRET_KEY);
 
     mySQLTestUtils = new MySqlTestUtils(jdbcUrl, username, password);
   }
 
   @AfterAll
   protected static void destroyMySQLContainer() throws SQLException {
+    System.clearProperty(SPRING_DATASOURCE_URL_PROPERTY);
+    System.clearProperty(SPRING_DATASOURCE_USERNAME_PROPERTY);
+    System.clearProperty(SPRING_DATASOURCE_PASSWORD_PROPERTY);
+    System.clearProperty(AWS_REGION_PROPERTY);
+    System.clearProperty(AWS_ACCESS_KEY_ID_PROPERTY);
+    System.clearProperty(AWS_SECRET_KEY_PROPERTY);
+
     mySQLTestUtils.close();
   }
 

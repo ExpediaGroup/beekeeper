@@ -22,6 +22,8 @@ import java.time.temporal.ChronoUnit;
 
 public final class CommonTestVariables {
 
+  private CommonTestVariables() {}
+
   // AWS
   public static final String AWS_REGION = "us-west-2";
 
