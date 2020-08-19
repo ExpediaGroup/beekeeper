@@ -133,6 +133,13 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   public static void teardown() {
     amazonS3.shutdown();
     S3_CONTAINER.stop();
+
+    System.clearProperty("spring.profiles.active");
+    System.clearProperty("properties.scheduler-delay-ms");
+    System.clearProperty("properties.dry-run-enabled");
+    System.clearProperty("aws.s3.endpoint");
+    System.clearProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation");
+    System.clearProperty("com.amazonaws.services.s3.disablePutObjectMD5Validation");
   }
 
   @BeforeEach

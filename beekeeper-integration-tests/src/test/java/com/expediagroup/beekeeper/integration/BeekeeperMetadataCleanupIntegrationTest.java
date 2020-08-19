@@ -65,11 +65,9 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.google.common.collect.ImmutableMap;
 
-import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.HiveTestUtils;
 import com.expediagroup.beekeeper.metadata.cleanup.BeekeeperMetadataCleanup;
-import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
 
 import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
 
@@ -154,10 +152,17 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   public static void teardown() {
     amazonS3.shutdown();
     S3_CONTAINER.stop();
+
+    System.clearProperty("spring.profiles.active");
+    System.clearProperty("properties.scheduler-delay-ms");
+    System.clearProperty("properties.dry-run-enabled");
+    System.clearProperty("aws.s3.endpoint");
+    System.clearProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation");
+    System.clearProperty("com.amazonaws.services.s3.disablePutObjectMD5Validation");
   }
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     metastoreClient = thriftHiveMetaStore.client();
     System.setProperty("properties.metastore-uri", thriftHiveMetaStore.getThriftConnectionUri());
 
@@ -170,7 +175,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   }
 
   @AfterEach
-  public void stop() throws InterruptedException {
+  void stop() throws InterruptedException {
     BeekeeperMetadataCleanup.stop();
     executorService.awaitTermination(5, TimeUnit.SECONDS);
   }
@@ -297,7 +302,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void onlyCleanupLocationWhenPartitionExists() throws TException, SQLException {
-    Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
+    hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
 
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
     amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
@@ -313,10 +318,25 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isTrue();
   }
 
+  @Test
+  public void healthCheck() {
+    CloseableHttpClient client = HttpClientBuilder.create().build();
+    HttpGet request = new HttpGet(HEALTHCHECK_URI);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
+  }
+
+  @Test
+  public void prometheus() {
+    CloseableHttpClient client = HttpClientBuilder.create().build();
+    HttpGet request = new HttpGet(PROMETHEUS_URI);
+    await().atMost(30, TimeUnit.SECONDS)
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
+  }
 
   @Test
   public void metrics() throws SQLException, TException {
-    Table table = hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, "");
 
     insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
@@ -337,5 +357,4 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
           .contains("metadata-cleanup-job", "hive-table-deleted", "hive-table-" + METRIC_NAME);
     });
   }
-
 }
