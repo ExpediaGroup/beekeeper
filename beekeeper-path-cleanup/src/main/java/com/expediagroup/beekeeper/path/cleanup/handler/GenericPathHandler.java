@@ -33,11 +33,15 @@ public abstract class GenericPathHandler {
 
   private final Logger log = LoggerFactory.getLogger(GenericPathHandler.class);
 
-  public abstract HousekeepingPathRepository getHousekeepingPathRepository();
+  private HousekeepingPathRepository housekeepingPathRepository;
+  private PathCleaner pathCleaner;
+  private LifecycleEventType lifecycleEventType;
 
-  public abstract LifecycleEventType getLifecycleType();
-
-  public abstract PathCleaner getPathCleaner();
+  public GenericPathHandler(HousekeepingPathRepository housekeepingPathRepository, PathCleaner pathCleaner, LifecycleEventType lifecycleEventType){
+    this.housekeepingPathRepository = housekeepingPathRepository;
+    this.pathCleaner = pathCleaner;
+    this.lifecycleEventType = lifecycleEventType;
+  }
 
   public abstract Page<HousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable);
 
@@ -64,7 +68,6 @@ public abstract class GenericPathHandler {
   }
 
   private void cleanUpPath(HousekeepingPath housekeepingPath) {
-    PathCleaner pathCleaner = getPathCleaner();
     pathCleaner.cleanupPath(housekeepingPath);
   }
 
@@ -82,6 +85,6 @@ public abstract class GenericPathHandler {
   private void updateAttemptsAndStatus(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
     housekeepingPath.setCleanupAttempts(housekeepingPath.getCleanupAttempts() + 1);
     housekeepingPath.setHousekeepingStatus(status);
-    getHousekeepingPathRepository().save(housekeepingPath);
+    housekeepingPathRepository.save(housekeepingPath);
   }
 }

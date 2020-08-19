@@ -271,13 +271,13 @@ public class HousekeepingMetadataRepositoryTest {
     HousekeepingMetadata housekeepingTable1 = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(housekeepingTable1);
 
-    HousekeepingMetadata housekeepingTable2 = createEntityHouseKeepingTable(DATABASE_NAME, TABLE_NAME +"2", null);
+    HousekeepingMetadata housekeepingTable2 = createEntityHouseKeepingTable(DATABASE_NAME, TABLE_NAME + "2", null);
     housekeepingMetadataRepository.save(housekeepingTable2);
 
     long result = housekeepingMetadataRepository
         .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(Long.valueOf(1), result);
+    assertEquals(1L, result);
   }
 
   @Test
@@ -289,7 +289,7 @@ public class HousekeepingMetadataRepositoryTest {
     long result = housekeepingMetadataRepository
         .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(Long.valueOf(0), result);
+    assertEquals(0L, result);
   }
 
   @Test
@@ -303,7 +303,7 @@ public class HousekeepingMetadataRepositoryTest {
     long result = housekeepingMetadataRepository
         .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(Long.valueOf(1), result);
+    assertEquals(1L, result);
   }
 
   @Test
@@ -317,7 +317,41 @@ public class HousekeepingMetadataRepositoryTest {
     long result = housekeepingMetadataRepository
         .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME, TABLE_NAME);
 
-    assertEquals(Long.valueOf(0), result);
+    assertEquals(0L, result);
+  }
+
+  @Test
+  public void dryRunCountPartitionsForPartitionedTable() {
+    HousekeepingMetadata housekeepingTable = createPartitionedEntityHousekeepingTable();
+    housekeepingMetadataRepository.save(housekeepingTable);
+
+    long result = housekeepingMetadataRepository.countRecordsForDryRunWherePartitionIsNotNullOrExpired(
+        CLEANUP_TIMESTAMP, DATABASE_NAME, TABLE_NAME);
+
+    assertEquals(1L, result);
+  }
+
+  @Test
+  public void dryRunCountPartitionsForPartitionedTableEmpty() {
+    HousekeepingMetadata housekeepingTable = createPartitionedEntityHousekeepingTable();
+    housekeepingTable.setHousekeepingStatus(DELETED);
+    housekeepingMetadataRepository.save(housekeepingTable);
+
+    long result = housekeepingMetadataRepository.countRecordsForDryRunWherePartitionIsNotNullOrExpired(
+        CLEANUP_TIMESTAMP, DATABASE_NAME, TABLE_NAME);
+
+    assertEquals(0L, result);
+  }
+
+  @Test
+  public void dryRunCountPartitionsForUnpartitionedTable() {
+    HousekeepingMetadata housekeepingTable = createUnpartitionedEntityHousekeepingTable();
+    housekeepingMetadataRepository.save(housekeepingTable);
+
+    long result = housekeepingMetadataRepository.countRecordsForDryRunWherePartitionIsNotNullOrExpired(
+        CLEANUP_TIMESTAMP, DATABASE_NAME, TABLE_NAME);
+
+    assertEquals(0L, result);
   }
 
   private HousekeepingMetadata createUnpartitionedEntityHousekeepingTable() {

@@ -37,7 +37,7 @@ public class HiveClient {
   }
 
   /**
-   * Will drop the table from the database. Error is not thrown if table not found.
+   * Will drop the table from the database if it exists.
    *
    * @param databaseName
    * @param tableName
@@ -49,6 +49,8 @@ public class HiveClient {
       try {
         log.info("Dropping table \"{}.{}\"", databaseName, tableName);
         client.dropTable(databaseName, tableName);
+      } catch (NoSuchObjectException e) {
+        log.info("Could not drop table: table not found: \"{}.{}\"", databaseName, tableName);
       } catch (TException e) {
         throw new BeekeeperException(
             "Unexpected exception when dropping table: \"" + databaseName + "." + tableName + "\".",
@@ -58,7 +60,7 @@ public class HiveClient {
   }
 
   /**
-   * Will drop the partition from the table. Error is not thrown if the table or partition are not found.
+   * Will drop the partition from the table if it exists.
    *
    * @param databaseName
    * @param tableName

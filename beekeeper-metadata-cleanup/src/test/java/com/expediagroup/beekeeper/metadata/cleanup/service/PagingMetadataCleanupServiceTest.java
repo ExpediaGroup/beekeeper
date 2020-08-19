@@ -59,7 +59,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.metadata.cleanup.TestApplication;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
-import com.expediagroup.beekeeper.metadata.cleanup.handler.GenericMetadataHandler;
+import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -75,9 +75,9 @@ public class PagingMetadataCleanupServiceTest {
   private @MockBean MetadataCleaner metadataCleaner;
   private @MockBean PathCleaner pathCleaner;
 
-  private List<GenericMetadataHandler> handlers = new ArrayList<>();
-
   private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
+
+  private List<MetadataHandler> handlers = new ArrayList<>();
 
   @BeforeEach
   public void init() {
@@ -145,7 +145,7 @@ public class PagingMetadataCleanupServiceTest {
 
   @Test
   public void mixOfScheduledAndFailedPaths() {
-     List<HousekeepingMetadata> tables = List
+    List<HousekeepingMetadata> tables = List
         .of(createHousekeepingMetadata("table1", "s3://some_foo", null, SCHEDULED),
             createHousekeepingMetadata("table2", "s3://some_bar", null, FAILED));
     tables.forEach(table -> metadataRepository.save(table));
@@ -194,7 +194,6 @@ public class PagingMetadataCleanupServiceTest {
             createHousekeepingMetadata("table2", "s3://some_bar", null, SCHEDULED));
     tables.forEach(table -> metadataRepository.save(table));
 
-
     pagingCleanupService.cleanUp(Instant.now());
 
     verify(metadataCleaner, times(2)).dropTable(metadataCaptor.capture());
@@ -225,14 +224,13 @@ public class PagingMetadataCleanupServiceTest {
             createHousekeepingMetadata("table2", "s3://some_bar", null, FAILED),
             createHousekeepingMetadata("table3", "s3://some_foobar", null, FAILED));
 
+    doThrow(new RuntimeException("Error")).when(metadataCleaner).dropTable(Mockito.any());
     for (int i = 0; i < 5; i++) {
       int finalI = i;
       tables.forEach(path -> {
         if (finalI == 0) {
           metadataRepository.save(path);
         }
-
-        doThrow(new RuntimeException("Error")).when(metadataCleaner).dropTable(Mockito.any());
       });
 
       pagingCleanupService.cleanUp(Instant.now());
@@ -281,5 +279,4 @@ public class PagingMetadataCleanupServiceTest {
     metadata.setCleanupTimestamp(localNow);
     return metadata;
   }
-
 }

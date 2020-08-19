@@ -16,8 +16,13 @@
 package com.expediagroup.beekeeper.metadata.cleanup.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.time.Instant;
@@ -28,70 +33,218 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.hive.HiveMetadataCleaner;
+import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class ExpiredMetadataHandlerTest {
 
-  private @Mock HousekeepingMetadataRepository metadataRepository;
-  private @Mock HiveMetadataCleaner hiveCleaner;
-  private @Mock S3PathCleaner s3Cleaner;
-  
-  private ExpiredMetadataHandler handler;
+  private @Mock HousekeepingMetadataRepository housekeepingMetadataRepository;
+  private @Mock HiveMetadataCleaner hiveMetadataCleaner;
+  private @Mock S3PathCleaner s3PathCleaner;
+  private @Mock HousekeepingMetadata housekeepingMetadata;
+
+  private static final LifecycleEventType lifecycleEventType = EXPIRED;
+  private static final String DATABASE = "database";
+  private static final String TABLE_NAME = "tableName";
+  private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
   private static final LocalDateTime CLEANUP_INSTANCE = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
+
+  private ExpiredMetadataHandler expiredMetadataHandler;
 
   @BeforeEach
   public void init() {
-    handler = new ExpiredMetadataHandler(metadataRepository, hiveCleaner, s3Cleaner);
+    expiredMetadataHandler = new ExpiredMetadataHandler(housekeepingMetadataRepository, hiveMetadataCleaner,
+        s3PathCleaner);
   }
 
   @Test
   public void verifyMetadataCleaner() {
-    assertThat(handler.getMetadataCleaner()).isInstanceOf(HiveMetadataCleaner.class);
+    assertThat(hiveMetadataCleaner).isInstanceOf(HiveMetadataCleaner.class);
   }
 
   @Test
   public void verifyPathCleaner() {
-    assertThat(handler.getPathCleaner()).isInstanceOf(S3PathCleaner.class);
+    assertThat(s3PathCleaner).isInstanceOf(S3PathCleaner.class);
   }
 
   @Test
   public void verifyLifecycle() {
-    assertThat(handler.getLifecycleType()).isEqualTo(EXPIRED);
+    assertThat(lifecycleEventType).isEqualTo(EXPIRED);
   }
 
   @Test
   public void verifyHousekeepingMetadataFetch() {
     LocalDateTime now = LocalDateTime.now();
     Pageable emptyPageable = PageRequest.of(0, 1);
-    handler.findRecordsToClean(now, emptyPageable);
-    verify(metadataRepository).findRecordsForCleanupByModifiedTimestamp(now, emptyPageable);
+    expiredMetadataHandler.findRecordsToClean(now, emptyPageable);
+    verify(housekeepingMetadataRepository).findRecordsForCleanupByModifiedTimestamp(now, emptyPageable);
   }
 
   @Test
-  public void verifyHousekeepingMetadataCountRecordFetch() {
-    LocalDateTime now = LocalDateTime.now();
-    Pageable emptyPageable = PageRequest.of(0, 1);
-    String databaseName = "database";
-    String tableName = "table_name";
-    handler.countPartitionsForDatabaseAndTable(CLEANUP_INSTANCE, databaseName, "table_name", false);
-    verify(metadataRepository).countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(databaseName, tableName);
+  public void typicalRunDroppingTable() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
+    when(
+        housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE,
+            TABLE_NAME))
+        .thenReturn(Long.valueOf(0));
+    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(hiveMetadataCleaner).dropTable(housekeepingMetadata);
+    verify(s3PathCleaner).cleanupPath(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata);
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
   }
 
   @Test
-  public void verifyHousekeepingMetadataDryRunCountRecordFetch() {
-    LocalDateTime now = LocalDateTime.now();
-    Pageable emptyPageable = PageRequest.of(0, 1);
-    String databaseName = "database";
-    String tableName = "table_name";
-    handler.countPartitionsForDatabaseAndTable(CLEANUP_INSTANCE, databaseName, "table_name", true);
-    verify(metadataRepository).countRecordsForDryRunWherePartitionIsNotNullOrExpired(CLEANUP_INSTANCE, databaseName, tableName);
+  public void typicalRunDroppingPartition() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
+    when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
+    when(hiveMetadataCleaner.dropPartition(Mockito.any())).thenReturn(true);
+    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(s3PathCleaner).cleanupPath(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
   }
 
+  @Test
+  public void tableWithExistingPartitionNotDeleted() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE,
+        TABLE_NAME))
+        .thenReturn(Long.valueOf(1));
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
+    verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata);
+    verify(housekeepingMetadata, never()).setCleanupAttempts(1);
+    verify(housekeepingMetadata, never()).setHousekeepingStatus(DELETED);
+    verify(housekeepingMetadataRepository, never()).save(housekeepingMetadata);
+  }
+
+  @Test
+  public void dontDropTableOrPathWhenTableDoesntExist() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
+    when(
+        housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE,
+            TABLE_NAME))
+        .thenReturn(Long.valueOf(0));
+    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(false);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
+    verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata);
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+  }
+
+  @Test
+  public void dontDropPartitionWhenTableDoesntExist() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
+    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(false);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata);
+    verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+  }
+
+  @Test
+  public void dontDropPathWhenPartitionDoesntExist() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
+    when(hiveMetadataCleaner.dropPartition(Mockito.any())).thenReturn(false);
+    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+  }
+
+  @Test
+  public void expectedTableDropFailure() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
+    when(
+        housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE,
+            TABLE_NAME))
+        .thenReturn(Long.valueOf(0));
+    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
+    doThrow(RuntimeException.class).when(hiveMetadataCleaner).dropTable(housekeepingMetadata);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadata).setHousekeepingStatus(FAILED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+  }
+
+  @Test
+  public void expectedPathDeleteFailure() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
+    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
+    doThrow(RuntimeException.class).when(s3PathCleaner).cleanupPath(housekeepingMetadata);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadata).setHousekeepingStatus(FAILED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+  }
+
+  @Test
+  public void expectedPartitionDropFailure() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
+    when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
+    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
+    doThrow(RuntimeException.class).when(hiveMetadataCleaner).dropPartition(housekeepingMetadata);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadata).setHousekeepingStatus(FAILED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+  }
 }
