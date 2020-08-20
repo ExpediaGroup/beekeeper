@@ -223,7 +223,7 @@ public class BeekeeperDryRunCleanupIntegrationTest extends BeekeeperIntegrationT
     MeterRegistry meterRegistry = BeekeeperPathCleanup.meterRegistry();
     List<Meter> meters = meterRegistry.getMeters();
     assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-        .contains("cleanup-job", "s3-paths-deleted", "s3-" + BytesDeletedReporter.DRY_RUN_METRIC_NAME);
+        .contains("path-cleanup-job", "s3-paths-deleted", "s3-" + BytesDeletedReporter.DRY_RUN_METRIC_NAME);
     return true;
   }
 

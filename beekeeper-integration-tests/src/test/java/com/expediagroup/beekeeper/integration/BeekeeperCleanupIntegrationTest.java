@@ -264,7 +264,7 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-          .contains("cleanup-job", "s3-paths-deleted", "s3-" + METRIC_NAME);
+          .contains("path-cleanup-job", "s3-paths-deleted", "s3-" + METRIC_NAME);
     });
   }
 
