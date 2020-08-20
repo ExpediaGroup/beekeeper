@@ -5,28 +5,28 @@
   <parent>
     <artifactId>beekeeper-package</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>2.1.0</version>
   </parent>
 
-  <artifactId>beekeeper-assembly-cleanup</artifactId>
+  <artifactId>beekeeper-assembly-path-scheduler-apiary</artifactId>
   <packaging>pom</packaging>
 
   <properties>
-    <docker.port>8008</docker.port>
+    <docker.port>8080</docker.port>
     <dockerfile-maven-plugin.version>1.4.10</dockerfile-maven-plugin.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>com.expediagroup</groupId>
-      <artifactId>beekeeper-cleanup</artifactId>
+      <artifactId>beekeeper-path-scheduler-apiary</artifactId>
       <version>${project.version}</version>
       <classifier>spring-boot</classifier>
     </dependency>
   </dependencies>
 
   <build>
-    <finalName>beekeeper-cleanup-${project.version}</finalName>
+    <finalName>beekeeper-path-scheduler-apiary-${project.version}</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -34,7 +34,7 @@
         <version>${maven.assembly.plugin.version}</version>
         <executions>
           <execution>
-            <id>make-zip-cleanup</id>
+            <id>make-zip-path-scheduler</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
@@ -42,7 +42,7 @@
             <configuration>
               <tarLongFileMode>posix</tarLongFileMode>
               <descriptors>
-                <descriptor>src/main/assembly/beekeeper-assembly-cleanup.xml</descriptor>
+                <descriptor>src/main/assembly/beekeeper-assembly-path-scheduler-apiary.xml</descriptor>
               </descriptors>
             </configuration>
           </execution>
@@ -54,7 +54,7 @@
         <version>${dockerfile-maven-plugin.version}</version>
         <executions>
           <execution>
-            <id>tag-cleanup</id>
+            <id>tag-path-scheduler-apiary</id>
             <phase>deploy</phase>
             <goals>
               <goal>build</goal>
@@ -67,7 +67,7 @@
         </executions>
         <configuration>
           <dockerfile>${dockerfile.path}</dockerfile>
-          <repository>${docker.registry}/beekeeper-cleanup</repository>
+          <repository>${docker.registry}/beekeeper-path-scheduler-apiary</repository>
           <buildArgs>
             <BEEKEEPER_VERSION>${project.version}</BEEKEEPER_VERSION>
             <PORT>${docker.port}</PORT>

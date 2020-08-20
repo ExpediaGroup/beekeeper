@@ -5,7 +5,7 @@
   <parent>
     <artifactId>beekeeper-package</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>2.1.0</version>
   </parent>
 
   <artifactId>beekeeper-assembly-cleanup</artifactId>

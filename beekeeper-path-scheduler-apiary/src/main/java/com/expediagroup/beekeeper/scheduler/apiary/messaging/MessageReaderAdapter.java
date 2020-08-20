@@ -54,7 +54,7 @@ public class MessageReaderAdapter implements BeekeeperEventReader {
 
     MessageEvent message = messageEvent.get();
 
-    log.info("Event read from queue. Type: " + message.getEvent().getEventType());
+    log.info("Event read from queue. Type: " + message.getEvent());
     log.info("Event read from queue. DBName: " + message.getEvent().getDbName());
     log.info("Event read from queue: TableName: " + message.getEvent().getTableName());
 
