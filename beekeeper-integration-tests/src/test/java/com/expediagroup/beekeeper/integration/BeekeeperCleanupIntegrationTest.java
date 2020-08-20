@@ -52,8 +52,8 @@ import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 
-import com.expediagroup.beekeeper.cleanup.BeekeeperCleanup;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
+import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
 
 @Testcontainers
 public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
@@ -114,14 +114,14 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
     amazonS3.listObjectsV2(BUCKET)
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
-    executorService.execute(() -> BeekeeperCleanup.main(new String[] {}));
+    executorService.execute(() -> BeekeeperPathCleanup.main(new String[] {}));
     await().atMost(Duration.ONE_MINUTE)
-        .until(BeekeeperCleanup::isRunning);
+        .until(BeekeeperPathCleanup::isRunning);
   }
 
   @AfterEach
   public void stop() throws InterruptedException {
-    BeekeeperCleanup.stop();
+    BeekeeperPathCleanup.stop();
     executorService.awaitTermination(5, TimeUnit.SECONDS);
   }
 
@@ -259,7 +259,7 @@ public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBas
   }
 
   private void assertMetrics() {
-    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperCleanup.meterRegistry()).getRegistries();
+    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperPathCleanup.meterRegistry()).getRegistries();
     assertThat(meterRegistry).hasSize(2);
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();

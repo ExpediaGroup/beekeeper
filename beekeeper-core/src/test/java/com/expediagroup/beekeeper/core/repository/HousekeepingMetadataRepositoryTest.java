@@ -227,7 +227,7 @@ public class HousekeepingMetadataRepositoryTest {
 
   @Test
   public void findRecordForCleanupByDatabaseAndTableForNullCase() {
-    HousekeepingMetadata table = createEntityHousekeepingTable();
+    HousekeepingMetadata table = createUnpartitionedEntityHousekeepingTable();
     table.setPartitionName(null);
     housekeepingMetadataRepository.save(table);
 
