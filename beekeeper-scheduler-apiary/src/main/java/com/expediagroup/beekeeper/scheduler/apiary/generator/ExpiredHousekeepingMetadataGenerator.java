@@ -48,7 +48,7 @@ import com.expediagroup.beekeeper.scheduler.apiary.generator.utils.CleanupDelayE
 
 public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityGenerator {
 
-  private static final Logger log = LoggerFactory.getLogger(UnreferencedHousekeepingPathGenerator.class);
+  private static final Logger log = LoggerFactory.getLogger(ExpiredHousekeepingMetadataGenerator.class);
 
   public static final String EXPIRED_DATA_RETENTION_PERIOD_PROPERTY_KEY = "beekeeper.expired.data.retention.period";
   private static final LifecycleEventType LIFECYCLE_EVENT_TYPE = EXPIRED;
