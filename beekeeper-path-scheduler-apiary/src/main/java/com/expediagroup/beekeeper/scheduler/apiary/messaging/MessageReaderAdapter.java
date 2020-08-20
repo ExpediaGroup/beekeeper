@@ -48,17 +48,24 @@ public class MessageReaderAdapter implements BeekeeperEventReader {
     Optional<MessageEvent> messageEvent = delegate.read();
 
     if (messageEvent.isEmpty()) {
+      log.info("MessageEvent is empty");
       return Optional.empty();
     }
 
     MessageEvent message = messageEvent.get();
 
-    List<HousekeepingPath> housekeepingPaths = handlers.parallelStream()
+    log.info("Event read from queue. Type: " + message.getEvent().getEventType());
+    log.info("Event read from queue. DBName: " + message.getEvent().getDbName());
+    log.info("Event read from queue: TableName: " + message.getEvent().getTableName());
+
+    List<HousekeepingPath> housekeepingPaths = handlers
+        .parallelStream()
         .map(eventHandler -> eventHandler.handleMessage(message))
         .flatMap(paths -> paths.stream())
         .collect(Collectors.toList());
 
     if (housekeepingPaths.size() <= 0) {
+      log.info("No housekeeping paths could be generated.");
       delete(new BeekeeperEvent(Collections.emptyList(), message));
       return Optional.empty();
     }
@@ -70,7 +77,7 @@ public class MessageReaderAdapter implements BeekeeperEventReader {
   public void delete(BeekeeperEvent beekeeperEvent) {
     try {
       delegate.delete(beekeeperEvent.getMessageEvent());
-      log.debug("Message deleted successfully");
+      log.info("Message deleted successfully");
     } catch (Exception e) {
       log.error("Could not delete message from queue: ", e);
     }

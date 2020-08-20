@@ -22,6 +22,8 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,14 +38,14 @@ import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 @Component
 public class PathSchedulerApiary {
 
+  private static final Logger log = LoggerFactory.getLogger(PathSchedulerApiary.class);
   private final BeekeeperEventReader beekeeperEventReader;
   private final EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap;
 
   @Autowired
   public PathSchedulerApiary(
       BeekeeperEventReader beekeeperEventReader,
-      EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap
-  ) {
+      EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap) {
     this.beekeeperEventReader = beekeeperEventReader;
     this.schedulerServiceMap = schedulerServiceMap;
   }
@@ -51,20 +53,25 @@ public class PathSchedulerApiary {
   @Transactional
   public void scheduleBeekeeperEvent() {
     Optional<BeekeeperEvent> pathToBeScheduled = beekeeperEventReader.read();
-    if (pathToBeScheduled.isEmpty()) { return; }
+    if (pathToBeScheduled.isEmpty()) {
+      log.info("Nothing to schedule.");
+      return;
+    }
     BeekeeperEvent beekeeperEvent = pathToBeScheduled.get();
+
+    log.info("Housekeeping event created. Paths are: ");
     List<HousekeepingPath> paths = beekeeperEvent.getHousekeepingPaths();
 
     for (HousekeepingPath path : paths) {
       try {
         LifecycleEventType pathEventType = LifecycleEventType.valueOf(path.getLifecycleType());
         SchedulerService scheduler = schedulerServiceMap.get(pathEventType);
+        log.info("Path to be scheduled: " + path.getPath());
         scheduler.scheduleForHousekeeping(path);
       } catch (Exception e) {
-        throw new BeekeeperException(format(
-            "Unable to schedule path '%s' for deletion, this message will go back on the queue",
-            path.getPath()), e
-        );
+        throw new BeekeeperException(
+            format("Unable to schedule path '%s' for deletion, this message will go back on the queue", path.getPath()),
+            e);
       }
     }
 
