@@ -12,7 +12,7 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>beekeeper-assembly-cleanup</module>
+    <module>beekeeper-assembly-path-cleanup</module>
     <module>beekeeper-assembly-scheduler-apiary</module>
     <module>beekeeper-assembly-metadata-cleanup</module>
   </modules>

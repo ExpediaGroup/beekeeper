@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import java.time.Instant;
 public interface CleanupService {
 
   /**
-   * Deletes all paths from the file system which are older than {@code referenceTime}.
+   * Deletes all paths and tables which are older than {@code referenceTime}.
    *
-   * @param referenceTime Path deletion reference time.
+   * @param referenceTime Deletion reference time.
    */
   void cleanUp(Instant referenceTime);
 

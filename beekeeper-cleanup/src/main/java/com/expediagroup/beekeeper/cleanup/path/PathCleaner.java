@@ -15,9 +15,10 @@
  */
 package com.expediagroup.beekeeper.cleanup.path;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 
 public interface PathCleaner {
 
-  void cleanupPath(HousekeepingPath housekeepingPath);
+  void cleanupPath(HousekeepingEntity housekeepingEntity);
+
 }
