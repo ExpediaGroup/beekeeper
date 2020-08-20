@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -12,55 +13,16 @@
 
   <properties>
     <aws.version>1.11.532</aws.version>
-    <s3mock.version>0.2.5</s3mock.version>
+    <hive.version>2.3.7</hive.version>
+    <hcommon-hive-metastore.version>1.4.2</hcommon-hive-metastore.version>
   </properties>
 
   <dependencies>
+
     <dependency>
       <groupId>com.expediagroup</groupId>
       <artifactId>beekeeper-core</artifactId>
       <version>${project.version}</version>
-      <exclusions>
-        <!-- if this is on classpath then not-null checks in objects persisted via JPA are ignored -->      
-        <exclusion>
-          <groupId>org.hibernate.validator</groupId>
-          <artifactId>hibernate-validator</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-s3</artifactId>
-      <version>${aws.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-actuator</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-autoconfigure</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
       <exclusions>
         <!-- if this is on classpath then not-null checks in objects persisted via JPA are ignored -->
         <exclusion>
@@ -69,25 +31,44 @@
         </exclusion>
       </exclusions>
     </dependency>
+
+    <!-- Hive -->
     <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
-      <version>${snakeyaml.version}</version>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-metastore</artifactId>
+      <version>${hive.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hbase</groupId>
+          <artifactId>hbase-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>log4j-slf4j-impl</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>27.1-jre</version>
+      <groupId>com.hotels</groupId>
+      <artifactId>hcommon-hive-metastore</artifactId>
+      <version>${hcommon-hive-metastore.version}</version>
     </dependency>
 
+    <!-- aws -->
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-s3</artifactId>
+      <version>${aws.version}</version>
+    </dependency>
+
+    <!-- test -->
     <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -106,27 +87,11 @@
       <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>${springframework.boot.version}</version>
-        <configuration>
-          <classifier>spring-boot</classifier>
-          <mainClass>com.expediagroup.beekeeper.cleanup.BeekeeperCleanup</mainClass>
-          <executable>true</executable>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>

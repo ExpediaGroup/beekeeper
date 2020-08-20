@@ -53,10 +53,8 @@ public class BytesDeletedReporterTest {
   private static final String TABLE = "database.table";
   private static final long BYTES_DELETED = 10;
 
-  @Autowired
-  private MeterRegistry meterRegistry;
-  @Mock
-  private Taggable taggable;
+  private @Autowired MeterRegistry meterRegistry;
+  private @Mock Taggable taggable;
   private BytesDeletedReporter bytesDeletedReporter;
 
   @BeforeEach

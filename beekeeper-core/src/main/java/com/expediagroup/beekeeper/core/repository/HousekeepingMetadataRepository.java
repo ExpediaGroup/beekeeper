@@ -31,7 +31,8 @@ public interface HousekeepingMetadataRepository extends JpaRepository<Housekeepi
   @Query(value = "from HousekeepingMetadata t where t.cleanupTimestamp <= :instant "
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED') "
       + "and t.modifiedTimestamp <= :instant order by t.modifiedTimestamp")
-  Page<HousekeepingMetadata> findRecordsForCleanupByModifiedTimestamp(@Param("instant") LocalDateTime instant,
+  Page<HousekeepingMetadata> findRecordsForCleanupByModifiedTimestamp(
+      @Param("instant") LocalDateTime instant,
       Pageable pageable);
 
   @Query(value = "from HousekeepingMetadata t "
@@ -41,4 +42,38 @@ public interface HousekeepingMetadataRepository extends JpaRepository<Housekeepi
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   Optional<HousekeepingMetadata> findRecordForCleanupByDatabaseAndTable(@Param("databaseName") String databaseName,
       @Param("tableName") String tableName, @Param("partitionName") String partitionName);
+
+  /**
+   * This method returns the count of all records for a database and table name pair where the partitionName is not null.
+   *
+   * @param databaseName
+   * @param tableName
+   * @return A count of the number of partitions on this table.
+   */
+  @Query(value = "select count(partitionName) from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  Long countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName);
+
+  /**
+   * This method is used for dry runs since the entries are not being updated. It counts the number of partitions on a
+   * table which have not yet expired, i.e. they will not be cleaned up in this instant.
+   *
+   * @param instant
+   * @param databaseName
+   * @param tableName
+   * @return A count of the number of existing partitions on this table
+   */
+  @Query(value = "select count(partitionName) from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED') "
+      + "and t.cleanupTimestamp >= :instant")
+  Long countRecordsForDryRunWherePartitionIsNotNullOrExpired(
+      @Param("instant") LocalDateTime instant,
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName);
 }
