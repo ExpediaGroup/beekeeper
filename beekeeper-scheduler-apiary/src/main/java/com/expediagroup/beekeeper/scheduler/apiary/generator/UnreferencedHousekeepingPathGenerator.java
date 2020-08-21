@@ -46,8 +46,10 @@ import com.expediagroup.beekeeper.scheduler.apiary.generator.utils.CleanupDelayE
 public class UnreferencedHousekeepingPathGenerator implements HousekeepingEntityGenerator {
 
   private static final Logger log = LoggerFactory.getLogger(UnreferencedHousekeepingPathGenerator.class);
+
+  public static final String UNREFERENCED_DATA_RETENTION_PERIOD_PROPERTY_KEY = "beekeeper.unreferenced.data.retention.period";
   private static final LifecycleEventType LIFECYCLE_EVENT_TYPE = UNREFERENCED;
-  private static final String UNREFERENCED_DATA_RETENTION_PERIOD_PROPERTY_KEY = "beekeeper.unreferenced.data.retention.period";
+
   private final CleanupDelayExtractor cleanupDelayExtractor;
   private final Clock clock;
 

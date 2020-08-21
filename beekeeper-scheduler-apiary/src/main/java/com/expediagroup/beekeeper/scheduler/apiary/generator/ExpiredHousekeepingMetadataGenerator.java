@@ -28,6 +28,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 
@@ -45,8 +48,10 @@ import com.expediagroup.beekeeper.scheduler.apiary.generator.utils.CleanupDelayE
 
 public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityGenerator {
 
+  private static final Logger log = LoggerFactory.getLogger(ExpiredHousekeepingMetadataGenerator.class);
+
+  public static final String EXPIRED_DATA_RETENTION_PERIOD_PROPERTY_KEY = "beekeeper.expired.data.retention.period";
   private static final LifecycleEventType LIFECYCLE_EVENT_TYPE = EXPIRED;
-  private static final String EXPIRED_DATA_RETENTION_PERIOD_PROPERTY_KEY = "beekeeper.expired.data.retention.period";
 
   private final CleanupDelayExtractor cleanupDelayExtractor;
   private final Clock clock;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (C) 2019 Expedia, Inc.
+  Copyright (C) 2019-2020 Expedia, Inc.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -23,12 +23,13 @@
   </appender>
 
   <logger name="com.expediagroup.beekeeper" level="DEBUG"/>
+  <logger name="org.testcontainers" level="INFO"/>
 
   <root level="INFO">
     <appender-ref ref="STDOUT"/>
   </root>
 
-  <appender name="TEST" class="com.expediagroup.beekeeper.integration.TestAppender" />
+  <appender name="TEST" class="com.expediagroup.beekeeper.integration.utils.TestAppender"/>
   <root level="ERROR">
     <appender-ref ref="TEST"/>
   </root>

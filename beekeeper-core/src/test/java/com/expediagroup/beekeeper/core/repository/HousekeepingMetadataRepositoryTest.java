@@ -218,8 +218,21 @@ public class HousekeepingMetadataRepositoryTest {
     HousekeepingMetadata table = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(table);
 
-    Optional<HousekeepingMetadata> result = housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(
+    Optional<HousekeepingMetadata> result = housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(
         DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
+
+    assertTrue(result.isPresent());
+    compare(result.get(), table);
+  }
+
+  @Test
+  public void findRecordForCleanupByDatabaseAndTableForNullCase() {
+    HousekeepingMetadata table = createUnpartitionedEntityHousekeepingTable();
+    table.setPartitionName(null);
+    housekeepingMetadataRepository.save(table);
+
+    Optional<HousekeepingMetadata> result = housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(
+        DATABASE_NAME, TABLE_NAME, null);
 
     assertTrue(result.isPresent());
     compare(result.get(), table);
@@ -231,7 +244,7 @@ public class HousekeepingMetadataRepositoryTest {
     table.setHousekeepingStatus(DELETED);
     housekeepingMetadataRepository.save(table);
 
-    Optional<HousekeepingMetadata> result = housekeepingMetadataRepository.findRecordForCleanupByDatabaseAndTable(
+    Optional<HousekeepingMetadata> result = housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(
         DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
 
     assertTrue(result.isEmpty());
@@ -247,7 +260,7 @@ public class HousekeepingMetadataRepositoryTest {
     housekeepingMetadataRepository.save(housekeepingTable2);
 
     Optional<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordForCleanupByDatabaseAndTable(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
+        .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
 
     assertTrue(result.isPresent());
     compare(result.get(), housekeepingTable1);

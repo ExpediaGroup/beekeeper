@@ -15,32 +15,19 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
+import static com.expedia.apiary.extensions.receiver.common.event.EventType.CREATE_TABLE;
+
 import java.io.IOException;
-import java.net.URL;
+import java.net.URISyntaxException;
 
-import com.expedia.apiary.extensions.receiver.common.event.EventType;
-
-public class CreateTableSqsMessage extends SqsMessageFile {
-
-  private static final URL CREATE_TABLE_FILE = SqsMessageFile.class.getResource("/create_table.json");
-
-  CreateTableSqsMessage() throws IOException {
-    setMessageFromFile(CREATE_TABLE_FILE);
-  }
+public class CreateTableSqsMessage extends SqsMessage {
 
   public CreateTableSqsMessage(
       String tableLocation,
-      Boolean isUnreferenced,
-      Boolean isWhitelisted
-  ) throws IOException {
-    setMessageFromFile(CREATE_TABLE_FILE);
+      boolean isExpired
+  ) throws IOException, URISyntaxException {
+    super(CREATE_TABLE);
     setTableLocation(tableLocation);
-    setUnreferenced(isUnreferenced);
-    setWhitelisted(EventType.CREATE_TABLE, isWhitelisted);
-  }
-
-  @Override
-  public String getFormattedString() {
-    return String.format(message, tableLocation, isUnreferenced, isWhitelisted);
+    setExpired(isExpired);
   }
 }

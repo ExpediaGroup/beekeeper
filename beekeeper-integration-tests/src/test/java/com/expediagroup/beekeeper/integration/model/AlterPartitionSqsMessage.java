@@ -15,40 +15,66 @@
  */
 package com.expediagroup.beekeeper.integration.model;
 
+import static com.expedia.apiary.extensions.receiver.common.event.EventType.ALTER_PARTITION;
+
 import java.io.IOException;
-import java.net.URL;
+import java.net.URISyntaxException;
 
-import com.expedia.apiary.extensions.receiver.common.event.EventType;
+import com.google.gson.JsonPrimitive;
 
-public class AlterPartitionSqsMessage extends SqsMessageFile {
-
-  private static final URL ALTER_PARTITION_FILE = SqsMessageFile.class.getResource("/alter_partition.json");
-
-  AlterPartitionSqsMessage() throws IOException {
-    setMessageFromFile(ALTER_PARTITION_FILE);
-  }
+public class AlterPartitionSqsMessage extends SqsMessage {
 
   public AlterPartitionSqsMessage(
       String tableLocation,
       String partitionLocation,
       String oldPartitionLocation,
-      Boolean isUnreferenced,
-      Boolean isWhitelisted
-  ) throws IOException {
-    setMessageFromFile(ALTER_PARTITION_FILE);
+      boolean isUnreferenced,
+      boolean isWhitelisted
+  ) throws IOException, URISyntaxException {
+    super(ALTER_PARTITION);
     setTableLocation(tableLocation);
     setPartitionLocation(partitionLocation);
     setOldPartitionLocation(oldPartitionLocation);
+    setPartitionKeys(DUMMY_PARTITION_KEYS);
+    setPartitionValues(DUMMY_PARTITION_VALUES);
+    setOldPartitionValues(DUMMY_PARTITION_VALUES);
     setUnreferenced(isUnreferenced);
-    setWhitelisted(EventType.ALTER_PARTITION, isWhitelisted);
+    setWhitelisted(isWhitelisted);
   }
 
-  @Override
-  public String getFormattedString() {
-    return String.format(message,
-        tableLocation,
-        partitionLocation,
-        oldPartitionLocation,
-        isUnreferenced, isWhitelisted);
+  public AlterPartitionSqsMessage(
+      String partitionLocation,
+      String partitionKeys,
+      String partitionValues,
+      boolean isExpired
+  ) throws IOException, URISyntaxException {
+    super(ALTER_PARTITION);
+    setTableLocation(DUMMY_LOCATION);
+    setPartitionLocation(partitionLocation);
+    setOldPartitionLocation(DUMMY_LOCATION);
+    setPartitionKeys(partitionKeys);
+    setPartitionValues(partitionValues);
+    setOldPartitionValues(DUMMY_PARTITION_VALUES);
+    setExpired(isExpired);
+  }
+
+  public void setPartitionLocation(String partitionLocation) {
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_PARTITION_LOCATION_KEY, new JsonPrimitive(partitionLocation));
+  }
+
+  public void setOldPartitionLocation(String oldPartitionLocation) {
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_OLD_PARTITION_LOCATION_KEY, new JsonPrimitive(oldPartitionLocation));
+  }
+
+  public void setPartitionKeys(String partitionKeys) {
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_PARTITION_KEYS_KEY, PARSER.parse(partitionKeys).getAsJsonObject());
+  }
+
+  public void setPartitionValues(String partitionValues) {
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_PARTITION_VALUES_KEY, PARSER.parse(partitionValues).getAsJsonArray());
+  }
+
+  public void setOldPartitionValues(String oldPartitionValues) {
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_OLD_PARTITION_VALUES_KEY, PARSER.parse(oldPartitionValues).getAsJsonArray());
   }
 }
