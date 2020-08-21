@@ -59,6 +59,13 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   private static final String S3_ACCESS_KEY = "access";
   private static final String S3_SECRET_KEY = "secret";
 
+  private static final String SPRING_PROFILES_ACTIVE_PROPERTY = "spring.profiles.active";
+  private static final String SCHEDULER_DELAY_MS_PROPERTY = "properties.scheduler-delay-ms";
+  private static final String DRY_RUN_ENABLED_PROPERTY = "properties.dry-run-enabled";
+  private static final String AWS_S3_ENDPOINT_PROPERTY = "aws.s3.endpoint";
+  private static final String AWS_DISABLE_GET_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disableGetObjectMD5Validation";
+  private static final String AWS_DISABLE_PUT_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disablePutObjectMD5Validation";
+
   private static final String BUCKET = "test-path-bucket";
   private static final String TABLE_DATA = "1\tadam\tlondon\n2\tsusan\tglasgow\n";
   private static final String PARTITIONED_TABLE_NAME = TABLE_NAME_VALUE + "_partitioned";
@@ -118,12 +125,12 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
   @BeforeAll
   public static void init() {
-    System.setProperty("spring.profiles.active", "test");
-    System.setProperty("properties.scheduler-delay-ms", SCHEDULER_DELAY_MS);
-    System.setProperty("properties.dry-run-enabled", "true");
-    System.setProperty("aws.s3.endpoint", S3_ENDPOINT);
-    System.setProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation", "true");
-    System.setProperty("com.amazonaws.services.s3.disablePutObjectMD5Validation", "true");
+    System.setProperty(SPRING_PROFILES_ACTIVE_PROPERTY, "test");
+    System.setProperty(SCHEDULER_DELAY_MS_PROPERTY, SCHEDULER_DELAY_MS);
+    System.setProperty(DRY_RUN_ENABLED_PROPERTY, "false");
+    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, S3_ENDPOINT);
+    System.setProperty(AWS_DISABLE_GET_VALIDATION_PROPERTY, "true");
+    System.setProperty(AWS_DISABLE_PUT_VALIDATION_PROPERTY, "true");
 
     amazonS3 = ContainerTestUtils.s3Client(S3_CONTAINER, AWS_REGION);
     amazonS3.createBucket(new CreateBucketRequest(BUCKET, AWS_REGION));
@@ -134,12 +141,12 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
     amazonS3.shutdown();
     S3_CONTAINER.stop();
 
-    System.clearProperty("spring.profiles.active");
-    System.clearProperty("properties.scheduler-delay-ms");
-    System.clearProperty("properties.dry-run-enabled");
-    System.clearProperty("aws.s3.endpoint");
-    System.clearProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation");
-    System.clearProperty("com.amazonaws.services.s3.disablePutObjectMD5Validation");
+    System.clearProperty(SPRING_PROFILES_ACTIVE_PROPERTY);
+    System.clearProperty(SCHEDULER_DELAY_MS_PROPERTY);
+    System.clearProperty(DRY_RUN_ENABLED_PROPERTY);
+    System.clearProperty(AWS_S3_ENDPOINT_PROPERTY);
+    System.clearProperty(AWS_DISABLE_GET_VALIDATION_PROPERTY);
+    System.clearProperty(AWS_DISABLE_PUT_VALIDATION_PROPERTY);
   }
 
   @BeforeEach
@@ -168,14 +175,12 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   public void dryRunDropUnpartitionedTable() throws TException, SQLException {
     hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
-
     insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
 
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLine(UNPARTITIONED_TABLE_OBJECT_KEY));
 
     assertHiveClientLogs(1);
     assertS3ClientLogs(1);
-
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
     assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY)).isTrue();
   }
@@ -184,10 +189,8 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   public void dryRunDropPartitionedTable() throws Exception {
     Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
     hiveTestUtils.addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, table, PARTITION_VALUES, TABLE_DATA);
-
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
     amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
-
     insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
     insertExpiredMetadata(PARTITION_PATH, PARTITION_NAME);
 
@@ -231,7 +234,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
   @Test
   public void dryRunMetrics() throws SQLException, TException {
-    Table table = hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY, "");
 
     insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);

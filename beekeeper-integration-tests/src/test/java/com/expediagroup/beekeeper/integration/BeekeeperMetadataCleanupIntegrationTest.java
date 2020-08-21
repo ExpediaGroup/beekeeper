@@ -76,8 +76,15 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   private static final int TIMEOUT = 30;
   private static final String SCHEDULER_DELAY_MS = "5000";
-  private static final String HEALTHCHECK_URI = "http://localhost:8008/actuator/health";
-  private static final String PROMETHEUS_URI = "http://localhost:8008/actuator/prometheus";
+  private static final String HEALTHCHECK_URI = "http://localhost:9008/actuator/health";
+  private static final String PROMETHEUS_URI = "http://localhost:9008/actuator/prometheus";
+
+  private static final String SPRING_PROFILES_ACTIVE_PROPERTY = "spring.profiles.active";
+  private static final String SCHEDULER_DELAY_MS_PROPERTY = "properties.scheduler-delay-ms";
+  private static final String DRY_RUN_ENABLED_PROPERTY = "properties.dry-run-enabled";
+  private static final String AWS_S3_ENDPOINT_PROPERTY = "aws.s3.endpoint";
+  private static final String AWS_DISABLE_GET_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disableGetObjectMD5Validation";
+  private static final String AWS_DISABLE_PUT_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disablePutObjectMD5Validation";
 
   private static final String S3_ACCESS_KEY = "access";
   private static final String S3_SECRET_KEY = "secret";
@@ -137,12 +144,12 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @BeforeAll
   public static void init() {
-    System.setProperty("spring.profiles.active", "test");
-    System.setProperty("properties.scheduler-delay-ms", SCHEDULER_DELAY_MS);
-    System.setProperty("properties.dry-run-enabled", "false");
-    System.setProperty("aws.s3.endpoint", S3_ENDPOINT);
-    System.setProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation", "true");
-    System.setProperty("com.amazonaws.services.s3.disablePutObjectMD5Validation", "true");
+    System.setProperty(SPRING_PROFILES_ACTIVE_PROPERTY, "test");
+    System.setProperty(SCHEDULER_DELAY_MS_PROPERTY, SCHEDULER_DELAY_MS);
+    System.setProperty(DRY_RUN_ENABLED_PROPERTY, "false");
+    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, S3_ENDPOINT);
+    System.setProperty(AWS_DISABLE_GET_VALIDATION_PROPERTY, "true");
+    System.setProperty(AWS_DISABLE_PUT_VALIDATION_PROPERTY, "true");
 
     amazonS3 = ContainerTestUtils.s3Client(S3_CONTAINER, AWS_REGION);
     amazonS3.createBucket(new CreateBucketRequest(BUCKET, AWS_REGION));
@@ -153,12 +160,12 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     amazonS3.shutdown();
     S3_CONTAINER.stop();
 
-    System.clearProperty("spring.profiles.active");
-    System.clearProperty("properties.scheduler-delay-ms");
-    System.clearProperty("properties.dry-run-enabled");
-    System.clearProperty("aws.s3.endpoint");
-    System.clearProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation");
-    System.clearProperty("com.amazonaws.services.s3.disablePutObjectMD5Validation");
+    System.clearProperty(SPRING_PROFILES_ACTIVE_PROPERTY);
+    System.clearProperty(SCHEDULER_DELAY_MS_PROPERTY);
+    System.clearProperty(DRY_RUN_ENABLED_PROPERTY);
+    System.clearProperty(AWS_S3_ENDPOINT_PROPERTY);
+    System.clearProperty(AWS_DISABLE_GET_VALIDATION_PROPERTY);
+    System.clearProperty(AWS_DISABLE_PUT_VALIDATION_PROPERTY);
   }
 
   @BeforeEach
@@ -197,7 +204,6 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   @Test
   public void cleanupPartitionedTable() throws Exception {
     Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
-
     hiveTestUtils.addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, table, PARTITION_VALUES, TABLE_DATA);
 
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
@@ -319,22 +325,6 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   }
 
   @Test
-  public void healthCheck() {
-    CloseableHttpClient client = HttpClientBuilder.create().build();
-    HttpGet request = new HttpGet(HEALTHCHECK_URI);
-    await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
-  }
-
-  @Test
-  public void prometheus() {
-    CloseableHttpClient client = HttpClientBuilder.create().build();
-    HttpGet request = new HttpGet(PROMETHEUS_URI);
-    await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
-  }
-
-  @Test
   public void metrics() throws SQLException, TException {
     hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, "");
@@ -356,5 +346,21 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
           .contains("metadata-cleanup-job", "hive-table-deleted", "hive-table-" + METRIC_NAME);
     });
+  }
+
+  @Test
+  public void healthCheck() {
+    CloseableHttpClient client = HttpClientBuilder.create().build();
+    HttpGet request = new HttpGet(HEALTHCHECK_URI);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
+  }
+
+  @Test
+  public void prometheus() {
+    CloseableHttpClient client = HttpClientBuilder.create().build();
+    HttpGet request = new HttpGet(PROMETHEUS_URI);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 }
