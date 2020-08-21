@@ -54,7 +54,6 @@ public class PathSchedulerApiary {
   public void scheduleBeekeeperEvent() {
     Optional<BeekeeperEvent> pathToBeScheduled = beekeeperEventReader.read();
     if (pathToBeScheduled.isEmpty()) {
-      log.info("Nothing to schedule.");
       return;
     }
     BeekeeperEvent beekeeperEvent = pathToBeScheduled.get();
@@ -69,6 +68,7 @@ public class PathSchedulerApiary {
         log.info("Path to be scheduled: " + path.getPath());
         scheduler.scheduleForHousekeeping(path);
       } catch (Exception e) {
+        log.info("EXCEPTION thrown: ", e);
         throw new BeekeeperException(
             format("Unable to schedule path '%s' for deletion, this message will go back on the queue", path.getPath()),
             e);

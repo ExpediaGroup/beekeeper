@@ -49,28 +49,25 @@ public class UnreferencedMessageHandler extends MessageEventHandler {
   @Autowired
   public UnreferencedMessageHandler(
       @Value("${properties.apiary.cleanup-delay-property-key}") String hivePropertyKey,
-      @Value("${properties.beekeeper.default-cleanup-delay}") String cleanupDelay
-  ) {
+      @Value("${properties.beekeeper.default-cleanup-delay}") String cleanupDelay) {
     super(cleanupDelay, hivePropertyKey, LIFECYCLE_EVENT_TYPE);
-    filters = List.of(
-        new EventTypeListenerEventFilter(),
-        new MetadataOnlyListenerEventFilter(),
-        new TableParameterListenerEventFilter(),
-        new WhitelistedListenerEventFilter()
-    );
+    filters = List
+        .of(new EventTypeListenerEventFilter(), new MetadataOnlyListenerEventFilter(),
+            new TableParameterListenerEventFilter(), new WhitelistedListenerEventFilter());
   }
 
   public UnreferencedMessageHandler(
       @Value("${properties.apiary.cleanup-delay-property-key}") String hivePropertyKey,
       @Value("${properties.beekeeper.default-cleanup-delay}") String cleanupDelay,
-      List<ListenerEventFilter> filters
-  ) {
+      List<ListenerEventFilter> filters) {
     super(cleanupDelay, hivePropertyKey, LIFECYCLE_EVENT_TYPE);
     this.filters = filters;
   }
 
   @Override
-  protected List<ListenerEventFilter> getFilters() { return filters; }
+  protected List<ListenerEventFilter> getFilters() {
+    return filters;
+  }
 
   @Override
   protected List<EventModel> generateEventModels(ListenerEvent event) {
@@ -78,6 +75,7 @@ public class UnreferencedMessageHandler extends MessageEventHandler {
 
     switch (event.getEventType()) {
     case ALTER_PARTITION:
+      log.info("Found an ALTER_PARTITION event.");
       eventPaths.add(new EventModel(LIFECYCLE_EVENT_TYPE, ((AlterPartitionEvent) event).getOldPartitionLocation()));
       break;
     case ALTER_TABLE:
@@ -90,6 +88,8 @@ public class UnreferencedMessageHandler extends MessageEventHandler {
       eventPaths.add(new EventModel(LIFECYCLE_EVENT_TYPE, ((DropPartitionEvent) event).getPartitionLocation()));
       break;
     }
+
+    log.info("Event Paths size: " + eventPaths.size());
 
     return eventPaths;
   }

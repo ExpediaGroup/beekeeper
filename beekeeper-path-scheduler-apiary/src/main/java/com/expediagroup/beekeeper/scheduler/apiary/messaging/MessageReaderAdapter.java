@@ -48,7 +48,6 @@ public class MessageReaderAdapter implements BeekeeperEventReader {
     Optional<MessageEvent> messageEvent = delegate.read();
 
     if (messageEvent.isEmpty()) {
-      log.info("MessageEvent is empty");
       return Optional.empty();
     }
 

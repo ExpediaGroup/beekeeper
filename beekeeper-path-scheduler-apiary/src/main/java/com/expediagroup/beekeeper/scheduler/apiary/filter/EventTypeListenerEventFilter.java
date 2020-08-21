@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
@@ -27,13 +29,19 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 @Component
 public class EventTypeListenerEventFilter implements ListenerEventFilter {
+  private static final Logger log = LoggerFactory.getLogger(EventTypeListenerEventFilter.class);
 
   @Override
   public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     Class<? extends ListenerEvent> eventClass = listenerEvent.getEventType().eventClass();
-    return !(AlterPartitionEvent.class.equals(eventClass) ||
-        AlterTableEvent.class.equals(eventClass) ||
-        DropPartitionEvent.class.equals(eventClass) ||
-        DropTableEvent.class.equals(eventClass));
+
+    boolean returnValue = !(AlterPartitionEvent.class.equals(eventClass)
+        || AlterTableEvent.class.equals(eventClass)
+        || DropPartitionEvent.class.equals(eventClass)
+        || DropTableEvent.class.equals(eventClass));
+
+    log.info("EventTypeListenerEventFilter: " + returnValue);
+
+    return returnValue;
   }
 }

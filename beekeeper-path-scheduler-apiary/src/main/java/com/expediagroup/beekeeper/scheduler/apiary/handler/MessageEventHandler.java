@@ -43,11 +43,7 @@ public abstract class MessageEventHandler {
   private final String cleanupDelay;
   private final String hivePropertyKey;
 
-  MessageEventHandler(
-      String cleanupDelay,
-      String hivePropertyKey,
-      LifecycleEventType lifecycleEventType
-  ) {
+  MessageEventHandler(String cleanupDelay, String hivePropertyKey, LifecycleEventType lifecycleEventType) {
     this.cleanupDelay = cleanupDelay;
     this.hivePropertyKey = hivePropertyKey;
     this.lifecycleEventType = lifecycleEventType;
@@ -68,8 +64,7 @@ public abstract class MessageEventHandler {
   protected abstract List<ListenerEventFilter> getFilters();
 
   private boolean shouldFilterMessage(ListenerEvent listenerEvent) {
-    return getFilters().stream()
-        .anyMatch(filter -> filter.filter(listenerEvent, lifecycleEventType));
+    return getFilters().stream().anyMatch(filter -> filter.filter(listenerEvent, lifecycleEventType));
   }
 
   /**
@@ -79,16 +74,23 @@ public abstract class MessageEventHandler {
    * @return list of housekeeping paths. This can be an empty list if there are no valid paths.
    */
   private List<HousekeepingPath> generateHouseKeepingPaths(ListenerEvent listenerEvent) {
-    return generateEventModels(listenerEvent).stream()
+    return generateEventModels(listenerEvent)
+        .stream()
         .map(event -> generatePath(event, listenerEvent))
         .collect(Collectors.toList());
   }
 
-  private final String getHivePropertyKey() { return hivePropertyKey; }
+  private final String getHivePropertyKey() {
+    return hivePropertyKey;
+  }
 
-  private final String getCleanupDelay() { return cleanupDelay; }
+  private final String getCleanupDelay() {
+    return cleanupDelay;
+  }
 
-  private final LifecycleEventType getLifecycleEventType() { return lifecycleEventType; }
+  private final LifecycleEventType getLifecycleEventType() {
+    return lifecycleEventType;
+  }
 
   /**
    * Generates a path to clean up via EntityHousekeepingPath.Builder
@@ -112,8 +114,8 @@ public abstract class MessageEventHandler {
   }
 
   /**
-   * Extracts the cleanup delay from the given event.
-   * If the cleanupDelay on the event cannot be parsed, use the predefined default value.
+   * Extracts the cleanup delay from the given event. If the cleanupDelay on the event cannot be parsed, use the
+   * predefined default value.
    *
    * @param listenerEvent Current event from Apiary
    * @return Duration Parsed Duration object from the event or the default value.
@@ -126,8 +128,9 @@ public abstract class MessageEventHandler {
     try {
       return Duration.parse(tableCleanupDelay);
     } catch (DateTimeParseException e) {
-      log.error("Text '{}' cannot be parsed to a Duration for table '{}.{}'. Using default setting.",
-          tableCleanupDelay, listenerEvent.getDbName(), listenerEvent.getTableName());
+      log
+          .error("Text '{}' cannot be parsed to a Duration for table '{}.{}'. Using default setting.",
+              tableCleanupDelay, listenerEvent.getDbName(), listenerEvent.getTableName());
       return Duration.parse(defaultValue);
     }
   }

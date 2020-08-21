@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
@@ -26,6 +28,7 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 @Component
 public class MetadataOnlyListenerEventFilter implements ListenerEventFilter {
+  private static final Logger log = LoggerFactory.getLogger(MetadataOnlyListenerEventFilter.class);
 
   @Override
   public boolean filter(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
@@ -44,6 +47,7 @@ public class MetadataOnlyListenerEventFilter implements ListenerEventFilter {
   }
 
   private boolean isMetadataUpdate(String oldLocation, String location) {
+
     return location == null || oldLocation == null || oldLocation.equals(location);
   }
 }
