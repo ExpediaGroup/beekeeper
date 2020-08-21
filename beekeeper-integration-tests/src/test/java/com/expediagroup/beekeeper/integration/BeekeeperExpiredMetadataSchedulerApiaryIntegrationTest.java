@@ -23,10 +23,10 @@ import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_ATTEMPTS_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLIENT_ID_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CREATION_TIMESTAMP_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
-import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
 import java.io.IOException;
@@ -69,6 +69,8 @@ import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperSchedulerApiary;
 public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 5;
+  private static final String APIARY_QUEUE_URL_PROPERTY = "properties.apiary.queue-url";
+
   private static final String QUEUE = "apiary-receiver-queue";
   private static final String SCHEDULED_EXPIRED_METRIC = "metadata-scheduled";
   private static final String HEALTHCHECK_URI = "http://localhost:8080/actuator/health";
@@ -89,7 +91,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   @BeforeAll
   public static void init() {
     String queueUrl = ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE);
-    System.setProperty("properties.apiary.queue-url", queueUrl);
+    System.setProperty(APIARY_QUEUE_URL_PROPERTY, queueUrl);
 
     amazonSQS = ContainerTestUtils.sqsClient(SQS_CONTAINER, AWS_REGION);
     amazonSQS.createQueue(QUEUE);
@@ -97,6 +99,8 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
 
   @AfterAll
   public static void teardown() {
+    System.clearProperty(APIARY_QUEUE_URL_PROPERTY);
+
     amazonSQS.shutdown();
   }
 
@@ -233,7 +237,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     assertThat(actual.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
     assertThat(actual.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
     assertThat(actual.getCleanupTimestamp()).isEqualTo(actual.getCreationTimestamp().plus(actual.getCleanupDelay()));
-    assertThat(actual.getCleanupDelay()).isEqualTo(java.time.Duration.parse(SHORT_CLEANUP_DELAY_VALUE));
+    assertThat(actual.getCleanupDelay()).isEqualTo(java.time.Duration.parse(CLEANUP_DELAY_VALUE));
     assertThat(actual.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS_VALUE);
     assertThat(actual.getClientId()).isEqualTo(CLIENT_ID_VALUE);
     assertThat(actual.getLifecycleType()).isEqualTo(EXPIRED.toString());

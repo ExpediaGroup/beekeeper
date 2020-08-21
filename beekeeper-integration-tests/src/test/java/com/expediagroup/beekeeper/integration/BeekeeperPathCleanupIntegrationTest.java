@@ -56,9 +56,13 @@ import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
 
 @Testcontainers
-public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
+public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 30;
+  private static final String SPRING_PROFILES_ACTIVE_PROPERTY = "spring.profiles.active";
+  private static final String SCHEDULER_DELAY_MS_PROPERTY = "properties.scheduler-delay-ms";
+  private static final String DRY_RUN_ENABLED_PROPERTY = "properties.dry-run-enabled";
+  private static final String AWS_S3_ENDPOINT_PROPERTY = "aws.s3.endpoint";
 
   private static final String BUCKET = "test-path-bucket";
   private static final String DB_AND_TABLE_PREFIX = DATABASE_NAME_VALUE + "/" + TABLE_NAME_VALUE;
@@ -71,7 +75,9 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   private static final String OBJECT_KEY_OTHER = DB_AND_TABLE_PREFIX + "/id1/partition10/file1";
   private static final String OBJECT_KEY_OTHER_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition10_$folder$";
 
+  private static final String SPRING_PROFILES_ACTIVE = "test";
   private static final String SCHEDULER_DELAY_MS = "5000";
+  private static final String DRY_RUN_ENABLED = "false";
   private static final String CONTENT = "Content";
   private static final String HEALTHCHECK_URI = "http://localhost:8008/actuator/health";
   private static final String PROMETHEUS_URI = "http://localhost:8008/actuator/prometheus";
@@ -84,10 +90,10 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
 
   @BeforeAll
   public static void init() {
-    System.setProperty("spring.profiles.active", "test");
-    System.setProperty("properties.scheduler-delay-ms", SCHEDULER_DELAY_MS);
-    System.setProperty("properties.dry-run-enabled", "false");
-    System.setProperty("aws.s3.endpoint", ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3));
+    System.setProperty(SPRING_PROFILES_ACTIVE_PROPERTY, SPRING_PROFILES_ACTIVE);
+    System.setProperty(SCHEDULER_DELAY_MS_PROPERTY, SCHEDULER_DELAY_MS);
+    System.setProperty(DRY_RUN_ENABLED_PROPERTY, DRY_RUN_ENABLED);
+    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3));
 
     amazonS3 = ContainerTestUtils.s3Client(S3_CONTAINER, AWS_REGION);
     amazonS3.createBucket(new CreateBucketRequest(BUCKET, AWS_REGION));
@@ -95,6 +101,11 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
 
   @AfterAll
   public static void teardown() {
+    System.clearProperty(SPRING_PROFILES_ACTIVE_PROPERTY);
+    System.clearProperty(SCHEDULER_DELAY_MS_PROPERTY);
+    System.clearProperty(DRY_RUN_ENABLED_PROPERTY);
+    System.clearProperty(AWS_S3_ENDPOINT_PROPERTY);
+
     amazonS3.shutdown();
   }
 
@@ -108,11 +119,11 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
         .until(BeekeeperPathCleanup::isRunning);
   }
 
-    @AfterEach
-    public void stop() throws InterruptedException {
-      BeekeeperPathCleanup.stop();
-      executorService.awaitTermination(5, TimeUnit.SECONDS);
-    }
+  @AfterEach
+  public void stop() throws InterruptedException {
+    BeekeeperPathCleanup.stop();
+    executorService.awaitTermination(5, TimeUnit.SECONDS);
+  }
 
   @Test
   public void cleanupPathsForFile() throws SQLException {
