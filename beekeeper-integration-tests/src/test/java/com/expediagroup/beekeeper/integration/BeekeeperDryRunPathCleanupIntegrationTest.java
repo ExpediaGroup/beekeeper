@@ -55,7 +55,7 @@ import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
 
 @Testcontainers
 @ExtendWith(MockitoExtension.class)
-public class BeekeeperDryRunCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
+public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 30;
   private static final String SPRING_PROFILES_ACTIVE_PROPERTY = "spring.profiles.active";

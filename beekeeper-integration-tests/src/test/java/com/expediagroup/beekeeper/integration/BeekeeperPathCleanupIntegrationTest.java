@@ -56,7 +56,7 @@ import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
 
 @Testcontainers
-public class BeekeeperCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
+public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 30;
   private static final String SPRING_PROFILES_ACTIVE_PROPERTY = "spring.profiles.active";
