@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add Time To Live (TTL) for all tables.
 - DB migration for creating new `housekeeping_metadata` table.
-- Integration test for tables with TTL.
 ### Changed
 - Renamed `beekeeper-path-scheduler-apiary` module to `beekeeper-scheduler-apiary`.
 - Renamed `beekeeper-path-scheduler` module to `beekeeper-scheduler`.
@@ -16,8 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docker image name changed from `beekeeper-path-scheduler-apiary` to `beekeeper-scheduler-apiary`
 - DB migration to rename `path_status` column to `housekeeping_status` in the `path` table.
 - DB migration to rename `path` table to `housekeeping_path` table.
-- Changed integration tests to handle multiple entities.
-- Move common integration test components under `BeekeeperIntegrationTestBase` and common integration test variables under `CommonTestVariables`.
 
 ## [2.1.0] - 2020-04-29
 ### Added

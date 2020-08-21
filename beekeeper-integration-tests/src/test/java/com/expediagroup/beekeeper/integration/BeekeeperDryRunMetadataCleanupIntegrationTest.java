@@ -155,9 +155,6 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
   @AfterAll
   public static void teardown() {
-    amazonS3.shutdown();
-    S3_CONTAINER.stop();
-
     System.clearProperty(SPRING_PROFILES_ACTIVE_PROPERTY);
     System.clearProperty(SCHEDULER_DELAY_MS_PROPERTY);
     System.clearProperty(DRY_RUN_ENABLED_PROPERTY);
@@ -165,6 +162,9 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
     System.clearProperty(AWS_DISABLE_GET_VALIDATION_PROPERTY);
     System.clearProperty(AWS_DISABLE_PUT_VALIDATION_PROPERTY);
     System.clearProperty(METASTORE_URI_PROPERTY);
+
+    amazonS3.shutdown();
+    S3_CONTAINER.stop();
   }
 
   @BeforeEach
@@ -188,8 +188,6 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
     BeekeeperMetadataCleanup.stop();
     executorService.awaitTermination(5, TimeUnit.SECONDS);
   }
-
-
 
   @Test
   public void dryRunDropUnpartitionedTable() throws TException, SQLException {
