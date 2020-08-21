@@ -1,3 +1,18 @@
+/**
+ * Copyright (C) 2019-2020 Expedia, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.expediagroup.beekeeper.integration;
 
 import static org.apache.hadoop.fs.s3a.Constants.ACCESS_KEY;
@@ -7,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
-import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.LONG_CLEANUP_DELAY_VALUE;
@@ -33,6 +47,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import io.micrometer.core.instrument.Meter;
@@ -51,6 +66,7 @@ import com.expediagroup.beekeeper.metadata.cleanup.BeekeeperMetadataCleanup;
 
 import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
 
+@Testcontainers
 public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 30;
@@ -63,6 +79,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   private static final String SCHEDULER_DELAY_MS_PROPERTY = "properties.scheduler-delay-ms";
   private static final String DRY_RUN_ENABLED_PROPERTY = "properties.dry-run-enabled";
   private static final String AWS_S3_ENDPOINT_PROPERTY = "aws.s3.endpoint";
+  private static final String METASTORE_URI_PROPERTY = "properties.metastore-uri";
   private static final String AWS_DISABLE_GET_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disableGetObjectMD5Validation";
   private static final String AWS_DISABLE_PUT_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disablePutObjectMD5Validation";
 
@@ -127,7 +144,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   public static void init() {
     System.setProperty(SPRING_PROFILES_ACTIVE_PROPERTY, "test");
     System.setProperty(SCHEDULER_DELAY_MS_PROPERTY, SCHEDULER_DELAY_MS);
-    System.setProperty(DRY_RUN_ENABLED_PROPERTY, "false");
+    System.setProperty(DRY_RUN_ENABLED_PROPERTY, "true");
     System.setProperty(AWS_S3_ENDPOINT_PROPERTY, S3_ENDPOINT);
     System.setProperty(AWS_DISABLE_GET_VALIDATION_PROPERTY, "true");
     System.setProperty(AWS_DISABLE_PUT_VALIDATION_PROPERTY, "true");
@@ -147,12 +164,13 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
     System.clearProperty(AWS_S3_ENDPOINT_PROPERTY);
     System.clearProperty(AWS_DISABLE_GET_VALIDATION_PROPERTY);
     System.clearProperty(AWS_DISABLE_PUT_VALIDATION_PROPERTY);
+    System.clearProperty(METASTORE_URI_PROPERTY);
   }
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     metastoreClient = thriftHiveMetaStore.client();
-    System.setProperty("properties.metastore-uri", thriftHiveMetaStore.getThriftConnectionUri());
+    System.setProperty(METASTORE_URI_PROPERTY, thriftHiveMetaStore.getThriftConnectionUri());
 
     amazonS3
         .listObjectsV2(BUCKET)
@@ -166,10 +184,12 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   }
 
   @AfterEach
-  public void stop() throws InterruptedException {
+  void stop() throws InterruptedException {
     BeekeeperMetadataCleanup.stop();
     executorService.awaitTermination(5, TimeUnit.SECONDS);
   }
+
+
 
   @Test
   public void dryRunDropUnpartitionedTable() throws TException, SQLException {

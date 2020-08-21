@@ -48,9 +48,9 @@ import io.micrometer.core.instrument.MeterRegistry;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 
+import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.TestAppender;
-import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
 
 @Testcontainers

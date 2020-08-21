@@ -83,6 +83,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   private static final String SCHEDULER_DELAY_MS_PROPERTY = "properties.scheduler-delay-ms";
   private static final String DRY_RUN_ENABLED_PROPERTY = "properties.dry-run-enabled";
   private static final String AWS_S3_ENDPOINT_PROPERTY = "aws.s3.endpoint";
+  private static final String METASTORE_URI_PROPERTY = "properties.metastore-uri";
   private static final String AWS_DISABLE_GET_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disableGetObjectMD5Validation";
   private static final String AWS_DISABLE_PUT_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disablePutObjectMD5Validation";
 
@@ -166,12 +167,13 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     System.clearProperty(AWS_S3_ENDPOINT_PROPERTY);
     System.clearProperty(AWS_DISABLE_GET_VALIDATION_PROPERTY);
     System.clearProperty(AWS_DISABLE_PUT_VALIDATION_PROPERTY);
+    System.clearProperty(METASTORE_URI_PROPERTY);
   }
 
   @BeforeEach
   void setup() {
     metastoreClient = thriftHiveMetaStore.client();
-    System.setProperty("properties.metastore-uri", thriftHiveMetaStore.getThriftConnectionUri());
+    System.setProperty(METASTORE_URI_PROPERTY, thriftHiveMetaStore.getThriftConnectionUri());
 
     amazonS3
         .listObjectsV2(BUCKET)

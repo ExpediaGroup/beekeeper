@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
-import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter.METRIC_NAME;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
@@ -113,149 +113,149 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
       BeekeeperPathCleanup.stop();
       executorService.awaitTermination(5, TimeUnit.SECONDS);
     }
-//
-//  @Test
-//  public void cleanupPathsForFile() throws SQLException {
-//    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
-//    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
-//    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
-//
-//    String path = "s3://" + BUCKET + "/" + OBJECT_KEY1;
-//    insertUnreferencedPath(path);
-//    await().atMost(TIMEOUT, TimeUnit.SECONDS)
-//        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
-//
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
-//    // deleting a file shouldn't delete a folder sentinel
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isTrue();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_OTHER)).isTrue();
-//  }
-//
-//  @Test
-//  public void cleanupPathsForDirectory() throws SQLException {
-//    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
-//    amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
-//    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
-//    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
-//    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER_SENTINEL, "");
-//
-//    insertUnreferencedPath(ABSOLUTE_PATH);
-//    await().atMost(TIMEOUT, TimeUnit.SECONDS)
-//        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
-//
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_OTHER)).isTrue();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_OTHER_SENTINEL)).isTrue();
-//  }
-//
-//  @Test
-//  public void cleanupPathsForDirectoryWithSpace() throws SQLException {
-//    String objectKeyRoot = DB_AND_TABLE_PREFIX + "/ /id1/partition1";
-//    String objectKey1 = objectKeyRoot + "/file1";
-//    String objectKey2 = objectKeyRoot + "/file2";
-//    String objectKeySentinel = objectKeyRoot + "_$folder$";
-//    String absolutePath = "s3://" + BUCKET + "/" + objectKeyRoot;
-//    amazonS3.putObject(BUCKET, objectKey1, CONTENT);
-//    amazonS3.putObject(BUCKET, objectKey2, CONTENT);
-//    amazonS3.putObject(BUCKET, objectKeySentinel, "");
-//
-//    insertUnreferencedPath(absolutePath);
-//    await().atMost(TIMEOUT, TimeUnit.SECONDS)
-//        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
-//
-//    assertThat(amazonS3.doesObjectExist(BUCKET, objectKey1)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, objectKey2)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, objectKeySentinel)).isFalse();
-//  }
-//
-//  @Test
-//  public void cleanupPathsForDirectoryWithTrailingSlash() throws SQLException {
-//    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
-//    amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
-//    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
-//    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
-//
-//    insertUnreferencedPath(ABSOLUTE_PATH + "/");
-//    await().atMost(TIMEOUT, TimeUnit.SECONDS)
-//        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
-//
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_OTHER)).isTrue();
-//  }
-//
-//  @Test
-//  public void cleanupSentinelForParent() throws SQLException {
-//    String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
-//    String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
-//    String databaseSentinel = "database_$folder$";
-//    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
-//    amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
-//    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
-//    amazonS3.putObject(BUCKET, parentSentinel, "");
-//    amazonS3.putObject(BUCKET, tableSentinel, "");
-//    amazonS3.putObject(BUCKET, databaseSentinel, "");
-//
-//    insertUnreferencedPath(ABSOLUTE_PATH);
-//    await().atMost(TIMEOUT, TimeUnit.SECONDS)
-//        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
-//
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, parentSentinel)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, tableSentinel)).isTrue();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, databaseSentinel)).isTrue();
-//  }
-//
-//  @Test
-//  public void cleanupSentinelForNonEmptyParent() throws SQLException {
-//    String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
-//    String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
-//    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
-//    amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
-//    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
-//    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
-//    amazonS3.putObject(BUCKET, parentSentinel, "");
-//    amazonS3.putObject(BUCKET, tableSentinel, "");
-//
-//    insertUnreferencedPath(ABSOLUTE_PATH);
-//    await().atMost(TIMEOUT, TimeUnit.SECONDS)
-//        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
-//
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, parentSentinel)).isTrue();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, tableSentinel)).isTrue();
-//  }
-//
-//  @Test
-//  public void metrics() throws SQLException {
-//    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
-//    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
-//
-//    insertUnreferencedPath(ABSOLUTE_PATH);
-//    await().atMost(TIMEOUT, TimeUnit.SECONDS)
-//        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
-//
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
-//    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
-//    assertMetrics();
-//  }
-//
-//  private void assertMetrics() {
-//    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperPathCleanup.meterRegistry()).getRegistries();
-//    assertThat(meterRegistry).hasSize(2);
-//    meterRegistry.forEach(registry -> {
-//      List<Meter> meters = registry.getMeters();
-//      assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-//          .contains("path-cleanup-job", "s3-paths-deleted", "s3-" + METRIC_NAME);
-//    });
-//  }
+
+  @Test
+  public void cleanupPathsForFile() throws SQLException {
+    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
+
+    String path = "s3://" + BUCKET + "/" + OBJECT_KEY1;
+    insertUnreferencedPath(path);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
+
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
+    // deleting a file shouldn't delete a folder sentinel
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_OTHER)).isTrue();
+  }
+
+  @Test
+  public void cleanupPathsForDirectory() throws SQLException {
+    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
+    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER_SENTINEL, "");
+
+    insertUnreferencedPath(ABSOLUTE_PATH);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
+
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_OTHER)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_OTHER_SENTINEL)).isTrue();
+  }
+
+  @Test
+  public void cleanupPathsForDirectoryWithSpace() throws SQLException {
+    String objectKeyRoot = DB_AND_TABLE_PREFIX + "/ /id1/partition1";
+    String objectKey1 = objectKeyRoot + "/file1";
+    String objectKey2 = objectKeyRoot + "/file2";
+    String objectKeySentinel = objectKeyRoot + "_$folder$";
+    String absolutePath = "s3://" + BUCKET + "/" + objectKeyRoot;
+    amazonS3.putObject(BUCKET, objectKey1, CONTENT);
+    amazonS3.putObject(BUCKET, objectKey2, CONTENT);
+    amazonS3.putObject(BUCKET, objectKeySentinel, "");
+
+    insertUnreferencedPath(absolutePath);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
+
+    assertThat(amazonS3.doesObjectExist(BUCKET, objectKey1)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, objectKey2)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, objectKeySentinel)).isFalse();
+  }
+
+  @Test
+  public void cleanupPathsForDirectoryWithTrailingSlash() throws SQLException {
+    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
+
+    insertUnreferencedPath(ABSOLUTE_PATH + "/");
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
+
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_OTHER)).isTrue();
+  }
+
+  @Test
+  public void cleanupSentinelForParent() throws SQLException {
+    String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
+    String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
+    String databaseSentinel = "database_$folder$";
+    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
+    amazonS3.putObject(BUCKET, parentSentinel, "");
+    amazonS3.putObject(BUCKET, tableSentinel, "");
+    amazonS3.putObject(BUCKET, databaseSentinel, "");
+
+    insertUnreferencedPath(ABSOLUTE_PATH);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
+
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, parentSentinel)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, tableSentinel)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, databaseSentinel)).isTrue();
+  }
+
+  @Test
+  public void cleanupSentinelForNonEmptyParent() throws SQLException {
+    String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
+    String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
+    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
+    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
+    amazonS3.putObject(BUCKET, parentSentinel, "");
+    amazonS3.putObject(BUCKET, tableSentinel, "");
+
+    insertUnreferencedPath(ABSOLUTE_PATH);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
+
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, parentSentinel)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, tableSentinel)).isTrue();
+  }
+
+  @Test
+  public void metrics() throws SQLException {
+    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
+
+    insertUnreferencedPath(ABSOLUTE_PATH);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
+
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
+    assertMetrics();
+  }
+
+  private void assertMetrics() {
+    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperPathCleanup.meterRegistry()).getRegistries();
+    assertThat(meterRegistry).hasSize(2);
+    meterRegistry.forEach(registry -> {
+      List<Meter> meters = registry.getMeters();
+      assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
+          .contains("path-cleanup-job", "s3-paths-deleted", "s3-" + METRIC_NAME);
+    });
+  }
 
   @Test
   public void healthCheck() {
