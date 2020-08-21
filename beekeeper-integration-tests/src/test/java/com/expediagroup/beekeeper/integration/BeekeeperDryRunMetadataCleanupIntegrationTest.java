@@ -137,7 +137,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   public ThriftHiveMetaStoreJUnitExtension thriftHiveMetaStore = new ThriftHiveMetaStoreJUnitExtension(
       DATABASE_NAME_VALUE, metastoreProperties);
 
-  private HiveTestUtils hiveTestUtils = new HiveTestUtils();
+  private HiveTestUtils hiveTestUtils;
   private HiveMetaStoreClient metastoreClient;
 
   @BeforeAll
@@ -169,8 +169,9 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
   @BeforeEach
   void setup() {
-    metastoreClient = thriftHiveMetaStore.client();
     System.setProperty(METASTORE_URI_PROPERTY, thriftHiveMetaStore.getThriftConnectionUri());
+    metastoreClient = thriftHiveMetaStore.client();
+    hiveTestUtils = new HiveTestUtils(metastoreClient);
 
     amazonS3
         .listObjectsV2(BUCKET)
@@ -191,7 +192,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
   @Test
   public void dryRunDropUnpartitionedTable() throws TException, SQLException {
-    hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTable(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
     insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
 
@@ -205,8 +206,8 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
   @Test
   public void dryRunDropPartitionedTable() throws Exception {
-    Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
-    hiveTestUtils.addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, table, PARTITION_VALUES, TABLE_DATA);
+    Table table = hiveTestUtils.createTable(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
+    hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
     amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
     insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
@@ -223,10 +224,10 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
   @Test
   public void dryRunDontDropPartitionedTable() throws Exception {
-    Table table = hiveTestUtils.createTable(metastoreClient, PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
-    hiveTestUtils.addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, table, PARTITION_VALUES, TABLE_DATA);
+    Table table = hiveTestUtils.createTable(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
+    hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
     hiveTestUtils
-        .addPartitionsToTable(metastoreClient, PARTITION_ROOT_PATH, table, List.of("2020-01-01", "1", "B"), TABLE_DATA);
+        .addPartitionsToTable(PARTITION_ROOT_PATH, table, List.of("2020-01-01", "1", "B"));
 
     String partition2Name = "event_date=2020-01-01/event_hour=1/event_type=B";
     String partition2Path = PARTITION_ROOT_PATH + "/" + partition2Name + "/file1";
@@ -252,7 +253,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
   @Test
   public void dryRunMetrics() throws SQLException, TException {
-    hiveTestUtils.createTable(metastoreClient, UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTable(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY, "");
 
     insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
