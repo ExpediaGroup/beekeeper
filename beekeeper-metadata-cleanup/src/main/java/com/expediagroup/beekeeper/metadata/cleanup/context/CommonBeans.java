@@ -63,7 +63,7 @@ public class CommonBeans {
 
   @Bean
   public HiveConf hiveConf(@Value("${properties.metastore-uri}") String metastoreUri) {
-    HiveConf conf = new HiveConf();
+    HiveConf conf = new HiveConf(new org.apache.hadoop.conf.Configuration(false), getClass());
     conf.setVar(HiveConf.ConfVars.METASTOREURIS, metastoreUri);
     return conf;
   }
