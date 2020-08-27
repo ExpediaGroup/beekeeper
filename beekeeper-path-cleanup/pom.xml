@@ -23,8 +23,12 @@
           <artifactId>hibernate-validator</artifactId>
         </exclusion>
         <exclusion>
-          <artifactId>servlet-api</artifactId>
           <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>javax.servlet</artifactId>
+          <groupId>org.eclipse.jetty.orbit</groupId>
         </exclusion>
       </exclusions>
     </dependency>
