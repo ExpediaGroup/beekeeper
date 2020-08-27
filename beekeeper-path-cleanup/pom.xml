@@ -23,8 +23,8 @@
           <artifactId>hibernate-validator</artifactId>
         </exclusion>
         <exclusion>
-          <artifactId>hadoop-common</artifactId>
-          <groupId>org.apache.hadoop</groupId>
+          <artifactId>servlet-api</artifactId>
+          <groupId>javax.servlet</groupId>
         </exclusion>
       </exclusions>
     </dependency>
