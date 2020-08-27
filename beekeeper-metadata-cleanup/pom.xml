@@ -30,6 +30,11 @@
       <version>27.1-jre</version>
     </dependency>
 
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+
     <!-- Hive -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
