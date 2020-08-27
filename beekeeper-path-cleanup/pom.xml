@@ -23,12 +23,12 @@
           <artifactId>hibernate-validator</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>javax.servlet</groupId>
-          <artifactId>servlet-api</artifactId>
+          <artifactId>hive-metastore</artifactId>
+          <groupId>org.apache.hive</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>javax.servlet</artifactId>
-          <groupId>org.eclipse.jetty.orbit</groupId>
+          <artifactId>hcommon-hive-metastore</artifactId>
+          <groupId>com.hotels</groupId>
         </exclusion>
       </exclusions>
     </dependency>
