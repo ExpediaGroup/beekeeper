@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -61,10 +63,15 @@ import com.hotels.hcommon.hive.metastore.client.supplier.HiveMetaStoreClientSupp
 @EnableJpaRepositories(basePackages = { "com.expediagroup.beekeeper.core.repository" })
 public class CommonBeans {
 
+  private final Logger log = LoggerFactory.getLogger(CommonBeans.class);
+
   @Bean
   public HiveConf hiveConf(@Value("${properties.metastore-uri}") String metastoreUri) {
-    HiveConf conf = new HiveConf(new org.apache.hadoop.conf.Configuration(false), getClass());
+    HiveConf conf = new HiveConf();
     conf.setVar(HiveConf.ConfVars.METASTOREURIS, metastoreUri);
+
+    log.info("****** Metastore URI: {}", metastoreUri);
+
     return conf;
   }
 
@@ -85,6 +92,9 @@ public class CommonBeans {
   public HiveClient hiveClient(
       Supplier<CloseableMetaStoreClient> metaStoreClientSupplier,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+
+    log.info("****** Dry Run enabled: {}", dryRunEnabled);
+
     return new HiveClient(metaStoreClientSupplier.get(), dryRunEnabled);
   }
 
@@ -152,6 +162,10 @@ public class CommonBeans {
       List<MetadataHandler> metadataHandlers,
       @Value("${properties.cleanup-page-size}") int pageSize,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+
+    
+    log.info("***** cleanup page size: {}", pageSize);
+
     return new PagingMetadataCleanupService(metadataHandlers, pageSize, dryRunEnabled);
   }
 }
