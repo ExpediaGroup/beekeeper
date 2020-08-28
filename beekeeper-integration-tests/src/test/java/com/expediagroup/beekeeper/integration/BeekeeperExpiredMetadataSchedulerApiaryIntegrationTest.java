@@ -23,10 +23,10 @@ import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_ATTEMPTS_VALUE;
-import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLIENT_ID_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CREATION_TIMESTAMP_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
 import java.io.IOException;
@@ -237,7 +237,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     assertThat(actual.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
     assertThat(actual.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
     assertThat(actual.getCleanupTimestamp()).isEqualTo(actual.getCreationTimestamp().plus(actual.getCleanupDelay()));
-    assertThat(actual.getCleanupDelay()).isEqualTo(java.time.Duration.parse(CLEANUP_DELAY_VALUE));
+    assertThat(actual.getCleanupDelay()).isEqualTo(java.time.Duration.parse(SHORT_CLEANUP_DELAY_VALUE));
     assertThat(actual.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS_VALUE);
     assertThat(actual.getClientId()).isEqualTo(CLIENT_ID_VALUE);
     assertThat(actual.getLifecycleType()).isEqualTo(EXPIRED.toString());

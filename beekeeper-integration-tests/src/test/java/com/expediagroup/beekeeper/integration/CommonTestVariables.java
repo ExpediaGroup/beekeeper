@@ -46,7 +46,8 @@ public final class CommonTestVariables {
   public static final String DATABASE_NAME_VALUE = "some_database";
   public static final String TABLE_NAME_VALUE = "some_table";
   public static final LocalDateTime CREATION_TIMESTAMP_VALUE = LocalDateTime.now(UTC).minus(1L, ChronoUnit.MINUTES);
-  public static final String CLEANUP_DELAY_VALUE = "PT1S";
+  public static final String SHORT_CLEANUP_DELAY_VALUE = "PT1S";
+  public static final String LONG_CLEANUP_DELAY_VALUE = "P3D";
   public static final int CLEANUP_ATTEMPTS_VALUE = 0;
   public static final String CLIENT_ID_VALUE = "apiary-metastore-event";
 }
