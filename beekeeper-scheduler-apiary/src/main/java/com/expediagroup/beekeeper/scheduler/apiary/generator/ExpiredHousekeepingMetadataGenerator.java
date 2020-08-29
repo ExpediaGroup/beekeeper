@@ -73,15 +73,19 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
 
     switch (listenerEvent.getEventType()) {
     case CREATE_TABLE:
+      log.info("Got create table event");
       housekeepingEntities.add(generateHousekeepingEntity((CreateTableEvent) listenerEvent, clientId));
       break;
     case ALTER_TABLE:
+      log.info("Got alter table event");
       housekeepingEntities.add(generateHousekeepingEntity((AlterTableEvent) listenerEvent, clientId));
       break;
     case ADD_PARTITION:
+      log.info("Got add partition event");
       housekeepingEntities.add(generateHousekeepingEntity((AddPartitionEvent) listenerEvent, clientId));
       break;
     case ALTER_PARTITION:
+      log.info("Got alter partition event");
       housekeepingEntities.add(generateHousekeepingEntity((AlterPartitionEvent) listenerEvent, clientId));
       break;
     default:
