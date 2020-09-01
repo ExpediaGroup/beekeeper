@@ -91,15 +91,18 @@ public class ExpiredMetadataHandler implements MetadataHandler {
       boolean dryRunEnabled) {
     String partitionName = housekeepingMetadata.getPartitionName();
     if (partitionName != null) {
+      System.out.println("Cleaning up partition: " + partitionName);
       cleanupPartition(housekeepingMetadata, metadataCleaner, pathCleaner);
       return true;
     } else {
       Long partitionCount = countPartitionsForDatabaseAndTable(instant, housekeepingMetadata.getDatabaseName(),
           housekeepingMetadata.getTableName(), dryRunEnabled);
       if (partitionCount.equals(LONG_ZERO)) {
+        System.out.println("Cleaning unpartitioned table");
         cleanUpTable(housekeepingMetadata, metadataCleaner, pathCleaner);
         return true;
       }
+      System.out.println("Cant cleanup partitioned table yet. Still has " + partitionCount + " partitions");
     }
     return false;
   }
