@@ -73,8 +73,6 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   private void cleanupAndUpdate(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant,
       boolean dryRunEnabled) {
     try {
-      log.info("Cleaning up metadata for table \"{}.{}\"", housekeepingMetadata.getDatabaseName(),
-          housekeepingMetadata.getTableName());
       boolean deleted = cleanup(housekeepingMetadata, instant, dryRunEnabled);
       if (deleted) {
         updateAttemptsAndStatus(housekeepingMetadata, DELETED);
@@ -91,18 +89,20 @@ public class ExpiredMetadataHandler implements MetadataHandler {
       boolean dryRunEnabled) {
     String partitionName = housekeepingMetadata.getPartitionName();
     if (partitionName != null) {
-      System.out.println("Cleaning up partition: " + partitionName);
+      log.info("Cleaning up partition \"{}\" for table \"{}.{}\".", partitionName,
+          housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
       cleanupPartition(housekeepingMetadata, metadataCleaner, pathCleaner);
       return true;
     } else {
       Long partitionCount = countPartitionsForDatabaseAndTable(instant, housekeepingMetadata.getDatabaseName(),
           housekeepingMetadata.getTableName(), dryRunEnabled);
       if (partitionCount.equals(LONG_ZERO)) {
-        System.out.println("Cleaning unpartitioned table");
+        log.info("Cleaning up table \"{}.{}\".",
+            housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
         cleanUpTable(housekeepingMetadata, metadataCleaner, pathCleaner);
         return true;
       }
-      System.out.println("Cant cleanup partitioned table yet. Still has " + partitionCount + " partitions");
+      log.info("Cant cleanup partitioned table yet. Still has {} partition(s).", partitionCount);
     }
     return false;
   }
