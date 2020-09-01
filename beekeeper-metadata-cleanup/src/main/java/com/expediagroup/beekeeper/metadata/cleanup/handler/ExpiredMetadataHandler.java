@@ -102,7 +102,6 @@ public class ExpiredMetadataHandler implements MetadataHandler {
         cleanUpTable(housekeepingMetadata, metadataCleaner, pathCleaner);
         return true;
       }
-      log.info("Cant cleanup partitioned table yet. Still has {} partition(s).", partitionCount);
     }
     return false;
   }

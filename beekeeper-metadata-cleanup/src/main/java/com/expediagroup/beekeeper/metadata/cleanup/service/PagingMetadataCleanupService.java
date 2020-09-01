@@ -80,6 +80,7 @@ public class PagingMetadataCleanupService implements CleanupService {
   private Pageable processPage(MetadataHandler handler, Pageable pageable, LocalDateTime instant,
       Page<HousekeepingMetadata> page,
       boolean dryRunEnabled) {
+    System.out.println("Page content size: " + page.getSize());
     page.getContent().forEach(metadata -> handler.cleanupMetadata(metadata, instant, dryRunEnabled));
     if (dryRunEnabled) {
       return pageable.next();
