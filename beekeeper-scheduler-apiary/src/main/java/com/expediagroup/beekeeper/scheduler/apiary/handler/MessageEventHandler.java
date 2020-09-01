@@ -47,8 +47,6 @@ public class MessageEventHandler {
   }
 
   public List<HousekeepingEntity> handleMessage(MessageEvent event) {
-    System.out.println("Handling message event");
-
     ListenerEvent listenerEvent = event.getEvent();
 
     if (shouldFilterMessage(listenerEvent)) {
