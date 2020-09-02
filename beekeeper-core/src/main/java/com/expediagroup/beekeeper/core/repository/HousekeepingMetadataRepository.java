@@ -44,6 +44,14 @@ public interface HousekeepingMetadataRepository extends JpaRepository<Housekeepi
       @Param("databaseName") String databaseName,
       @Param("tableName") String tableName, @Param("partitionName") String partitionName);
 
+  @Query(value = "select max(cleanupTimestamp) from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  LocalDateTime findMaximumCleanupTimestampForDbAndTable(
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName);
+
   /**
    * This method returns the count of all records for a database and table name pair where the partitionName is not null.
    *

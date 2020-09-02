@@ -59,9 +59,6 @@ public class SchedulerApiary {
       try {
         LifecycleEventType eventType = LifecycleEventType.valueOf(entity.getLifecycleType());
         SchedulerService scheduler = schedulerServiceMap.get(eventType);
-
-        System.out.println("Scheduling entity for housekeeping");
-
         scheduler.scheduleForHousekeeping(entity);
       } catch (Exception e) {
         throw new BeekeeperException(format(

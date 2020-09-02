@@ -50,7 +50,6 @@ public class MessageEventHandler {
     ListenerEvent listenerEvent = event.getEvent();
 
     if (shouldFilterMessage(listenerEvent)) {
-      System.out.println("Filtering out message event");
       return Collections.emptyList();
     }
 

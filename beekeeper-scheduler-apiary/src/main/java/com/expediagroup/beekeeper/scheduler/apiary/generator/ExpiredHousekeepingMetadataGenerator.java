@@ -111,7 +111,6 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
   private HousekeepingEntity generateHousekeepingEntity(AddPartitionEvent listenerEvent, String clientId) {
     String partitionName = generatePartitionName(Lists.newArrayList(listenerEvent.getPartitionKeys().keySet()),
         listenerEvent.getPartitionValues());
-    System.out.println("Partition Name: " + partitionName);
     return generateHousekeepingEntity(listenerEvent, clientId, listenerEvent.getPartitionLocation(), partitionName);
   }
 
