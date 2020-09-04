@@ -63,11 +63,13 @@ public class ExpiredMetadataHandler implements MetadataHandler {
    */
   @Override
   public void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled) {
+    metadataCleaner.init();
     if (dryRunEnabled) {
       cleanup(housekeepingMetadata, instant, dryRunEnabled);
     } else {
       cleanupAndUpdate(housekeepingMetadata, instant, dryRunEnabled);
     }
+    metadataCleaner.close();
   }
 
   private void cleanupAndUpdate(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant,
@@ -109,7 +111,6 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   private void cleanUpTable(HousekeepingMetadata housekeepingMetadata) {
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
-    metadataCleaner.setupCleaner();
     if (metadataCleaner.tableExists(databaseName, tableName)) {
       metadataCleaner.dropTable(housekeepingMetadata);
       pathCleaner.cleanupPath(housekeepingMetadata);
@@ -121,7 +122,6 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   private void cleanupPartition(HousekeepingMetadata housekeepingMetadata) {
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
-    metadataCleaner.setupCleaner();
     if (metadataCleaner.tableExists(databaseName, tableName)) {
       boolean partitionDeleted = metadataCleaner.dropPartition(housekeepingMetadata);
       if (partitionDeleted) {

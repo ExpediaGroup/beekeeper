@@ -37,7 +37,7 @@ public class HiveMetadataCleaner implements MetadataCleaner {
    * needed and close it after.
    */
   @Override
-  public void setupCleaner() {
+  public void init() {
     hiveClient = clientFactory.newInstance();
   }
 
@@ -46,7 +46,6 @@ public class HiveMetadataCleaner implements MetadataCleaner {
   public void dropTable(HousekeepingMetadata housekeepingMetadata) {
     hiveClient.dropTable(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
     deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
-    closeClient();
   }
 
   @Override
@@ -58,7 +57,6 @@ public class HiveMetadataCleaner implements MetadataCleaner {
     if (partitionDeleted) {
       deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
     }
-    closeClient();
     return partitionDeleted;
   }
 
@@ -67,7 +65,8 @@ public class HiveMetadataCleaner implements MetadataCleaner {
     return hiveClient.tableExists(databaseName, tableName);
   }
 
-  private void closeClient(){
+  @Override
+  public void close(){
     hiveClient.close();
   }
 }

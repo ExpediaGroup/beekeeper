@@ -15,7 +15,6 @@
  */
 package com.expediagroup.beekeeper.cleanup.hive;
 
-
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,6 +48,7 @@ public class HiveMetadataCleanerTest {
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    cleaner.init();
   }
 
   @Test
@@ -74,5 +74,4 @@ public class HiveMetadataCleanerTest {
     cleaner.dropPartition(housekeepingMetadata);
     verify(deletedMetadataReporter, never()).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
-
 }
