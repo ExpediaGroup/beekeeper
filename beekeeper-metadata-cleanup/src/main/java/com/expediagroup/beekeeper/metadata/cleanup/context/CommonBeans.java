@@ -38,7 +38,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.expediagroup.beekeeper.cleanup.aws.S3Client;
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.aws.S3SentinelFilesCleaner;
-import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
+import com.expediagroup.beekeeper.cleanup.hive.HiveClientFactory;
 import com.expediagroup.beekeeper.cleanup.hive.HiveMetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
@@ -82,10 +82,10 @@ public class CommonBeans {
   }
 
   @Bean
-  public HiveClient hiveClient(
+  public HiveClientFactory hiveClientFactory(
       Supplier<CloseableMetaStoreClient> metaStoreClientSupplier,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new HiveClient(metaStoreClientSupplier.get(), dryRunEnabled);
+    return new HiveClientFactory(metaStoreClientSupplier, dryRunEnabled);
   }
 
   @Bean
@@ -97,9 +97,9 @@ public class CommonBeans {
 
   @Bean(name = "hiveTableCleaner")
   MetadataCleaner metadataCleaner(
-      HiveClient hiveClient,
+      HiveClientFactory hiveClientFactory,
       DeletedMetadataReporter deletedMetadataReporter) {
-    return new HiveMetadataCleaner(hiveClient, deletedMetadataReporter);
+    return new HiveMetadataCleaner(hiveClientFactory, deletedMetadataReporter);
   }
 
   @Bean

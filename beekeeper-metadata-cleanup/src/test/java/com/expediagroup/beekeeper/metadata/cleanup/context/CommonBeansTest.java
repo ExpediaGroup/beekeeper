@@ -38,6 +38,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.expediagroup.beekeeper.cleanup.aws.S3Client;
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
+import com.expediagroup.beekeeper.cleanup.hive.HiveClientFactory;
 import com.expediagroup.beekeeper.cleanup.hive.HiveMetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
@@ -109,15 +110,16 @@ public class CommonBeansTest {
   @Test
   public void verifyHiveClient() {
     Supplier<CloseableMetaStoreClient> metaStoreClientSupplier = Mockito.mock(Supplier.class);
-    HiveClient hiveClient = commonBeans.hiveClient(metaStoreClientSupplier, false);
+    HiveClientFactory hiveClientFactory = commonBeans.hiveClientFactory(metaStoreClientSupplier, false);
+    HiveClient hiveClient = hiveClientFactory.newInstance();
     assertThat(hiveClient).isInstanceOf(HiveClient.class);
   }
 
   @Test
   public void verifyHiveMetadataCleaner() {
     DeletedMetadataReporter reporter = commonBeans.deletedMetadataReporter(meterRegistry, false);
-    HiveClient hiveClient = Mockito.mock(HiveClient.class);
-    MetadataCleaner metadataCleaner = commonBeans.metadataCleaner(hiveClient, reporter);
+    HiveClientFactory hiveClientFactory = Mockito.mock(HiveClientFactory.class);
+    MetadataCleaner metadataCleaner = commonBeans.metadataCleaner(hiveClientFactory, reporter);
     assertThat(metadataCleaner).isInstanceOf(HiveMetadataCleaner.class);
   }
 

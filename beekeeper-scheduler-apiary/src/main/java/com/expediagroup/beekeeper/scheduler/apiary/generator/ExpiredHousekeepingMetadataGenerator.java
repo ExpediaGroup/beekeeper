@@ -145,8 +145,6 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
    * @return Partition name e.g. event_date=2020-01-01/event_hour=0
    */
   private String generatePartitionName(List<String> keys, List<String> values) {
-    System.out.println("Keys: " + keys);
-    System.out.println("Values: "+ values);
     return IntStream.range(0, keys.size())
         .mapToObj(i -> keys.get(i) + "=" + values.get(i))
         .collect(Collectors.joining("/"));

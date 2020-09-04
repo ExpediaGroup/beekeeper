@@ -35,6 +35,7 @@ public class HiveMetadataCleanerTest {
 
   private @Mock HousekeepingMetadata housekeepingMetadata;
   private @Mock DeletedMetadataReporter deletedMetadataReporter;
+  private @Mock HiveClientFactory hiveClientFactory;
   private @Mock HiveClient hiveClient;
 
   private HiveMetadataCleaner cleaner;
@@ -44,9 +45,10 @@ public class HiveMetadataCleanerTest {
 
   @BeforeEach
   public void init() {
-    cleaner = new HiveMetadataCleaner(hiveClient, deletedMetadataReporter);
+    cleaner = new HiveMetadataCleaner(hiveClientFactory, deletedMetadataReporter);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
   }
 
   @Test

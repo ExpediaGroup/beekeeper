@@ -23,18 +23,18 @@ import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 
 public class HiveMetadataCleaner implements MetadataCleaner {
 
-  private HiveClient client;
+  private HiveClientFactory clientFactory;
   private DeletedMetadataReporter deletedMetadataReporter;
 
-  public HiveMetadataCleaner(HiveClient client, DeletedMetadataReporter deletedMetadataReporter) {
-    this.client = client;
+  public HiveMetadataCleaner(HiveClientFactory clientFactory, DeletedMetadataReporter deletedMetadataReporter) {
+    this.clientFactory = clientFactory;
     this.deletedMetadataReporter = deletedMetadataReporter;
   }
 
   @Override
   @TimedTaggable("hive-table-deleted")
   public void dropTable(HousekeepingMetadata housekeepingMetadata) {
-    client
+    clientFactory.newInstance()
         .dropTable(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
     deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
   }
@@ -42,7 +42,7 @@ public class HiveMetadataCleaner implements MetadataCleaner {
   @Override
   @TimedTaggable("hive-partition-deleted")
   public boolean dropPartition(HousekeepingMetadata housekeepingMetadata) {
-    boolean partitionDeleted = client
+    boolean partitionDeleted = clientFactory.newInstance()
         .dropPartition(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(),
             housekeepingMetadata.getPartitionName());
     if (partitionDeleted) {
@@ -53,6 +53,6 @@ public class HiveMetadataCleaner implements MetadataCleaner {
 
   @Override
   public boolean tableExists(String databaseName, String tableName) {
-    return client.tableExists(databaseName, tableName);
+    return clientFactory.newInstance().tableExists(databaseName, tableName);
   }
 }
