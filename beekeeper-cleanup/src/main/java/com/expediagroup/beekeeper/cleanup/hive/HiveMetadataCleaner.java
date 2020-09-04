@@ -24,6 +24,7 @@ import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 public class HiveMetadataCleaner implements MetadataCleaner {
 
   private HiveClientFactory clientFactory;
+  private HiveClient hiveClient;
   private DeletedMetadataReporter deletedMetadataReporter;
 
   public HiveMetadataCleaner(HiveClientFactory clientFactory, DeletedMetadataReporter deletedMetadataReporter) {
@@ -31,28 +32,42 @@ public class HiveMetadataCleaner implements MetadataCleaner {
     this.deletedMetadataReporter = deletedMetadataReporter;
   }
 
+  /**
+   * @implNote Doing this to avoid having long-running Hive MetaStore clients. So we only create a client when its
+   * needed and close it after.
+   */
+  @Override
+  public void setupCleaner() {
+    hiveClient = clientFactory.newInstance();
+  }
+
   @Override
   @TimedTaggable("hive-table-deleted")
   public void dropTable(HousekeepingMetadata housekeepingMetadata) {
-    clientFactory.newInstance()
-        .dropTable(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
+    hiveClient.dropTable(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
     deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
+    closeClient();
   }
 
   @Override
   @TimedTaggable("hive-partition-deleted")
   public boolean dropPartition(HousekeepingMetadata housekeepingMetadata) {
-    boolean partitionDeleted = clientFactory.newInstance()
+    boolean partitionDeleted = hiveClient
         .dropPartition(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(),
             housekeepingMetadata.getPartitionName());
     if (partitionDeleted) {
       deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
     }
+    closeClient();
     return partitionDeleted;
   }
 
   @Override
   public boolean tableExists(String databaseName, String tableName) {
     return clientFactory.newInstance().tableExists(databaseName, tableName);
+  }
+
+  private void closeClient(){
+    hiveClient.close();
   }
 }

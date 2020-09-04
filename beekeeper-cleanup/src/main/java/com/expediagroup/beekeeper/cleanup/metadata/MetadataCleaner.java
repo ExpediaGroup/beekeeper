@@ -24,4 +24,7 @@ public interface MetadataCleaner {
   boolean dropPartition(HousekeepingMetadata housekeepingMetadata);
 
   boolean tableExists(String databaseName, String tableName);
+
+  void setupCleaner();
+
 }

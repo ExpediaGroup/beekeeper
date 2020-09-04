@@ -100,4 +100,8 @@ public class HiveClient {
           "Unexpected exception when checking if table \"" + databaseName + "." + tableName + "\" exists.", e);
     }
   }
+
+  public void close(){
+    client.close();
+  }
 }
