@@ -99,7 +99,6 @@ public class ExpiredMetadataHandler implements MetadataHandler {
       if (partitionCount.equals(LONG_ZERO)) {
         log.info("Cleaning up table \"{}.{}\".",
             housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
-        metadataCleaner.setupCleaner();
         cleanUpTable(housekeepingMetadata);
         return true;
       }

@@ -64,7 +64,7 @@ public class HiveMetadataCleaner implements MetadataCleaner {
 
   @Override
   public boolean tableExists(String databaseName, String tableName) {
-    return clientFactory.newInstance().tableExists(databaseName, tableName);
+    return hiveClient.tableExists(databaseName, tableName);
   }
 
   private void closeClient(){

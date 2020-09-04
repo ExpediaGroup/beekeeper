@@ -164,9 +164,9 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage.getFormattedString()));
     amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage2.getFormattedString()));
 
-    insertExpiredMetadata("location", null);
+    insertExpiredMetadata("s3://location", null);
 
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 3);
+    await().atMost(30, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 3);
 
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
     assertExpiredMetadata(expiredMetadata.get(1), LOCATION_A, PARTITION_A_NAME);
