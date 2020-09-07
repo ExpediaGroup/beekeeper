@@ -40,6 +40,7 @@ import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.aws.S3SentinelFilesCleaner;
 import com.expediagroup.beekeeper.cleanup.hive.HiveClientFactory;
 import com.expediagroup.beekeeper.cleanup.hive.HiveMetadataCleaner;
+import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
 import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
@@ -81,8 +82,8 @@ public class CommonBeans {
     return new HiveMetaStoreClientSupplier(metaStoreClientFactory, hiveConf, name);
   }
 
-  @Bean
-  public HiveClientFactory hiveClientFactory(
+  @Bean(name = "hiveClientFactory")
+  public CleanerClientFactory clientFactory(
       Supplier<CloseableMetaStoreClient> metaStoreClientSupplier,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
     return new HiveClientFactory(metaStoreClientSupplier, dryRunEnabled);
@@ -97,9 +98,8 @@ public class CommonBeans {
 
   @Bean(name = "hiveTableCleaner")
   MetadataCleaner metadataCleaner(
-      HiveClientFactory hiveClientFactory,
       DeletedMetadataReporter deletedMetadataReporter) {
-    return new HiveMetadataCleaner(hiveClientFactory, deletedMetadataReporter);
+    return new HiveMetadataCleaner(deletedMetadataReporter);
   }
 
   @Bean
@@ -141,10 +141,11 @@ public class CommonBeans {
 
   @Bean(name = "expiredMetadataHandler")
   public ExpiredMetadataHandler expiredMetadataHandler(
+      @Qualifier("hiveClientFactory") CleanerClientFactory cleanerClientFactory,
       HousekeepingMetadataRepository housekeepingMetadataRepository,
       @Qualifier("hiveTableCleaner") MetadataCleaner metadataCleaner,
       @Qualifier("s3PathCleaner") PathCleaner pathCleaner) {
-    return new ExpiredMetadataHandler(housekeepingMetadataRepository, metadataCleaner, pathCleaner);
+    return new ExpiredMetadataHandler(cleanerClientFactory, housekeepingMetadataRepository, metadataCleaner, pathCleaner);
   }
 
   @Bean

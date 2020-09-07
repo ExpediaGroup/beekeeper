@@ -39,6 +39,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
+import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
+import com.expediagroup.beekeeper.cleanup.hive.HiveClientFactory;
 import com.expediagroup.beekeeper.cleanup.hive.HiveMetadataCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
@@ -47,6 +49,8 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository
 @ExtendWith(MockitoExtension.class)
 public class ExpiredMetadataHandlerTest {
 
+  private @Mock HiveClientFactory hiveClientFactory;
+  private @Mock HiveClient hiveClient;
   private @Mock HousekeepingMetadataRepository housekeepingMetadataRepository;
   private @Mock HiveMetadataCleaner hiveMetadataCleaner;
   private @Mock S3PathCleaner s3PathCleaner;
@@ -62,7 +66,7 @@ public class ExpiredMetadataHandlerTest {
 
   @BeforeEach
   public void init() {
-    expiredMetadataHandler = new ExpiredMetadataHandler(housekeepingMetadataRepository, hiveMetadataCleaner,
+    expiredMetadataHandler = new ExpiredMetadataHandler(hiveClientFactory, housekeepingMetadataRepository, hiveMetadataCleaner,
         s3PathCleaner);
   }
 
@@ -91,6 +95,7 @@ public class ExpiredMetadataHandlerTest {
 
   @Test
   public void typicalRunDroppingTable() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
@@ -99,12 +104,12 @@ public class ExpiredMetadataHandlerTest {
         housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE,
             TABLE_NAME))
         .thenReturn(Long.valueOf(0));
-    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
+    when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
 
     expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
-    verify(hiveMetadataCleaner).dropTable(housekeepingMetadata);
+    verify(hiveMetadataCleaner).dropTable(hiveClient, housekeepingMetadata);
     verify(s3PathCleaner).cleanupPath(housekeepingMetadata);
-    verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropPartition(hiveClient, housekeepingMetadata);
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
@@ -112,16 +117,17 @@ public class ExpiredMetadataHandlerTest {
 
   @Test
   public void typicalRunDroppingPartition() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
-    when(hiveMetadataCleaner.dropPartition(Mockito.any())).thenReturn(true);
-    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
+    when(hiveMetadataCleaner.dropPartition(Mockito.any(), Mockito.any())).thenReturn(true);
+    when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
 
     expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(s3PathCleaner).cleanupPath(housekeepingMetadata);
-    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropTable(hiveClient, housekeepingMetadata);
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
@@ -129,6 +135,7 @@ public class ExpiredMetadataHandlerTest {
 
   @Test
   public void tableWithExistingPartitionNotDeleted() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
@@ -137,9 +144,9 @@ public class ExpiredMetadataHandlerTest {
         .thenReturn(Long.valueOf(1));
 
     expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
-    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropTable(hiveClient, housekeepingMetadata);
     verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
-    verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropPartition(hiveClient, housekeepingMetadata);
     verify(housekeepingMetadata, never()).setCleanupAttempts(1);
     verify(housekeepingMetadata, never()).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository, never()).save(housekeepingMetadata);
@@ -147,6 +154,7 @@ public class ExpiredMetadataHandlerTest {
 
   @Test
   public void dontDropTableOrPathWhenTableDoesntExist() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
@@ -155,12 +163,12 @@ public class ExpiredMetadataHandlerTest {
         housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE,
             TABLE_NAME))
         .thenReturn(Long.valueOf(0));
-    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(false);
+    when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(false);
 
     expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
-    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropTable(hiveClient, housekeepingMetadata);
     verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
-    verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropPartition(hiveClient, housekeepingMetadata);
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
@@ -168,16 +176,17 @@ public class ExpiredMetadataHandlerTest {
 
   @Test
   public void dontDropPartitionWhenTableDoesntExist() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
-    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(false);
+    when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(false);
 
     expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
-    verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropPartition(hiveClient, housekeepingMetadata);
     verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
-    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropTable(hiveClient, housekeepingMetadata);
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
@@ -185,15 +194,16 @@ public class ExpiredMetadataHandlerTest {
 
   @Test
   public void dontDropPathWhenPartitionDoesntExist() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
-    when(hiveMetadataCleaner.dropPartition(Mockito.any())).thenReturn(false);
-    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
+    when(hiveMetadataCleaner.dropPartition(Mockito.any(), Mockito.any())).thenReturn(false);
+    when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
 
     expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
-    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropTable(hiveClient, housekeepingMetadata);
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
@@ -201,6 +211,7 @@ public class ExpiredMetadataHandlerTest {
 
   @Test
   public void expectedTableDropFailure() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
@@ -209,8 +220,8 @@ public class ExpiredMetadataHandlerTest {
         housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE,
             TABLE_NAME))
         .thenReturn(Long.valueOf(0));
-    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
-    doThrow(RuntimeException.class).when(hiveMetadataCleaner).dropTable(housekeepingMetadata);
+    when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
+    doThrow(RuntimeException.class).when(hiveMetadataCleaner).dropTable(hiveClient, housekeepingMetadata);
 
     expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(housekeepingMetadata).setCleanupAttempts(1);
@@ -220,11 +231,12 @@ public class ExpiredMetadataHandlerTest {
 
   @Test
   public void expectedPathDeleteFailure() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
     when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
-    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
+    when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
     doThrow(RuntimeException.class).when(s3PathCleaner).cleanupPath(housekeepingMetadata);
 
     expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
@@ -235,12 +247,13 @@ public class ExpiredMetadataHandlerTest {
 
   @Test
   public void expectedPartitionDropFailure() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
-    when(hiveMetadataCleaner.tableExists(DATABASE, TABLE_NAME)).thenReturn(true);
-    doThrow(RuntimeException.class).when(hiveMetadataCleaner).dropPartition(housekeepingMetadata);
+    when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
+    doThrow(RuntimeException.class).when(hiveMetadataCleaner).dropPartition(hiveClient, housekeepingMetadata);
 
     expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(housekeepingMetadata).setCleanupAttempts(1);

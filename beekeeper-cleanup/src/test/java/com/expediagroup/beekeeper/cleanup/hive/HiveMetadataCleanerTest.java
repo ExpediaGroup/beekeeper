@@ -34,7 +34,6 @@ public class HiveMetadataCleanerTest {
 
   private @Mock HousekeepingMetadata housekeepingMetadata;
   private @Mock DeletedMetadataReporter deletedMetadataReporter;
-  private @Mock HiveClientFactory hiveClientFactory;
   private @Mock HiveClient hiveClient;
 
   private HiveMetadataCleaner cleaner;
@@ -44,16 +43,14 @@ public class HiveMetadataCleanerTest {
 
   @BeforeEach
   public void init() {
-    cleaner = new HiveMetadataCleaner(hiveClientFactory, deletedMetadataReporter);
+    cleaner = new HiveMetadataCleaner(deletedMetadataReporter);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
-    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
-    cleaner.init();
   }
 
   @Test
   public void typicalDropTable() {
-    cleaner.dropTable(housekeepingMetadata);
+    cleaner.dropTable(hiveClient, housekeepingMetadata);
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
   }
 
@@ -62,7 +59,7 @@ public class HiveMetadataCleanerTest {
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME)).thenReturn(true);
 
-    cleaner.dropPartition(housekeepingMetadata);
+    cleaner.dropPartition(hiveClient, housekeepingMetadata);
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
 
@@ -71,7 +68,7 @@ public class HiveMetadataCleanerTest {
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME)).thenReturn(false);
 
-    cleaner.dropPartition(housekeepingMetadata);
+    cleaner.dropPartition(hiveClient, housekeepingMetadata);
     verify(deletedMetadataReporter, never()).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
 }

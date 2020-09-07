@@ -17,9 +17,11 @@ package com.expediagroup.beekeeper.cleanup.hive;
 
 import java.util.function.Supplier;
 
+import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
+
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 
-public class HiveClientFactory {
+public class HiveClientFactory implements CleanerClientFactory {
 
   private Supplier<CloseableMetaStoreClient> metaStoreClientSupplier;
   private boolean dryRunEnabled;
@@ -29,6 +31,7 @@ public class HiveClientFactory {
     this.dryRunEnabled = dryRunEnabled;
   }
 
+  @Override
   public HiveClient newInstance(){
     return new HiveClient(metaStoreClientSupplier.get(), dryRunEnabled);
   }
