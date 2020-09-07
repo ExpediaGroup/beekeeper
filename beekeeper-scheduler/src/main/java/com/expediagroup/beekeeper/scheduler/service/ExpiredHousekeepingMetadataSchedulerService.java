@@ -72,7 +72,7 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
 
     if (housekeepingMetadataOptional.isEmpty()) {
       if (housekeepingMetadata.getPartitionName() != null) {
-        comparePartitionCleanupTimestampWithTable(housekeepingMetadata);
+        updateTableCleanupTimestamp(housekeepingMetadata);
       }
       return housekeepingMetadata;
     }
@@ -84,22 +84,22 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
     existingHousekeepingMetadata.setClientId(housekeepingMetadata.getClientId());
 
     if (isPartitionedTable(housekeepingMetadata)) {
-      compareMaxCleanupTimestampWithTable(existingHousekeepingMetadata);
+      updateTableCleanupTimestampToMax(existingHousekeepingMetadata);
     }
 
     return existingHousekeepingMetadata;
   }
 
   /**
-   * When the cleanup delay of a table with partitions is altered, the delay should be changed but the cleanup timestamp
-   * should be the max timestamp of any of the partitions which the table has.
+   * When the cleanup delay of a table with partitions is altered, the delay should be updated but the cleanup
+   * timestamp should be the max timestamp of any of the partitions which the table has.
    *
-   * i.e. if the cleanup delay was 10 but now its being updated to 2, the delay should match any partition which has
-   * delay 10 (or above) to prevent premature attempts to cleanup the table.
+   * e.g. if the cleanup delay was 10 but now its being updated to 2, the cleanup timestamp should match any partition
+   * with delay 10 (or above) to prevent premature attempts to cleanup the table.
    *
    * @param housekeepingMetadata
    */
-  private void compareMaxCleanupTimestampWithTable(HousekeepingMetadata housekeepingMetadata) {
+  private void updateTableCleanupTimestampToMax(HousekeepingMetadata housekeepingMetadata) {
     LocalDateTime currentCleanupTimestamp = housekeepingMetadata.getCleanupTimestamp();
     LocalDateTime maxCleanupTimestamp = housekeepingMetadataRepository.findMaximumCleanupTimestampForDbAndTable(
         housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
@@ -119,7 +119,7 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
    *
    * @param partitionMetadata
    */
-  private void comparePartitionCleanupTimestampWithTable(HousekeepingMetadata partitionMetadata) {
+  private void updateTableCleanupTimestamp(HousekeepingMetadata partitionMetadata) {
     HousekeepingMetadata tableMetadata = housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(
         partitionMetadata.getDatabaseName(), partitionMetadata.getTableName(), null).get();
 

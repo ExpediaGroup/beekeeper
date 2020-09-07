@@ -61,17 +61,6 @@ public class ExpiredMetadataHandler implements MetadataHandler {
    * @param dryRunEnabled
    * @implNote HousekeepingMetadata records are not updated in dry-run mode.
    */
-//  @Override
-//  public void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled) {
-//    metadataCleaner.init();
-//    if (dryRunEnabled) {
-//      cleanup(housekeepingMetadata, instant, dryRunEnabled);
-//    } else {
-//      cleanupAndUpdate(housekeepingMetadata, instant, dryRunEnabled);
-//    }
-//    metadataCleaner.close();
-//  }
-
   @Override
   public void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled) {
     metadataCleaner.init();

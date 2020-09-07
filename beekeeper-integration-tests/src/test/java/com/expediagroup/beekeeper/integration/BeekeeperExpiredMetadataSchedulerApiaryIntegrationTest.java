@@ -149,7 +149,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
 
     insertExpiredMetadata("s3://location", null);
 
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 2);
+    await().atMost(30, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 2);
 
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
     assertExpiredMetadata(expiredMetadata.get(1), LOCATION_A, PARTITION_A_NAME);

@@ -52,6 +52,7 @@ public class MessageReaderAdapter implements BeekeeperEventReader {
     if (messageEvent.isEmpty()) {
       return Optional.empty();
     }
+
     MessageEvent message = messageEvent.get();
 
     List<HousekeepingEntity> housekeepingEntities = handlers.parallelStream()
