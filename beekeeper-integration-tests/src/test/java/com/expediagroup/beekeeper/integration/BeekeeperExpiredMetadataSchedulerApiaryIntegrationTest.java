@@ -147,11 +147,14 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
         PARTITION_A_VALUES, true);
     amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage.getFormattedString()));
 
+    // creating entry for table
     insertExpiredMetadata("s3://location", null);
 
     await().atMost(60, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 2);
 
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
+    // check first entry is for the table
+    assertThat(expiredMetadata.get(0).getPartitionName()).isEqualTo(null);
     assertExpiredMetadata(expiredMetadata.get(1), LOCATION_A, PARTITION_A_NAME);
   }
 
@@ -164,11 +167,14 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage.getFormattedString()));
     amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage2.getFormattedString()));
 
+    // creating entry for table
     insertExpiredMetadata("s3://location", null);
 
     await().atMost(60, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 3);
 
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
+    // check first entry is for the table
+    assertThat(expiredMetadata.get(0).getPartitionName()).isEqualTo(null);
     assertExpiredMetadata(expiredMetadata.get(1), LOCATION_A, PARTITION_A_NAME);
     assertExpiredMetadata(expiredMetadata.get(2), LOCATION_B, PARTITION_B_NAME);
   }
