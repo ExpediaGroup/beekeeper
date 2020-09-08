@@ -15,13 +15,7 @@
  */
 package com.expediagroup.beekeeper.cleanup.metadata;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+public interface CleanerClientFactory {
 
-public interface MetadataCleaner {
-
-  void dropTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata);
-
-  boolean dropPartition(CleanerClient client, HousekeepingMetadata housekeepingMetadata);
-
-  boolean tableExists(CleanerClient client, String databaseName, String tableName);
+  CleanerClient newInstance();
 }

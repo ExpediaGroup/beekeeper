@@ -38,7 +38,10 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.expediagroup.beekeeper.cleanup.aws.S3Client;
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
+import com.expediagroup.beekeeper.cleanup.hive.HiveClientFactory;
 import com.expediagroup.beekeeper.cleanup.hive.HiveMetadataCleaner;
+import com.expediagroup.beekeeper.cleanup.metadata.CleanerClient;
+import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
 import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
@@ -109,15 +112,15 @@ public class CommonBeansTest {
   @Test
   public void verifyHiveClient() {
     Supplier<CloseableMetaStoreClient> metaStoreClientSupplier = Mockito.mock(Supplier.class);
-    HiveClient hiveClient = commonBeans.hiveClient(metaStoreClientSupplier, false);
-    assertThat(hiveClient).isInstanceOf(HiveClient.class);
+    CleanerClientFactory clientFactory = commonBeans.clientFactory(metaStoreClientSupplier, false);
+    CleanerClient client = clientFactory.newInstance();
+    assertThat(client).isInstanceOf(HiveClient.class);
   }
 
   @Test
   public void verifyHiveMetadataCleaner() {
     DeletedMetadataReporter reporter = commonBeans.deletedMetadataReporter(meterRegistry, false);
-    HiveClient hiveClient = Mockito.mock(HiveClient.class);
-    MetadataCleaner metadataCleaner = commonBeans.metadataCleaner(hiveClient, reporter);
+    MetadataCleaner metadataCleaner = commonBeans.metadataCleaner(reporter);
     assertThat(metadataCleaner).isInstanceOf(HiveMetadataCleaner.class);
   }
 
@@ -153,15 +156,17 @@ public class CommonBeansTest {
 
   @Test
   public void verifyExpiredMetadataHandler() {
-    ExpiredMetadataHandler expiredMetadataHandler = commonBeans.expiredMetadataHandler(metadataRepository,
+    HiveClientFactory hiveClientFactory = Mockito.mock(HiveClientFactory.class);
+    ExpiredMetadataHandler expiredMetadataHandler = commonBeans.expiredMetadataHandler(hiveClientFactory, metadataRepository,
         metadataCleaner, pathCleaner);
     assertThat(expiredMetadataHandler).isInstanceOf(ExpiredMetadataHandler.class);
   }
 
   @Test
   public void verifyCleanupService() {
+    HiveClientFactory hiveClientFactory = Mockito.mock(HiveClientFactory.class);
     CleanupService cleanupService = commonBeans.cleanupService(
-        List.of(commonBeans.expiredMetadataHandler(metadataRepository, metadataCleaner, pathCleaner)), 2,
+        List.of(commonBeans.expiredMetadataHandler(hiveClientFactory, metadataRepository, metadataCleaner, pathCleaner)), 2,
         dryRunEnabled);
     assertThat(cleanupService).isInstanceOf(PagingMetadataCleanupService.class);
   }

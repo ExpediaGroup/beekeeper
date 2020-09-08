@@ -15,7 +15,6 @@
  */
 package com.expediagroup.beekeeper.cleanup.hive;
 
-
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,14 +43,14 @@ public class HiveMetadataCleanerTest {
 
   @BeforeEach
   public void init() {
-    cleaner = new HiveMetadataCleaner(hiveClient, deletedMetadataReporter);
+    cleaner = new HiveMetadataCleaner(deletedMetadataReporter);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
   }
 
   @Test
   public void typicalDropTable() {
-    cleaner.dropTable(housekeepingMetadata);
+    cleaner.dropTable(hiveClient, housekeepingMetadata);
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
   }
 
@@ -60,7 +59,7 @@ public class HiveMetadataCleanerTest {
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME)).thenReturn(true);
 
-    cleaner.dropPartition(housekeepingMetadata);
+    cleaner.dropPartition(hiveClient, housekeepingMetadata);
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
 
@@ -69,8 +68,7 @@ public class HiveMetadataCleanerTest {
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME)).thenReturn(false);
 
-    cleaner.dropPartition(housekeepingMetadata);
+    cleaner.dropPartition(hiveClient, housekeepingMetadata);
     verify(deletedMetadataReporter, never()).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
-
 }

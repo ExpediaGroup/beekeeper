@@ -35,14 +35,40 @@ public interface HousekeepingMetadataRepository extends JpaRepository<Housekeepi
       @Param("instant") LocalDateTime instant,
       Pageable pageable);
 
+  /**
+   * Returns the record that matches the inputs given, if there is one.
+   *
+   * @implNote To get the record for a partitioned table both the input value and the value of the partitionName of the current
+   * record must be NULL.
+   *
+   * @param databaseName
+   * @param tableName
+   * @param partitionName
+   * @return
+   */
   @Query(value = "from HousekeepingMetadata t "
       + "where t.databaseName = :databaseName "
       + "and t.tableName = :tableName "
-      + "and (t.partitionName = :partitionName or t.partitionName is NULL) " // To handle special null case
+      + "and (t.partitionName = :partitionName or (:partitionName is NULL and t.partitionName is NULL)) " // To handle special null case
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   Optional<HousekeepingMetadata> findRecordForCleanupByDbTableAndPartitionName(
       @Param("databaseName") String databaseName,
       @Param("tableName") String tableName, @Param("partitionName") String partitionName);
+
+  /**
+   * Returns the maximum value for the cleanupTimestamp for a database and table name pair.
+   *
+   * @param databaseName
+   * @param tableName
+   * @return
+   */
+  @Query(value = "select max(cleanupTimestamp) from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  LocalDateTime findMaximumCleanupTimestampForDbAndTable(
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName);
 
   /**
    * This method returns the count of all records for a database and table name pair where the partitionName is not null.

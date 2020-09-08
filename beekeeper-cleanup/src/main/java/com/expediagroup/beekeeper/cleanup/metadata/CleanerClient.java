@@ -15,13 +15,13 @@
  */
 package com.expediagroup.beekeeper.cleanup.metadata;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import java.io.Closeable;
 
-public interface MetadataCleaner {
+public interface CleanerClient extends Closeable {
 
-  void dropTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata);
+  void dropTable(String databaseName, String tableName);
 
-  boolean dropPartition(CleanerClient client, HousekeepingMetadata housekeepingMetadata);
+  boolean dropPartition(String databaseName, String tableName, String partitionName);
 
-  boolean tableExists(CleanerClient client, String databaseName, String tableName);
+  boolean tableExists(String databaseName, String tableName);
 }

@@ -20,11 +20,12 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.expediagroup.beekeeper.cleanup.metadata.CleanerClient;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 
-public class HiveClient {
+public class HiveClient implements CleanerClient {
 
   private static final Logger log = LoggerFactory.getLogger(HiveClient.class);
 
@@ -42,6 +43,7 @@ public class HiveClient {
    * @param databaseName
    * @param tableName
    */
+  @Override
   public void dropTable(String databaseName, String tableName) {
     if (dryRunEnabled) {
       log.info("Dry run - dropping table \"{}.{}\"", databaseName, tableName);
@@ -66,6 +68,7 @@ public class HiveClient {
    * @param tableName
    * @param partitionName expected format: "event_date=2020-01-01/event_hour=0/event_type=A"
    */
+  @Override
   public boolean dropPartition(String databaseName, String tableName, String partitionName) {
     boolean partitionDeleted = true;
     if (dryRunEnabled) {
@@ -92,6 +95,7 @@ public class HiveClient {
     return partitionDeleted;
   }
 
+  @Override
   public boolean tableExists(String databaseName, String tableName) {
     try {
       return client.tableExists(databaseName, tableName);
@@ -99,5 +103,10 @@ public class HiveClient {
       throw new BeekeeperException(
           "Unexpected exception when checking if table \"" + databaseName + "." + tableName + "\" exists.", e);
     }
+  }
+
+  @Override
+  public void close() {
+    client.close();
   }
 }

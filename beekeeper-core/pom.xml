@@ -52,7 +52,7 @@
       <artifactId>micrometer-registry-prometheus</artifactId>
       <version>${prometheus.version}</version>
     </dependency>
-    
+
     <!-- test -->
     <dependency>
       <groupId>org.testcontainers</groupId>
@@ -78,5 +78,5 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  
+
 </project>

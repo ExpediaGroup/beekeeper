@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.cleanup.hive;
 
+import com.expediagroup.beekeeper.cleanup.metadata.CleanerClient;
 import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.core.config.MetadataType;
@@ -23,25 +24,22 @@ import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 
 public class HiveMetadataCleaner implements MetadataCleaner {
 
-  private HiveClient client;
   private DeletedMetadataReporter deletedMetadataReporter;
 
-  public HiveMetadataCleaner(HiveClient client, DeletedMetadataReporter deletedMetadataReporter) {
-    this.client = client;
+  public HiveMetadataCleaner(DeletedMetadataReporter deletedMetadataReporter) {
     this.deletedMetadataReporter = deletedMetadataReporter;
   }
 
   @Override
   @TimedTaggable("hive-table-deleted")
-  public void dropTable(HousekeepingMetadata housekeepingMetadata) {
-    client
-        .dropTable(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
+  public void dropTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
+    client.dropTable(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
     deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
   }
 
   @Override
   @TimedTaggable("hive-partition-deleted")
-  public boolean dropPartition(HousekeepingMetadata housekeepingMetadata) {
+  public boolean dropPartition(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
     boolean partitionDeleted = client
         .dropPartition(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(),
             housekeepingMetadata.getPartitionName());
@@ -52,7 +50,8 @@ public class HiveMetadataCleaner implements MetadataCleaner {
   }
 
   @Override
-  public boolean tableExists(String databaseName, String tableName) {
+  public boolean tableExists(CleanerClient client, String databaseName, String tableName) {
     return client.tableExists(databaseName, tableName);
   }
+
 }

@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.expediagroup.beekeeper.cleanup.metadata.CleanerClient;
+import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
 import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
@@ -37,12 +39,15 @@ public class ExpiredMetadataHandler implements MetadataHandler {
 
   private final Logger log = LoggerFactory.getLogger(ExpiredMetadataHandler.class);
 
+  private final CleanerClientFactory cleanerClientFactory;
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
   private final MetadataCleaner metadataCleaner;
   private final PathCleaner pathCleaner;
 
-  public ExpiredMetadataHandler(HousekeepingMetadataRepository housekeepingMetadataRepository,
+  public ExpiredMetadataHandler(CleanerClientFactory cleanerClientFactory,
+      HousekeepingMetadataRepository housekeepingMetadataRepository,
       MetadataCleaner metadataCleaner, PathCleaner pathCleaner) {
+    this.cleanerClientFactory = cleanerClientFactory;
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
     this.metadataCleaner = metadataCleaner;
     this.pathCleaner = pathCleaner;
@@ -63,20 +68,9 @@ public class ExpiredMetadataHandler implements MetadataHandler {
    */
   @Override
   public void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled) {
-    if (dryRunEnabled) {
-      cleanup(housekeepingMetadata, instant, dryRunEnabled);
-    } else {
-      cleanupAndUpdate(housekeepingMetadata, instant, dryRunEnabled);
-    }
-  }
-
-  private void cleanupAndUpdate(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant,
-      boolean dryRunEnabled) {
-    try {
-      log.info("Cleaning up metadata for table \"{}.{}\"", housekeepingMetadata.getDatabaseName(),
-          housekeepingMetadata.getTableName());
-      boolean deleted = cleanup(housekeepingMetadata, instant, dryRunEnabled);
-      if (deleted) {
+    try (CleanerClient client = cleanerClientFactory.newInstance()) {
+      boolean deleted = cleanup(client, housekeepingMetadata, instant, dryRunEnabled);
+      if (deleted && !dryRunEnabled) {
         updateAttemptsAndStatus(housekeepingMetadata, DELETED);
       }
     } catch (Exception e) {
@@ -87,41 +81,43 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     }
   }
 
-  private boolean cleanup(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant,
+  private boolean cleanup(CleanerClient client, HousekeepingMetadata housekeepingMetadata, LocalDateTime instant,
       boolean dryRunEnabled) {
     String partitionName = housekeepingMetadata.getPartitionName();
     if (partitionName != null) {
-      cleanupPartition(housekeepingMetadata, metadataCleaner, pathCleaner);
+      log.info("Cleaning up partition \"{}\" for table \"{}.{}\".", partitionName,
+          housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
+      cleanupPartition(client, housekeepingMetadata);
       return true;
     } else {
       Long partitionCount = countPartitionsForDatabaseAndTable(instant, housekeepingMetadata.getDatabaseName(),
           housekeepingMetadata.getTableName(), dryRunEnabled);
       if (partitionCount.equals(LONG_ZERO)) {
-        cleanUpTable(housekeepingMetadata, metadataCleaner, pathCleaner);
+        log.info("Cleaning up table \"{}.{}\".",
+            housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
+        cleanUpTable(client, housekeepingMetadata);
         return true;
       }
     }
     return false;
   }
 
-  private void cleanUpTable(HousekeepingMetadata housekeepingMetadata, MetadataCleaner metadataCleaner,
-      PathCleaner pathCleaner) {
+  private void cleanUpTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
-    if (metadataCleaner.tableExists(databaseName, tableName)) {
-      metadataCleaner.dropTable(housekeepingMetadata);
+    if (metadataCleaner.tableExists(client, databaseName, tableName)) {
+      metadataCleaner.dropTable(client, housekeepingMetadata);
       pathCleaner.cleanupPath(housekeepingMetadata);
     } else {
       log.info("Cannot drop table \"{}.{}\". Table does not exist.", databaseName, tableName);
     }
   }
 
-  private void cleanupPartition(HousekeepingMetadata housekeepingMetadata, MetadataCleaner metadataCleaner,
-      PathCleaner pathCleaner) {
+  private void cleanupPartition(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
-    if (metadataCleaner.tableExists(databaseName, tableName)) {
-      boolean partitionDeleted = metadataCleaner.dropPartition(housekeepingMetadata);
+    if (metadataCleaner.tableExists(client, databaseName, tableName)) {
+      boolean partitionDeleted = metadataCleaner.dropPartition(client, housekeepingMetadata);
       if (partitionDeleted) {
         pathCleaner.cleanupPath(housekeepingMetadata);
       }

@@ -19,6 +19,7 @@ import static java.lang.String.format;
 
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -70,6 +71,9 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
         housekeepingMetadata.getPartitionName());
 
     if (housekeepingMetadataOptional.isEmpty()) {
+      if (housekeepingMetadata.getPartitionName() != null) {
+        updateTableCleanupTimestamp(housekeepingMetadata);
+      }
       return housekeepingMetadata;
     }
 
@@ -79,6 +83,61 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
     existingHousekeepingMetadata.setCleanupDelay(housekeepingMetadata.getCleanupDelay());
     existingHousekeepingMetadata.setClientId(housekeepingMetadata.getClientId());
 
+    if (isPartitionedTable(housekeepingMetadata)) {
+      updateTableCleanupTimestampToMax(existingHousekeepingMetadata);
+    }
+
     return existingHousekeepingMetadata;
+  }
+
+  /**
+   * When the cleanup delay of a table with partitions is altered, the delay should be updated but the cleanup
+   * timestamp should be the max timestamp of any of the partitions which the table has.
+   *
+   * e.g. if the cleanup delay was 10 but now its being updated to 2, the cleanup timestamp should match any partition
+   * with delay 10 (or above) to prevent premature attempts to cleanup the table.
+   *
+   * @param housekeepingMetadata
+   */
+  private void updateTableCleanupTimestampToMax(HousekeepingMetadata housekeepingMetadata) {
+    LocalDateTime currentCleanupTimestamp = housekeepingMetadata.getCleanupTimestamp();
+    LocalDateTime maxCleanupTimestamp = housekeepingMetadataRepository.findMaximumCleanupTimestampForDbAndTable(
+        housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
+
+    if (maxCleanupTimestamp != null && maxCleanupTimestamp.isAfter(currentCleanupTimestamp)) {
+      log.info("Updating entry for \"{}.{}\". Cleanup timestamp is now \"{}\".", housekeepingMetadata.getDatabaseName(),
+          housekeepingMetadata.getTableName(), maxCleanupTimestamp);
+      housekeepingMetadata.setCleanupTimestamp(maxCleanupTimestamp);
+    }
+  }
+
+  /**
+   * When a new partition is added to a table, check to see if the new cleanup delay will be later than the current
+   * cleanup delay for the table.
+   * The cleanup timestamp of a partitioned table should be equivalent to that of the last partition which will be
+   * dropped to prevent premature attempts to cleanup the table.
+   *
+   * @param partitionMetadata
+   */
+  private void updateTableCleanupTimestamp(HousekeepingMetadata partitionMetadata) {
+    HousekeepingMetadata tableMetadata = housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(
+        partitionMetadata.getDatabaseName(), partitionMetadata.getTableName(), null).get();
+
+    LocalDateTime partitionCleanupTimestamp = partitionMetadata.getCleanupTimestamp();
+    LocalDateTime currentCleanupTimestamp = tableMetadata.getCleanupTimestamp();
+
+    if (partitionCleanupTimestamp.isAfter(currentCleanupTimestamp)) {
+      log.info("Updating entry for \"{}.{}\". Cleanup timestamp is now \"{}\".", tableMetadata.getDatabaseName(),
+          tableMetadata.getTableName(), partitionCleanupTimestamp);
+      tableMetadata.setCleanupTimestamp(partitionCleanupTimestamp);
+      housekeepingMetadataRepository.save(tableMetadata);
+    }
+  }
+
+  private boolean isPartitionedTable(HousekeepingMetadata housekeepingMetadata) {
+    Long numPartitions = housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(
+        housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
+
+    return numPartitions > 0 && housekeepingMetadata.getPartitionName() == null;
   }
 }

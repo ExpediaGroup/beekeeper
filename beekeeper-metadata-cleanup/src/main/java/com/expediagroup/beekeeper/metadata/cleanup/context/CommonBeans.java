@@ -38,8 +38,9 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.expediagroup.beekeeper.cleanup.aws.S3Client;
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.aws.S3SentinelFilesCleaner;
-import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
+import com.expediagroup.beekeeper.cleanup.hive.HiveClientFactory;
 import com.expediagroup.beekeeper.cleanup.hive.HiveMetadataCleaner;
+import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
 import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
@@ -81,11 +82,11 @@ public class CommonBeans {
     return new HiveMetaStoreClientSupplier(metaStoreClientFactory, hiveConf, name);
   }
 
-  @Bean
-  public HiveClient hiveClient(
+  @Bean(name = "hiveClientFactory")
+  public CleanerClientFactory clientFactory(
       Supplier<CloseableMetaStoreClient> metaStoreClientSupplier,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new HiveClient(metaStoreClientSupplier.get(), dryRunEnabled);
+    return new HiveClientFactory(metaStoreClientSupplier, dryRunEnabled);
   }
 
   @Bean
@@ -97,9 +98,8 @@ public class CommonBeans {
 
   @Bean(name = "hiveTableCleaner")
   MetadataCleaner metadataCleaner(
-      HiveClient hiveClient,
       DeletedMetadataReporter deletedMetadataReporter) {
-    return new HiveMetadataCleaner(hiveClient, deletedMetadataReporter);
+    return new HiveMetadataCleaner(deletedMetadataReporter);
   }
 
   @Bean
@@ -141,10 +141,11 @@ public class CommonBeans {
 
   @Bean(name = "expiredMetadataHandler")
   public ExpiredMetadataHandler expiredMetadataHandler(
+      @Qualifier("hiveClientFactory") CleanerClientFactory cleanerClientFactory,
       HousekeepingMetadataRepository housekeepingMetadataRepository,
       @Qualifier("hiveTableCleaner") MetadataCleaner metadataCleaner,
       @Qualifier("s3PathCleaner") PathCleaner pathCleaner) {
-    return new ExpiredMetadataHandler(housekeepingMetadataRepository, metadataCleaner, pathCleaner);
+    return new ExpiredMetadataHandler(cleanerClientFactory, housekeepingMetadataRepository, metadataCleaner, pathCleaner);
   }
 
   @Bean

@@ -68,7 +68,7 @@ import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperSchedulerApiary;
 @Testcontainers
 public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends BeekeeperIntegrationTestBase {
 
-  private static final int TIMEOUT = 5;
+  private static final int TIMEOUT = 30;
   private static final String APIARY_QUEUE_URL_PROPERTY = "properties.apiary.queue-url";
 
   private static final String QUEUE = "apiary-receiver-queue";
@@ -147,10 +147,15 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
         PARTITION_A_VALUES, true);
     amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage.getFormattedString()));
 
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 1);
+    // creating entry for table
+    insertExpiredMetadata("s3://location", null);
+
+    await().atMost(60, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 2);
 
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
-    assertExpiredMetadata(expiredMetadata.get(0), LOCATION_A, PARTITION_A_NAME);
+    // check first entry is for the table
+    assertThat(expiredMetadata.get(0).getPartitionName()).isEqualTo(null);
+    assertExpiredMetadata(expiredMetadata.get(1), LOCATION_A, PARTITION_A_NAME);
   }
 
   @Test
@@ -162,11 +167,16 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage.getFormattedString()));
     amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage2.getFormattedString()));
 
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 2);
+    // creating entry for table
+    insertExpiredMetadata("s3://location", null);
+
+    await().atMost(60, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 3);
 
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
-    assertExpiredMetadata(expiredMetadata.get(0), LOCATION_A, PARTITION_A_NAME);
-    assertExpiredMetadata(expiredMetadata.get(1), LOCATION_B, PARTITION_B_NAME);
+    // check first entry is for the table
+    assertThat(expiredMetadata.get(0).getPartitionName()).isEqualTo(null);
+    assertExpiredMetadata(expiredMetadata.get(1), LOCATION_A, PARTITION_A_NAME);
+    assertExpiredMetadata(expiredMetadata.get(2), LOCATION_B, PARTITION_B_NAME);
   }
 
   @Test

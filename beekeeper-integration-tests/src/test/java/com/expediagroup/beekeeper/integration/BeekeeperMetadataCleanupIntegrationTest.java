@@ -347,7 +347,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-          .contains("metadata-cleanup-job", "hive-table-deleted", "hive-table-" + METRIC_NAME);
+          .contains("metadata-cleanup-job", "hive-table-" + METRIC_NAME);
     });
   }
 

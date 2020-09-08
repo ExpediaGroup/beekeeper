@@ -20,6 +20,7 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -49,6 +50,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
   private static final String DATABASE_NAME = "database";
   private static final String TABLE_NAME = "table";
   private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
+  private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
 
   @Mock
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
@@ -58,10 +60,25 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
   @Test
   public void typicalCreateScheduleForHousekeeping() {
-    HousekeepingMetadata metadata = createEntityHousekeepingTable();
+    HousekeepingMetadata metadata = createHousekeepingMetadataTable();
+
+    when(housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME,
+        null)).thenReturn(Optional.empty());
+
+    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
+
+    verify(housekeepingMetadataRepository).save(metadata);
+  }
+
+  @Test
+  public void typicalCreatePartitionScheduleForHousekeeping() {
+    HousekeepingMetadata metadata = createHousekeepingMetadataPartition();
+    HousekeepingMetadata tableMetadata = createHousekeepingMetadataTable();
 
     when(housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME,
         PARTITION_NAME)).thenReturn(Optional.empty());
+    when(housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME,
+        null)).thenReturn(Optional.of(tableMetadata));
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
 
@@ -70,21 +87,48 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
   @Test
   public void typicalUpdateScheduleForHousekeepingWhenChangingCleanupDelay() {
-    HousekeepingMetadata existingTable = spy(createEntityHousekeepingTable());
-    HousekeepingMetadata metadata = createEntityHousekeepingTable();
+    HousekeepingMetadata existingTable = spy(createHousekeepingMetadataTable());
+    HousekeepingMetadata metadata = createHousekeepingMetadataTable();
     metadata.setCleanupDelay(Duration.parse("P30D"));
 
     when(housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME,
-        PARTITION_NAME)).thenReturn(Optional.of(existingTable));
+        null)).thenReturn(Optional.of(existingTable));
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
 
-    verify(housekeepingMetadataRepository).findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME,
-        PARTITION_NAME);
     verify(existingTable).setPath(metadata.getPath());
     verify(existingTable).setHousekeepingStatus(metadata.getHousekeepingStatus());
     verify(existingTable).setClientId(metadata.getClientId());
     verify(existingTable).setCleanupDelay(metadata.getCleanupDelay());
+    verifyNoMoreInteractions(existingTable);
+    verify(housekeepingMetadataRepository).save(existingTable);
+  }
+
+  @Test
+  public void typicalUpdatePartitionedTableWithShorterCleanupDelay() {
+    HousekeepingMetadata existingTable = spy(createHousekeepingMetadataTable());
+    HousekeepingMetadata metadata = createHousekeepingMetadataTable();
+    metadata.setCleanupDelay(Duration.parse("PT3H"));
+
+    when(housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME,
+        null)).thenReturn(Optional.of(existingTable));
+    when(housekeepingMetadataRepository.findMaximumCleanupTimestampForDbAndTable(DATABASE_NAME, TABLE_NAME)).thenReturn(
+        CREATION_TIMESTAMP.plus(Duration.parse("P30D")));
+    when(housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME,
+        TABLE_NAME)).thenReturn(1L);
+
+    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
+
+    verify(existingTable).setPath(metadata.getPath());
+    verify(existingTable).setHousekeepingStatus(metadata.getHousekeepingStatus());
+    verify(existingTable).setCleanupDelay(metadata.getCleanupDelay());
+    verify(existingTable).setClientId(metadata.getClientId());
+    verify(existingTable).getCleanupTimestamp();
+    verify(existingTable, times(2)).getDatabaseName();
+    verify(existingTable, times(2)).getTableName();
+    // new delay is 3 hours, which is less than the current maximum of 30 days, so cleanup timestamp set as max value
+    verify(existingTable).setCleanupTimestamp(CREATION_TIMESTAMP.plus(Duration.parse("P30D")));
+
     verifyNoMoreInteractions(existingTable);
     verify(housekeepingMetadataRepository).save(existingTable);
   }
@@ -97,7 +141,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
   @Test
   public void scheduleFails() {
-    HousekeepingMetadata metadata = createEntityHousekeepingTable();
+    HousekeepingMetadata metadata = createHousekeepingMetadataTable();
 
     when(housekeepingMetadataRepository.save(metadata)).thenThrow(new RuntimeException());
 
@@ -107,16 +151,23 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     verify(housekeepingMetadataRepository).save(metadata);
   }
 
-  private HousekeepingMetadata createEntityHousekeepingTable() {
-    LocalDateTime creationTimestamp = LocalDateTime.now(ZoneId.of("UTC"));
+  private HousekeepingMetadata createHousekeepingMetadataPartition() {
+    return createEntityHousekeepingTable(PARTITION_NAME);
+  }
+
+  private HousekeepingMetadata createHousekeepingMetadataTable() {
+    return createEntityHousekeepingTable(null);
+  }
+
+  private HousekeepingMetadata createEntityHousekeepingTable(String partitionName) {
     return new HousekeepingMetadata.Builder()
         .path(PATH)
         .databaseName(DATABASE_NAME)
         .tableName(TABLE_NAME)
-        .partitionName(PARTITION_NAME)
+        .partitionName(partitionName)
         .housekeepingStatus(SCHEDULED)
-        .creationTimestamp(creationTimestamp)
-        .modifiedTimestamp(creationTimestamp)
+        .creationTimestamp(CREATION_TIMESTAMP)
+        .modifiedTimestamp(CREATION_TIMESTAMP)
         .cleanupDelay(Duration.parse("P3D"))
         .cleanupAttempts(0)
         .lifecycleType(EXPIRED.toString())
