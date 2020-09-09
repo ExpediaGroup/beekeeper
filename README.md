@@ -16,30 +16,58 @@ Docker images can be found in Expedia Group's [dockerhub](https://hub.docker.com
 
 # How does it work?
 
-Beekeeper makes use of [Apiary](https://github.com/ExpediaGroup/apiary) - an open source federated cloud data lake - to detect changes in the Hive Metastore. One of Apiary’s components, the [Apiary Metastore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-events/apiary-metastore-listener), captures Hive events and publishes these as messages to an SNS topic. Beekeeper uses these messages to detect changes to the Hive Metastore, and perform appropriate deletions.
+Beekeeper makes use of [Apiary](https://github.com/ExpediaGroup/apiary) - an open source federated cloud data lake - to detect changes in the Hive MetaStore. One of Apiary’s components, the [Apiary MetaStore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-events/apiary-metastore-listener), captures Hive events and publishes these as messages to an SNS topic. Beekeeper uses these messages to detect changes to the Hive MetaStore, and perform appropriate deletions.
 
-Beekeeper comprises two separate Spring-based Java applications. One application schedules paths for deletion in a shared database, and the other performs deletions.
+Beekeeper comprises three separate Spring-based Java applications. One application schedules paths and metadata for deletion in shared databases for unreferenced paths and expired metadata respectively. The other two perform deletions, one for paths and the other metadata.
 
-## End-to-end lifecycle example
+## Beekeeper Architecture
 
-![Beekeeper architecture](.README_images/architecture_diagram.png)
+![Beekeeper architecture](.README_images/updated_architecture_diagram.png)
 
+**Unreferenced paths**
+The unreferenced property can be added to tables to monitor when paths become unreferenced, e.g. when a table is dropped. 
+
+End-to-end lifecycle example
 1. A Hive table is configured with the parameter `beekeeper.remove.unreferenced.data=true` (see [Hive table configuration](#hive-table-configuration) for more details.)
 2. An operation is executed on the table that orphans some data (alter partition, drop partition, etc.)
-3. Hive Metastore events are emitted by the [Hive Metastore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-listener) as a result of the operation.
+3. Hive MetaStore events are emitted by the [Hive MetaStore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-listener) as a result of the operation.
 4. Hive events are picked up from the queue by Beekeeper using [Apiary Receiver](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-receivers).
-5. Beekeeper processes these messages and schedules orphaned paths or expired tables for deletion by adding them to a database.
-6. The scheduled paths or tables are deleted by Beekeeper after a configurable delay, the default is 3 days for paths and 30 days for tables (see [Hive table configuration](#hive-table-configuration) for more details.)
+5. Beekeeper processes these messages and schedules orphaned paths for deletion by adding them to a database.
+6. The scheduled paths or tables are deleted by Beekeeper after a configurable delay, the default is 3 days (see [Hive table configuration](#hive-table-configuration) for more details.)
+
+**Time To Live, TTL**
+There is also a TTL property which, when added, will delete tables and their locations after a configurable delay. 
+
+End-to-end lifecycle example
+1. A Hive table is configured with the TTL parameter `beekeeper.remove.expired.data=true` (see [Hive table configuration](#hive-table-configuration) for more details).
+2. This `create table` Hive event is picked up from the queue by Beekeeper using the [Apiary Receiver](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-receivers), and the table is scheduled for cleanup with a configurable delay. If no delay is specified the default is 30 days. 
+3. An operation is executed on the table which alters it in some way, (alter table, add partition, alter partition)
+4. These Hive events are once again picked up from the queue by Beekeeper using the Apiary receiver. Depending on the event, Beekeeper will do the following:
+    - `Alter table` - Creates a new entry in the table with the updated table info
+    - `Add partition` - The partition is scheduled to be deleted using the cleanup delay of the table 
+    - `Alter partition` - Creates a new entry in the table with the updated partition info
+5. The scheduled partitions, tables, and their paths will be deleted by Beekeeper after the delay has passed.
+
+*TTL Caveats*
+Currently with the first release of the TTL there are the following issues:
+- If a table or partition is dropped by a user the related paths will become unreferenced and won’t be cleaned up. 
+    - This can be avoided by also adding the unreferenced property to the table. However, this property listens to any drop event on that table and we haven’t yet configured it to ignore drop events made by Beekeeper itself. So this will mean that any path for a table/partition dropped by Beekeeper during the TTL cleanup will be scheduled for deletion again in the unreferenced cleanup table.
+- If a table with existing partitions is renamed, these partitions will not be dropped until the table has expired. i.e. if you have a table with cleanup delay 2 days, add a partition, change the delay to 10 days and then rename the table, the existing partition currently won’t be rescheduled to be deleted under the new table. So it will be delete with the table in 10 days.  
 
 ## Supported events
 
-Beekeeper will currently only be triggered by these events:
+For the Unreferenced property Beekeeper will currently only be triggered by these events:
 - `alter_partition`
 - `alter_table`
 - `drop_partition`
 - `drop_table`
 
 By default, `alter_partition` and `alter_table` events require no further configuration. However, in order to avoid unexpected data loss, other event types require whitelisting on a per table basis. See [Hive table configuration](#hive-table-configuration) for more details.
+
+For the TTL property Beekeeper will be triggered by these events:
+- `alter_table`
+- `add_partition`
+- `alter_partition`
 
 ## Hive table configuration
 
@@ -61,10 +89,11 @@ ALTER TABLE <table-name> SET TBLPROPERTIES("beekeeper.remove.unreferenced.data"=
 
 # Running Beekeeper
 
-Beekeeper comprises two Spring Boot applications, `beekeeper-cleanup` and `beekeeper-scheduler-apiary`, which run independently of each other:
+Beekeeper comprises three Spring Boot applications, `beekeeper-path-cleanup`, `beekeeper-metadata-cleanup`, and `beekeeper-scheduler-apiary`, which run independently of each other:
 
-- `beekeeper-cleanup` periodically queries a database for paths to delete and performs deletions. 
-- `beekeeper-scheduler-apiary` periodically polls an Apiary SQS queue for Hive metastore events and inserts S3 paths to be deleted into a database, scheduling them for deletion.
+- `beekeeper-path-cleanup` periodically queries a database for paths to delete and performs deletions. 
+- `beekeeper-metadata-cleanup` periodically queries a database for metadata to delete and performs deletions. 
+- `beekeeper-scheduler-apiary` periodically polls an Apiary SQS queue for Hive MetaStore events and inserts S3 paths to be deleted into a database, scheduling them for deletion.
 
 Both applications require configuration to be provided, see [Application configuration](#application-configuration) for details.
 
@@ -159,24 +188,32 @@ Being a Spring Boot Application, all [standard actuator endpoints](https://docs.
 
 For example, the healthcheck endpoint at: `http://<address>:<port>/actuator/health`. 
 
-By default, `beekeeper-scheduler-apiary` listens on port 8080 and `beekeeper-cleanup` listens on port 8008. To access this endpoint when running in a Docker container, the port must be published:
+By default, `beekeeper-scheduler-apiary` listens on port 8080, `beekeeper-path-cleanup` listens on port 8008, and `beekeeper-metadata-cleanup` listens on 9008. To access this endpoint when running in a Docker container, the port must be published:
 
     docker run -p <port>:<port> <image-id>
 
 ## Application configuration
-### Beekeeper Path Scheduler Apiary
+### Beekeeper Scheduler Apiary
 | Property                            | Required | Description |
 |:----|:----|:----|
 | `apiary.queue-url`                  | Yes      | URL for SQS queue. |
 | `beekeeper.default-cleanup-delay`   | No       | Default Time To Live (TTL) for orphaned paths in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Durations) format: only days, hours, minutes and seconds can be specified in the expression. Default value is `P3D` (3 days). |
 | `beekeeper.default-expiration-delay`| No       | Default Time To Live (TTL) for tables in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Durations) format: only days, hours, minutes and seconds can be specified in the expression. Default value is `P30D` (30 days). |
 
-### Beekeeper Cleanup
+### Beekeeper Path Cleanup
 | Property             | Required | Description |
 |:----|:----:|:----|
 | `cleanup-page-size`  | No       | Number of rows that should be processed in one page. Default value is `500`. |
-| `dry-run-enabled`            | No       | Enable to simply display the deletions that would be performed, without actually doing so. Default value is `false`. |
+| `dry-run-enabled`    | No       | Enable to simply display the deletions that would be performed, without actually doing so. Default value is `false`. |
 | `scheduler-delay-ms` | No       | Amount of time (in milliseconds) between consecutive cleanups. Default value is `300000` (5 minutes after the previous cleanup completes). |
+
+### Beekeeper Metadata Cleanup
+| Property             | Required | Description |
+|:----|:----:|:----|
+| `cleanup-page-size`  | No       | Number of rows that should be processed in one page. Default value is `500`. |
+| `dry-run-enabled`    | No       | Enable to simply display the deletions that would be performed, without actually doing so. Default value is `false`. |
+| `scheduler-delay-ms` | No       | Amount of time (in milliseconds) between consecutive cleanups. Default value is `300000` (5 minutes after the previous cleanup completes). |
+| `metastore-uri`      | Yes      | URI of the Hive MetaStore where tables to be cleaned-up are located. Required for Beekeeper Metadata Cleanup. |
 
 ### Metrics
 
