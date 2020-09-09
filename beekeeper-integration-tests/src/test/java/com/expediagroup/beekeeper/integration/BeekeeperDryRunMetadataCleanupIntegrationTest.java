@@ -257,8 +257,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
     amazonS3.putObject(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY, "");
 
     insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLine("\"" + DATABASE_NAME_VALUE
-        + "." + TABLE_NAME_VALUE + "\""));
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLine(UNPARTITIONED_TABLE_OBJECT_KEY));
 
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
     assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY)).isTrue();

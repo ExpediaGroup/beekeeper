@@ -30,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
@@ -48,6 +49,7 @@ import com.expediagroup.beekeeper.core.monitoring.Taggable;
 @ContextConfiguration(classes = { TestApplication.class },
   loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=update"})
 public class BytesDeletedReporterTest {
 
   private static final String TABLE = "database.table";

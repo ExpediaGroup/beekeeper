@@ -32,6 +32,7 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_C
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
