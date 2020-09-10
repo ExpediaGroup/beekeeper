@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
-import static com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter.DRY_RUN_METRIC_NAME;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.LONG_CLEANUP_DELAY_VALUE;
@@ -59,6 +58,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.google.common.collect.ImmutableMap;
 
+import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.HiveTestUtils;
 import com.expediagroup.beekeeper.integration.utils.TestAppender;
@@ -252,16 +253,21 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   }
 
   @Test
-  public void dryRunMetrics() throws SQLException, TException {
-    hiveTestUtils.createTable(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
-    amazonS3.putObject(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY, "");
+  public void dryRunMetrics() throws Exception {
+    Table table = hiveTestUtils.createTable(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
+    hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
 
-    insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLine("\"" + DATABASE_NAME_VALUE
-        + "." + TABLE_NAME_VALUE + "\""));
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
+    amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
+
+    insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
+    insertExpiredMetadata(PARTITION_PATH, PARTITION_NAME);
+
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLine(PARTITION_PATH.replace("s3a://", "")));
 
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
-    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isTrue();
     assertMetrics();
   }
 
@@ -271,7 +277,8 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-          .contains("metadata-cleanup-job", "hive-table-" + DRY_RUN_METRIC_NAME);
+          .contains("metadata-cleanup-job", "hive-table-deleted", "hive-partition-deleted", "hive-table-" + DeletedMetadataReporter.DRY_RUN_METRIC_NAME,
+              "hive-partition-" + DeletedMetadataReporter.DRY_RUN_METRIC_NAME, "s3-paths-deleted", "s3-" + BytesDeletedReporter.DRY_RUN_METRIC_NAME);
     });
   }
 

@@ -19,9 +19,9 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 public interface MetadataCleaner {
 
-  void dropTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata);
+  void dropTable(HousekeepingMetadata housekeepingMetadata, CleanerClient client);
 
-  boolean dropPartition(CleanerClient client, HousekeepingMetadata housekeepingMetadata);
+  boolean dropPartition(HousekeepingMetadata housekeepingMetadata, CleanerClient client);
 
   boolean tableExists(CleanerClient client, String databaseName, String tableName);
 }

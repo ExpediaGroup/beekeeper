@@ -32,14 +32,14 @@ public class HiveMetadataCleaner implements MetadataCleaner {
 
   @Override
   @TimedTaggable("hive-table-deleted")
-  public void dropTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
+  public void dropTable(HousekeepingMetadata housekeepingMetadata, CleanerClient client) {
     client.dropTable(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
     deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
   }
 
   @Override
   @TimedTaggable("hive-partition-deleted")
-  public boolean dropPartition(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
+  public boolean dropPartition(HousekeepingMetadata housekeepingMetadata, CleanerClient client) {
     boolean partitionDeleted = client
         .dropPartition(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(),
             housekeepingMetadata.getPartitionName());

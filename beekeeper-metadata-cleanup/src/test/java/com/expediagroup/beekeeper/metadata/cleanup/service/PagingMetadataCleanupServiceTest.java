@@ -105,7 +105,7 @@ public class PagingMetadataCleanupServiceTest {
 
     pagingCleanupService.cleanUp(Instant.now());
 
-    verify(metadataCleaner, times(3)).dropTable(hiveClientCaptor.capture(), metadataCaptor.capture());
+    verify(metadataCleaner, times(3)).dropTable(metadataCaptor.capture(), hiveClientCaptor.capture());
     assertThat(metadataCaptor.getAllValues())
         .extracting("tableName")
         .containsExactly(tables.get(0), tables.get(1), tables.get(2));
@@ -133,7 +133,7 @@ public class PagingMetadataCleanupServiceTest {
 
     pagingCleanupService.cleanUp(Instant.now());
 
-    verify(metadataCleaner, times(3)).dropPartition(hiveClientCaptor.capture(), metadataCaptor.capture());
+    verify(metadataCleaner, times(3)).dropPartition(metadataCaptor.capture(), hiveClientCaptor.capture());
     assertThat(metadataCaptor.getAllValues())
         .extracting("tableName")
         .containsExactly(tables.get(0), tables.get(1), tables.get(2));
@@ -157,7 +157,7 @@ public class PagingMetadataCleanupServiceTest {
     tables.forEach(table -> metadataRepository.save(table));
 
     pagingCleanupService.cleanUp(Instant.now());
-    verify(metadataCleaner, times(2)).dropTable(hiveClientCaptor.capture(), metadataCaptor.capture());
+    verify(metadataCleaner, times(2)).dropTable(metadataCaptor.capture(), hiveClientCaptor.capture());
     assertThat(metadataCaptor.getAllValues())
         .extracting("tableName")
         .containsExactly(tables.get(0).getTableName(), tables.get(1).getTableName());
@@ -177,7 +177,7 @@ public class PagingMetadataCleanupServiceTest {
     tables.forEach(path -> metadataRepository.save(path));
     pagingCleanupService.cleanUp(Instant.now());
 
-    verify(metadataCleaner, times(2)).dropTable(hiveClientCaptor.capture(), metadataCaptor.capture());
+    verify(metadataCleaner, times(2)).dropTable(metadataCaptor.capture(), hiveClientCaptor.capture());
     assertThat(metadataCaptor.getAllValues())
         .extracting("tableName")
         .containsExactly(tables.get(0).getTableName(), tables.get(1).getTableName());
@@ -193,7 +193,10 @@ public class PagingMetadataCleanupServiceTest {
         .doNothing()
         .doThrow(new BeekeeperException("Error"))
         .when(metadataCleaner)
-        .dropTable(Mockito.any(HiveClient.class), Mockito.any(HousekeepingMetadata.class));
+        .dropTable(
+            Mockito.any(HousekeepingMetadata.class),
+            Mockito.any(HiveClient.class)
+        );
 
     List<HousekeepingMetadata> tables = List
         .of(createHousekeepingMetadata("table1", "s3://some_foo", null, SCHEDULED),
@@ -202,7 +205,7 @@ public class PagingMetadataCleanupServiceTest {
 
     pagingCleanupService.cleanUp(Instant.now());
 
-    verify(metadataCleaner, times(2)).dropTable(hiveClientCaptor.capture(), metadataCaptor.capture());
+    verify(metadataCleaner, times(2)).dropTable( metadataCaptor.capture(), hiveClientCaptor.capture());
     assertThat(metadataCaptor.getAllValues())
         .extracting("tableName")
         .containsExactly(tables.get(0).getTableName(), tables.get(1).getTableName());
