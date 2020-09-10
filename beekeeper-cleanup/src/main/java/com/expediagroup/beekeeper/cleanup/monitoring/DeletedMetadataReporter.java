@@ -42,6 +42,7 @@ public class DeletedMetadataReporter {
   }
 
   public void reportTaggable(Taggable taggable, MetadataType metadataType) {
+    log.info("Deleted " + metadataType.getTypeName());
     MetricTag tag = taggable.getMetricTag();
     String metadataMetricName = String.join("-", metadataType.getTypeName(), metricName);
     Counter counter = Counter.builder(metadataMetricName).tags(createTag(tag)).register(meterRegistry);

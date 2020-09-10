@@ -50,7 +50,7 @@ public class HiveMetadataCleanerTest {
 
   @Test
   public void typicalDropTable() {
-    cleaner.dropTable(hiveClient, housekeepingMetadata);
+    cleaner.dropTable(housekeepingMetadata, hiveClient);
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
   }
 
@@ -59,7 +59,7 @@ public class HiveMetadataCleanerTest {
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME)).thenReturn(true);
 
-    cleaner.dropPartition(hiveClient, housekeepingMetadata);
+    cleaner.dropPartition(housekeepingMetadata, hiveClient);
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
 
@@ -68,7 +68,7 @@ public class HiveMetadataCleanerTest {
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME)).thenReturn(false);
 
-    cleaner.dropPartition(hiveClient, housekeepingMetadata);
+    cleaner.dropPartition(housekeepingMetadata, hiveClient);
     verify(deletedMetadataReporter, never()).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
 }

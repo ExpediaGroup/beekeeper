@@ -32,7 +32,6 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_C
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,6 +65,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.google.common.collect.ImmutableMap;
 
+import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.HiveTestUtils;
 import com.expediagroup.beekeeper.metadata.cleanup.BeekeeperMetadataCleanup;
@@ -329,16 +329,22 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   }
 
   @Test
-  public void metrics() throws SQLException, TException {
-    hiveTestUtils.createTable(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
-    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, "");
+  public void metrics() throws Exception {
+    Table table = hiveTestUtils.createTable(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
+    hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
 
-    insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
-    await().atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
+    amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
+
+    insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
+    insertExpiredMetadata(PARTITION_PATH, PARTITION_NAME);
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(1).getHousekeepingStatus() == DELETED);
 
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
-    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isFalse();
     assertMetrics();
   }
 
@@ -348,7 +354,8 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-          .contains("metadata-cleanup-job", "hive-table-" + METRIC_NAME);
+          .contains("metadata-cleanup-job", "hive-table-deleted", "hive-partition-deleted", "hive-table-" + METRIC_NAME,
+              "hive-partition-" + METRIC_NAME, "s3-paths-deleted", "s3-" + BytesDeletedReporter.METRIC_NAME);
     });
   }
 
