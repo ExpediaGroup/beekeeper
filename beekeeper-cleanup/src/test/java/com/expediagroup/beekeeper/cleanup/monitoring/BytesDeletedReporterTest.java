@@ -30,7 +30,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
@@ -49,7 +48,6 @@ import com.expediagroup.beekeeper.core.monitoring.Taggable;
 @ContextConfiguration(classes = { TestApplication.class },
   loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=update"})
 public class BytesDeletedReporterTest {
 
   private static final String TABLE = "database.table";
@@ -70,14 +68,14 @@ public class BytesDeletedReporterTest {
     bytesDeletedReporter.reportTaggable(BYTES_DELETED, taggable, FileSystemType.S3);
     bytesDeletedReporter.reportTaggable(BYTES_DELETED, taggable, FileSystemType.S3);
     Counter counter = RequiredSearch.in(meterRegistry)
-      .name("s3-" + METRIC_NAME)
-      .tags("table", TABLE)
-      .counter();
+        .name("s3-" + METRIC_NAME)
+        .tags("table", TABLE)
+        .counter();
     assertThat(counter).isNotNull();
     assertThat(counter.measure().iterator()).toIterable().extracting("statistic")
-      .containsExactly(Statistic.COUNT);
+        .containsExactly(Statistic.COUNT);
     assertThat(counter.measure().iterator()).toIterable().extracting("value")
-      .containsExactly((double) BYTES_DELETED * 2);
+        .containsExactly((double) BYTES_DELETED * 2);
   }
 
   @Test
@@ -85,14 +83,14 @@ public class BytesDeletedReporterTest {
     bytesDeletedReporter = new BytesDeletedReporter(meterRegistry, true);
     bytesDeletedReporter.reportTaggable(BYTES_DELETED, taggable, FileSystemType.S3);
     Counter counter = RequiredSearch.in(meterRegistry)
-      .name("s3-" + DRY_RUN_METRIC_NAME)
-      .tags("table", TABLE)
-      .counter();
+        .name("s3-" + DRY_RUN_METRIC_NAME)
+        .tags("table", TABLE)
+        .counter();
     assertThat(counter).isNotNull();
     assertThat(counter.measure().iterator()).toIterable().extracting("statistic")
-      .containsExactly(Statistic.COUNT);
+        .containsExactly(Statistic.COUNT);
     assertThat(counter.measure().iterator()).toIterable().extracting("value")
-      .containsExactly((double) BYTES_DELETED);
+        .containsExactly((double) BYTES_DELETED);
   }
 
   @Test
@@ -102,23 +100,22 @@ public class BytesDeletedReporterTest {
     bytesDeletedReporter.reportTaggable(BYTES_DELETED, taggable, FileSystemType.S3);
     bytesDeletedReporter.reportTaggable(BYTES_DELETED * 2, taggable2, FileSystemType.S3);
     Counter counter1 = RequiredSearch.in(meterRegistry)
-      .name("s3-" + METRIC_NAME)
-      .tags("table", TABLE)
-      .counter();
+        .name("s3-" + METRIC_NAME)
+        .tags("table", TABLE)
+        .counter();
     Counter counter2 = RequiredSearch.in(meterRegistry)
-      .name("s3-" + METRIC_NAME)
-      .tags("table", "database2.table2")
-      .counter();
+        .name("s3-" + METRIC_NAME)
+        .tags("table", "database2.table2")
+        .counter();
     assertThat(counter1).isNotNull();
     assertThat(counter2).isNotNull();
     assertThat(counter1.measure().iterator()).toIterable().extracting("statistic")
-      .containsExactly(Statistic.COUNT);
+        .containsExactly(Statistic.COUNT);
     assertThat(counter1.measure().iterator()).toIterable().extracting("value")
-      .containsExactly((double) BYTES_DELETED);
+        .containsExactly((double) BYTES_DELETED);
     assertThat(counter2.measure().iterator()).toIterable().extracting("statistic")
-      .containsExactly(Statistic.COUNT);
+        .containsExactly(Statistic.COUNT);
     assertThat(counter2.measure().iterator()).toIterable().extracting("value")
-      .containsExactly((double) BYTES_DELETED * 2);
+        .containsExactly((double) BYTES_DELETED * 2);
   }
-
 }
