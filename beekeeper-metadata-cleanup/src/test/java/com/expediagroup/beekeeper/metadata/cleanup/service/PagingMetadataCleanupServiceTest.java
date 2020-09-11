@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.metadata.cleanup.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -45,6 +46,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -265,6 +267,13 @@ public class PagingMetadataCleanupServiceTest {
       assertThat(table.getCleanupAttempts()).isEqualTo(0);
       assertThat(table.getHousekeepingStatus()).isEqualTo(SCHEDULED);
     });
+  }
+
+//  // we've had issues with null checks being skipped so we have this test to ensure it works from outside beekeeper-core
+  @Test
+  public void notNullableField() {
+    HousekeepingMetadata metadata = createHousekeepingMetadata("table1", null, null, SCHEDULED);
+    assertThrows(DataIntegrityViolationException.class, () -> metadataRepository.save(metadata));
   }
 
   private HousekeepingMetadata createHousekeepingMetadata(

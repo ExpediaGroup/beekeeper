@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.path.cleanup.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -41,6 +42,7 @@ import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -64,7 +66,7 @@ import com.expediagroup.beekeeper.path.cleanup.handler.UnreferencedPathHandler;
 @ContextConfiguration(classes = { TestApplication.class },
     loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class PagingCleanupServiceTest {
+public class PagingPathCleanupServiceTest {
 
   private final LocalDateTime localNow = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
   private PagingPathCleanupService pagingCleanupService;
@@ -211,6 +213,13 @@ public class PagingCleanupServiceTest {
       assertThat(path.getCleanupAttempts()).isEqualTo(0);
       assertThat(path.getHousekeepingStatus()).isEqualTo(SCHEDULED);
     });
+  }
+
+  // we've had issues with null checks being skipped so we have this test to ensure it works from outside beekeeper-core
+  @Test
+  public void notNullableField() {
+    HousekeepingPath path = createEntityHousekeepingPath(null, SCHEDULED);
+    assertThrows(DataIntegrityViolationException.class, () -> housekeepingPathRepository.save(path));
   }
 
   private HousekeepingPath createEntityHousekeepingPath(String path, HousekeepingStatus housekeepingStatus) {
