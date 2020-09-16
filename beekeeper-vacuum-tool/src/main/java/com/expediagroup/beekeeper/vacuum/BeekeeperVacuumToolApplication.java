@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.vacuum;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Component;
 import com.google.common.base.Supplier;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 import com.expediagroup.beekeeper.vacuum.repository.BeekeeperRepository;
 
@@ -179,6 +181,7 @@ public class BeekeeperVacuumToolApplication implements ApplicationRunner {
           .tableName(tableName)
           .path(toRemove.toString())
           .housekeepingStatus(SCHEDULED)
+          .lifecycleType(UNREFERENCED.name())
           .creationTimestamp(LocalDateTime.now())
           .cleanupDelay(Duration.parse(cleanupDelay))
           .clientId("beekeeper-vacuum-tool")
