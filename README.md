@@ -50,7 +50,7 @@ End-to-end lifecycle example
     - `Alter partition` - Creates a new entry in the database with the updated partition info
 5. The scheduled partitions, tables, and associated paths will be deleted by Beekeeper after the delay has passed.
 
-*TTL Caveats*
+**TTL Caveats**
 
 Currently with the first release of the TTL there are the following issues:
 - If a table or partition is dropped by a user the related paths will become unreferenced and won’t be cleaned up. 
@@ -60,7 +60,7 @@ Currently with the first release of the TTL there are the following issues:
 
 ## Supported events
 
-*Unreferenced paths*
+**Unreferenced paths**
 
 For the unreferenced property Beekeeper will currently only be triggered by these events:
 - `alter_partition`
@@ -70,7 +70,7 @@ For the unreferenced property Beekeeper will currently only be triggered by thes
 
 By default, `alter_partition` and `alter_table` events require no further configuration. However, in order to avoid unexpected data loss, other event types require whitelisting on a per table basis. See [Hive table configuration](#hive-table-configuration) for more details.
 
-*TTL*
+**TTL**
 
 For the TTL property Beekeeper will be triggered by these events:
 - `alter_table`
