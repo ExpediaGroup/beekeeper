@@ -89,11 +89,29 @@ Beekeeper only actions on events which are marked with specific parameters. Thes
 | `beekeeper.remove.expired.data=true`   | Yes |  `true` or `false`       | Set this parameter to enable TTL on your table. |
 | `beekeeper.expired.data.retention.period=X` | No | e.g. `P7D` or `PT3H` (based on [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601)) | Set this parameter to control the TTL duration for your table. If this is either not set, or configured incorrectly, the default value of `P30D` (30 days) will be used. |
 
-This command can be used to add a parameter to a Hive Table:
+**Usage**
+
+*Unreferenced*
+
+This command can be used to add the parameter to a Hive Table:
 
 ```SQL
 ALTER TABLE <table-name> SET TBLPROPERTIES("beekeeper.remove.unreferenced.data"="true");
 ```
+
+*TTL*
+
+You can either add the property when the table is created:
+```SQL
+CREATE TABLE <table> (<col_name> <type>, ... ) TBLPROPERTIES("beekeeper.remove.expired.data"="true", "beekeeper.expired.data.retention.period"="PT2M");
+```
+
+Or alter an existing table: 
+```SQL
+ALTER TABLE <table> SET TBLPROPERTIES("beekeeper.remove.expired.data"="true", "beekeeper.expired.data.retention.period"="PT1H");
+```
+
+*NOTE - if you add this property to a partitioned table any existing partitions will not be scheduled for deletion. They will be deleted along with the table when the TTL delay is met.*
 
 # Running Beekeeper
 
@@ -209,19 +227,19 @@ By default, `beekeeper-scheduler-apiary` listens on port 8080, `beekeeper-path-c
 | `beekeeper.default-expiration-delay`| No       | Default Time To Live (TTL) for tables in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Durations) format: only days, hours, minutes and seconds can be specified in the expression. Default value is `P30D` (30 days). |
 
 ### Beekeeper Path Cleanup
-| Property             | Required | Description |
+| Property                            | Required | Description |
 |:----|:----:|:----|
-| `cleanup-page-size`  | No       | Number of rows that should be processed in one page. Default value is `500`. |
-| `dry-run-enabled`    | No       | Enable to simply display the deletions that would be performed, without actually doing so. Default value is `false`. |
-| `scheduler-delay-ms` | No       | Amount of time (in milliseconds) between consecutive cleanups. Default value is `300000` (5 minutes after the previous cleanup completes). |
+| `cleanup-page-size`                 | No       | Number of rows that should be processed in one page. Default value is `500`. |
+| `dry-run-enabled`                   | No       | Enable to simply display the deletions that would be performed, without actually doing so. Default value is `false`. |
+| `scheduler-delay-ms`                | No       | Amount of time (in milliseconds) between consecutive cleanups. Default value is `300000` (5 minutes after the previous cleanup completes). |
 
 ### Beekeeper Metadata Cleanup
-| Property             | Required | Description |
+| Property                            | Required | Description |
 |:----|:----:|:----|
-| `cleanup-page-size`  | No       | Number of rows that should be processed in one page. Default value is `500`. |
-| `dry-run-enabled`    | No       | Enable to simply display the deletions that would be performed, without actually doing so. Default value is `false`. |
-| `scheduler-delay-ms` | No       | Amount of time (in milliseconds) between consecutive cleanups. Default value is `300000` (5 minutes after the previous cleanup completes). |
-| `metastore-uri`      | Yes      | URI of the Hive MetaStore where tables to be cleaned-up are located. |
+| `cleanup-page-size`                 | No       | Number of rows that should be processed in one page. Default value is `500`. |
+| `dry-run-enabled`                   | No       | Enable to simply display the deletions that would be performed, without actually doing so. Default value is `false`. |
+| `scheduler-delay-ms`                | No       | Amount of time (in milliseconds) between consecutive cleanups. Default value is `300000` (5 minutes after the previous cleanup completes). |
+| `metastore-uri`                     | Yes      | URI of the Hive MetaStore where tables to be cleaned-up are located. |
 
 ### Metrics
 
