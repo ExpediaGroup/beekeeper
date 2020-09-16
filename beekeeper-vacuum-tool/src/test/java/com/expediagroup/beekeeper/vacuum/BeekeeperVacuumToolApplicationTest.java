@@ -130,8 +130,12 @@ class BeekeeperVacuumToolApplicationTest {
 
     verify(schedulerService).scheduleForHousekeeping(housekeepingPath.capture());
     HousekeepingPath path = housekeepingPath.getValue();
+    assertThat(path.getDatabaseName()).isEqualTo(databaseName);
+    assertThat(path.getTableName()).isEqualTo(tableName);
     assertThat(path.getPath()).isEqualTo("file:" + snapshot0Dir.toString());
+    assertThat(path.getHousekeepingStatus()).isEqualTo(SCHEDULED);
     assertThat(path.getCleanupDelay().toDays()).isEqualTo(1L);
+    assertThat(path.getLifecycleType()).isEqualTo(UNREFERENCED.name());
   }
 
   @Test
@@ -149,6 +153,14 @@ class BeekeeperVacuumToolApplicationTest {
     assertThat(paths).contains(file1Path);
     assertThat(paths).contains(file2Path);
     assertThat(assertBytesLogged(14)).isTrue();
+
+    for (HousekeepingPath path : scheduledPaths) {
+      assertThat(path.getDatabaseName()).isEqualTo(databaseName);
+      assertThat(path.getTableName()).isEqualTo(tableName);
+      assertThat(path.getHousekeepingStatus()).isEqualTo(SCHEDULED);
+      assertThat(path.getCleanupDelay().toDays()).isEqualTo(1L);
+      assertThat(path.getLifecycleType()).isEqualTo(UNREFERENCED.name());
+    }
   }
 
   @Test

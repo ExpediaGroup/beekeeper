@@ -85,16 +85,12 @@ public class ExpiredMetadataHandler implements MetadataHandler {
       boolean dryRunEnabled) {
     String partitionName = housekeepingMetadata.getPartitionName();
     if (partitionName != null) {
-      log.info("Cleaning up partition \"{}\" for table \"{}.{}\".", partitionName,
-          housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
       cleanupPartition(client, housekeepingMetadata);
       return true;
     } else {
       Long partitionCount = countPartitionsForDatabaseAndTable(instant, housekeepingMetadata.getDatabaseName(),
           housekeepingMetadata.getTableName(), dryRunEnabled);
       if (partitionCount.equals(LONG_ZERO)) {
-        log.info("Cleaning up table \"{}.{}\".",
-            housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
         cleanUpTable(client, housekeepingMetadata);
         return true;
       }
@@ -105,8 +101,9 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   private void cleanUpTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
+    log.info("Cleaning up metadata for \"{}.{}\".", databaseName, tableName);
     if (metadataCleaner.tableExists(client, databaseName, tableName)) {
-      metadataCleaner.dropTable(client, housekeepingMetadata);
+      metadataCleaner.dropTable(housekeepingMetadata, client);
       pathCleaner.cleanupPath(housekeepingMetadata);
     } else {
       log.info("Cannot drop table \"{}.{}\". Table does not exist.", databaseName, tableName);
@@ -116,8 +113,9 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   private void cleanupPartition(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
+    log.info("Cleaning up metadata for \"{}.{}\".", databaseName, tableName);
     if (metadataCleaner.tableExists(client, databaseName, tableName)) {
-      boolean partitionDeleted = metadataCleaner.dropPartition(client, housekeepingMetadata);
+      boolean partitionDeleted = metadataCleaner.dropPartition(housekeepingMetadata, client);
       if (partitionDeleted) {
         pathCleaner.cleanupPath(housekeepingMetadata);
       }
