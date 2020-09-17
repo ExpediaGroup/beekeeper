@@ -25,7 +25,7 @@ Beekeeper is comprised of three separate Spring-based Java applications:
 
 ## Beekeeper Architecture
 
-![Beekeeper architecture](.README_images/updated_architecture_diagram.png)
+![Beekeeper architecture](.README_images/architecture_diagram.png)
 
 ## Unreferenced paths
 The "unreferenced" property can be added to tables to detect when paths become unreferenced. It will currently only be triggered by these events:
@@ -36,7 +36,7 @@ The "unreferenced" property can be added to tables to detect when paths become u
 
 By default, `alter_partition` and `alter_table` events require no further configuration. However, in order to avoid unexpected data loss, other event types require whitelisting on a per table basis. See [Hive table configuration](#hive-table-configuration) for more details.
 
-End-to-end lifecycle example
+### End-to-end lifecycle example
 1. A Hive table is configured with the parameter `beekeeper.remove.unreferenced.data=true` (see [Hive table configuration](#hive-table-configuration) for more details.)
 2. An operation is executed on the table that orphans some data (alter partition, drop partition, etc.)
 3. Hive MetaStore events are emitted by the [Hive MetaStore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-events/sns-metastore-events/apiary-metastore-listener) as a result of the operation.
@@ -49,7 +49,7 @@ The "expired" TTL property will delete tables, partitions, and their locations a
 
 If the table is partitioned the cleanup delay will also apply to each partition that is added to the table. The table will only be dropped when there are no remaining partitions. 
 
-End-to-end lifecycle example
+### End-to-end lifecycle example
 1. A Hive table is configured with the TTL parameter `beekeeper.remove.expired.data=true` (see [Hive table configuration](#hive-table-configuration) for more details).
 2. This Hive event is picked up from the queue by Beekeeper using the [Apiary Receiver](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-events/sns-metastore-events/apiary-receivers), and the table is scheduled for cleanup with a configurable delay. 
 3. An operation is executed on the table which alters it in some way, (alter table, add partition, alter partition)
