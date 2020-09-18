@@ -4,7 +4,7 @@
 
 Beekeeper is a service that schedules orphaned paths and expired metadata for deletion.
 
-The original inspiration for a data deletion tool came from another of our open source projects called [Circus Train](https://github.com/HotelsDotCom/circus-train). At a high level, Circus Train replicates Hive datasets. The datasets are copied as immutable snapshots to ensure strong consistency and snapshot isolation, only pointing the replicated Hive Metastore to the new snapshot on successful completion. This process leaves behind snapshots of data which are now unreferenced by the Hive MetaStore, so Circus Train includes a Housekeeping module to delete these files later.
+The original inspiration for a data deletion tool came from another of our open source projects called [Circus Train](https://github.com/HotelsDotCom/circus-train). At a high level, Circus Train replicates Hive datasets. The datasets are copied as immutable snapshots to ensure strong consistency and snapshot isolation, only pointing the replicated Hive Metastore to the new snapshot on successful completion. This process leaves behind snapshots of data which are now unreferenced by the Hive Metastore, so Circus Train includes a Housekeeping module to delete these files later.
 
 Beekeeper is based on Circus Train's Housekeeping module, however it is decoupled from Circus Train so it can be used by other applications as well.
 
@@ -16,7 +16,7 @@ Docker images can be found in Expedia Group's [dockerhub](https://hub.docker.com
 
 # How does it work?
 
-Beekeeper makes use of [Apiary](https://github.com/ExpediaGroup/apiary) - an open source federated cloud data lake - to detect changes in the Hive MetaStore. One of Apiary’s components, the [Apiary MetaStore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-events/sns-metastore-events/apiary-metastore-listener), captures Hive events and publishes these as messages to an SNS topic. Beekeeper uses these messages to detect changes to the Hive MetaStore, and perform appropriate deletions.
+Beekeeper makes use of [Apiary](https://github.com/ExpediaGroup/apiary) - an open source federated cloud data lake - to detect changes in the Hive Metastore. One of Apiary’s components, the [Apiary Metastore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-events/sns-metastore-events/apiary-metastore-listener), captures Hive events and publishes these as messages to an SNS topic. Beekeeper uses these messages to detect changes to the Hive Metastore, and perform appropriate deletions.
 
 Beekeeper is comprised of three separate Spring-based Java applications:
 1. Scheduler Apiary - An application that schedules paths and metadata for deletion in a shared database, with one table for unreferenced paths and another for expired metadata. 
@@ -39,7 +39,7 @@ By default, `alter_partition` and `alter_table` events require no further config
 ### End-to-end lifecycle example
 1. A Hive table is configured with the parameter `beekeeper.remove.unreferenced.data=true` (see [Hive table configuration](#hive-table-configuration) for more details.)
 2. An operation is executed on the table that orphans some data (alter partition, drop partition, etc.)
-3. Hive MetaStore events are emitted by the [Hive MetaStore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-events/sns-metastore-events/apiary-metastore-listener) as a result of the operation.
+3. Hive Metastore events are emitted by the [Hive Metastore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-events/sns-metastore-events/apiary-metastore-listener) as a result of the operation.
 4. Hive events are picked up from the queue by Beekeeper using the [Apiary Receiver](https://github.com/ExpediaGroup/apiary-extensions/tree/master/apiary-metastore-events/sns-metastore-events/apiary-receivers).
 5. Beekeeper processes these messages and schedules orphaned paths for deletion by adding them to a database.
 6. The scheduled paths are deleted by Beekeeper after a configurable delay, the default is 3 days (see [Hive table configuration](#hive-table-configuration) for more details.)
