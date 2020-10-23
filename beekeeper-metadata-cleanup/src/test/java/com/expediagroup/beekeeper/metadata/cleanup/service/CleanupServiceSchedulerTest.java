@@ -27,7 +27,6 @@ import org.awaitility.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -52,7 +51,6 @@ class CleanupServiceSchedulerTest {
 
   private @MockBean CleanupService cleanupService;
   private @MockBean AmazonS3 amazonS3;
-  private @Autowired CleanupServiceScheduler cleanupServiceScheduler;
 
   @Test
   void typical() {
