@@ -48,7 +48,7 @@ public class CleanupDelayExtractor {
     try {
       return Duration.parse(tableCleanupDelay);
     } catch (DateTimeParseException | NullPointerException e) {
-      log.error(
+      log.info(
           "Overridden delay value '{}' for key '{}' cannot be parsed to a Duration for table '{}.{}'. Using default setting.",
           tableCleanupDelay, propertyKey, listenerEvent.getDbName(), listenerEvent.getTableName());
       return defaultValue;
