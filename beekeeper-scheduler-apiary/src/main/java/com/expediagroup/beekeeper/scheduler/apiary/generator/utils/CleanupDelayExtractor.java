@@ -47,8 +47,7 @@ public class CleanupDelayExtractor {
     String tableCleanupDelay = listenerEvent.getTableParameters().get(propertyKey);
     try {
       Duration value = tableCleanupDelay == null ? defaultValue : Duration.parse(tableCleanupDelay);
-      log
-          .info("Using value '{}' for key {} for table {}.{}.", value, propertyKey, listenerEvent.getDbName(),
+      log.info("Using value '{}' for key {} for table {}.{}.", value, propertyKey, listenerEvent.getDbName(),
               listenerEvent.getTableName());
       return value;
     } catch (DateTimeParseException | NullPointerException e) {
