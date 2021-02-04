@@ -46,11 +46,14 @@ public class CleanupDelayExtractor {
   public Duration extractCleanupDelay(ListenerEvent listenerEvent) {
     String tableCleanupDelay = listenerEvent.getTableParameters().get(propertyKey);
     try {
-      return Duration.parse(tableCleanupDelay);
+      Duration value = tableCleanupDelay == null ? defaultValue : Duration.parse(tableCleanupDelay);
+      log.info("Using value '{}' for key {} for table {}.{}.", value, propertyKey, listenerEvent.getDbName(),
+              listenerEvent.getTableName());
+      return value;
     } catch (DateTimeParseException | NullPointerException e) {
-      log.error(
-          "Overridden delay value '{}' for key '{}' cannot be parsed to a Duration for table '{}.{}'. Using default setting.",
-          tableCleanupDelay, propertyKey, listenerEvent.getDbName(), listenerEvent.getTableName());
+      log.warn(
+              "Overridden delay value '{}' for key '{}' cannot be parsed to a Duration for table '{}.{}'. Using default setting {}.",
+              tableCleanupDelay, propertyKey, listenerEvent.getDbName(), listenerEvent.getTableName(), defaultValue);
       return defaultValue;
     }
   }

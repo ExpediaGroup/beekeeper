@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.0.2] - TBD
 ### Fixed
-- Set lifecycle type to `UNREFERENCED` for paths picked up by Vacuum tool. 
+- Set lifecycle type to `UNREFERENCED` for paths picked up by Vacuum tool.
 
 ## [3.0.1] - 2020-09-10
 ### Fixed
