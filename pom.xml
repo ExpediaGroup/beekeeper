@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>beekeeper-parent</artifactId>
-  <version>3.0.3</version>
+  <version>3.0.4-SNAPSHOT</version>
   <description>Beekeeper is a service which manages the cleanup of tables and unreferenced S3 paths.</description>
   <inceptionYear>2019</inceptionYear>
   <packaging>pom</packaging>
@@ -30,7 +30,7 @@
     <connection>scm:git:https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/ExpediaGroup/beekeeper.git</connection>
     <developerConnection>scm:git:https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/ExpediaGroup/beekeeper.git</developerConnection>
     <url>https://github.com/ExpediaGroup/beekeeper</url>
-    <tag>beekeeper-parent-3.0.3</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
