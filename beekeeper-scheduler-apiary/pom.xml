@@ -10,14 +10,6 @@
 
   <artifactId>beekeeper-scheduler-apiary</artifactId>
 
-  <properties>
-    <!-- Override docker properties -->
-    <docker.to.image>${project.artifactId}</docker.to.image>
-    <docker.to.tag>${project.version}</docker.to.tag>
-    <docker.to.reference>${docker.registry}/${docker.to.image}:${docker.to.tag}</docker.to.reference>
-    <docker.container.port>8080</docker.container.port>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>com.expediagroup</groupId>
@@ -126,14 +118,6 @@
       <plugin>
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
-        <configuration>
-          <container>
-            <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
-            <ports>
-              <port>${docker.container.port}</port>
-            </ports>
-          </container>
-        </configuration>
       </plugin>
     </plugins>
   </build>

@@ -14,11 +14,6 @@
     <hadoop.version>2.8.1</hadoop.version>
     <hive.version>2.3.7</hive.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <!-- Override docker properties -->
-    <docker.to.image>${project.artifactId}</docker.to.image>
-    <docker.to.tag>${project.version}</docker.to.tag>
-    <docker.to.reference>${docker.registry}/${docker.to.image}:${docker.to.tag}</docker.to.reference>
-    <docker.container.port>8080</docker.container.port>
   </properties>
 
   <dependencies>
@@ -129,14 +124,6 @@
       <plugin>
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
-        <configuration>
-          <container>
-            <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
-            <ports>
-              <port>${docker.container.port}</port>
-            </ports>
-          </container>
-        </configuration>
       </plugin>
     </plugins>
   </build>
