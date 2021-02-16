@@ -22,7 +22,6 @@
     <module>beekeeper-scheduler</module>
     <module>beekeeper-scheduler-apiary</module>
     <module>beekeeper-integration-tests</module>
-    <module>beekeeper-package</module>
     <module>beekeeper-vacuum-tool</module>
   </modules>
 
@@ -47,6 +46,11 @@
     <springframework.boot.version>2.1.3.RELEASE</springframework.boot.version>
     <springframework.version>5.1.5.RELEASE</springframework.version>
     <testcontainers.version>1.11.1</testcontainers.version>
+    <!-- default docker image 'from' references (can be overridden in child projects if needed) -->
+    <docker.from.image>java</docker.from.image>
+    <docker.from.tag>11</docker.from.tag>
+    <docker.from.reference>gcr.io/distroless/${docker.from.image}:${docker.from.tag}</docker.from.reference>
+    <jib.version>2.4.0</jib.version>
   </properties>
 
   <dependencyManagement>
