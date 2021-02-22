@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.1.0] - 2021-02-22
 ### Changed
-- Update parent `eg-oss-parent` to version `2.3.0`.
+- Updated `eg-oss-parent` to version `2.3.0` (was `1.3.1`).
 - Docker images are now built using Jib plugin.
 - Excluded `javax.servlet` dependency from `hadoop-mapreduce-client` to avoid version conflict.
 
