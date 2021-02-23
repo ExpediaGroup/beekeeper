@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import org.testcontainers.containers.localstack.LocalStackContainer;
+
+import cloud.localstack.ServiceName;
+import cloud.localstack.awssdkv1.TestUtils;
+import cloud.localstack.docker.LocalstackDockerExtension;
+import cloud.localstack.docker.annotation.LocalstackDockerProperties;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
@@ -37,9 +40,9 @@ import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
+@ExtendWith(LocalstackDockerExtension.class)
+@LocalstackDockerProperties(services = { ServiceName.S3 })
 class S3ClientTest {
-
-  private static LocalStackContainer s3Container;
 
   private final String content = "content";
   private final String keyRoot = "table/partition_1";
@@ -51,15 +54,9 @@ class S3ClientTest {
   private S3Client s3ClientDryRun;
   private AmazonS3 amazonS3;
 
-  @BeforeAll
-  public static void s3() {
-    s3Container = new LocalStackContainer().withServices(LocalStackContainer.Service.S3);
-    s3Container.start();
-  }
-
   @BeforeEach
   void setUp() {
-    amazonS3 = AmazonS3Factory.newInstance(s3Container);
+    amazonS3 = TestUtils.getClientS3();
     amazonS3.createBucket(bucket);
     emptyBucket(bucket);
     assertThat(amazonS3.listObjectsV2(bucket).getObjectSummaries()).isEmpty();
@@ -72,22 +69,20 @@ class S3ClientTest {
     String continuationToken = null;
     do {
       ListObjectsV2Request request = new ListObjectsV2Request()
-        .withBucketName(bucket)
-        .withContinuationToken(continuationToken);
+          .withBucketName(bucket)
+          .withContinuationToken(continuationToken);
       listObjectsV2Result = amazonS3.listObjectsV2(request);
       DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket);
-      List<String> keys = listObjectsV2Result.getObjectSummaries()
-        .stream()
-        .map(S3ObjectSummary::getKey)
-        .collect(Collectors.toList());
-      amazonS3.deleteObjects(deleteObjectsRequest.withKeys(keys.toArray(new String[]{})));
+      List<String> keys = listObjectsV2Result
+          .getObjectSummaries()
+          .stream()
+          .map(S3ObjectSummary::getKey)
+          .collect(Collectors.toList());
+      if (keys.size() > 0) {
+        amazonS3.deleteObjects(deleteObjectsRequest.withKeys(keys.toArray(new String[] {})));
+      }
       continuationToken = listObjectsV2Result.getNextContinuationToken();
     } while (listObjectsV2Result.isTruncated());
-  }
-
-  @AfterAll
-  static void teardown() {
-    s3Container.stop();
   }
 
   @Test
@@ -178,8 +173,7 @@ class S3ClientTest {
     for (int i = 1; i <= s3BatchSize + extraKeys; i++) {
       keys.add(keyRoot + "/file" + i);
     }
-    keys.parallelStream()
-      .forEach(key -> amazonS3.putObject(bucket, key, content));
+    keys.parallelStream().forEach(key -> amazonS3.putObject(bucket, key, content));
 
     List<S3ObjectSummary> result = s3Client.listObjects(bucket, keyRoot);
 
