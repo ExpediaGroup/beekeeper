@@ -46,7 +46,7 @@
     <snakeyaml.version>1.24</snakeyaml.version>
     <springframework.boot.version>2.1.3.RELEASE</springframework.boot.version>
     <springframework.version>5.1.5.RELEASE</springframework.version>
-    <testcontainers.version>1.11.1</testcontainers.version>
+    <testcontainers.version>1.15.2</testcontainers.version>
     <docker.from.tag>11-slim</docker.from.tag>
   </properties>
 
