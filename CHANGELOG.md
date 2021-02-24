@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.1.1] - TBD
 ### Changed
 - Updated `aws.version` to version `1.11.960` (was `1.11.532`) in `beekeeper-cleanup`.
+- Updated `eg-oss-parent` to version `2.3.2` (was `2.3.1`).
 
 ## [3.1.0] - 2021-02-22
 ### Changed
