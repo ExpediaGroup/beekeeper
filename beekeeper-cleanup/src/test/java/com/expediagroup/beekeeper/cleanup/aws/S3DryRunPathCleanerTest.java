@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,16 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.testcontainers.containers.localstack.LocalStackContainer;
+
+import cloud.localstack.ServiceName;
+import cloud.localstack.awssdkv1.TestUtils;
+import cloud.localstack.docker.LocalstackDockerExtension;
+import cloud.localstack.docker.annotation.LocalstackDockerProperties;
 
 import com.amazonaws.services.s3.AmazonS3;
 
@@ -36,9 +38,9 @@ import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(LocalstackDockerExtension.class)
+@LocalstackDockerProperties(services = { ServiceName.S3 })
 class S3DryRunPathCleanerTest {
-
-  private static LocalStackContainer s3Container;
 
   private final String content = "Some content";
   private final String bucket = "bucket";
@@ -58,15 +60,9 @@ class S3DryRunPathCleanerTest {
 
   private S3PathCleaner s3DryRunPathCleaner;
 
-  @BeforeAll
-  public static void s3() {
-    s3Container = new LocalStackContainer().withServices(LocalStackContainer.Service.S3);
-    s3Container.start();
-  }
-
   @BeforeEach
   void setUp() {
-    amazonS3 = AmazonS3Factory.newInstance(s3Container);
+    amazonS3 = TestUtils.getClientS3();
     amazonS3.createBucket(bucket);
     amazonS3.listObjectsV2(bucket)
       .getObjectSummaries()
@@ -80,11 +76,6 @@ class S3DryRunPathCleanerTest {
       .creationTimestamp(LocalDateTime.now())
       .cleanupDelay(Duration.ofDays(1))
       .build();
-  }
-
-  @AfterAll
-  static void teardown() {
-    s3Container.stop();
   }
 
   @Test

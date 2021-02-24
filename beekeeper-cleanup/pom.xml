@@ -11,7 +11,7 @@
   <artifactId>beekeeper-cleanup</artifactId>
 
   <properties>
-    <aws.version>1.11.532</aws.version>
+    <aws.version>1.11.960</aws.version>
     <hive.version>2.3.7</hive.version>
     <hcommon-hive-metastore.version>1.4.2</hcommon-hive-metastore.version>
   </properties>
@@ -82,6 +82,12 @@
 
     <!-- test -->
     <dependency>
+      <groupId>cloud.localstack</groupId>
+      <artifactId>localstack-utils</artifactId>
+      <version>0.2.7</version>
+      <scope>test</scope>
+    </dependency>    
+    <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
@@ -97,15 +103,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>localstack</artifactId>
-      <version>${testcontainers.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
