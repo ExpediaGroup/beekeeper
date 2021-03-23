@@ -1,9 +1,13 @@
 package com.expediagroup.beekeeper.api;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@SpringBootApplication
 public class BeekeeperApi {
+
   public static void main(String[] args) {
     SpringApplication.run(BeekeeperApi.class, args);
   }
+
 }
