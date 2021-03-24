@@ -25,5 +25,4 @@ public class BeekeeperApi {
     SpringApplication.run(BeekeeperApi.class, args);
   }
 
-
 }
