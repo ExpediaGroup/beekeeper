@@ -15,9 +15,26 @@
  */
 package com.expediagroup.beekeeper.api;
 
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class BeekeeperController {
-  
+
+  @RequestMapping("/tables")
+  public String greeting(){
+    return "hello world!";
+  }
+
+//  @RequestMapping(value = "/returntables", method = RequestMethod.GET)
+//  public Table tableInfo(
+//      @PathVariable String databaseName,
+//      @PathVariable String tableName,
+//      @RequestParam(value = "partitionFilter", required = false) String filter) {
+//    MetaKittyTable table = metaKitty.tableInfo(databaseName, tableName, filter);
+//    return table;
+//  }
+
 }

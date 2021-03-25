@@ -56,6 +56,22 @@ public interface HousekeepingMetadataRepository extends JpaRepository<Housekeepi
       @Param("tableName") String tableName, @Param("partitionName") String partitionName);
 
   /**
+   * Returns the record that matches the inputs given, if there is one.
+   *
+   *
+   * @param databaseName
+   * @param tableName
+   * @return
+   */
+  @Query(value = "from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName ")
+  Optional<HousekeepingMetadata> findRecord(
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName);
+
+
+  /**
    * Returns the maximum value for the cleanupTimestamp for a database and table name pair.
    *
    * @param databaseName

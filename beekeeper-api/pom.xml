@@ -20,6 +20,29 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-actuator</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.expediagroup</groupId>
+      <artifactId>beekeeper-path-cleanup</artifactId>
+      <version>3.1.1-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.expediagroup</groupId>
+      <artifactId>beekeeper-vacuum-tool</artifactId>
+      <version>3.1.1-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.expediagroup</groupId>
+      <artifactId>beekeeper-metadata-cleanup</artifactId>
+      <version>3.1.1-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
 </project>

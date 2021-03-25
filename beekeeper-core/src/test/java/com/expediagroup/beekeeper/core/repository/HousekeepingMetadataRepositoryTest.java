@@ -82,8 +82,9 @@ public class HousekeepingMetadataRepositoryTest {
     HousekeepingMetadata table = createPartitionedEntityHousekeepingTable();
 
     housekeepingMetadataRepository.save(table);
-
+//here
     List<HousekeepingMetadata> tables = housekeepingMetadataRepository.findAll();
+    System.out.println("AAtables:"+tables.toString());
     assertThat(tables.size()).isEqualTo(1);
     HousekeepingMetadata savedTable = tables.get(0);
     assertThat(savedTable.getPath()).isEqualTo(PATH);
@@ -354,7 +355,7 @@ public class HousekeepingMetadataRepositoryTest {
     assertEquals(0L, result);
   }
 
-  private HousekeepingMetadata createUnpartitionedEntityHousekeepingTable() {
+  public HousekeepingMetadata createUnpartitionedEntityHousekeepingTable() {
     return createEntityHousekeepingTable(null);
   }
 
@@ -366,6 +367,7 @@ public class HousekeepingMetadataRepositoryTest {
     return createEntityHouseKeepingTable(DATABASE_NAME, TABLE_NAME, partitionName);
   }
 
+  //here
   private HousekeepingMetadata createEntityHouseKeepingTable(
       String databaseName,
       String tableName,
