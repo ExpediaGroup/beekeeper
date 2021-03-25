@@ -39,11 +39,6 @@ public class ReturnTablesTest {
 
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
 
-  @BeforeEach
-  public void setupDb() {
-
-  }
-
   @Test
   public void test(){
     Optional<HousekeepingMetadata> housekeepingMetadataOptional = housekeepingMetadataRepository.findRecord("test","user_diaspora_v2");

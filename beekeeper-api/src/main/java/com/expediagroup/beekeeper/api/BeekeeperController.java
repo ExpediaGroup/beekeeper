@@ -28,13 +28,4 @@ public class BeekeeperController {
     return "hello world!";
   }
 
-//  @RequestMapping(value = "/returntables", method = RequestMethod.GET)
-//  public Table tableInfo(
-//      @PathVariable String databaseName,
-//      @PathVariable String tableName,
-//      @RequestParam(value = "partitionFilter", required = false) String filter) {
-//    MetaKittyTable table = metaKitty.tableInfo(databaseName, tableName, filter);
-//    return table;
-//  }
-
 }
