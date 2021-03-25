@@ -84,7 +84,6 @@ public class HousekeepingMetadataRepositoryTest {
     housekeepingMetadataRepository.save(table);
 
     List<HousekeepingMetadata> tables = housekeepingMetadataRepository.findAll();
-    System.out.println("AAtables:"+tables.toString());
     assertThat(tables.size()).isEqualTo(1);
     HousekeepingMetadata savedTable = tables.get(0);
     assertThat(savedTable.getPath()).isEqualTo(PATH);
