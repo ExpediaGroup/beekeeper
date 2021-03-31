@@ -15,8 +15,12 @@
  */
 package com.expediagroup.beekeeper.api;
 
+import java.util.List;
 
+import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 public interface BeekeeperService {
+
+  List<HousekeepingMetadata> returnAllTables();
 
 }

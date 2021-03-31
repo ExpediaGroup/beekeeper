@@ -25,11 +25,11 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 @RestController
 public class BeekeeperController {
 
-  private BeekeeperServiceImpl beekeeperServiceImpl;
+  private BeekeeperService beekeeperService;
 
   @RequestMapping("/tables")
   public List<HousekeepingMetadata> getAllTables() {
-    return beekeeperServiceImpl.returnAllTables();
+    return beekeeperService.returnAllTables();
   }
 
 }

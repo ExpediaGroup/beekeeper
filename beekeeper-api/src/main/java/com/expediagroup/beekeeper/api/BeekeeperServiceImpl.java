@@ -17,18 +17,25 @@ package com.expediagroup.beekeeper.api;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 @Service
-public class BeekeeperServiceImpl {
+public class BeekeeperServiceImpl implements BeekeeperService{
 
-  private HousekeepingMetadataRepository housekeepingMetadataRepository;
+  private final HousekeepingMetadataRepository housekeepingMetadataRepository;
+
+  @Autowired
+  public BeekeeperServiceImpl(HousekeepingMetadataRepository housekeepingMetadataRepository) {
+    this.housekeepingMetadataRepository = housekeepingMetadataRepository;
+  }
 
   // Method for the GET tables/ endpoint
   public List<HousekeepingMetadata> returnAllTables() {
     return housekeepingMetadataRepository.findAll();
   }
+
 }
