@@ -16,13 +16,18 @@
 package com.expediagroup.beekeeper.api;
 
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
+
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +43,7 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository
 public class BeekeeperServiceImplTest {
 
   private HousekeepingMetadata table1;
+  private HousekeepingMetadata table2;
   private BeekeeperServiceImpl beekeeperServiceImpl;
 
   @Mock
@@ -46,7 +52,9 @@ public class BeekeeperServiceImplTest {
   @BeforeEach
   public void createTables(){
     beekeeperServiceImpl = new BeekeeperServiceImpl(housekeepingMetadataRepository);
+    
     LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
+
     table1 = new HousekeepingMetadata.Builder()
         .path("s3://some/path/")
         .databaseName("aRandomDatabase")
@@ -59,13 +67,29 @@ public class BeekeeperServiceImplTest {
         .cleanupAttempts(0)
         .lifecycleType(EXPIRED.toString())
         .build();
+    table1 = new HousekeepingMetadata.Builder()
+        .path("s3://some/path2/")
+        .databaseName("aRandomDatabase2")
+        .tableName("aRandomTable2")
+        .partitionName("event_date=2020-01-012/event_hour=2/event_type=B")
+        .housekeepingStatus(DELETED)
+        .creationTimestamp(CREATION_TIMESTAMP)
+        .modifiedTimestamp(CREATION_TIMESTAMP)
+        .cleanupDelay(Duration.parse("P3D"))
+        .cleanupAttempts(0)
+        .lifecycleType(EXPIRED.toString())
+        .build();
   }
 
   @Test
   public void test(){
-    beekeeperServiceImpl.saveTable(table1);
-    List<HousekeepingMetadata> tables = beekeeperServiceImpl.returnAllTables();
-    System.out.println("AAA tables:"+tables.size());
+    List<HousekeepingMetadata> tables = new ArrayList<HousekeepingMetadata>();
+    tables.add(table1);
+    tables.add(table2);
+    when(housekeepingMetadataRepository.findAll()).thenReturn(tables);
+    List<HousekeepingMetadata> result = beekeeperServiceImpl.returnAllTables();
+    assertThat(result.size()).isEqualTo(2);
+    assertThat(tables).isEqualTo(result);
   }
 
 }
