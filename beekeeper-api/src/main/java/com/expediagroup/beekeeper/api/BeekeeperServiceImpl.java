@@ -13,16 +13,6 @@ public class BeekeeperServiceImpl {
 
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
 
-  @Autowired
-  public BeekeeperServiceImpl(HousekeepingMetadataRepository housekeepingMetadataRepository) {
-    this.housekeepingMetadataRepository = housekeepingMetadataRepository;
-  }
-
-  public void saveTable(HousekeepingMetadata table){
-    housekeepingMetadataRepository.save(table);
-    System.out.println("count:"+housekeepingMetadataRepository.count());
-  }
-
   // Method for the GET tables/ endpoint
   public List<HousekeepingMetadata> returnAllTables() {
     return housekeepingMetadataRepository.findAll();

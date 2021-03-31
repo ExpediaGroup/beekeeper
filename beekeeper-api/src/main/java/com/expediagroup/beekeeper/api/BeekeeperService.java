@@ -7,5 +7,4 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository
 
 public interface BeekeeperService {
 
-
 }
