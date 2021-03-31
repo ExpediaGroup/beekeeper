@@ -77,7 +77,6 @@ public class HousekeepingMetadataRepositoryTest {
     housekeepingMetadataRepository.deleteAll();
   }
 
-  
   @Test
   public void typicalSave() {
     HousekeepingMetadata table = createPartitionedEntityHousekeepingTable();
