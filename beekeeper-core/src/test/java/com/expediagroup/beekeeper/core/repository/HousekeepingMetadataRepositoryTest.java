@@ -77,6 +77,22 @@ public class HousekeepingMetadataRepositoryTest {
     housekeepingMetadataRepository.deleteAll();
   }
 
+
+  @Test
+  public void returnAllTables(){
+    HousekeepingMetadata table1 = createPartitionedEntityHousekeepingTable();
+    HousekeepingMetadata table2 = createPartitionedEntityHousekeepingTable();
+    HousekeepingMetadata table3 = createPartitionedEntityHousekeepingTable();
+
+    housekeepingMetadataRepository.save(table1);
+    housekeepingMetadataRepository.save(table2);
+    housekeepingMetadataRepository.save(table3);
+
+    List<HousekeepingMetadata> tables = housekeepingMetadataRepository.findAll();
+    assertThat(tables.size()).isEqualTo(3);
+    System.out.println("AA:"+tables.toString());
+  }
+
   @Test
   public void typicalSave() {
     HousekeepingMetadata table = createPartitionedEntityHousekeepingTable();

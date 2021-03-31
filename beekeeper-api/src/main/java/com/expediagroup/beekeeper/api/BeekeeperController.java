@@ -15,17 +15,21 @@
  */
 package com.expediagroup.beekeeper.api;
 
-import org.springframework.web.bind.annotation.PathVariable;
+import java.util.List;
+
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 @RestController
 public class BeekeeperController {
 
+  private BeekeeperServiceImpl beekeeperServiceImpl;
+
   @RequestMapping("/tables")
-  public String greeting(){
-    return "hello world!";
+  public List<HousekeepingMetadata> getAllTables() {
+    return beekeeperServiceImpl.returnAllTables();
   }
 
 }
