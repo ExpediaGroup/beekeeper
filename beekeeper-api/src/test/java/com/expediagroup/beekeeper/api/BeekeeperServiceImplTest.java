@@ -28,20 +28,24 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class ReturnTablesTest {
+public class BeekeeperServiceImplTest {
 
   private HousekeepingMetadata table1;
-  private BeekeeperService beekeeperService;
+  private BeekeeperServiceImpl beekeeperServiceImpl;
 
-  public ReturnTablesTest(BeekeeperService beekeeperService) {this.beekeeperService = beekeeperService;}
+  @Mock
+  private HousekeepingMetadataRepository housekeepingMetadataRepository;
 
   @BeforeEach
   public void createTables(){
+    beekeeperServiceImpl = new BeekeeperServiceImpl(housekeepingMetadataRepository);
     LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
     table1 = new HousekeepingMetadata.Builder()
         .path("s3://some/path/")
@@ -59,8 +63,8 @@ public class ReturnTablesTest {
 
   @Test
   public void test(){
-    beekeeperService.saveTable(table1);
-    List<HousekeepingMetadata> tables = beekeeperService.returnAllTables();
+    beekeeperServiceImpl.saveTable(table1);
+    List<HousekeepingMetadata> tables = beekeeperServiceImpl.returnAllTables();
     System.out.println("AAA tables:"+tables.size());
   }
 
