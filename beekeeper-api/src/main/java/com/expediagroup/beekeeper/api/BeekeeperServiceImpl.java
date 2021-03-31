@@ -38,4 +38,10 @@ public class BeekeeperServiceImpl implements BeekeeperService{
     return housekeepingMetadataRepository.findAll();
   }
 
+  // Method to save example tables so that I can test the methods
+  public void saveTable(HousekeepingMetadata table){
+    housekeepingMetadataRepository.save(table);
+    System.out.println("count:"+housekeepingMetadataRepository.count());
+  }
+
 }

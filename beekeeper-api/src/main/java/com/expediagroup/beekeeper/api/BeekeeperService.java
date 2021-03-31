@@ -23,4 +23,6 @@ public interface BeekeeperService {
 
   List<HousekeepingMetadata> returnAllTables();
 
+  void saveTable(HousekeepingMetadata table);
+
 }
