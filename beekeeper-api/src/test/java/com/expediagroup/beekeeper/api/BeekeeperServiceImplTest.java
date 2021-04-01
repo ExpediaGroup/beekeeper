@@ -52,7 +52,7 @@ public class BeekeeperServiceImplTest {
   @BeforeEach
   public void createTables(){
     beekeeperServiceImpl = new BeekeeperServiceImpl(housekeepingMetadataRepository);
-    
+
     LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
 
     table1 = new HousekeepingMetadata.Builder()
