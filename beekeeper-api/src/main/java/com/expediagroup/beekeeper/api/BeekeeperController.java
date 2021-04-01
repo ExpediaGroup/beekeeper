@@ -28,7 +28,7 @@ public class BeekeeperController {
 
   private BeekeeperService beekeeperService;
 
-  @RequestMapping(value = "/tables", method = RequestMethod.GET)
+  @RequestMapping("/tables")
   public List<HousekeepingMetadata> getAllTables() {
     return beekeeperService.returnAllTables();
   }
