@@ -92,18 +92,15 @@ public class HouseKeepingEntityServiceImplTest {
 
   @Test
   public void test(){
+
     List<HousekeepingMetadata> tables = new ArrayList<HousekeepingMetadata>();
     tables.add(table1);
     tables.add(table2);
+    when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(new PageImpl<>(tables));
+    Page<HousekeepingMetadata> result = beekeeperServiceImpl.returnAllTables(spec,pageable);
 
-    //System.out.println(tables.size());
-    Page<HousekeepingMetadata> tablesPage = new PageImpl<HousekeepingMetadata>(tables,pageable, tables.size());
-    //System.out.println(tablesPage.getSize());
+    assertThat(new PageImpl<>(tables),is(result));
 
-    when(housekeepingMetadataRepository.findAll(spec,pageable)).thenReturn(tablesPage);
-    Page<HousekeepingMetadata> result = housekeepingMetadataRepository.findAll(spec,pageable);
-    assertThat(result.getSize(),is(2));
-    assertThat(tables,is(result));
   }
 
 }
