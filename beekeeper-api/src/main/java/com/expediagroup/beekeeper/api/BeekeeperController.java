@@ -15,16 +15,23 @@
  */
 package com.expediagroup.beekeeper.api;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 @RestController
 public class BeekeeperController {
 
-  private HousekeepingEntityService beekeeperService;
+  private HousekeepingEntityService HousekeepingEntityService;
 
-//  @RequestMapping("/tables")
-//  public List<HousekeepingMetadata> getAllTables() {
-//    return beekeeperService.returnAllTables();
-//  }
+  @RequestMapping("/tables")
+  public ResponseEntity<Page<HousekeepingMetadata>> getAllTables(Specification<HousekeepingMetadata> spec, Pageable pageable) {
+      return ResponseEntity.ok(HousekeepingEntityService.returnAllTables(spec, pageable));
+  }
 
 }

@@ -15,7 +15,6 @@
  */
 package com.expediagroup.beekeeper.api;
 
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -37,6 +36,7 @@ public class HousekeepingEntityServiceImpl implements HousekeepingEntityService<
   }
 
   // Method for the GET tables/ endpoint
+  @Override
   public Page<HousekeepingMetadata> returnAllTables(Specification<HousekeepingMetadata> spec, Pageable pageable) {
     return housekeepingMetadataRepository.findAll(spec, pageable);
   }
