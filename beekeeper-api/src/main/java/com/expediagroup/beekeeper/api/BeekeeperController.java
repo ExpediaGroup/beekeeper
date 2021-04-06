@@ -15,22 +15,16 @@
  */
 package com.expediagroup.beekeeper.api;
 
-import java.util.List;
-
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 @RestController
 public class BeekeeperController {
 
-  private BeekeeperService beekeeperService;
+  private HousekeepingEntityService beekeeperService;
 
-  @RequestMapping("/tables")
-  public List<HousekeepingMetadata> getAllTables() {
-    return beekeeperService.returnAllTables();
-  }
+//  @RequestMapping("/tables")
+//  public List<HousekeepingMetadata> getAllTables() {
+//    return beekeeperService.returnAllTables();
+//  }
 
 }

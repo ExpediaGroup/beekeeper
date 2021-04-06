@@ -21,9 +21,19 @@
       <artifactId>spring-boot-actuator</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.graphql-java</groupId>
+      <artifactId>graphql-spring-boot-starter</artifactId>
+      <version>5.0.2</version>
+    </dependency>
+    <dependency>
       <groupId>com.expediagroup</groupId>
       <artifactId>beekeeper-core</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>8.0.18</version>
     </dependency>
   </dependencies>
 
