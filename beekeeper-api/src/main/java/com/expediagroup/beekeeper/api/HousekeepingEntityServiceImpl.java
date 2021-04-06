@@ -40,5 +40,4 @@ public class HousekeepingEntityServiceImpl implements HousekeepingEntityService<
     return housekeepingMetadataRepository.findAll(spec, pageable);
   }
 
-
 }

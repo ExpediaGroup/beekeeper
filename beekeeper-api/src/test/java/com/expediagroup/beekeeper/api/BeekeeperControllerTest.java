@@ -15,9 +15,11 @@
  */
 package com.expediagroup.beekeeper.api;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
@@ -31,34 +33,39 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.MockMvc;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
-import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
-@ExtendWith(MockitoExtension.class)
-public class HouseKeepingEntityServiceImplTest {
+public class BeekeeperControllerTest {
 
-  private HousekeepingMetadata table1;
-  private HousekeepingMetadata table2;
-  private HousekeepingEntityServiceImpl housekeepingEntityServiceImpl;
+  @Autowired
+  private MockMvc mockMvc;
+  @Autowired
+  private ObjectMapper objectMapper;
 
   @Mock
-  private HousekeepingMetadataRepository housekeepingMetadataRepository;
+  private HousekeepingEntityService housekeepingEntityService;
   @Mock
   private Specification<HousekeepingMetadata> spec;
   @Mock
   private Pageable pageable;
 
+  private HousekeepingMetadata table1;
+  private HousekeepingMetadata table2;
+
   @BeforeEach
   public void createTables(){
-    housekeepingEntityServiceImpl = new HousekeepingEntityServiceImpl(housekeepingMetadataRepository);
 
     LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
 
@@ -89,16 +96,18 @@ public class HouseKeepingEntityServiceImplTest {
   }
 
   @Test
-  public void test(){
-
-    List<HousekeepingMetadata> tables = new ArrayList<HousekeepingMetadata>();
-    tables.add(table1);
-    tables.add(table2);
-    when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(new PageImpl<>(tables));
-    Page<HousekeepingMetadata> result = housekeepingEntityServiceImpl.returnAllTables(spec,pageable);
-
-    assertThat(new PageImpl<>(tables),is(result));
-
+  public void getAllTables() throws Exception {
+    List<HousekeepingMetadata> tablesList = new ArrayList<HousekeepingMetadata>();
+    tablesList.add(table1);
+    tablesList.add(table2);
+    Page<HousekeepingMetadata> tables = new PageImpl<>(tablesList);
+    System.out.println(tables);
+    when(housekeepingEntityService.returnAllTables(spec, pageable)).thenReturn(tables);
+    mockMvc
+        .perform(get(housekeepingEntityService.returnAllTables(spec, pageable).toString()))
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(APPLICATION_JSON))
+        .andExpect(content().json(objectMapper.writeValueAsString(tables)));
   }
-
 }
