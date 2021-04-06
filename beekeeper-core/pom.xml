@@ -40,13 +40,6 @@
       <version>27.1-jre</version>
     </dependency>
 
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest</artifactId>
-      <version>2.2</version>
-      <scope>test</scope>
-    </dependency>
-
     <!-- micrometer -->
     <dependency>
       <groupId>io.micrometer</groupId>
