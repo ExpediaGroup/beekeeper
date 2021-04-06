@@ -15,7 +15,9 @@
  */
 package com.expediagroup.beekeeper.api;
 
-
+import static org.mockito.Mockito.when;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.is;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
@@ -24,11 +26,20 @@ import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+
+import com.google.common.collect.Lists;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
@@ -42,6 +53,10 @@ public class HouseKeepingEntityServiceImplTest {
 
   @Mock
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
+  @Mock
+  private Specification<HousekeepingMetadata> spec;
+  @Mock
+  private Pageable pageable;
 
   @BeforeEach
   public void createTables(){
@@ -75,15 +90,20 @@ public class HouseKeepingEntityServiceImplTest {
         .build();
   }
 
-//  @Test
-//  public void test(){
-//    List<HousekeepingMetadata> tables = new ArrayList<HousekeepingMetadata>();
-//    tables.add(table1);
-//    tables.add(table2);
-//    when(housekeepingMetadataRepository.findAll()).thenReturn(tables);
-//    List<HousekeepingMetadata> result = beekeeperServiceImpl.returnAllTables();
-//    assertThat(result.size()).isEqualTo(2);
-//    assertThat(tables).isEqualTo(result);
-//  }
+  @Test
+  public void test(){
+    List<HousekeepingMetadata> tables = new ArrayList<HousekeepingMetadata>();
+    tables.add(table1);
+    tables.add(table2);
+
+    //System.out.println(tables.size());
+    Page<HousekeepingMetadata> tablesPage = new PageImpl<HousekeepingMetadata>(tables,pageable, tables.size());
+    //System.out.println(tablesPage.getSize());
+
+    when(housekeepingMetadataRepository.findAll(spec,pageable)).thenReturn(tablesPage);
+    Page<HousekeepingMetadata> result = housekeepingMetadataRepository.findAll(spec,pageable);
+    assertThat(result.getSize(),is(2));
+    assertThat(tables,is(result));
+  }
 
 }

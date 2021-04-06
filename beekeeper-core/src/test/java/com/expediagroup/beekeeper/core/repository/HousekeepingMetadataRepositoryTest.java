@@ -44,6 +44,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
+import com.google.common.collect.Lists;
+
 import com.expediagroup.beekeeper.core.TestApplication;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
@@ -83,7 +85,7 @@ public class HousekeepingMetadataRepositoryTest {
 
     housekeepingMetadataRepository.save(table);
 
-    List<HousekeepingMetadata> tables = housekeepingMetadataRepository.findAll();
+    List<HousekeepingMetadata> tables = Lists.newArrayList(housekeepingMetadataRepository.findAll());
     assertThat(tables.size()).isEqualTo(1);
     HousekeepingMetadata savedTable = tables.get(0);
     assertThat(savedTable.getPath()).isEqualTo(PATH);
@@ -108,7 +110,7 @@ public class HousekeepingMetadataRepositoryTest {
     savedTable.setCleanupAttempts(savedTable.getCleanupAttempts() + 1);
     housekeepingMetadataRepository.save(savedTable);
 
-    List<HousekeepingMetadata> tables = housekeepingMetadataRepository.findAll();
+    List<HousekeepingMetadata> tables = Lists.newArrayList(housekeepingMetadataRepository.findAll());
     assertThat(tables.size()).isEqualTo(1);
     HousekeepingMetadata updatedTable = tables.get(0);
     assertThat(updatedTable.getHousekeepingStatus()).isEqualTo(DELETED);
@@ -141,7 +143,7 @@ public class HousekeepingMetadataRepositoryTest {
   public void timezone() {
     HousekeepingMetadata path = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(path);
-    List<HousekeepingMetadata> tables = housekeepingMetadataRepository.findAll();
+    List<HousekeepingMetadata> tables = Lists.newArrayList(housekeepingMetadataRepository.findAll());
     assertThat(tables.size()).isEqualTo(1);
 
     HousekeepingMetadata savedTable = tables.get(0);
