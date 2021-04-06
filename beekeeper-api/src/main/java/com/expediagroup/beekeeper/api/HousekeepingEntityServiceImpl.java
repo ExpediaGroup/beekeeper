@@ -36,7 +36,6 @@ public class HousekeepingEntityServiceImpl implements HousekeepingEntityService<
   }
 
   // Method for the GET tables/ endpoint
-  @Override
   public Page<HousekeepingMetadata> returnAllTables(Specification<HousekeepingMetadata> spec, Pageable pageable) {
     return housekeepingMetadataRepository.findAll(spec, pageable);
   }
