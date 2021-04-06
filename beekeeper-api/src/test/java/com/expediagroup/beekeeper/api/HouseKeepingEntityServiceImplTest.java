@@ -76,7 +76,7 @@ public class HouseKeepingEntityServiceImplTest {
         .cleanupAttempts(0)
         .lifecycleType(EXPIRED.toString())
         .build();
-    table1 = new HousekeepingMetadata.Builder()
+    table2 = new HousekeepingMetadata.Builder()
         .path("s3://some/path2/")
         .databaseName("aRandomDatabase2")
         .tableName("aRandomTable2")
