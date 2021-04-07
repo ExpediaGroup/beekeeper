@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
+@RequestMapping("/api/v1")
 @RestController
 public class BeekeeperController {
 

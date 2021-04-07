@@ -15,8 +15,7 @@
  */
 package com.expediagroup.beekeeper.api;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
@@ -97,7 +96,7 @@ public class HouseKeepingEntityServiceImplTest {
     when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(new PageImpl<>(tables));
     Page<HousekeepingMetadata> result = housekeepingEntityServiceImpl.returnAllTables(spec,pageable);
 
-    assertThat(new PageImpl<>(tables),is(result));
+    assertThat(new PageImpl<>(tables)).isEqualTo(result);
 
   }
 
