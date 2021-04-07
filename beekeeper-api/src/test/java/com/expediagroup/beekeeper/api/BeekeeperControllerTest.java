@@ -61,7 +61,7 @@ public class BeekeeperControllerTest {
   @Mock
   private Pageable pageable;
   @Mock
-  private HousekeepingEntityService housekeepingEntityService;
+  private HousekeepingMetadataService housekeepingEntityService;
 
   private HousekeepingMetadata table1;
   private HousekeepingMetadata table2;

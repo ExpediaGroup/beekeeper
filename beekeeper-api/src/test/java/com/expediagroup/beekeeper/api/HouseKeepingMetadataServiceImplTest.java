@@ -42,11 +42,11 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class HouseKeepingEntityServiceImplTest {
+public class HouseKeepingMetadataServiceImplTest {
 
   private HousekeepingMetadata table1;
   private HousekeepingMetadata table2;
-  private HousekeepingEntityServiceImpl housekeepingEntityServiceImpl;
+  private HousekeepingMetadataServiceImpl housekeepingEntityServiceImpl;
 
   @Mock
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
@@ -57,7 +57,7 @@ public class HouseKeepingEntityServiceImplTest {
 
   @BeforeEach
   public void createTables(){
-    housekeepingEntityServiceImpl = new HousekeepingEntityServiceImpl(housekeepingMetadataRepository);
+    housekeepingEntityServiceImpl = new HousekeepingMetadataServiceImpl(housekeepingMetadataRepository);
 
     LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
 
