@@ -61,7 +61,7 @@ public class BeekeeperControllerTest {
   @Mock
   private Pageable pageable;
   @Mock
-  private HousekeepingMetadataService housekeepingEntityService;
+  private HousekeepingMetadataService housekeepingMetadataService;
 
   private HousekeepingMetadata table1;
   private HousekeepingMetadata table2;
@@ -104,10 +104,10 @@ public class BeekeeperControllerTest {
     tablesList.add(table2);
     Page<HousekeepingMetadata> tables = new PageImpl<>(tablesList);
     System.out.println(tables.getContent());
-    when(housekeepingEntityService.returnAllTables(spec, pageable)).thenReturn(tables);
+    when(housekeepingMetadataService.returnAllTables(spec, pageable)).thenReturn(tables);
 
     mockMvc
-        .perform(get(housekeepingEntityService.returnAllTables(spec, pageable).toString()))
+        .perform(get(housekeepingMetadataService.returnAllTables(spec, pageable).toString()))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))

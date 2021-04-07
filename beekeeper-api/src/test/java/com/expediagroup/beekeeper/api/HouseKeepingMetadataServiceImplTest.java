@@ -46,7 +46,7 @@ public class HouseKeepingMetadataServiceImplTest {
 
   private HousekeepingMetadata table1;
   private HousekeepingMetadata table2;
-  private HousekeepingMetadataServiceImpl housekeepingEntityServiceImpl;
+  private HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
 
   @Mock
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
@@ -57,7 +57,7 @@ public class HouseKeepingMetadataServiceImplTest {
 
   @BeforeEach
   public void createTables(){
-    housekeepingEntityServiceImpl = new HousekeepingMetadataServiceImpl(housekeepingMetadataRepository);
+    housekeepingMetadataServiceImpl = new HousekeepingMetadataServiceImpl(housekeepingMetadataRepository);
 
     LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
 
@@ -94,7 +94,7 @@ public class HouseKeepingMetadataServiceImplTest {
     tables.add(table1);
     tables.add(table2);
     when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(new PageImpl<>(tables));
-    Page<HousekeepingMetadata> result = housekeepingEntityServiceImpl.returnAllTables(spec,pageable);
+    Page<HousekeepingMetadata> result = housekeepingMetadataServiceImpl.returnAllTables(spec,pageable);
 
     assertThat(new PageImpl<>(tables)).isEqualTo(result);
 
