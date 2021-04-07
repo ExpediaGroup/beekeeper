@@ -33,8 +33,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -45,8 +48,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
+@ExtendWith(MockitoExtension.class)
 public class BeekeeperControllerTest {
 
   @Autowired
@@ -55,11 +61,11 @@ public class BeekeeperControllerTest {
   private ObjectMapper objectMapper;
 
   @Mock
-  private HousekeepingEntityService housekeepingEntityService;
-  @Mock
   private Specification<HousekeepingMetadata> spec;
   @Mock
   private Pageable pageable;
+  @Mock
+  private HousekeepingEntityService housekeepingEntityService;
 
   private HousekeepingMetadata table1;
   private HousekeepingMetadata table2;
@@ -94,15 +100,16 @@ public class BeekeeperControllerTest {
         .lifecycleType(EXPIRED.toString())
         .build();
   }
-
+  
   @Test
   public void getAllTables() throws Exception {
     List<HousekeepingMetadata> tablesList = new ArrayList<HousekeepingMetadata>();
     tablesList.add(table1);
     tablesList.add(table2);
     Page<HousekeepingMetadata> tables = new PageImpl<>(tablesList);
-    System.out.println(tables);
+    System.out.println(tables.getContent());
     when(housekeepingEntityService.returnAllTables(spec, pageable)).thenReturn(tables);
+
     mockMvc
         .perform(get(housekeepingEntityService.returnAllTables(spec, pageable).toString()))
         .andDo(MockMvcResultHandlers.print())
