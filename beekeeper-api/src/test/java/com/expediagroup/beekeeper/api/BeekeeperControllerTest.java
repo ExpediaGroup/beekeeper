@@ -100,7 +100,7 @@ public class BeekeeperControllerTest {
         .lifecycleType(EXPIRED.toString())
         .build();
   }
-  
+
   @Test
   public void getAllTables() throws Exception {
     List<HousekeepingMetadata> tablesList = new ArrayList<HousekeepingMetadata>();
