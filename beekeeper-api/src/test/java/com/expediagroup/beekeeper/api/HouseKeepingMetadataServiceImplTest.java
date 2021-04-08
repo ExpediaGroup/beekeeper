@@ -18,17 +18,10 @@ package com.expediagroup.beekeeper.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
-import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
+import static com.expediagroup.beekeeper.api.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -44,8 +37,6 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository
 @ExtendWith(MockitoExtension.class)
 public class HouseKeepingMetadataServiceImplTest {
 
-  private HousekeepingMetadata table1;
-  private HousekeepingMetadata table2;
   private HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
 
   @Mock
@@ -55,48 +46,15 @@ public class HouseKeepingMetadataServiceImplTest {
   @Mock
   private Pageable pageable;
 
-  @BeforeEach
-  public void createTables(){
-    housekeepingMetadataServiceImpl = new HousekeepingMetadataServiceImpl(housekeepingMetadataRepository);
-
-    LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
-
-    table1 = new HousekeepingMetadata.Builder()
-        .path("s3://some/path/")
-        .databaseName("aRandomDatabase")
-        .tableName("aRandomTable")
-        .partitionName("event_date=2020-01-01/event_hour=0/event_type=A")
-        .housekeepingStatus(SCHEDULED)
-        .creationTimestamp(CREATION_TIMESTAMP)
-        .modifiedTimestamp(CREATION_TIMESTAMP)
-        .cleanupDelay(Duration.parse("P3D"))
-        .cleanupAttempts(0)
-        .lifecycleType(EXPIRED.toString())
-        .build();
-    table2 = new HousekeepingMetadata.Builder()
-        .path("s3://some/path2/")
-        .databaseName("aRandomDatabase2")
-        .tableName("aRandomTable2")
-        .partitionName("event_date=2020-01-012/event_hour=2/event_type=B")
-        .housekeepingStatus(DELETED)
-        .creationTimestamp(CREATION_TIMESTAMP)
-        .modifiedTimestamp(CREATION_TIMESTAMP)
-        .cleanupDelay(Duration.parse("P3D"))
-        .cleanupAttempts(0)
-        .lifecycleType(EXPIRED.toString())
-        .build();
-  }
-
   @Test
-  public void test(){
+  public void getAllTest(){
+    HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
+    HousekeepingMetadata table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
+    Page<HousekeepingMetadata> tables = new PageImpl<>(List.of(table1, table2));
+    when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(tables);
+    Page<HousekeepingMetadata> result = housekeepingMetadataServiceImpl.getAll(spec,pageable);
 
-    List<HousekeepingMetadata> tables = new ArrayList<HousekeepingMetadata>();
-    tables.add(table1);
-    tables.add(table2);
-    when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(new PageImpl<>(tables));
-    Page<HousekeepingMetadata> result = housekeepingMetadataServiceImpl.returnAllTables(spec,pageable);
-
-    assertThat(new PageImpl<>(tables)).isEqualTo(result);
+    assertThat(tables).isEqualTo(result);
 
   }
 

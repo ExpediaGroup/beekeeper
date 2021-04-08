@@ -25,6 +25,6 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 public interface HousekeepingMetadataService<U extends HousekeepingEntity> {
 
-  Page<U> returnAllTables(Specification<HousekeepingMetadata> spec, Pageable pageable);
+  Page<U> getAll(Specification<HousekeepingMetadata> spec, Pageable pageable);
 
 }

@@ -21,17 +21,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
-import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
+import static com.expediagroup.beekeeper.api.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -63,51 +55,16 @@ public class BeekeeperControllerTest {
   @Mock
   private HousekeepingMetadataService housekeepingMetadataService;
 
-  private HousekeepingMetadata table1;
-  private HousekeepingMetadata table2;
-
-  @BeforeEach
-  public void createTables(){
-
-    LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
-
-    table1 = new HousekeepingMetadata.Builder()
-        .path("s3://some/path/")
-        .databaseName("aRandomDatabase")
-        .tableName("aRandomTable")
-        .partitionName("event_date=2020-01-01/event_hour=0/event_type=A")
-        .housekeepingStatus(SCHEDULED)
-        .creationTimestamp(CREATION_TIMESTAMP)
-        .modifiedTimestamp(CREATION_TIMESTAMP)
-        .cleanupDelay(Duration.parse("P3D"))
-        .cleanupAttempts(0)
-        .lifecycleType(EXPIRED.toString())
-        .build();
-    table2 = new HousekeepingMetadata.Builder()
-        .path("s3://some/path2/")
-        .databaseName("aRandomDatabase2")
-        .tableName("aRandomTable2")
-        .partitionName("event_date=2020-01-012/event_hour=2/event_type=B")
-        .housekeepingStatus(DELETED)
-        .creationTimestamp(CREATION_TIMESTAMP)
-        .modifiedTimestamp(CREATION_TIMESTAMP)
-        .cleanupDelay(Duration.parse("P3D"))
-        .cleanupAttempts(0)
-        .lifecycleType(EXPIRED.toString())
-        .build();
-  }
-
   @Test
-  public void getAllTables() throws Exception {
-    List<HousekeepingMetadata> tablesList = new ArrayList<HousekeepingMetadata>();
-    tablesList.add(table1);
-    tablesList.add(table2);
-    Page<HousekeepingMetadata> tables = new PageImpl<>(tablesList);
-    System.out.println(tables.getContent());
-    when(housekeepingMetadataService.returnAllTables(spec, pageable)).thenReturn(tables);
+  public void getAllTest() throws Exception {
+    HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
+    HousekeepingMetadata table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
+    Page<HousekeepingMetadata> tables = new PageImpl<>(List.of(table1, table2));
+
+    when(housekeepingMetadataService.getAll(spec, pageable)).thenReturn(tables);
 
     mockMvc
-        .perform(get(housekeepingMetadataService.returnAllTables(spec, pageable).toString()))
+        .perform(get(housekeepingMetadataService.getAll(spec, pageable).toString()))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))

@@ -35,7 +35,7 @@ public class HousekeepingMetadataServiceImpl implements HousekeepingMetadataServ
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
   }
 
-  public Page<HousekeepingMetadata> returnAllTables(Specification<HousekeepingMetadata> spec, Pageable pageable) {
+  public Page<HousekeepingMetadata> getAll(Specification<HousekeepingMetadata> spec, Pageable pageable) {
     return housekeepingMetadataRepository.findAll(spec, pageable);
   }
 
