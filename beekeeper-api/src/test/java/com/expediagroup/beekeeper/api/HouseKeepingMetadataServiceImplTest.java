@@ -22,6 +22,7 @@ import static com.expediagroup.beekeeper.api.DummyHousekeepingMetadataGenerator.
 
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -37,8 +38,6 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository
 @ExtendWith(MockitoExtension.class)
 public class HouseKeepingMetadataServiceImplTest {
 
-  private HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
-
   @Mock
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
   @Mock
@@ -46,13 +45,21 @@ public class HouseKeepingMetadataServiceImplTest {
   @Mock
   private Pageable pageable;
 
+  private HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
+
+  @BeforeEach
+  public void beforeEach() {
+    housekeepingMetadataServiceImpl = new HousekeepingMetadataServiceImpl(housekeepingMetadataRepository);
+  }
+
   @Test
   public void getAllTest(){
     HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
     HousekeepingMetadata table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
+
     Page<HousekeepingMetadata> tables = new PageImpl<>(List.of(table1, table2));
     when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(tables);
-    Page<HousekeepingMetadata> result = housekeepingMetadataServiceImpl.getAll(spec,pageable);
+    Page<HousekeepingMetadata> result = housekeepingMetadataServiceImpl.getAll(spec, pageable);
 
     assertThat(tables).isEqualTo(result);
 
