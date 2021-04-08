@@ -38,6 +38,8 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository
 @ExtendWith(MockitoExtension.class)
 public class HouseKeepingMetadataServiceImplTest {
 
+  private HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
+
   @Mock
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
   @Mock
@@ -45,15 +47,13 @@ public class HouseKeepingMetadataServiceImplTest {
   @Mock
   private Pageable pageable;
 
-  private HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
-
   @BeforeEach
   public void beforeEach() {
     housekeepingMetadataServiceImpl = new HousekeepingMetadataServiceImpl(housekeepingMetadataRepository);
   }
 
   @Test
-  public void getAllTest(){
+  public void testGetAllWhenTablesValid(){
     HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
     HousekeepingMetadata table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
 
@@ -62,7 +62,6 @@ public class HouseKeepingMetadataServiceImplTest {
     Page<HousekeepingMetadata> result = housekeepingMetadataServiceImpl.getAll(spec, pageable);
 
     assertThat(tables).isEqualTo(result);
-
   }
 
 }
