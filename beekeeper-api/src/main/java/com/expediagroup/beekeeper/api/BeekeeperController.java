@@ -29,11 +29,11 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 @RestController
 public class BeekeeperController {
 
-  private HousekeepingMetadataService housekeepingMetadataService;
+  private HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
 
   @GetMapping("/tables")
   public ResponseEntity<Page<HousekeepingMetadata>> getAll(Specification<HousekeepingMetadata> spec, Pageable pageable) {
-      return ResponseEntity.ok(housekeepingMetadataService.getAll(spec, pageable));
+      return ResponseEntity.ok(housekeepingMetadataServiceImpl.getAll(spec, pageable));
   }
 
 }

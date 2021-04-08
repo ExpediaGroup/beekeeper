@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static com.expediagroup.beekeeper.api.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -39,6 +40,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class BeekeeperControllerTest {
@@ -49,22 +51,30 @@ public class BeekeeperControllerTest {
   private ObjectMapper objectMapper;
 
   @Mock
+  private HousekeepingMetadataRepository housekeepingMetadataRepository;
+  @Mock
   private Specification<HousekeepingMetadata> spec;
   @Mock
   private Pageable pageable;
-  @Mock
-  private HousekeepingMetadataService housekeepingMetadataService;
+
+  private HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
+
+
+  @BeforeEach
+  public void beforeEach() {
+    housekeepingMetadataServiceImpl = new HousekeepingMetadataServiceImpl(housekeepingMetadataRepository);
+  }
 
   @Test
-  public void getAllTest() throws Exception {
+  public void testGetAllWhenTablesValid() throws Exception {
     HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
     HousekeepingMetadata table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
     Page<HousekeepingMetadata> tables = new PageImpl<>(List.of(table1, table2));
 
-    when(housekeepingMetadataService.getAll(spec, pageable)).thenReturn(tables);
+    when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(tables);
 
     mockMvc
-        .perform(get(housekeepingMetadataService.getAll(spec, pageable).toString()))
+        .perform(get(housekeepingMetadataServiceImpl.getAll(spec, pageable).toString()))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
