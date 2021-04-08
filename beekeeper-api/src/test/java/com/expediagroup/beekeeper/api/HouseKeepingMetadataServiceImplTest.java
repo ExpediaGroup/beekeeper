@@ -17,7 +17,9 @@ package com.expediagroup.beekeeper.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static com.expediagroup.beekeeper.api.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 
 import java.util.List;
@@ -62,6 +64,8 @@ public class HouseKeepingMetadataServiceImplTest {
     Page<HousekeepingMetadata> result = housekeepingMetadataServiceImpl.getAll(spec, pageable);
 
     assertThat(tables).isEqualTo(result);
+    verify(housekeepingMetadataRepository, times(1)).findAll(spec, pageable);
+    verifyNoMoreInteractions(housekeepingMetadataRepository);
   }
 
 }
