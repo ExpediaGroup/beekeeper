@@ -15,6 +15,9 @@
  */
 package com.expediagroup.beekeeper.api;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -79,5 +82,7 @@ public class BeekeeperControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))
         .andExpect(content().json(objectMapper.writeValueAsString(tables)));
+    verify(housekeepingMetadataRepository, times(1)).findAll(spec, pageable);
+    verifyNoMoreInteractions(housekeepingMetadataRepository);
   }
 }
