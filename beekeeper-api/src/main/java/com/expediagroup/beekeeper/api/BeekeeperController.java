@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import net.kaczmarzyk.spring.data.jpa.domain.EqualIgnoreCase;
+import net.kaczmarzyk.spring.data.jpa.domain.GreaterThan;
+import net.kaczmarzyk.spring.data.jpa.domain.LessThan;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
@@ -37,11 +39,14 @@ public class BeekeeperController {
 
   private HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
 
-  @GetMapping(path = "/tables", produces = APPLICATION_JSON_VALUE, params = {"tableName", "databaseName"})
+  @GetMapping(path = "/tables", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Page<HousekeepingMetadata>> getAll(
       @And({
           @Spec(path = "tableName", spec = EqualIgnoreCase.class),
-          @Spec(path = "databaseName", spec = EqualIgnoreCase.class)
+          @Spec(path = "databaseName", spec = EqualIgnoreCase.class),
+          @Spec(path = "status", spec = EqualIgnoreCase.class),
+          @Spec(path = "deletedBefore", spec = LessThan.class),
+          @Spec(path = "deletedAfter", spec = GreaterThan.class)
       })
       Specification<HousekeepingMetadata> spec, Pageable pageable) {
       return ResponseEntity.ok(housekeepingMetadataServiceImpl.getAll(spec, pageable));
