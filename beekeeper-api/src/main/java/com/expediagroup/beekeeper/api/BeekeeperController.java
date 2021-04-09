@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.api;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,6 +24,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import net.kaczmarzyk.spring.data.jpa.domain.EqualIgnoreCase;
+import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
+import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
@@ -31,8 +37,13 @@ public class BeekeeperController {
 
   private HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
 
-  @GetMapping("/tables")
-  public ResponseEntity<Page<HousekeepingMetadata>> getAll(Specification<HousekeepingMetadata> spec, Pageable pageable) {
+  @GetMapping(path = "/tables", produces = APPLICATION_JSON_VALUE, params = {"tableName", "databaseName"})
+  public ResponseEntity<Page<HousekeepingMetadata>> getAll(
+      @And({
+          @Spec(path = "tableName", spec = EqualIgnoreCase.class),
+          @Spec(path = "databaseName", spec = EqualIgnoreCase.class)
+      })
+      Specification<HousekeepingMetadata> spec, Pageable pageable) {
       return ResponseEntity.ok(housekeepingMetadataServiceImpl.getAll(spec, pageable));
   }
 
