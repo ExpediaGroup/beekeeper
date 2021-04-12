@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.api;
+package com.expediagroup.beekeeper.api.service;
 
 
 import org.springframework.data.domain.Page;

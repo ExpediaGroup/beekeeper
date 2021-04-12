@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.api;
+package com.expediagroup.beekeeper.api.controller;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -24,28 +24,33 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import static com.expediagroup.beekeeper.api.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
+import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
+
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.expediagroup.beekeeper.api.service.HousekeepingMetadataServiceImpl;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
+//@ExtendWith(MockitoExtension.class)
+@WebMvcTest(BeekeeperController.class)
 public class BeekeeperControllerTest {
 
   @Autowired
@@ -77,7 +82,7 @@ public class BeekeeperControllerTest {
     when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(tables);
 
     mockMvc
-        .perform(get(housekeepingMetadataServiceImpl.getAll(spec, pageable).toString()))
+        .perform(get("/api/v1/tables"))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(status().isOk())
         .andExpect(content().contentType(APPLICATION_JSON))

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.api;
+package com.expediagroup.beekeeper.api.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -31,6 +31,7 @@ import net.kaczmarzyk.spring.data.jpa.domain.LessThan;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
+import com.expediagroup.beekeeper.api.service.HousekeepingMetadataServiceImpl;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 @RequestMapping("/api/v1")
