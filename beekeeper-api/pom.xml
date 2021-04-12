@@ -11,6 +11,10 @@
 
   <artifactId>beekeeper-api</artifactId>
 
+  <properties>
+    <specification-arg-resolver.version>2.6.1</specification-arg-resolver.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -28,29 +32,24 @@
     <dependency>
       <groupId>net.kaczmarzyk</groupId>
       <artifactId>specification-arg-resolver</artifactId>
-      <version>2.6.1</version>
+      <version>${specification-arg-resolver.version}</version>
     </dependency>
 
     <!-- test -->
     <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-test</artifactId>
+      <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-test-autoconfigure</artifactId>
-      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>junit-jupiter</artifactId>
+          <groupId>org.junit.jupiter</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.vaadin.external.google</groupId>
+          <artifactId>android-json</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
