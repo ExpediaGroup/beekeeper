@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -210,7 +210,7 @@ public class PagingMetadataCleanupServiceTest {
         .extracting("tableName")
         .containsExactly(tables.get(0).getTableName(), tables.get(1).getTableName());
 
-    List<HousekeepingMetadata> result = metadataRepository.findAll();
+    List<HousekeepingMetadata> result = (List<HousekeepingMetadata>) metadataRepository.findAll();
     assertThat(result.size()).isEqualTo(2);
     HousekeepingMetadata housekeepingMetadata1 = result.get(0);
     HousekeepingMetadata housekeepingMetadata2 = result.get(1);
