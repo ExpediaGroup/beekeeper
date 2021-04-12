@@ -51,6 +51,12 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>co.cask.tephra</groupId>
+      <artifactId>tephra-core</artifactId>
+      <version>0.6.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
 </project>

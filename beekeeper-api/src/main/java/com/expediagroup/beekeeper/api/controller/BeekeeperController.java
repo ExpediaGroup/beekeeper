@@ -15,12 +15,12 @@
  */
 package com.expediagroup.beekeeper.api.controller;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,7 +46,7 @@ public class BeekeeperController {
     this.housekeepingMetadataServiceImpl = housekeepingMetadataServiceImpl;
   }
 
-  @GetMapping(path = "/tables", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(path = "/tables", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Page<HousekeepingMetadata>> getAll(
       @And({
           @Spec(path = "tableName", spec = EqualIgnoreCase.class),
