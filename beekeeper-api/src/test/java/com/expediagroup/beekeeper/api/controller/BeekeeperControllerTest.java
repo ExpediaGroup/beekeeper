@@ -48,7 +48,6 @@ import com.expediagroup.beekeeper.api.service.HousekeepingMetadataServiceImpl;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
-@ExtendWith(SpringExtension.class)
 //@ExtendWith(MockitoExtension.class)
 @WebMvcTest(BeekeeperController.class)
 public class BeekeeperControllerTest {
