@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 
 import java.util.List;
@@ -90,7 +91,6 @@ public class BeekeeperControllerTest {
 //        .andExpect(content().json(objectMapper.writeValueAsString(tables)));
 //      verify(housekeepingMetadataRepository, times(1)).findAll(spec, pageable);
 //      verifyNoMoreInteractions(housekeepingMetadataRepository);
-    System.out.println("AAA"+MockMvcResultHandlers.print().toString());
 
     mockMvc
         .perform(get("/api/v1/tables").contentType(APPLICATION_JSON))
