@@ -17,6 +17,7 @@ package com.expediagroup.beekeeper.api.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -38,7 +39,12 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 @RestController
 public class BeekeeperController {
 
-  private HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
+  private final HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
+
+  @Autowired
+  public BeekeeperController(HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl) {
+    this.housekeepingMetadataServiceImpl = housekeepingMetadataServiceImpl;
+  }
 
   @GetMapping(path = "/tables", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Page<HousekeepingMetadata>> getAll(
