@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.api;
+package com.expediagroup.beekeeper.api.controller;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,6 +24,7 @@ import org.springframework.context.annotation.ComponentScan;
 @SpringBootConfiguration
 @EnableConfigurationProperties
 @ComponentScan(basePackages = {
+    "com.expediagroup.beekeeper.api.config",
     "com.expediagroup.beekeeper.api.controller" })
 public class TestApplication {
 
