@@ -16,15 +16,16 @@
 package com.expediagroup.beekeeper.api.controller;
 
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import net.kaczmarzyk.spring.data.jpa.domain.EqualIgnoreCase;
