@@ -17,6 +17,7 @@ package com.expediagroup.beekeeper.api.controller;
 
 
 
+
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 
 import java.util.List;
@@ -70,7 +71,7 @@ public class BeekeeperControllerTest {
 //        .andExpect(status().isOk())
 //        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
 //        .andExpect(content().json(objectMapper.writeValueAsString(tables)));
-   // verify(housekeepingMetadataRepository, times(1)).findAll(spec, pageable);
-    //verifyNoMoreInteractions(housekeepingMetadataRepository);
+//    verify(housekeepingMetadataServiceImpl, times(1)).getAll(spec, pageable);
+//    verifyNoMoreInteractions(housekeepingMetadataServiceImpl);
   }
 }

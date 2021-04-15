@@ -45,7 +45,7 @@
     <maven.assembly.plugin.version>3.1.0</maven.assembly.plugin.version>
     <mockito.version>3.9.0</mockito.version>
     <snakeyaml.version>1.24</snakeyaml.version>
-    <springframework.boot.version>2.1.3.RELEASE</springframework.boot.version>
+    <springframework.boot.version>2.4.4</springframework.boot.version>
     <springframework.version>5.3.5</springframework.version>
     <testcontainers.version>1.15.2</testcontainers.version>
     <docker.from.tag>11-slim</docker.from.tag>
