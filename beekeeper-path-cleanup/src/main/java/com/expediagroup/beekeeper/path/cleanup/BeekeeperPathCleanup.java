@@ -24,6 +24,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.PropertySource;
 
 import io.micrometer.core.instrument.MeterRegistry;
 
@@ -38,9 +39,12 @@ public class BeekeeperPathCleanup implements ApplicationContextAware {
 
   public static void main(String[] args) {
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    
+//    Srring additionalConfigs = 
+    
     new SpringApplicationBuilder(BeekeeperPathCleanup.class)
         .properties(
-            "spring.config.additional-location:classpath:/beekeeper-path-cleanup-application.yml,${config:null}")
+            "spring.config.additional-location:classpath:/beekeeper-path-cleanup-application.yml,${config:/}")
         .build()
         .run(args);
   }

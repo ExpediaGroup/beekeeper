@@ -24,6 +24,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.PropertySource;
 
 import io.micrometer.core.instrument.MeterRegistry;
 
@@ -42,8 +43,7 @@ public class BeekeeperSchedulerApiary implements ApplicationContextAware {
   public static void main(String[] args) {
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     new SpringApplicationBuilder(BeekeeperSchedulerApiary.class)
-        .properties("spring.config.additional-location:classpath:/beekeeper-scheduler-apiary-application.yml,"
-            + "${config:null}")
+        .properties("spring.config.additional-location:classpath:/beekeeper-scheduler-apiary-application.yml")
         .build()
         .run(args);
   }
