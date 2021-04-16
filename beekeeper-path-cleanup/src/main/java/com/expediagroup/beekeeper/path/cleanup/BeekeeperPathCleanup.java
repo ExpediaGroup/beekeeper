@@ -39,9 +39,6 @@ public class BeekeeperPathCleanup implements ApplicationContextAware {
 
   public static void main(String[] args) {
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-    
-//    Srring additionalConfigs = 
-    
     new SpringApplicationBuilder(BeekeeperPathCleanup.class)
         .properties(
             "spring.config.additional-location:classpath:/beekeeper-path-cleanup-application.yml,${config:/}")

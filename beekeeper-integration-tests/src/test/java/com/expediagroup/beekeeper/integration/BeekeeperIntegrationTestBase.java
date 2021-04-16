@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -181,6 +181,10 @@ public abstract class BeekeeperIntegrationTestBase {
   }
 
   protected int getUnreferencedPathsRowCount() throws SQLException {
+    System.out.println(BEEKEEPER_DB_NAME);
+    System.out.println(BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME);
+    System.out.println(LIFE_CYCLE_FILTER);
+    System.out.println(UNREFERENCED);
     return mySQLTestUtils
         .getTableRowCount(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME,
             format(LIFE_CYCLE_FILTER, UNREFERENCED));

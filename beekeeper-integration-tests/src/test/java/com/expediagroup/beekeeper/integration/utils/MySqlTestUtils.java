@@ -19,8 +19,10 @@ import static java.lang.String.format;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class MySqlTestUtils {
 
@@ -29,6 +31,7 @@ public class MySqlTestUtils {
   private static final String INSERT_TO_TABLE = "INSERT INTO %s.%s (%s) VALUES (%s);";
 
   private final Connection connection;
+  private Statement statement2;
 
   public MySqlTestUtils(String jdbcUrl, String username, String password) throws SQLException {
     connection = DriverManager.getConnection(jdbcUrl, username, password);
@@ -51,9 +54,13 @@ public class MySqlTestUtils {
   }
 
   private int getTableRowCount(String statement) throws SQLException {
-    ResultSet resultSet = getTableRows(statement);
-    resultSet.last();
-    int rowsInTable = resultSet.getRow();
+    //ResultSet resultSet = getTableRows(statement);
+    statement2 = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
+        ResultSet.CONCUR_READ_ONLY);
+    ResultSet rs = statement2.executeQuery(statement);
+    System.out.println("type:"+rs.getType());
+    rs.last();
+    int rowsInTable = rs.getRow();
     return rowsInTable;
   }
 

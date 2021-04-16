@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,8 +144,8 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     alterPartitionSqsMessage.setPartitionLocation("s3://partitionLocation2");
     alterPartitionSqsMessage.setOldPartitionLocation("s3://partitionLocation");
     amazonSQS.sendMessage(sendMessageRequest(alterPartitionSqsMessage.getFormattedString()));
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
-
+    //await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() > 1);
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
     assertUnreferencedPath(unreferencedPaths.get(0), "s3://partitionLocation");
     assertUnreferencedPath(unreferencedPaths.get(1), "s3://unreferencedPartitionLocation");
