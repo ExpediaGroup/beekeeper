@@ -181,10 +181,6 @@ public abstract class BeekeeperIntegrationTestBase {
   }
 
   protected int getUnreferencedPathsRowCount() throws SQLException {
-    System.out.println(BEEKEEPER_DB_NAME);
-    System.out.println(BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME);
-    System.out.println(LIFE_CYCLE_FILTER);
-    System.out.println(UNREFERENCED);
     return mySQLTestUtils
         .getTableRowCount(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME,
             format(LIFE_CYCLE_FILTER, UNREFERENCED));
