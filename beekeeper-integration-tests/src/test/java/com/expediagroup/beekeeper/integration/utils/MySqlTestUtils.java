@@ -53,14 +53,11 @@ public class MySqlTestUtils {
   }
 
   private int getTableRowCount(String statement) throws SQLException {
-    //ResultSet resultSet = getTableRows(statement);
     statement2 = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
         ResultSet.CONCUR_READ_ONLY);
     ResultSet rs = statement2.executeQuery(statement);
-    System.out.println("type:"+rs.getType());
     rs.last();
-    int rowsInTable = rs.getRow();
-    return rowsInTable;
+    return rs.getRow();
   }
 
   public ResultSet getTableRows(String database, String table, String additionalFilters) throws SQLException {
