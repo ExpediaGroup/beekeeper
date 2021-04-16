@@ -34,6 +34,11 @@
       <artifactId>specification-arg-resolver</artifactId>
       <version>${specification-arg-resolver.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20080701</version>
+    </dependency>
 
     <!-- test -->
     <dependency>
