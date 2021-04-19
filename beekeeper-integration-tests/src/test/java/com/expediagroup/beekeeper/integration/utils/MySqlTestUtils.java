@@ -30,7 +30,6 @@ public class MySqlTestUtils {
   private static final String INSERT_TO_TABLE = "INSERT INTO %s.%s (%s) VALUES (%s);";
 
   private final Connection connection;
-  private Statement statement;
 
   public MySqlTestUtils(String jdbcUrl, String username, String password) throws SQLException {
     connection = DriverManager.getConnection(jdbcUrl, username, password);
@@ -53,6 +52,7 @@ public class MySqlTestUtils {
   }
 
   private int getTableRowCount(String statementString) throws SQLException {
+    Statement statement;
     statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
         ResultSet.CONCUR_READ_ONLY);
     ResultSet resultSet = statement.executeQuery(statementString);
