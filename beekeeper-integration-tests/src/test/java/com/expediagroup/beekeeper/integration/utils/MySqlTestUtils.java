@@ -30,7 +30,7 @@ public class MySqlTestUtils {
   private static final String INSERT_TO_TABLE = "INSERT INTO %s.%s (%s) VALUES (%s);";
 
   private final Connection connection;
-  private Statement statement2;
+  private Statement statement;
 
   public MySqlTestUtils(String jdbcUrl, String username, String password) throws SQLException {
     connection = DriverManager.getConnection(jdbcUrl, username, password);
@@ -52,12 +52,12 @@ public class MySqlTestUtils {
     return getTableRowCount(format(SELECT_TABLE, database, table, additionalFilters));
   }
 
-  private int getTableRowCount(String statement) throws SQLException {
-    statement2 = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
+  private int getTableRowCount(String statementString) throws SQLException {
+    statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
         ResultSet.CONCUR_READ_ONLY);
-    ResultSet rs = statement2.executeQuery(statement);
-    rs.last();
-    return rs.getRow();
+    ResultSet resultSet = statement.executeQuery(statementString);
+    resultSet.last();
+    return resultSet.getRow();
   }
 
   public ResultSet getTableRows(String database, String table, String additionalFilters) throws SQLException {
