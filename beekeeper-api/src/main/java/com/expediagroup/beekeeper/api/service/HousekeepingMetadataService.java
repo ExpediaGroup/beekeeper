@@ -16,15 +16,27 @@
 package com.expediagroup.beekeeper.api.service;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
-public interface HousekeepingMetadataService<U extends HousekeepingEntity> {
+@Service
+public class HousekeepingMetadataService implements HousekeepingEntityService<HousekeepingMetadata> {
 
-  Page<U> getAll(Specification<HousekeepingMetadata> spec, Pageable pageable);
+  private final HousekeepingMetadataRepository housekeepingMetadataRepository;
+
+  @Autowired
+  public HousekeepingMetadataService(HousekeepingMetadataRepository housekeepingMetadataRepository) {
+    this.housekeepingMetadataRepository = housekeepingMetadataRepository;
+  }
+
+  public Page<HousekeepingMetadata> getAll(Specification<HousekeepingMetadata> spec, Pageable pageable) {
+    return housekeepingMetadataRepository.findAll(spec, pageable);
+  }
 
 }

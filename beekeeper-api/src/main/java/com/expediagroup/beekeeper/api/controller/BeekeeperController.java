@@ -33,18 +33,18 @@ import net.kaczmarzyk.spring.data.jpa.domain.LessThan;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
-import com.expediagroup.beekeeper.api.service.HousekeepingMetadataServiceImpl;
+import com.expediagroup.beekeeper.api.service.HousekeepingMetadataService;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 @RequestMapping("/api/v1")
 @RestController
 public class BeekeeperController {
 
-  private final HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
+  private final HousekeepingMetadataService housekeepingMetadataService;
 
   @Autowired
-  public BeekeeperController(HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl) {
-    this.housekeepingMetadataServiceImpl = housekeepingMetadataServiceImpl;
+  public BeekeeperController(HousekeepingMetadataService housekeepingMetadataService) {
+    this.housekeepingMetadataService = housekeepingMetadataService;
   }
 
   @GetMapping(path = "/tables", produces = APPLICATION_JSON_VALUE)
@@ -57,7 +57,7 @@ public class BeekeeperController {
           @Spec(path = "deletedAfter", spec = GreaterThan.class)
       })
       Specification<HousekeepingMetadata> spec, Pageable pageable) {
-      return ResponseEntity.ok(housekeepingMetadataServiceImpl.getAll(spec, pageable));
+      return ResponseEntity.ok(housekeepingMetadataService.getAll(spec, pageable));
   }
 
 }

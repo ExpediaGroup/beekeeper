@@ -39,9 +39,9 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class HouseKeepingMetadataServiceImplTest {
+public class HouseKeepingMetadataServiceTest {
 
-  private HousekeepingMetadataServiceImpl housekeepingMetadataServiceImpl;
+  private HousekeepingMetadataService housekeepingMetadataService;
 
   @Mock
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
@@ -52,7 +52,7 @@ public class HouseKeepingMetadataServiceImplTest {
 
   @BeforeEach
   public void beforeEach() {
-    housekeepingMetadataServiceImpl = new HousekeepingMetadataServiceImpl(housekeepingMetadataRepository);
+    housekeepingMetadataService = new HousekeepingMetadataService(housekeepingMetadataRepository);
   }
 
   @Test
@@ -62,7 +62,7 @@ public class HouseKeepingMetadataServiceImplTest {
 
     Page<HousekeepingMetadata> tables = new PageImpl<>(List.of(table1, table2));
     when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(tables);
-    Page<HousekeepingMetadata> result = housekeepingMetadataServiceImpl.getAll(spec, pageable);
+    Page<HousekeepingMetadata> result = housekeepingMetadataService.getAll(spec, pageable);
 
     assertThat(tables).isEqualTo(result);
     verify(housekeepingMetadataRepository, times(1)).findAll(spec, pageable);
