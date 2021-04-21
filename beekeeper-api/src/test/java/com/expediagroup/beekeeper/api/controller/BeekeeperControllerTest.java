@@ -17,16 +17,14 @@ package com.expediagroup.beekeeper.api.controller;
 
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
 
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 
@@ -39,6 +37,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
@@ -104,7 +103,7 @@ public class BeekeeperControllerTest {
   }
 
   @Test
-  public void testWhenWrongUrl() throws Exception {
+  public void testControllerWhenWrongUrl() throws Exception {
     Page<HousekeepingMetadata> tables = new PageImpl<>(List.of());
 
     when(housekeepingMetadataService.getAll(any(), any())).thenReturn(tables);
@@ -124,7 +123,29 @@ public class BeekeeperControllerTest {
     when(housekeepingMetadataService.getAll(any(), any())).thenReturn(tables);
 
     mockMvc
-        .perform(get("/api/v1/tables?table_name=bob"))
+        .perform(get("/api/v1/tables?table_name=bob").param("tableName","bob"))
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(content().json(objectMapper.writeValueAsString(tables)));
+    verify(housekeepingMetadataService, times(1)).getAll(any(), any());
+    verifyNoMoreInteractions(housekeepingMetadataService);
+  }
+
+  @Test
+  public void testPaging() throws Exception {
+    int pageNumber = 5;
+    int pageSize = 10;
+    HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
+    HousekeepingMetadata table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
+    Page<HousekeepingMetadata> tables = new PageImpl<>(List.of(table1, table2));
+
+    when(housekeepingMetadataService.getAll(any(), eq(PageRequest.of(pageNumber, pageSize)))).thenReturn(tables);
+
+    mockMvc
+        .perform(get("/api/v1/tables")
+            .param("page", String.valueOf(pageNumber))
+            .param("size", String.valueOf(pageSize)))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
