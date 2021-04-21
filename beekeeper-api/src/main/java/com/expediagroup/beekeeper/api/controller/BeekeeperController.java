@@ -50,7 +50,7 @@ public class BeekeeperController {
   @GetMapping(path = "/tables", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Page<HousekeepingMetadata>> getAll(
       @And({
-          @Spec(path = "tableName", spec = EqualIgnoreCase.class),
+          @Spec(path = "tableName", params = "table_name", spec = EqualIgnoreCase.class),
           @Spec(path = "databaseName", spec = EqualIgnoreCase.class),
           @Spec(path = "status", spec = EqualIgnoreCase.class),
           @Spec(path = "deletedBefore", spec = LessThan.class),
