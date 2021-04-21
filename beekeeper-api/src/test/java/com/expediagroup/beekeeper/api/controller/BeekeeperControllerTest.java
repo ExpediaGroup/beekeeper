@@ -21,9 +21,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+
 
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 
@@ -98,6 +101,18 @@ public class BeekeeperControllerTest {
         .andExpect(content().json(objectMapper.writeValueAsString(tables)));
     verify(housekeepingMetadataService, times(1)).getAll(any(), any());
     verifyNoMoreInteractions(housekeepingMetadataService);
+  }
+
+  @Test
+  public void testWhenWrongUrl() throws Exception {
+    Page<HousekeepingMetadata> tables = new PageImpl<>(List.of());
+
+    when(housekeepingMetadataService.getAll(any(), any())).thenReturn(tables);
+
+    mockMvc
+        .perform(get("/api/v1/tablessssss"))
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(status().isNotFound());
   }
 
   @Test
