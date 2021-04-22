@@ -46,7 +46,7 @@ public class HouseKeepingMetadataServiceTest {
   @Mock
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
   @Mock
-  private Specification<HousekeepingMetadata> spec;
+  private Specification<HousekeepingMetadata> spec = Specification.where("");
   @Mock
   private Pageable pageable;
 
@@ -59,6 +59,7 @@ public class HouseKeepingMetadataServiceTest {
   public void testGetAllWhenTablesValid(){
     HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
     HousekeepingMetadata table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
+
 
     Page<HousekeepingMetadata> tables = new PageImpl<>(List.of(table1, table2));
     when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(tables);

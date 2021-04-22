@@ -31,6 +31,8 @@ import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGener
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -60,13 +62,16 @@ public class BeekeeperControllerTest {
   @Autowired
   private ObjectMapper objectMapper;
 
-  @Mock
-  private Specification<HousekeepingMetadata> spec;
+  private Specification<HousekeepingMetadata> spec = Specification.where(null);
+
   @Mock
   private Pageable pageable;
 
   @MockBean
   private HousekeepingMetadataService housekeepingMetadataService;
+
+  @Captor
+  ArgumentCaptor<Specification> emailCaptor;
 
   @Test
   public void testGetAllWhenTablesValid() throws Exception {
@@ -120,15 +125,19 @@ public class BeekeeperControllerTest {
     HousekeepingMetadata table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
     Page<HousekeepingMetadata> tables = new PageImpl<>(List.of(table1, table2));
 
-    when(housekeepingMetadataService.getAll(any(), any())).thenReturn(tables);
+    when(housekeepingMetadataService.getAll(spec, pageable)).thenReturn(tables);
+
+    //spec.and()
 
     mockMvc
-        .perform(get("/api/v1/tables?table_name=bob").param("tableName","bob"))
+        .perform(get("/api/v1/tables?table_name=bob")
+            //.param("tableName","bob")
+            )
         .andDo(MockMvcResultHandlers.print())
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(content().json(objectMapper.writeValueAsString(tables)));
-    verify(housekeepingMetadataService, times(1)).getAll(any(), any());
+    verify(housekeepingMetadataService, times(1)).getAll(spec, pageable);
     verifyNoMoreInteractions(housekeepingMetadataService);
   }
 
