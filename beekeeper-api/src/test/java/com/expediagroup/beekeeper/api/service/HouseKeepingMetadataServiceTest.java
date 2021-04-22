@@ -46,7 +46,7 @@ public class HouseKeepingMetadataServiceTest {
   @Mock
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
   @Mock
-  private Specification<HousekeepingMetadata> spec = Specification.where("");
+  private Specification<HousekeepingMetadata> spec;
   @Mock
   private Pageable pageable;
 
