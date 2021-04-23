@@ -1,0 +1,13 @@
+management.endpoints.web.exposure.include: health,info,prometheus
+
+server:
+  port: 9008
+
+spring:
+  jpa:
+    database: default
+    hibernate:
+      ddl-auto: validate
+      driver-class-name: org.h2.Driver
+    properties.hibernate:
+      dialect: org.hibernate.dialect.MySQL8Dialect

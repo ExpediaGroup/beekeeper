@@ -41,7 +41,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   protected HousekeepingMetadataService testClient;
 
   @BeforeEach
-  public void beforeEach() throws Exception {
+  public void beforeEach() {
     int port = SocketUtils.findAvailableTcpPort();
     final String url = format("http://localhost:%d", port);
     log.info("Starting to run Beekeeper API on: {}", url);
@@ -49,8 +49,8 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   }
   
   @AfterEach
-  public final void afterEach() throws SQLException {
-    log.info("Stopping Cloverleaf API");
+  public final void afterEach() {
+    log.info("Stopping Beekeeper API");
     if (context != null) {
       context.close();
       context = null;
@@ -58,6 +58,9 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   }
 
   @Test
-  public void test(){}
+  public void test() throws SQLException, InterruptedException {
+    insertExpiredMetadata("s3://can-you-fix-this-please", "partition=vedant_is_stupid");
+    Thread.sleep(1000000L);
+  }
 
 }
