@@ -24,6 +24,7 @@
 
   <logger name="com.expediagroup.beekeeper" level="DEBUG"/>
   <logger name="org.testcontainers" level="INFO"/>
+    <logger name="org.springframework" level="INFO"/>
 
   <root level="INFO">
     <appender-ref ref="STDOUT"/>
@@ -33,5 +34,6 @@
   <root level="ERROR">
     <appender-ref ref="TEST"/>
   </root>
+  
 
 </configuration>

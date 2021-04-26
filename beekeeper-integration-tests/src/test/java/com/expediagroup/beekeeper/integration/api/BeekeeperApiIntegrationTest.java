@@ -43,9 +43,11 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   @BeforeEach
   public void beforeEach() {
     int port = SocketUtils.findAvailableTcpPort();
+    String[] args = new String[] {
+        "--server.port=" + port};
     final String url = format("http://localhost:%d", port);
-    log.info("Starting to run Beekeeper API on: {}", url);
-    context = SpringApplication.run(BeekeeperApiApplication.class);
+    log.info("Starting to run Beekeeper API on: {} and args: {}", url, args);
+    context = SpringApplication.run(BeekeeperApiApplication.class, args);
   }
   
   @AfterEach
@@ -59,7 +61,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   @Test
   public void test() throws SQLException, InterruptedException {
-    insertExpiredMetadata("s3://can-you-fix-this-please", "partition=vedant_is_stupid");
+    insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
     Thread.sleep(1000000L);
   }
 
