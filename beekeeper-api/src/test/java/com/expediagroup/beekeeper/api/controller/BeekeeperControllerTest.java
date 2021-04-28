@@ -62,16 +62,14 @@ public class BeekeeperControllerTest {
   @Autowired
   private ObjectMapper objectMapper;
 
-  private Specification<HousekeepingMetadata> spec = Specification.where(null);
+  @Mock
+  private Specification<HousekeepingMetadata> spec;
 
   @Mock
   private Pageable pageable;
 
   @MockBean
   private HousekeepingMetadataService housekeepingMetadataService;
-
-  @Captor
-  ArgumentCaptor<Specification> emailCaptor;
 
   @Test
   public void testGetAllWhenTablesValid() throws Exception {

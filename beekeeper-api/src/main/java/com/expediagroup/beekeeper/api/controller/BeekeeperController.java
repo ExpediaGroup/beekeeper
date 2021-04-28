@@ -51,8 +51,9 @@ public class BeekeeperController {
   public ResponseEntity<Page<HousekeepingMetadata>> getAll(
       @And({
           @Spec(path = "tableName", params = "table_name", spec = EqualIgnoreCase.class),
-          @Spec(path = "databaseName", spec = EqualIgnoreCase.class),
-          @Spec(path = "status", spec = EqualIgnoreCase.class),
+          @Spec(path = "databaseName", params = "database_name", spec = EqualIgnoreCase.class),
+          @Spec(path = "housekeepingStatus", params = "housekeeping_status", spec = EqualIgnoreCase.class),
+          @Spec(path = "lifecycleType", params = "lifecycle_type", spec = EqualIgnoreCase.class),
           @Spec(path = "deletedBefore", spec = LessThan.class),
           @Spec(path = "deletedAfter", spec = GreaterThan.class)
       })
