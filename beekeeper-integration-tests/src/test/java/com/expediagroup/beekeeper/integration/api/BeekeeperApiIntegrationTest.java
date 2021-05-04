@@ -55,6 +55,7 @@ import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import com.expediagroup.beekeeper.api.BeekeeperApiApplication;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.integration.BeekeeperIntegrationTestBase;
 import com.expediagroup.beekeeper.integration.utils.BeekeeperApiTestClient;
 import com.expediagroup.beekeeper.integration.utils.RestResponsePage;
@@ -189,7 +190,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
     insertExpiredMetadataWithDatabaseName("someones_database");
     
-    HttpResponse<String> response = testClient.getTablesWithDatabaseNameFilter("");
+    HttpResponse<String> response = testClient.getTablesWithDatabaseNameFilter("someones_database");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadata> responsePage = mapper
@@ -197,6 +198,23 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     List<HousekeepingMetadata> result = responsePage.getContent();
     
     assertHousekeepingMetadataDatabaseName(result.get(0), "someones_database");
+    assertThat(result.size()).isEqualTo(1);
+  }
+  
+  @Test
+  public void testGetTablesWhenHousekeepingStatusFilter() throws SQLException, InterruptedException, IOException {
+    
+    insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
+    insertExpiredMetadataWithHousekeepingStatus(HousekeepingStatus.FAILED);
+    
+    HttpResponse<String> response = testClient.getTablesWithHousekeepingStatusFilter("FAILED");
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    Page<HousekeepingMetadata> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
+    List<HousekeepingMetadata> result = responsePage.getContent();
+    
+    assertHousekeepingMetadataHousekeepingStatus(result.get(0), HousekeepingStatus.FAILED);
     assertThat(result.size()).isEqualTo(1);
   }
 

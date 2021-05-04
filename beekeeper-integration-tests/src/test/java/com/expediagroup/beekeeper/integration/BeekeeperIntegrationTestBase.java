@@ -64,6 +64,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.MySqlTestUtils;
@@ -176,6 +177,12 @@ public abstract class BeekeeperIntegrationTestBase {
   protected void insertExpiredMetadataWithDatabaseName(String databaseName) throws SQLException {
     HousekeepingMetadata metadata = createHousekeepingMetadata(TABLE_NAME_FIELD, PATH_FIELD, PARTITION_NAME_FIELD, EXPIRED, SHORT_CLEANUP_DELAY_VALUE);
     metadata.setDatabaseName(databaseName);
+    insertExpiredMetadata(metadata);
+  }
+  
+  protected void insertExpiredMetadataWithHousekeepingStatus(HousekeepingStatus housekeepingStatus) throws SQLException {
+    HousekeepingMetadata metadata = createHousekeepingMetadata(TABLE_NAME_FIELD, PATH_FIELD, PARTITION_NAME_FIELD, EXPIRED, SHORT_CLEANUP_DELAY_VALUE);
+    metadata.setHousekeepingStatus(housekeepingStatus);
     insertExpiredMetadata(metadata);
   }
 
@@ -320,6 +327,23 @@ public abstract class BeekeeperIntegrationTestBase {
     assertThat(actual.getTableName()).isEqualTo(TABLE_NAME_FIELD);
     assertThat(actual.getPartitionName()).isEqualTo(PARTITION_NAME_FIELD);
     assertThat(actual.getHousekeepingStatus()).isEqualTo(SCHEDULED);
+    assertThat(actual.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
+    assertThat(actual.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
+    assertThat(actual.getCleanupTimestamp()).isEqualTo(actual.getCreationTimestamp().plus(actual.getCleanupDelay()));
+    assertThat(actual.getCleanupDelay()).isEqualTo(java.time.Duration.parse(SHORT_CLEANUP_DELAY_VALUE));
+    assertThat(actual.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS_VALUE);
+    assertThat(actual.getClientId()).isEqualTo(CLIENT_ID_FIELD);
+    assertThat(actual.getLifecycleType()).isEqualTo(EXPIRED.toString());
+  }
+  
+  public void assertHousekeepingMetadataHousekeepingStatus(
+      HousekeepingMetadata actual,
+      HousekeepingStatus housekeepingStatus) {
+    assertThat(actual.getPath()).isEqualTo(PATH_FIELD);
+    assertThat(actual.getDatabaseName()).isEqualTo(DATABASE_NAME_VALUE);
+    assertThat(actual.getTableName()).isEqualTo(TABLE_NAME_FIELD);
+    assertThat(actual.getPartitionName()).isEqualTo(PARTITION_NAME_FIELD);
+    assertThat(actual.getHousekeepingStatus()).isEqualTo(housekeepingStatus);
     assertThat(actual.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
     assertThat(actual.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
     assertThat(actual.getCleanupTimestamp()).isEqualTo(actual.getCreationTimestamp().plus(actual.getCleanupDelay()));

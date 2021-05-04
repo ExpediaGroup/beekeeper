@@ -24,6 +24,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+
 public class BeekeeperApiTestClient {
   
   private static final String PREFIX = "/api/v1";
@@ -50,6 +52,11 @@ public class BeekeeperApiTestClient {
   
   public HttpResponse<String> getTablesWithDatabaseNameFilter(String databaseName) throws IOException, InterruptedException {
     HttpRequest request = newBuilder().uri(URI.create(tablesUrl+"?database_name="+databaseName)).GET().build();
+    return httpClient.send(request, BodyHandlers.ofString());
+  }
+  
+  public HttpResponse<String> getTablesWithHousekeepingStatusFilter(String housekeepingStatus) throws IOException, InterruptedException {
+    HttpRequest request = newBuilder().uri(URI.create(tablesUrl+"?housekeeping_status="+housekeepingStatus)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
