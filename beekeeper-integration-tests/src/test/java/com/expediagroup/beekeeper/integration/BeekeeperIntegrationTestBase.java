@@ -162,11 +162,11 @@ public abstract class BeekeeperIntegrationTestBase {
         .insertToTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME, HOUSEKEEPING_PATH_FIELDS, values);
   }
 
-  protected HousekeepingMetadata insertExpiredMetadata(String path, String partitionName) throws SQLException {
-    return insertExpiredMetadata(TABLE_NAME_VALUE, path, partitionName, SHORT_CLEANUP_DELAY_VALUE);
+  protected void insertExpiredMetadata(String path, String partitionName) throws SQLException {
+    insertExpiredMetadata(TABLE_NAME_VALUE, path, partitionName, SHORT_CLEANUP_DELAY_VALUE);
   }
 
-  protected HousekeepingMetadata insertExpiredMetadata(String tableName, String path, String partitionName, String cleanupDelay)
+  protected void insertExpiredMetadata(String tableName, String path, String partitionName, String cleanupDelay)
     throws SQLException {
     HousekeepingMetadata metadata = createHousekeepingMetadata(tableName, path, partitionName, EXPIRED, cleanupDelay);
     String values = Stream
@@ -181,7 +181,6 @@ public abstract class BeekeeperIntegrationTestBase {
     mySQLTestUtils
         .insertToTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME, HOUSEKEEPING_METADATA_FIELDS,
             values);
-    return metadata;
   }
 
   protected int getUnreferencedPathsRowCount() throws SQLException {
