@@ -151,8 +151,6 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   @Test
   public void testTablesEndpointWhenTablesValid() throws SQLException, InterruptedException, IOException {
     
-    //insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
-    //insertExpiredMetadata("s3://path/to/s3/table2", "partition=random/partition2");
     HousekeepingMetadata metadata = insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
     HousekeepingMetadata metadata2 = insertExpiredMetadata("s3://path/to/s3/table2", "partition=random/partition2");
 
@@ -163,11 +161,15 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
     
     System.out.println("AAA:"+responsePage.getContent().toString());
-    System.out.println("AAA:"+List.of(metadata.truncateToSeconds(),metadata2).toString());
+    System.out.println("AAA:"+List.of(metadata,metadata2).toString());
     
-    assertEquals(responsePage.getContent().toString(),List.of(metadata,metadata2).toString());
+    List<HousekeepingMetadata> result = responsePage.getContent();
     
-    //assertThat(responsePage.getContent()).isEqualTo(List.of(metadata.truncateToSeconds(),metadata2.truncateToSeconds()));
+    assertHousekeepingMetadata(result.get(0),"s3://path/to/s3/table",
+        "partition=random/partition");
+    assertHousekeepingMetadata(result.get(0),"s3://path/to/s3/table2",
+        "partition=random/partition2");
+ 
   }
 
 }

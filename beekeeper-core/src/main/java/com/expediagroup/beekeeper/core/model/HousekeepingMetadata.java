@@ -19,6 +19,7 @@ import static java.lang.String.format;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -37,6 +38,7 @@ import com.expediagroup.beekeeper.core.monitoring.MetricTag;
 
 
 @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+
 @Entity
 @Table(name = "housekeeping_metadata")
 public class HousekeepingMetadata implements HousekeepingEntity {
@@ -311,6 +313,13 @@ public class HousekeepingMetadata implements HousekeepingEntity {
           creationTimestamp, modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, lifecycleType,
           clientId);
     }
+    
+//    public HousekeepingMetadata truncateToSeconds() {
+//
+//      return new HousekeepingMetadata(id, path, databaseName, tableName, partitionName, housekeepingStatus,
+//          creationTimestamp.truncatedTo(ChronoUnit.SECONDS), modifiedTimestamp, creationTimestamp.plus(Duration .ZERO) , cleanupDelay, cleanupAttempts, lifecycleType,
+//          clientId);
+//    }
 
     private LocalDateTime configureCleanupTimestamp() {
       if (creationTimestamp == null) {
@@ -322,4 +331,11 @@ public class HousekeepingMetadata implements HousekeepingEntity {
       return creationTimestamp.plus(cleanupDelay);
     }
   }
+
+  public HousekeepingMetadata truncateToSeconds() {
+    return new HousekeepingMetadata(id, path, databaseName, tableName, partitionName, housekeepingStatus,
+        creationTimestamp.truncatedTo(ChronoUnit.SECONDS), modifiedTimestamp.truncatedTo(ChronoUnit.SECONDS), creationTimestamp.plus(Duration .ZERO).truncatedTo(ChronoUnit.SECONDS) , cleanupDelay.truncatedTo(ChronoUnit.SECONDS), cleanupAttempts, lifecycleType,
+        clientId);
+  }
+
 }
