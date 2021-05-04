@@ -19,7 +19,10 @@ import static java.lang.String.format;
 import static java.net.http.HttpRequest.newBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.OK;
+
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.io.IOException;
 import java.net.URI;
@@ -107,33 +110,33 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     }
   }
 
-  @Test
-  public void test() throws SQLException, InterruptedException, IOException {
-    //HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
-    // table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
-    
-    insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
-    insertExpiredMetadata("s3://path/to/s3/table2", "partition=random/partition2");
-    insertExpiredMetadata("saras_table", "a/path", "a_random_partition", "P7D");
-    
-    
-    
-    //Thread.sleep(1000000L);
-    System.out.println("breakpoint1");
-    HttpResponse<String> response = testClient.getTables();
-    System.out.println("breakpoint2");
-    assertThat(response.statusCode()).isEqualTo(OK.value());
-    System.out.println("breakpoint3");
-    String body = response.body();
-    System.out.println("body:"+body);
-    Page<HousekeepingMetadata> responsePage = mapper
-        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
-    System.out.println("breakpoint5");
-    System.out.println("AAA:"+responsePage.getContent());
-    //assertThat(responsePage.getContent()).isEqualTo(List.of());
-    
-    
-  }
+//  @Test
+//  public void test() throws SQLException, InterruptedException, IOException {
+//    //HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
+//    // table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
+//    
+//    insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
+//    insertExpiredMetadata("s3://path/to/s3/table2", "partition=random/partition2");
+//    insertExpiredMetadata("saras_table", "a/path", "a_random_partition", "P7D");
+//    
+//    
+//    
+//    //Thread.sleep(1000000L);
+//    System.out.println("breakpoint1");
+//    HttpResponse<String> response = testClient.getTables();
+//    System.out.println("breakpoint2");
+//    assertThat(response.statusCode()).isEqualTo(OK.value());
+//    System.out.println("breakpoint3");
+//    String body = response.body();
+//    System.out.println("body:"+body);
+//    Page<HousekeepingMetadata> responsePage = mapper
+//        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
+//    System.out.println("breakpoint5");
+//    System.out.println("AAA:"+responsePage.getContent());
+//    //assertThat(responsePage.getContent()).isEqualTo(List.of());
+//    
+//    
+//  }
   
   @Test
   public void testTablesEndpointWhenNoTables() throws SQLException, InterruptedException, IOException {
@@ -143,6 +146,28 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     Page<HousekeepingMetadata> responsePage = mapper
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
     assertThat(responsePage.getContent()).isEqualTo(List.of());
+  }
+  
+  @Test
+  public void testTablesEndpointWhenTablesValid() throws SQLException, InterruptedException, IOException {
+    
+    //insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
+    //insertExpiredMetadata("s3://path/to/s3/table2", "partition=random/partition2");
+    HousekeepingMetadata metadata = insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
+    HousekeepingMetadata metadata2 = insertExpiredMetadata("s3://path/to/s3/table2", "partition=random/partition2");
+
+    HttpResponse<String> response = testClient.getTables();
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    Page<HousekeepingMetadata> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
+    
+    System.out.println("AAA:"+responsePage.getContent().toString());
+    System.out.println("AAA:"+List.of(metadata.truncateToSeconds(),metadata2).toString());
+    
+    assertEquals(responsePage.getContent().toString(),List.of(metadata,metadata2).toString());
+    
+    //assertThat(responsePage.getContent()).isEqualTo(List.of(metadata.truncateToSeconds(),metadata2.truncateToSeconds()));
   }
 
 }

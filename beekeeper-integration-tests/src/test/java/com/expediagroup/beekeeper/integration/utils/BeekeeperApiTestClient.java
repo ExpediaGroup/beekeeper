@@ -39,14 +39,10 @@ public class BeekeeperApiTestClient {
   }
   
   public HttpResponse<String> getTables() throws IOException, InterruptedException {
-   HttpRequest request = newBuilder().uri(URI.create(tablesUrl+"?table_name=saras_table")).GET().build();
-   
-    System.out.println("AAA REQUESTTT:"+request.toString());
-
-    //return httpClient.send(request, BodyHandlers.ofString());
-        return httpClient.send(request, BodyHandlers.ofString());
+    HttpRequest request = newBuilder().uri(URI.create(tablesUrl)).GET().build();
+    return httpClient.send(request, BodyHandlers.ofString());
   }
-  
+
   public HttpResponse<String> getTablesEmpty() throws IOException, InterruptedException {
     HttpRequest request = newBuilder().uri(URI.create(tablesUrl)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
