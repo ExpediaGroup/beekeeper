@@ -167,7 +167,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     
     assertHousekeepingMetadata(result.get(0),"s3://path/to/s3/table",
         "partition=random/partition");
-    assertHousekeepingMetadata(result.get(0),"s3://path/to/s3/table2",
+    assertHousekeepingMetadata(result.get(1),"s3://path/to/s3/table2",
         "partition=random/partition2");
  
   }
