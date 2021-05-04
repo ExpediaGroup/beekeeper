@@ -16,13 +16,17 @@
 package com.expediagroup.beekeeper.integration.api;
 
 import static java.lang.String.format;
+import static java.net.http.HttpRequest.newBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.OK;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,8 +89,6 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-//    mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-//    mapper.setVisibility(VisibilityChecker.Std.defaultInstance().withFieldVisibility(JsonAutoDetect.Visibility.ANY));
     int port = SocketUtils.findAvailableTcpPort();
     String[] args = new String[] {
         "--server.port=" + port};
@@ -112,7 +114,9 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     
     insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
     insertExpiredMetadata("s3://path/to/s3/table2", "partition=random/partition2");
-    //insertExpiredMetadata("saras_table", "a/path", "a_random_partition", "P7D");
+    insertExpiredMetadata("saras_table", "a/path", "a_random_partition", "P7D");
+    
+    
     
     //Thread.sleep(1000000L);
     System.out.println("breakpoint1");
@@ -125,9 +129,20 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     Page<HousekeepingMetadata> responsePage = mapper
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
     System.out.println("breakpoint5");
-//    assertThat(responsePage.getContent()).isEqualTo(List.of());
+    System.out.println("AAA:"+responsePage.getContent());
+    //assertThat(responsePage.getContent()).isEqualTo(List.of());
     
     
+  }
+  
+  @Test
+  public void testTablesEndpointWhenNoTables() throws SQLException, InterruptedException, IOException {
+    HttpResponse<String> response = testClient.getTables();
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    Page<HousekeepingMetadata> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
+    assertThat(responsePage.getContent()).isEqualTo(List.of());
   }
 
 }

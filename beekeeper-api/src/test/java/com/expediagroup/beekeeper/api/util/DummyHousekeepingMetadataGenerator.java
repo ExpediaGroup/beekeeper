@@ -29,8 +29,6 @@ public class DummyHousekeepingMetadataGenerator {
 
   private static final String DEFAULT_DB_NAME = "randomDatabase";
   private static final String DEFAULT_TABLE_NAME = "randomTable";
-  @JsonDeserialize(using = LocalDateDeserializer.class)
-  @JsonSerialize(using = LocalDateSerializer.class)
   private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
   private static final Duration CLEANUP_DELAY = Duration.parse("P3D");
 
