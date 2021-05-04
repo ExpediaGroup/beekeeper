@@ -139,7 +139,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 //  }
   
   @Test
-  public void testTablesEndpointWhenNoTables() throws SQLException, InterruptedException, IOException {
+  public void testGetTablesWhenNoTables() throws SQLException, InterruptedException, IOException {
     HttpResponse<String> response = testClient.getTables();
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
@@ -149,7 +149,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   }
   
   @Test
-  public void testTablesEndpointWhenTablesValid() throws SQLException, InterruptedException, IOException {
+  public void testGetTablesWhenTablesValid() throws SQLException, InterruptedException, IOException {
     
     insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
     insertExpiredMetadata("s3://path/to/s3/table2", "partition=random/partition2");
@@ -161,9 +161,26 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
     List<HousekeepingMetadata> result = responsePage.getContent();
     
-    assertHousekeepingMetadata(result.get(0), "s3://path/to/s3/table", "partition=random/partition");
-    assertHousekeepingMetadata(result.get(1), "s3://path/to/s3/table2", "partition=random/partition2");
- 
+    assertHousekeepingMetadata(result.get(0), "s3://path/to/s3/table", "partition=random/partition", "some_table");
+    assertHousekeepingMetadata(result.get(1), "s3://path/to/s3/table2", "partition=random/partition2", "some_table");
+  }
+  
+  @Test
+  public void testGetTablesWhenTableNameFilter() throws SQLException, InterruptedException, IOException {
+    
+    insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
+    insertExpiredMetadata("s3://path/to/s3/table2", "partition=random/partition2");
+    insertExpiredMetadata("bobs_table", "a/path", "a_random_partition", "PT1S");
+    
+    HttpResponse<String> response = testClient.getTablesWithTableNameFilter();
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    Page<HousekeepingMetadata> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
+    List<HousekeepingMetadata> result = responsePage.getContent();
+    
+    assertHousekeepingMetadata(result.get(0), "a/path", "a_random_partition", "bobs_table");
+    assertThat(result.size()).isEqualTo(1);
   }
 
 }

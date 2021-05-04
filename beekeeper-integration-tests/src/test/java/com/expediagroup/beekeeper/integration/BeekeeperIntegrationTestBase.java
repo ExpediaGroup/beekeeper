@@ -266,10 +266,10 @@ public abstract class BeekeeperIntegrationTestBase {
   }
   
   public void assertHousekeepingMetadata(HousekeepingMetadata actual, String expectedPath,
-      String expectedPartitionName) {
+      String expectedPartitionName, String expectedTableName) {
     assertThat(actual.getPath()).isEqualTo(expectedPath);
     assertThat(actual.getDatabaseName()).isEqualTo(DATABASE_NAME_VALUE);
-    assertThat(actual.getTableName()).isEqualTo(TABLE_NAME_VALUE);
+    assertThat(actual.getTableName()).isEqualTo(expectedTableName);
     assertThat(actual.getPartitionName()).isEqualTo(expectedPartitionName);
     assertThat(actual.getHousekeepingStatus()).isEqualTo(SCHEDULED);
     assertThat(actual.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
