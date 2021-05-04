@@ -43,8 +43,13 @@ public class BeekeeperApiTestClient {
     return httpClient.send(request, BodyHandlers.ofString());
   }
   
-  public HttpResponse<String> getTablesWithTableNameFilter() throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(tablesUrl+"?table_name=bobs_table")).GET().build();
+  public HttpResponse<String> getTablesWithTableNameFilter(String tableName) throws IOException, InterruptedException {
+    HttpRequest request = newBuilder().uri(URI.create(tablesUrl+"?table_name="+tableName)).GET().build();
+    return httpClient.send(request, BodyHandlers.ofString());
+  }
+  
+  public HttpResponse<String> getTablesWithDatabaseNameFilter(String databaseName) throws IOException, InterruptedException {
+    HttpRequest request = newBuilder().uri(URI.create(tablesUrl+"?database_name="+databaseName)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 

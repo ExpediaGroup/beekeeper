@@ -91,17 +91,24 @@ public abstract class BeekeeperIntegrationTestBase {
 
   // FIELDS TO INSERT INTO BEEKEEPER TABLES
   private Long id = 1L;
-  private static final String HOUSEKEEPING_PATH_FIELDS = String.join(",", ID_FIELD, PATH_FIELD, DATABASE_NAME_FIELD,
-      TABLE_NAME_FIELD, HOUSEKEEPING_STATUS_FIELD, CREATION_TIMESTAMP_FIELD, MODIFIED_TIMESTAMP_FIELD,
-      CLEANUP_TIMESTAMP_FIELD, CLEANUP_DELAY_FIELD, CLEANUP_ATTEMPTS_FIELD, CLIENT_ID_FIELD, LIFECYCLE_TYPE_FIELD);
-  private static final String HOUSEKEEPING_METADATA_FIELDS = String.join(",", ID_FIELD, PATH_FIELD, DATABASE_NAME_FIELD,
-      TABLE_NAME_FIELD, PARTITION_NAME_FIELD, HOUSEKEEPING_STATUS_FIELD, CREATION_TIMESTAMP_FIELD,
-      MODIFIED_TIMESTAMP_FIELD, CLEANUP_TIMESTAMP_FIELD, CLEANUP_DELAY_FIELD, CLEANUP_ATTEMPTS_FIELD, CLIENT_ID_FIELD,
-      LIFECYCLE_TYPE_FIELD);
+  private static final String HOUSEKEEPING_PATH_FIELDS = String
+      .join(",", ID_FIELD, PATH_FIELD, DATABASE_NAME_FIELD, TABLE_NAME_FIELD, HOUSEKEEPING_STATUS_FIELD,
+          CREATION_TIMESTAMP_FIELD, MODIFIED_TIMESTAMP_FIELD, CLEANUP_TIMESTAMP_FIELD, CLEANUP_DELAY_FIELD,
+          CLEANUP_ATTEMPTS_FIELD, CLIENT_ID_FIELD, LIFECYCLE_TYPE_FIELD);
+  private static final String HOUSEKEEPING_METADATA_FIELDS = String
+      .join(",", ID_FIELD, PATH_FIELD, DATABASE_NAME_FIELD, TABLE_NAME_FIELD, PARTITION_NAME_FIELD,
+          HOUSEKEEPING_STATUS_FIELD, CREATION_TIMESTAMP_FIELD, MODIFIED_TIMESTAMP_FIELD, CLEANUP_TIMESTAMP_FIELD,
+          CLEANUP_DELAY_FIELD, CLEANUP_ATTEMPTS_FIELD, CLIENT_ID_FIELD, LIFECYCLE_TYPE_FIELD);
   private static final String LIFE_CYCLE_FILTER = "WHERE " + LIFECYCLE_TYPE_FIELD + " = '%s' ORDER BY " + PATH_FIELD;
-  private static final String LIFE_CYCLE_AND_UPDATE_FILTER = "WHERE " + LIFECYCLE_TYPE_FIELD + " = '%s'"
-      + " AND " + MODIFIED_TIMESTAMP_FIELD + " > " + CREATION_TIMESTAMP_FIELD
-      + " ORDER BY " + PATH_FIELD;
+  private static final String LIFE_CYCLE_AND_UPDATE_FILTER = "WHERE "
+      + LIFECYCLE_TYPE_FIELD
+      + " = '%s'"
+      + " AND "
+      + MODIFIED_TIMESTAMP_FIELD
+      + " > "
+      + CREATION_TIMESTAMP_FIELD
+      + " ORDER BY "
+      + PATH_FIELD;
 
   // MySQL DB CONTAINER AND UTILS
   @Container
@@ -148,13 +155,13 @@ public abstract class BeekeeperIntegrationTestBase {
   protected void insertUnreferencedPath(String path) throws SQLException {
     HousekeepingPath housekeepingPath = createHousekeepingPath(path, UNREFERENCED);
     housekeepingPath.setCleanupTimestamp(housekeepingPath.getCleanupTimestamp().minus(Duration.ofDays(1)));
-    String values = Stream.of(housekeepingPath.getId().toString(), housekeepingPath.getPath(),
-        housekeepingPath.getDatabaseName(),
-        housekeepingPath.getTableName(), housekeepingPath.getHousekeepingStatus().toString(),
-        housekeepingPath.getCreationTimestamp().toString(), housekeepingPath.getModifiedTimestamp().toString(),
-        housekeepingPath.getCleanupTimestamp().toString(), housekeepingPath.getCleanupDelay().toString(),
-        String.valueOf(housekeepingPath.getCleanupAttempts()), housekeepingPath.getClientId(),
-        housekeepingPath.getLifecycleType())
+    String values = Stream
+        .of(housekeepingPath.getId().toString(), housekeepingPath.getPath(), housekeepingPath.getDatabaseName(),
+            housekeepingPath.getTableName(), housekeepingPath.getHousekeepingStatus().toString(),
+            housekeepingPath.getCreationTimestamp().toString(), housekeepingPath.getModifiedTimestamp().toString(),
+            housekeepingPath.getCleanupTimestamp().toString(), housekeepingPath.getCleanupDelay().toString(),
+            String.valueOf(housekeepingPath.getCleanupAttempts()), housekeepingPath.getClientId(),
+            housekeepingPath.getLifecycleType())
         .map(s -> s == null ? null : "\"" + s + "\"")
         .collect(Collectors.joining(", "));
 
@@ -166,9 +173,30 @@ public abstract class BeekeeperIntegrationTestBase {
     insertExpiredMetadata(TABLE_NAME_VALUE, path, partitionName, SHORT_CLEANUP_DELAY_VALUE);
   }
 
+  protected void insertExpiredMetadataWithDatabaseName(String databaseName) throws SQLException {
+    HousekeepingMetadata metadata = createHousekeepingMetadata(TABLE_NAME_FIELD, PATH_FIELD, PARTITION_NAME_FIELD, EXPIRED, SHORT_CLEANUP_DELAY_VALUE);
+    metadata.setDatabaseName(databaseName);
+    insertExpiredMetadata(metadata);
+  }
+
   protected void insertExpiredMetadata(String tableName, String path, String partitionName, String cleanupDelay)
     throws SQLException {
     HousekeepingMetadata metadata = createHousekeepingMetadata(tableName, path, partitionName, EXPIRED, cleanupDelay);
+    String values = Stream
+        .of(metadata.getId().toString(), metadata.getPath(), metadata.getDatabaseName(), metadata.getTableName(),
+            metadata.getPartitionName(), metadata.getHousekeepingStatus().toString(),
+            metadata.getCreationTimestamp().toString(), metadata.getModifiedTimestamp().toString(),
+            metadata.getCleanupTimestamp().toString(), metadata.getCleanupDelay().toString(),
+            String.valueOf(metadata.getCleanupAttempts()), metadata.getClientId(), metadata.getLifecycleType())
+        .map(s -> s == null ? null : "\"" + s + "\"")
+        .collect(Collectors.joining(", "));
+
+    mySQLTestUtils
+        .insertToTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME, HOUSEKEEPING_METADATA_FIELDS,
+            values);
+  }
+
+  protected void insertExpiredMetadata(HousekeepingMetadata metadata) throws SQLException {
     String values = Stream
         .of(metadata.getId().toString(), metadata.getPath(), metadata.getDatabaseName(), metadata.getTableName(),
             metadata.getPartitionName(), metadata.getHousekeepingStatus().toString(),
@@ -264,13 +292,33 @@ public abstract class BeekeeperIntegrationTestBase {
         .clientId(CLIENT_ID_FIELD)
         .build();
   }
-  
-  public void assertHousekeepingMetadata(HousekeepingMetadata actual, String expectedPath,
-      String expectedPartitionName, String expectedTableName) {
+
+  public void assertHousekeepingMetadata(
+      HousekeepingMetadata actual,
+      String expectedPath,
+      String expectedPartitionName,
+      String expectedTableName) {
     assertThat(actual.getPath()).isEqualTo(expectedPath);
     assertThat(actual.getDatabaseName()).isEqualTo(DATABASE_NAME_VALUE);
     assertThat(actual.getTableName()).isEqualTo(expectedTableName);
     assertThat(actual.getPartitionName()).isEqualTo(expectedPartitionName);
+    assertThat(actual.getHousekeepingStatus()).isEqualTo(SCHEDULED);
+    assertThat(actual.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
+    assertThat(actual.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
+    assertThat(actual.getCleanupTimestamp()).isEqualTo(actual.getCreationTimestamp().plus(actual.getCleanupDelay()));
+    assertThat(actual.getCleanupDelay()).isEqualTo(java.time.Duration.parse(SHORT_CLEANUP_DELAY_VALUE));
+    assertThat(actual.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS_VALUE);
+    assertThat(actual.getClientId()).isEqualTo(CLIENT_ID_FIELD);
+    assertThat(actual.getLifecycleType()).isEqualTo(EXPIRED.toString());
+  }
+  
+  public void assertHousekeepingMetadataDatabaseName(
+      HousekeepingMetadata actual,
+      String databaseName) {
+    assertThat(actual.getPath()).isEqualTo(PATH_FIELD);
+    assertThat(actual.getDatabaseName()).isEqualTo(databaseName);
+    assertThat(actual.getTableName()).isEqualTo(TABLE_NAME_FIELD);
+    assertThat(actual.getPartitionName()).isEqualTo(PARTITION_NAME_FIELD);
     assertThat(actual.getHousekeepingStatus()).isEqualTo(SCHEDULED);
     assertThat(actual.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
     assertThat(actual.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));

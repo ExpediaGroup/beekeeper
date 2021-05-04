@@ -172,7 +172,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     insertExpiredMetadata("s3://path/to/s3/table2", "partition=random/partition2");
     insertExpiredMetadata("bobs_table", "a/path", "a_random_partition", "PT1S");
     
-    HttpResponse<String> response = testClient.getTablesWithTableNameFilter();
+    HttpResponse<String> response = testClient.getTablesWithTableNameFilter("bobs_table");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadata> responsePage = mapper
@@ -180,6 +180,23 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     List<HousekeepingMetadata> result = responsePage.getContent();
     
     assertHousekeepingMetadata(result.get(0), "a/path", "a_random_partition", "bobs_table");
+    assertThat(result.size()).isEqualTo(1);
+  }
+  
+  @Test
+  public void testGetTablesWhenDatabaseNameFilter() throws SQLException, InterruptedException, IOException {
+    
+    insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
+    insertExpiredMetadataWithDatabaseName("someones_database");
+    
+    HttpResponse<String> response = testClient.getTablesWithDatabaseNameFilter("");
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    Page<HousekeepingMetadata> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
+    List<HousekeepingMetadata> result = responsePage.getContent();
+    
+    assertHousekeepingMetadataDatabaseName(result.get(0), "someones_database");
     assertThat(result.size()).isEqualTo(1);
   }
 
