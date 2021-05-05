@@ -56,6 +56,7 @@ import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.expediagroup.beekeeper.api.BeekeeperApiApplication;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.integration.BeekeeperIntegrationTestBase;
 import com.expediagroup.beekeeper.integration.utils.BeekeeperApiTestClient;
 import com.expediagroup.beekeeper.integration.utils.RestResponsePage;
@@ -215,6 +216,23 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     List<HousekeepingMetadata> result = responsePage.getContent();
     
     assertHousekeepingMetadataHousekeepingStatus(result.get(0), HousekeepingStatus.FAILED);
+    assertThat(result.size()).isEqualTo(1);
+  }
+  
+  @Test
+  public void testGetTablesWhenLifecycleEventTypeFilter() throws SQLException, InterruptedException, IOException {
+    
+    insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
+    insertExpiredMetadataWithLifecycleType(LifecycleEventType.UNREFERENCED);
+    
+    HttpResponse<String> response = testClient.getTablesWithLifecycleEventTypeFilter("UNREFERENCED");
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    Page<HousekeepingMetadata> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
+    List<HousekeepingMetadata> result = responsePage.getContent();
+    
+    assertHousekeepingMetadataLifecycleType(result.get(0), LifecycleEventType.UNREFERENCED);
     assertThat(result.size()).isEqualTo(1);
   }
 

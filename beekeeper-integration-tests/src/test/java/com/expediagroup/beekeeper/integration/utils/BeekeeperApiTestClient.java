@@ -25,6 +25,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 public class BeekeeperApiTestClient {
   
@@ -35,7 +36,6 @@ public class BeekeeperApiTestClient {
   private final HttpClient httpClient;
 
   public BeekeeperApiTestClient(String baseUrl) {
-    System.out.println("breakpoint4");
     this.tablesUrl = baseUrl + TABLES_PATH;
     this.httpClient = HttpClient.newHttpClient();
   }
@@ -57,6 +57,11 @@ public class BeekeeperApiTestClient {
   
   public HttpResponse<String> getTablesWithHousekeepingStatusFilter(String housekeepingStatus) throws IOException, InterruptedException {
     HttpRequest request = newBuilder().uri(URI.create(tablesUrl+"?housekeeping_status="+housekeepingStatus)).GET().build();
+    return httpClient.send(request, BodyHandlers.ofString());
+  }
+  
+  public HttpResponse<String> getTablesWithLifecycleEventTypeFilter(String lifecycleEventType) throws IOException, InterruptedException {
+    HttpRequest request = newBuilder().uri(URI.create(tablesUrl+"?lifecycle_type="+lifecycleEventType)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 

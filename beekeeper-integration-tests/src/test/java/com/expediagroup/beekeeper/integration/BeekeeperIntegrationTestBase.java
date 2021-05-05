@@ -185,6 +185,12 @@ public abstract class BeekeeperIntegrationTestBase {
     metadata.setHousekeepingStatus(housekeepingStatus);
     insertExpiredMetadata(metadata);
   }
+  
+  protected void insertExpiredMetadataWithLifecycleType(LifecycleEventType lifecycleEventType) throws SQLException {
+    HousekeepingMetadata metadata = createHousekeepingMetadata(TABLE_NAME_FIELD, PATH_FIELD, PARTITION_NAME_FIELD, EXPIRED, SHORT_CLEANUP_DELAY_VALUE);
+    metadata.setLifecycleType(lifecycleEventType.toString());
+    insertExpiredMetadata(metadata);
+  }
 
   protected void insertExpiredMetadata(String tableName, String path, String partitionName, String cleanupDelay)
     throws SQLException {
@@ -351,6 +357,23 @@ public abstract class BeekeeperIntegrationTestBase {
     assertThat(actual.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS_VALUE);
     assertThat(actual.getClientId()).isEqualTo(CLIENT_ID_FIELD);
     assertThat(actual.getLifecycleType()).isEqualTo(EXPIRED.toString());
+  }
+  
+  public void assertHousekeepingMetadataLifecycleType(
+      HousekeepingMetadata actual,
+      LifecycleEventType lifecycleEventType) {
+    assertThat(actual.getPath()).isEqualTo(PATH_FIELD);
+    assertThat(actual.getDatabaseName()).isEqualTo(DATABASE_NAME_VALUE);
+    assertThat(actual.getTableName()).isEqualTo(TABLE_NAME_FIELD);
+    assertThat(actual.getPartitionName()).isEqualTo(PARTITION_NAME_FIELD);
+    assertThat(actual.getHousekeepingStatus()).isEqualTo(SCHEDULED);
+    assertThat(actual.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
+    assertThat(actual.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
+    assertThat(actual.getCleanupTimestamp()).isEqualTo(actual.getCreationTimestamp().plus(actual.getCleanupDelay()));
+    assertThat(actual.getCleanupDelay()).isEqualTo(java.time.Duration.parse(SHORT_CLEANUP_DELAY_VALUE));
+    assertThat(actual.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS_VALUE);
+    assertThat(actual.getClientId()).isEqualTo(CLIENT_ID_FIELD);
+    assertThat(actual.getLifecycleType()).isEqualTo(lifecycleEventType.toString());
   }
 
 }
