@@ -38,8 +38,6 @@ import lombok.NoArgsConstructor;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.monitoring.MetricTag;
 
-@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
-
 @Data
 @NoArgsConstructor
 @Entity

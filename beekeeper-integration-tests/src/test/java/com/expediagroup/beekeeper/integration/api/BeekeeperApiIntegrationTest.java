@@ -24,6 +24,7 @@ import static org.springframework.http.HttpStatus.OK;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
+import static com.expediagroup.beekeeper.integration.utils.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 
 import java.io.IOException;
 import java.net.URI;
@@ -83,6 +84,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   
 
   private static final Logger log = LoggerFactory.getLogger(BeekeeperApiIntegrationTest.class);
+  //private DummyHousekeepingMetadataGenerator dummyHousekeepingMetadataGenerator;
 
   // APP CONTEXT AND TEST CLIENT
   protected static ConfigurableApplicationContext context;
