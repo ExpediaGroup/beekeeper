@@ -372,7 +372,7 @@ public class HousekeepingMetadataRepositoryTest {
       String databaseName,
       String tableName,
       String partitionName) {
-    return new HousekeepingMetadata.Builder()
+    return HousekeepingMetadata.builder()
         .path(PATH)
         .databaseName(databaseName)
         .tableName(tableName)

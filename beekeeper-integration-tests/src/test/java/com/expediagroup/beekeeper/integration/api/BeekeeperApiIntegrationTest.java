@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.OK;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.io.IOException;
@@ -29,6 +30,8 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.util.Calendar;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -123,7 +126,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 //    
 //    
 //    
-//    //Thread.sleep(1000000L);
+//    Thread.sleep(1000000L);
 //    System.out.println("breakpoint1");
 //    HttpResponse<String> response = testClient.getTables();
 //    System.out.println("breakpoint2");
@@ -221,6 +224,19 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   
   @Test
   public void testGetTablesWhenLifecycleEventTypeFilter() throws SQLException, InterruptedException, IOException {
+
+    HousekeepingMetadata metadata = generateDummyHousekeepingMetadata();
+
+    HousekeepingMetadata expected = HousekeepingMetadata.builder()
+        .path("s3://some/path/")
+        .databaseName("databaseName")
+        .tableName("tableName")
+        .partitionName("event_date=2020-01-01/event_hour=0/event_type=A")
+        .housekeepingStatus(SCHEDULED)
+        .cleanupDelay(Duration.parse("P3D"))
+        .cleanupAttempts(0)
+        .lifecycleType(EXPIRED.toString())
+        .build();
     
     insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
     insertExpiredMetadataWithLifecycleType(LifecycleEventType.UNREFERENCED);
@@ -231,9 +247,29 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     Page<HousekeepingMetadata> responsePage = mapper
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
     List<HousekeepingMetadata> result = responsePage.getContent();
-    
+
+    result.get(0).equals(LifecycleEventType.UNREFERENCED);
     assertHousekeepingMetadataLifecycleType(result.get(0), LifecycleEventType.UNREFERENCED);
     assertThat(result.size()).isEqualTo(1);
+  }
+  
+  @Test
+  public void testGetTablesWhenCleanupTimestampFilter() throws SQLException, InterruptedException, IOException {
+    
+    insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
+    insertExpiredMetadataWithCleanUpDelay();
+    
+    System.out.println(Calendar.getInstance().toString());
+    
+    HttpResponse<String> response = testClient.getTablesWithDeletedBeforeFilter("2021-05-05T10:41:20");
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    Page<HousekeepingMetadata> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
+    List<HousekeepingMetadata> result = responsePage.getContent();
+    
+    //assertHousekeepingMetadataLifecycleType(result.get(0), LifecycleEventType.UNREFERENCED);
+    //assertThat(result.size()).isEqualTo(1);
   }
 
 }

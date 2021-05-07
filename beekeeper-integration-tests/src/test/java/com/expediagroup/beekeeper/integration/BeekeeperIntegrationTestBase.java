@@ -28,7 +28,6 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_DELAY_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_TIMESTAMP_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLIENT_ID_FIELD;
-import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLIENT_ID_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CREATION_TIMESTAMP_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CREATION_TIMESTAMP_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_FIELD;
@@ -175,25 +174,36 @@ public abstract class BeekeeperIntegrationTestBase {
   }
 
   protected void insertExpiredMetadataWithDatabaseName(String databaseName) throws SQLException {
-    HousekeepingMetadata metadata = createHousekeepingMetadata(TABLE_NAME_FIELD, PATH_FIELD, PARTITION_NAME_FIELD, EXPIRED, SHORT_CLEANUP_DELAY_VALUE);
+    HousekeepingMetadata metadata = createHousekeepingMetadata(TABLE_NAME_FIELD, PATH_FIELD, PARTITION_NAME_FIELD,
+        EXPIRED, SHORT_CLEANUP_DELAY_VALUE);
     metadata.setDatabaseName(databaseName);
     insertExpiredMetadata(metadata);
   }
-  
-  protected void insertExpiredMetadataWithHousekeepingStatus(HousekeepingStatus housekeepingStatus) throws SQLException {
-    HousekeepingMetadata metadata = createHousekeepingMetadata(TABLE_NAME_FIELD, PATH_FIELD, PARTITION_NAME_FIELD, EXPIRED, SHORT_CLEANUP_DELAY_VALUE);
+
+  protected void insertExpiredMetadataWithHousekeepingStatus(HousekeepingStatus housekeepingStatus)
+      throws SQLException {
+    HousekeepingMetadata metadata = createHousekeepingMetadata(TABLE_NAME_FIELD, PATH_FIELD, PARTITION_NAME_FIELD,
+        EXPIRED, SHORT_CLEANUP_DELAY_VALUE);
     metadata.setHousekeepingStatus(housekeepingStatus);
     insertExpiredMetadata(metadata);
   }
-  
+
   protected void insertExpiredMetadataWithLifecycleType(LifecycleEventType lifecycleEventType) throws SQLException {
-    HousekeepingMetadata metadata = createHousekeepingMetadata(TABLE_NAME_FIELD, PATH_FIELD, PARTITION_NAME_FIELD, EXPIRED, SHORT_CLEANUP_DELAY_VALUE);
+    HousekeepingMetadata metadata = createHousekeepingMetadata(TABLE_NAME_FIELD, PATH_FIELD, PARTITION_NAME_FIELD,
+        EXPIRED, SHORT_CLEANUP_DELAY_VALUE);
     metadata.setLifecycleType(lifecycleEventType.toString());
     insertExpiredMetadata(metadata);
   }
 
+  protected void insertExpiredMetadataWithCleanUpDelay() throws SQLException {
+    HousekeepingMetadata metadata = createHousekeepingMetadata(TABLE_NAME_FIELD, PATH_FIELD, PARTITION_NAME_FIELD,
+        EXPIRED, SHORT_CLEANUP_DELAY_VALUE);
+    metadata.setCleanupTimestamp(CREATION_TIMESTAMP_VALUE);
+    insertExpiredMetadata(metadata);
+  }
+
   protected void insertExpiredMetadata(String tableName, String path, String partitionName, String cleanupDelay)
-    throws SQLException {
+      throws SQLException {
     HousekeepingMetadata metadata = createHousekeepingMetadata(tableName, path, partitionName, EXPIRED, cleanupDelay);
     String values = Stream
         .of(metadata.getId().toString(), metadata.getPath(), metadata.getDatabaseName(), metadata.getTableName(),
@@ -290,7 +300,7 @@ public abstract class BeekeeperIntegrationTestBase {
       String partitionName,
       LifecycleEventType lifecycleEventType,
       String cleanupDelay) {
-    return new HousekeepingMetadata.Builder()
+    return HousekeepingMetadata.builder()
         .id(id++)
         .path(path)
         .databaseName(DATABASE_NAME_VALUE)
@@ -324,7 +334,33 @@ public abstract class BeekeeperIntegrationTestBase {
     assertThat(actual.getClientId()).isEqualTo(CLIENT_ID_FIELD);
     assertThat(actual.getLifecycleType()).isEqualTo(EXPIRED.toString());
   }
-  
+
+  public void assertHousekeepingMetadata2(
+      HousekeepingMetadata actual,
+      String expectedPath,
+      String expectedDatabaseName,
+      String expectedTableName,
+      String expectedPartitionName,
+      HousekeepingStatus expectedHousekeepingStatus,
+      Duration expectedCleanupDelay,
+      int expectedAttempts,
+      String expectedClientId,
+      String expectedLifecycleEventType
+  ) {
+    assertThat(actual.getPath()).isEqualTo(expectedPath);
+    assertThat(actual.getDatabaseName()).isEqualTo(expectedDatabaseName);
+    assertThat(actual.getTableName()).isEqualTo(expectedTableName);
+    assertThat(actual.getPartitionName()).isEqualTo(expectedPartitionName);
+    assertThat(actual.getHousekeepingStatus()).isEqualTo(expectedHousekeepingStatus);
+    //assertThat(actual.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
+    //assertThat(actual.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE.withNano(0));
+    assertThat(actual.getCleanupTimestamp()).isEqualTo(actual.getCreationTimestamp().plus(actual.getCleanupDelay()));
+    assertThat(actual.getCleanupDelay()).isEqualTo(expectedCleanupDelay);
+    assertThat(actual.getCleanupAttempts()).isEqualTo(expectedAttempts);
+    assertThat(actual.getClientId()).isEqualTo(expectedClientId);
+    assertThat(actual.getLifecycleType()).isEqualTo(expectedLifecycleEventType);
+  }
+
   public void assertHousekeepingMetadataDatabaseName(
       HousekeepingMetadata actual,
       String databaseName) {
@@ -341,7 +377,7 @@ public abstract class BeekeeperIntegrationTestBase {
     assertThat(actual.getClientId()).isEqualTo(CLIENT_ID_FIELD);
     assertThat(actual.getLifecycleType()).isEqualTo(EXPIRED.toString());
   }
-  
+
   public void assertHousekeepingMetadataHousekeepingStatus(
       HousekeepingMetadata actual,
       HousekeepingStatus housekeepingStatus) {
@@ -358,7 +394,7 @@ public abstract class BeekeeperIntegrationTestBase {
     assertThat(actual.getClientId()).isEqualTo(CLIENT_ID_FIELD);
     assertThat(actual.getLifecycleType()).isEqualTo(EXPIRED.toString());
   }
-  
+
   public void assertHousekeepingMetadataLifecycleType(
       HousekeepingMetadata actual,
       LifecycleEventType lifecycleEventType) {
@@ -375,5 +411,4 @@ public abstract class BeekeeperIntegrationTestBase {
     assertThat(actual.getClientId()).isEqualTo(CLIENT_ID_FIELD);
     assertThat(actual.getLifecycleType()).isEqualTo(lifecycleEventType.toString());
   }
-
 }

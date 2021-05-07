@@ -37,7 +37,7 @@ public class DummyHousekeepingMetadataGenerator {
   }
 
   public static HousekeepingMetadata generateDummyHousekeepingMetadata(String tableName, String databaseName) {
-    return new HousekeepingMetadata.Builder()
+    return HousekeepingMetadata.builder()
         .path("s3://some/path/")
         .databaseName(databaseName)
         .tableName(tableName)
