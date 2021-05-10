@@ -24,8 +24,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
-import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 public class BeekeeperApiTestClient {
   

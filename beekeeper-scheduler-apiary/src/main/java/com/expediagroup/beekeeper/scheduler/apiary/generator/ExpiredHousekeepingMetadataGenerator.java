@@ -119,7 +119,7 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
   private HousekeepingEntity generateHousekeepingEntity(ListenerEvent listenerEvent, String clientId, String path,
       String partitionName) {
     Duration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
-    HousekeepingMetadata.Builder builder = new HousekeepingMetadata.Builder()
+    HousekeepingMetadata.HousekeepingMetadataBuilder builder = HousekeepingMetadata.builder()
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(LocalDateTime.now(clock))
         .cleanupDelay(cleanupDelay)

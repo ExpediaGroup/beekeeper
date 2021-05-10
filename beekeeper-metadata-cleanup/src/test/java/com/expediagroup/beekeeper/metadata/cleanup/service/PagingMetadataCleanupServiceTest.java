@@ -272,7 +272,7 @@ public class PagingMetadataCleanupServiceTest {
       String path,
       String partitionName,
       HousekeepingStatus housekeepingStatus) {
-    HousekeepingMetadata metadata = new HousekeepingMetadata.Builder()
+    HousekeepingMetadata metadata = HousekeepingMetadata.builder()
         .path(path)
         .databaseName("database")
         .tableName(tableName)

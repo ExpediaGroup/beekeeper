@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,19 +56,20 @@ public class ResultSetToHousekeepingEntityMapper {
   }
 
   public static HousekeepingMetadata mapToHousekeepingMetadata(ResultSet resultSet) throws SQLException {
-    return new HousekeepingMetadata.Builder()
-        .id(resultSet.getLong(ID_FIELD))
-        .path(resultSet.getString(PATH_FIELD))
-        .databaseName(resultSet.getString(DATABASE_NAME_FIELD))
-        .tableName(resultSet.getString(TABLE_NAME_FIELD))
-        .partitionName(resultSet.getString(PARTITION_NAME_FIELD))
-        .housekeepingStatus(HousekeepingStatus.valueOf(resultSet.getString(HOUSEKEEPING_STATUS_FIELD)))
-        .creationTimestamp(Timestamp.valueOf(resultSet.getString(CREATION_TIMESTAMP_FIELD)).toLocalDateTime())
-        .modifiedTimestamp(Timestamp.valueOf(resultSet.getString(MODIFIED_TIMESTAMP_FIELD)).toLocalDateTime())
-        .cleanupDelay(Duration.parse(resultSet.getString(CLEANUP_DELAY_FIELD)))
-        .cleanupAttempts(resultSet.getInt(CLEANUP_ATTEMPTS_FIELD))
-        .clientId(resultSet.getString(CLIENT_ID_FIELD))
-        .lifecycleType(resultSet.getString(LIFECYCLE_TYPE_FIELD))
-        .build();
+
+    return HousekeepingMetadata.builder()
+    .id(resultSet.getLong(ID_FIELD))
+    .path(resultSet.getString(PATH_FIELD))
+    .databaseName(resultSet.getString(DATABASE_NAME_FIELD))
+    .tableName(resultSet.getString(TABLE_NAME_FIELD))
+    .partitionName(resultSet.getString(PARTITION_NAME_FIELD))
+    .housekeepingStatus(HousekeepingStatus.valueOf(resultSet.getString(HOUSEKEEPING_STATUS_FIELD)))
+    .creationTimestamp(Timestamp.valueOf(resultSet.getString(CREATION_TIMESTAMP_FIELD)).toLocalDateTime())
+    .modifiedTimestamp(Timestamp.valueOf(resultSet.getString(MODIFIED_TIMESTAMP_FIELD)).toLocalDateTime())
+    .cleanupDelay(Duration.parse(resultSet.getString(CLEANUP_DELAY_FIELD)))
+    .cleanupAttempts(resultSet.getInt(CLEANUP_ATTEMPTS_FIELD))
+    .clientId(resultSet.getString(CLIENT_ID_FIELD))
+    .lifecycleType(resultSet.getString(LIFECYCLE_TYPE_FIELD))
+    .build();
   }
 }

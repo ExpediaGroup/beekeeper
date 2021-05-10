@@ -107,8 +107,8 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     this.housekeepingStatus = housekeepingStatus;
     this.creationTimestamp = creationTimestamp;
     this.modifiedTimestamp = modifiedTimestamp;
-    this.cleanupTimestamp = configureCleanupTimestamp();
     this.cleanupDelay = cleanupDelay;
+    this.cleanupTimestamp = configureCleanupTimestamp();
     this.cleanupAttempts = cleanupAttempts;
     this.lifecycleType = lifecycleType;
     this.clientId = clientId;
