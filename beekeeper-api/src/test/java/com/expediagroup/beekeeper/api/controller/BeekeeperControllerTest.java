@@ -31,8 +31,6 @@ import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGener
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

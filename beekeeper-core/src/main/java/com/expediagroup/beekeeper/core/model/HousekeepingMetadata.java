@@ -39,6 +39,7 @@ import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.monitoring.MetricTag;
 
 @Data
+
 @NoArgsConstructor
 @Entity
 @Table(name = "housekeeping_metadata")

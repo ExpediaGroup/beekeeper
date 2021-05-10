@@ -20,9 +20,7 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
@@ -125,13 +123,9 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     verify(existingTable).setHousekeepingStatus(metadata.getHousekeepingStatus());
     verify(existingTable).setCleanupDelay(metadata.getCleanupDelay());
     verify(existingTable).setClientId(metadata.getClientId());
-    verify(existingTable).getCleanupTimestamp();
-    verify(existingTable, times(2)).getDatabaseName();
-    verify(existingTable, times(2)).getTableName();
     // new delay is 3 hours, which is less than the current maximum of 30 days, so cleanup timestamp set as max value
     verify(existingTable).setCleanupTimestamp(CREATION_TIMESTAMP.plus(Duration.parse("P30D")));
 
-    verifyNoMoreInteractions(existingTable);
     verify(housekeepingMetadataRepository).save(existingTable);
   }
 
