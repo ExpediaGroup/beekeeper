@@ -279,7 +279,7 @@ public abstract class BeekeeperIntegrationTestBase {
   }
 
   private HousekeepingPath createHousekeepingPath(String path, LifecycleEventType lifecycleEventType) {
-    return new HousekeepingPath.Builder()
+    return HousekeepingPath.builder()
         .id(id++)
         .path(path)
         .databaseName(DATABASE_NAME_VALUE)

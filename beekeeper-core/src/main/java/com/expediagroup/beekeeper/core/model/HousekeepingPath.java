@@ -32,9 +32,15 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.UpdateTimestamp;
 
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.monitoring.MetricTag;
 
+@Data
+@NoArgsConstructor
 @Entity
 @Table(name = "housekeeping_path")
 public class HousekeepingPath implements HousekeepingEntity {
@@ -78,14 +84,12 @@ public class HousekeepingPath implements HousekeepingEntity {
   @Column(name = "lifecycle_type", nullable = false)
   private String lifecycleType;
 
-  public HousekeepingPath() {
-
-  }
-
-  private HousekeepingPath(Long id, String path, String databaseName, String tableName,
+  @Builder
+  public HousekeepingPath(Long id, String path, String databaseName, String tableName,
       HousekeepingStatus housekeepingStatus, LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,
       LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts, String lifecycleType,
       String clientId) {
+
     this.id = id;
     this.path = path;
     this.databaseName = databaseName;
@@ -98,96 +102,7 @@ public class HousekeepingPath implements HousekeepingEntity {
     this.cleanupAttempts = cleanupAttempts;
     this.lifecycleType = lifecycleType;
     this.clientId = clientId;
-  }
 
-  @Override
-  public String getLifecycleType() {
-    return lifecycleType;
-  }
-
-  public void setLifecycleType(String lifecycleType) {
-    this.lifecycleType = lifecycleType;
-  }
-
-  @Override
-  public Long getId() {
-    return id;
-  }
-
-  public String getPath() {
-    return path;
-  }
-
-  public void setPath(String path) {
-    this.path = path;
-  }
-
-  @Override
-  public String getDatabaseName() {
-    return databaseName;
-  }
-
-  public void setDatabaseName(String databaseName) {
-    this.databaseName = databaseName;
-  }
-
-  @Override
-  public String getTableName() {
-    return tableName;
-  }
-
-  public void setTableName(String tableName) {
-    this.tableName = tableName;
-  }
-
-  public HousekeepingStatus getHousekeepingStatus() {
-    return housekeepingStatus;
-  }
-
-  public void setHousekeepingStatus(HousekeepingStatus housekeepingStatus) {
-    this.housekeepingStatus = housekeepingStatus;
-  }
-
-  @Override
-  public LocalDateTime getCreationTimestamp() {
-    return creationTimestamp;
-  }
-
-  @Override
-  public LocalDateTime getModifiedTimestamp() {
-    return modifiedTimestamp;
-  }
-
-  @Override
-  public LocalDateTime getCleanupTimestamp() {
-    return cleanupTimestamp;
-  }
-
-  public void setCleanupTimestamp(LocalDateTime cleanupTimestamp) {
-    this.cleanupTimestamp = cleanupTimestamp;
-  }
-
-  @Override
-  public int getCleanupAttempts() {
-    return cleanupAttempts;
-  }
-
-  public void setCleanupAttempts(int cleanupAttempts) {
-    this.cleanupAttempts = cleanupAttempts;
-  }
-
-  @Override
-  public String getClientId() {
-    return clientId;
-  }
-
-  public void setClientId(String clientId) {
-    this.clientId = clientId;
-  }
-
-  @Override
-  public Duration getCleanupDelay() {
-    return cleanupDelay;
   }
 
   public void setCleanupDelay(Duration cleanupDelay) {
@@ -208,81 +123,6 @@ public class HousekeepingPath implements HousekeepingEntity {
         modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, clientId, lifecycleType);
   }
 
-  public static final class Builder {
-
-    private Long id;
-    private String path;
-    private String databaseName;
-    private String tableName;
-    private HousekeepingStatus housekeepingStatus;
-    private LocalDateTime creationTimestamp;
-    private LocalDateTime modifiedTimestamp;
-    private LocalDateTime cleanupTimestamp;
-    private Duration cleanupDelay;
-    private int cleanupAttempts;
-    private String clientId;
-    private String lifecycleType;
-
-    public Builder() { }
-
-    public Builder id(Long id) {
-      this.id = id;
-      return this;
-    }
-
-    public Builder path(String path) {
-      this.path = path;
-      return this;
-    }
-
-    public Builder housekeepingStatus(HousekeepingStatus housekeepingStatus) {
-      this.housekeepingStatus = housekeepingStatus;
-      return this;
-    }
-
-    public Builder databaseName(String databaseName) {
-      this.databaseName = databaseName;
-      return this;
-    }
-
-    public Builder tableName(String tableName) {
-      this.tableName = tableName;
-      return this;
-    }
-
-    public Builder creationTimestamp(LocalDateTime creationTimestamp) {
-      this.creationTimestamp = creationTimestamp;
-      return this;
-    }
-
-    public Builder modifiedTimestamp(LocalDateTime modifiedTimestamp) {
-      this.modifiedTimestamp = modifiedTimestamp;
-      return this;
-    }
-
-    public Builder cleanupDelay(Duration cleanupDelay) {
-      this.cleanupDelay = cleanupDelay;
-      return this;
-    }
-
-    public Builder cleanupAttempts(int cleanupAttempts) {
-      this.cleanupAttempts = cleanupAttempts;
-      return this;
-    }
-
-    public Builder clientId(String clientId) {
-      this.clientId = clientId;
-      return this;
-    }
-
-    public HousekeepingPath build() {
-      cleanupTimestamp = configureCleanupTimestamp();
-
-      return new HousekeepingPath(id, path, databaseName, tableName, housekeepingStatus,
-          creationTimestamp, modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, lifecycleType,
-          clientId);
-    }
-
     private LocalDateTime configureCleanupTimestamp() {
       if (creationTimestamp == null) {
         throw new BeekeeperException("Path requires a creation timestamp");
@@ -293,9 +133,5 @@ public class HousekeepingPath implements HousekeepingEntity {
       return creationTimestamp.plus(cleanupDelay);
     }
 
-    public Builder lifecycleType(String lifecycleType) {
-      this.lifecycleType = lifecycleType;
-      return this;
-    }
-  }
+
 }

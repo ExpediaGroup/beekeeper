@@ -40,7 +40,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 public class ResultSetToHousekeepingEntityMapper {
 
   public static HousekeepingPath mapToHousekeepingPath(ResultSet resultSet) throws SQLException {
-    return new HousekeepingPath.Builder()
+    return HousekeepingPath.builder()
         .id(resultSet.getLong(ID_FIELD))
         .path(resultSet.getString(PATH_FIELD))
         .databaseName(resultSet.getString(DATABASE_NAME_FIELD))

@@ -100,7 +100,7 @@ public class UnreferencedHousekeepingPathGenerator implements HousekeepingEntity
   public HousekeepingEntity generateHousekeepingEntity(ListenerEvent listenerEvent, String clientId,
       String cleanupPath) {
     Duration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
-    HousekeepingPath.Builder builder = new HousekeepingPath.Builder()
+    HousekeepingPath.HousekeepingPathBuilder builder = HousekeepingPath.builder()
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(LocalDateTime.now(clock))
         .cleanupDelay(cleanupDelay)

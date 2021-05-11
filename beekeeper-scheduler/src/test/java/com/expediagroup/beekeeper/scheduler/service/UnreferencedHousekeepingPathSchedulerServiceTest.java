@@ -48,7 +48,7 @@ public class UnreferencedHousekeepingPathSchedulerServiceTest {
 
   @Test
   public void typicalScheduleForHousekeeping() {
-    HousekeepingPath path = new HousekeepingPath.Builder()
+    HousekeepingPath path = HousekeepingPath.builder()
         .creationTimestamp(LocalDateTime.now())
         .cleanupDelay(Duration.parse("P3D"))
         .build();
@@ -64,7 +64,7 @@ public class UnreferencedHousekeepingPathSchedulerServiceTest {
 
   @Test
   public void scheduleFails() {
-    HousekeepingPath path = new HousekeepingPath.Builder()
+    HousekeepingPath path = HousekeepingPath.builder()
         .path("path_to_schedule")
         .creationTimestamp(LocalDateTime.now())
         .cleanupDelay(Duration.parse("P3D"))

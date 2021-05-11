@@ -110,7 +110,7 @@ class BeekeeperRepositoryTest {
 
   private HousekeepingPath createEntityHousekeepingPath() {
     LocalDateTime creationTimestamp = LocalDateTime.now(ZoneId.of("UTC"));
-    return new HousekeepingPath.Builder()
+    return HousekeepingPath.builder()
         .path("path")
         .databaseName("database")
         .tableName("table")

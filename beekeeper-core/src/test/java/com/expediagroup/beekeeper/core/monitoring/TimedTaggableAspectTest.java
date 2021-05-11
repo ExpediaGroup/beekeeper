@@ -61,7 +61,7 @@ public class TimedTaggableAspectTest {
 
   @BeforeEach
   public void init() {
-    housekeepingPath = new HousekeepingPath.Builder()
+    housekeepingPath = HousekeepingPath.builder()
       .databaseName(DATABASE)
       .tableName(TABLE)
       .creationTimestamp(LocalDateTime.now())

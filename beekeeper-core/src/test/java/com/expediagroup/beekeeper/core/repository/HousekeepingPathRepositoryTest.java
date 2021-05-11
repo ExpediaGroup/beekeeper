@@ -204,7 +204,7 @@ public class HousekeepingPathRepositoryTest {
   }
 
   private HousekeepingPath createEntityHousekeepingPath() {
-    return new HousekeepingPath.Builder()
+    return HousekeepingPath.builder()
         .path("path")
         .databaseName("database")
         .tableName("table")

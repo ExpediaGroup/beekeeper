@@ -176,7 +176,7 @@ public class BeekeeperVacuumToolApplication implements ApplicationRunner {
   private void removePath(Path toRemove, String databaseName, String tableName) {
     log.info("REMOVE path '{}'; it is not referenced and can be deleted.", toRemove);
     if (!isDryRun) {
-      schedulerService.scheduleForHousekeeping(new HousekeepingPath.Builder().databaseName(databaseName)
+      schedulerService.scheduleForHousekeeping(HousekeepingPath.builder().databaseName(databaseName)
           .tableName(tableName)
           .path(toRemove.toString())
           .housekeepingStatus(SCHEDULED)

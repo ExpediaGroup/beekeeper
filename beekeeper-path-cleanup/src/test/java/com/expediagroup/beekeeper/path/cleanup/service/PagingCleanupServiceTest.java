@@ -214,7 +214,7 @@ public class PagingCleanupServiceTest {
   }
 
   private HousekeepingPath createEntityHousekeepingPath(String path, HousekeepingStatus housekeepingStatus) {
-    HousekeepingPath housekeepingPath = new HousekeepingPath.Builder()
+    HousekeepingPath housekeepingPath = HousekeepingPath.builder()
         .path(path)
         .databaseName("database")
         .tableName("table")
