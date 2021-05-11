@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,8 +97,8 @@ public class HousekeepingPath implements HousekeepingEntity {
     this.housekeepingStatus = housekeepingStatus;
     this.creationTimestamp = creationTimestamp;
     this.modifiedTimestamp = modifiedTimestamp;
-    this.cleanupTimestamp = cleanupTimestamp;
     this.cleanupDelay = cleanupDelay;
+    this.cleanupTimestamp = configureCleanupTimestamp();
     this.cleanupAttempts = cleanupAttempts;
     this.lifecycleType = lifecycleType;
     this.clientId = clientId;
