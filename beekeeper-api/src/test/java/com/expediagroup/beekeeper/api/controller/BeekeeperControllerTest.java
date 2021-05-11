@@ -116,28 +116,6 @@ public class BeekeeperControllerTest {
   }
 
   @Test
-  public void testGetAllWhenUsingTableNameFiltering() throws Exception {
-    HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
-    HousekeepingMetadata table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
-    Page<HousekeepingMetadata> tables = new PageImpl<>(List.of(table1, table2));
-
-    when(housekeepingMetadataService.getAll(spec, pageable)).thenReturn(tables);
-
-    //spec.and()
-
-    mockMvc
-        .perform(get("/api/v1/tables?table_name=bob")
-            //.param("tableName","bob")
-            )
-        .andDo(MockMvcResultHandlers.print())
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-        .andExpect(content().json(objectMapper.writeValueAsString(tables)));
-    verify(housekeepingMetadataService, times(1)).getAll(spec, pageable);
-    verifyNoMoreInteractions(housekeepingMetadataService);
-  }
-
-  @Test
   public void testPaging() throws Exception {
     int pageNumber = 5;
     int pageSize = 10;
