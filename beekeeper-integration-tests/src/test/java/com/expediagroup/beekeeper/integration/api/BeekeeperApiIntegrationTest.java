@@ -18,6 +18,8 @@ package com.expediagroup.beekeeper.integration.api;
 import static java.lang.String.format;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.OK;
 
 import java.io.IOException;
@@ -107,34 +109,6 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
       context = null;
     }
   }
-
-//  @Test
-//  public void test() throws SQLException, InterruptedException, IOException {
-//    //HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
-//    // table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
-//    
-//    insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
-//    insertExpiredMetadata("s3://path/to/s3/table2", "partition=random/partition2");
-//    insertExpiredMetadata("saras_table", "a/path", "a_random_partition", "P7D");
-//    
-//    
-//    
-//    Thread.sleep(1000000L);
-//    System.out.println("breakpoint1");
-//    HttpResponse<String> response = testClient.getTables();
-//    System.out.println("breakpoint2");
-//    assertThat(response.statusCode()).isEqualTo(OK.value());
-//    System.out.println("breakpoint3");
-//    String body = response.body();
-//    System.out.println("body:"+body);
-//    Page<HousekeepingMetadata> responsePage = mapper
-//        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
-//    System.out.println("breakpoint5");
-//    System.out.println("AAA:"+responsePage.getContent());
-//    //assertThat(responsePage.getContent()).isEqualTo(List.of());
-//    
-//    
-//  }
   
   @Test
   public void testGetTablesWhenNoTables() throws SQLException, InterruptedException, IOException {
@@ -218,7 +192,11 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   @Test
   public void testGetTablesWhenLifecycleEventTypeFilter() throws SQLException, InterruptedException, IOException {
     HousekeepingMetadata unreferencedMetadata = createHousekeepingMetadata("myTableName","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("myTableName2","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("myTableName3","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
     insertExpiredMetadata(unreferencedMetadata);
+    insertExpiredMetadata(testMetadata1);
+    insertExpiredMetadata(testMetadata2);
 
     HttpResponse<String> response = testClient.getTablesWithLifecycleEventTypeFilter("UNREFERENCED");
     assertThat(response.statusCode()).isEqualTo(OK.value());
@@ -227,7 +205,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
     List<HousekeepingMetadata> result = responsePage.getContent();
 
-    //assertEquals(unreferencedMetadata.equals(result.get(0)),true);
+    assertTrue(unreferencedMetadata.equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
   

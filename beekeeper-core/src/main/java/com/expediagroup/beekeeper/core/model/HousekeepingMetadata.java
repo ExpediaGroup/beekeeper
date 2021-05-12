@@ -73,6 +73,7 @@ public class HousekeepingMetadata implements HousekeepingEntity {
   @UpdateTimestamp
   private LocalDateTime modifiedTimestamp;
 
+  @EqualsAndHashCode.Exclude
   @Column(name = "cleanup_timestamp", nullable = false)
   private LocalDateTime cleanupTimestamp;
 
