@@ -30,6 +30,7 @@ public class DummyHousekeepingMetadataGenerator {
   private static final String DEFAULT_TABLE_NAME = "randomTable";
   private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
   private static final Duration CLEANUP_DELAY = Duration.parse("P3D");
+  int id;
 
   public static HousekeepingMetadata generateDummyHousekeepingMetadata() {
     return generateDummyHousekeepingMetadata(DEFAULT_DB_NAME, DEFAULT_TABLE_NAME);

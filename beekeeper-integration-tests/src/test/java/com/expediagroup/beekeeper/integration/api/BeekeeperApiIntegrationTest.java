@@ -18,11 +18,13 @@ package com.expediagroup.beekeeper.integration.api;
 import static java.lang.String.format;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.OK;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.Calendar;
 import java.util.List;
 
@@ -51,9 +53,12 @@ import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.expediagroup.beekeeper.api.BeekeeperApiApplication;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.integration.BeekeeperIntegrationTestBase;
 import com.expediagroup.beekeeper.integration.utils.BeekeeperApiTestClient;
 import com.expediagroup.beekeeper.integration.utils.RestResponsePage;
+
+import static org.hamcrest.CoreMatchers.is;
 
 public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   
@@ -81,8 +86,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   protected BeekeeperApiTestClient testClient;
   
   protected final ObjectMapper mapper = geObjMapper();
-  
-  
+  private BeekeeperIntegrationTestBase base;
 
   @BeforeEach
   public void beforeEach() {
@@ -214,13 +218,14 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     assertThat(result.size()).isEqualTo(1);
   }
 
-//  @Disabled
-//  @Test
-//  public void testGetTablesWhenLifecycleEventTypeFilter() throws SQLException, InterruptedException, IOException {
-//
+  @Test
+  public void testGetTablesWhenLifecycleEventTypeFilter() throws SQLException, InterruptedException, IOException {
+
 //    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata();
 //    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata();
-//
+
+    HousekeepingMetadata unreferencedMetadata = createHousekeepingMetadata("myTableName","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
+
 //    HousekeepingMetadata unreferencedMetadata = HousekeepingMetadata.builder()
 //        .path("s3://some/path/")
 //        .databaseName("myDatabaseName")
@@ -232,22 +237,23 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 //        .cleanupAttempts(0)
 //        .lifecycleType(LifecycleEventType.UNREFERENCED.toString())
 //        .build();
-//
+
 //    insertExpiredMetadata(metadata1);
 //    insertExpiredMetadata(metadata2);
-//    insertExpiredMetadata(unreferencedMetadata);
-//
-//    HttpResponse<String> response = testClient.getTablesWithLifecycleEventTypeFilter("UNREFERENCED");
-//    assertThat(response.statusCode()).isEqualTo(OK.value());
-//    String body = response.body();
-//    Page<HousekeepingMetadata> responsePage = mapper
-//        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
-//    List<HousekeepingMetadata> result = responsePage.getContent();
-//
-//    assertEquals(unreferencedMetadata, result.get(0));
-//    //assertHousekeepingMetadataLifecycleType(result.get(0), LifecycleEventType.UNREFERENCED);
-//    assertThat(result.size()).isEqualTo(1);
-//  }
+    insertExpiredMetadata(unreferencedMetadata);
+
+    HttpResponse<String> response = testClient.getTablesWithLifecycleEventTypeFilter("UNREFERENCED");
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    Page<HousekeepingMetadata> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
+    List<HousekeepingMetadata> result = responsePage.getContent();
+
+    assertEquals(unreferencedMetadata.equals(result.get(0)),true);
+    //assertEquals(unreferencedMetadata, result.get(0));
+    //assertHousekeepingMetadataLifecycleType(result.get(0), LifecycleEventType.UNREFERENCED);
+    assertThat(result.size()).isEqualTo(1);
+  }
   
   @Test
   public void testGetTablesWhenCleanupTimestampFilter() throws SQLException, InterruptedException, IOException {

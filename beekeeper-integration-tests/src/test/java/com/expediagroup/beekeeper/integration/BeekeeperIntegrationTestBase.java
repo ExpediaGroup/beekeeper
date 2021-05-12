@@ -294,12 +294,13 @@ public abstract class BeekeeperIntegrationTestBase {
         .build();
   }
 
-  private HousekeepingMetadata createHousekeepingMetadata(
+  public HousekeepingMetadata createHousekeepingMetadata(
       String tableName,
       String path,
       String partitionName,
       LifecycleEventType lifecycleEventType,
       String cleanupDelay) {
+    System.out.println("AAA:1");
     return HousekeepingMetadata.builder()
         .id(id++)
         .path(path)
