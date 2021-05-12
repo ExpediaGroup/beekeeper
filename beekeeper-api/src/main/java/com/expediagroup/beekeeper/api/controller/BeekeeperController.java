@@ -55,6 +55,7 @@ public class BeekeeperController {
           @Spec(path = "housekeepingStatus", params = "housekeeping_status", spec = EqualIgnoreCase.class),
           @Spec(path = "lifecycleType", params = "lifecycle_type", spec = EqualIgnoreCase.class),
           @Spec(path = "cleanupTimestamp", params = "deleted_before", spec = LessThan.class),
+          @Spec(path = "cleanupTimestamp", params = "deleted_after", spec = GreaterThan.class),
           @Spec(path = "deletedBefore", spec = LessThan.class),
           @Spec(path = "deletedAfter", spec = GreaterThan.class)
       })
