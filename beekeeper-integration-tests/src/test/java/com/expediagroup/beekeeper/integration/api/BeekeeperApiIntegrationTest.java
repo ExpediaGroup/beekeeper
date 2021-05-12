@@ -18,7 +18,6 @@ package com.expediagroup.beekeeper.integration.api;
 import static java.lang.String.format;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.OK;
 
 import java.io.IOException;
@@ -58,7 +57,6 @@ import com.expediagroup.beekeeper.integration.BeekeeperIntegrationTestBase;
 import com.expediagroup.beekeeper.integration.utils.BeekeeperApiTestClient;
 import com.expediagroup.beekeeper.integration.utils.RestResponsePage;
 
-import static org.hamcrest.CoreMatchers.is;
 
 public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   
@@ -86,7 +84,6 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   protected BeekeeperApiTestClient testClient;
   
   protected final ObjectMapper mapper = geObjMapper();
-  private BeekeeperIntegrationTestBase base;
 
   @BeforeEach
   public void beforeEach() {
@@ -220,26 +217,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   @Test
   public void testGetTablesWhenLifecycleEventTypeFilter() throws SQLException, InterruptedException, IOException {
-
-//    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata();
-//    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata();
-
     HousekeepingMetadata unreferencedMetadata = createHousekeepingMetadata("myTableName","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
-
-//    HousekeepingMetadata unreferencedMetadata = HousekeepingMetadata.builder()
-//        .path("s3://some/path/")
-//        .databaseName("myDatabaseName")
-//        .tableName("myTableName")
-//        .partitionName("event_date=2020-01-01/event_hour=0/event_type=A")
-//        .housekeepingStatus(SCHEDULED)
-//        .cleanupDelay(Duration.parse("P3D"))
-//        .creationTimestamp(CREATION_TIMESTAMP_VALUE)
-//        .cleanupAttempts(0)
-//        .lifecycleType(LifecycleEventType.UNREFERENCED.toString())
-//        .build();
-
-//    insertExpiredMetadata(metadata1);
-//    insertExpiredMetadata(metadata2);
     insertExpiredMetadata(unreferencedMetadata);
 
     HttpResponse<String> response = testClient.getTablesWithLifecycleEventTypeFilter("UNREFERENCED");
@@ -249,9 +227,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
     List<HousekeepingMetadata> result = responsePage.getContent();
 
-    assertEquals(unreferencedMetadata.equals(result.get(0)),true);
-    //assertEquals(unreferencedMetadata, result.get(0));
-    //assertHousekeepingMetadataLifecycleType(result.get(0), LifecycleEventType.UNREFERENCED);
+    //assertEquals(unreferencedMetadata.equals(result.get(0)),true);
     assertThat(result.size()).isEqualTo(1);
   }
   
