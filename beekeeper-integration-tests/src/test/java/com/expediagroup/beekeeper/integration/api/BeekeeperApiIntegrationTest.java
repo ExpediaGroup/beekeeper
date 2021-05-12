@@ -18,7 +18,6 @@ package com.expediagroup.beekeeper.integration.api;
 import static java.lang.String.format;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -26,7 +25,7 @@ import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.sql.SQLException;
 import java.time.Duration;
-import java.util.Calendar;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -227,21 +226,26 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   
   @Test
   public void testGetTablesWhenCleanupTimestampFilter() throws SQLException, InterruptedException, IOException {
+
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("myTableName2","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("myTableName3","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata metadataWithCleanupTimestamp = createHousekeepingMetadata("myTableName","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
+    Object date;
+    Object time;
+    metadataWithCleanupTimestamp.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
+    insertExpiredMetadata(testMetadata1);
+    insertExpiredMetadata(testMetadata2);
+    insertExpiredMetadata(metadataWithCleanupTimestamp);
     
-    insertExpiredMetadata("s3://path/to/s3/table", "partition=random/partition");
-    insertExpiredMetadataWithCleanUpDelay();
-    
-    System.out.println(Calendar.getInstance().toString());
-    
-    HttpResponse<String> response = testClient.getTablesWithDeletedBeforeFilter("2021-05-05T10:41:20");
+    HttpResponse<String> response = testClient.getTablesWithDeletedBeforeFilter("2000-05-05T10:41:20");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadata> responsePage = mapper
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
     List<HousekeepingMetadata> result = responsePage.getContent();
-    
-    //assertHousekeepingMetadataLifecycleType(result.get(0), LifecycleEventType.UNREFERENCED);
-    //assertThat(result.size()).isEqualTo(1);
+
+    assertTrue(metadataWithCleanupTimestamp.equals(result.get(0)));
+    assertThat(result.size()).isEqualTo(1);
   }
 
 }

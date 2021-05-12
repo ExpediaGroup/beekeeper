@@ -300,7 +300,6 @@ public abstract class BeekeeperIntegrationTestBase {
       String partitionName,
       LifecycleEventType lifecycleEventType,
       String cleanupDelay) {
-    System.out.println("AAA:1");
     return HousekeepingMetadata.builder()
         .id(id++)
         .path(path)
