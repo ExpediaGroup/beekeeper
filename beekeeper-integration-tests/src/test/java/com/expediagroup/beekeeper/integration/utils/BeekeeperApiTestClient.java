@@ -73,4 +73,14 @@ public class BeekeeperApiTestClient {
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
+  public HttpResponse<String> getTablesWithRegisteredBeforeFilter(String timestamp) throws IOException, InterruptedException {
+    HttpRequest request = newBuilder().uri(URI.create(tablesUrl+"?registered_before="+timestamp)).GET().build();
+    return httpClient.send(request, BodyHandlers.ofString());
+  }
+
+  public HttpResponse<String> getTablesWithRegisteredAfterFilter(String timestamp) throws IOException, InterruptedException {
+    HttpRequest request = newBuilder().uri(URI.create(tablesUrl+"?registered_after="+timestamp)).GET().build();
+    return httpClient.send(request, BodyHandlers.ofString());
+  }
+
 }

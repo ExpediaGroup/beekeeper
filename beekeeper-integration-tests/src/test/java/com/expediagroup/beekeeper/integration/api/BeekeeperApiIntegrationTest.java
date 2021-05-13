@@ -270,4 +270,27 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     assertThat(result.size()).isEqualTo(1);
   }
 
+  public void testGetTablesWhenRegisteredAfterFilter() throws SQLException, InterruptedException, IOException {
+
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("myTableName2","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("myTableName3","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata metadataWithCreationTimestamp = createHousekeepingMetadata("myTableName","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
+    testMetadata1.setCreationTimestamp(LocalDateTime.parse("2020-05-05T10:41:20"));
+    testMetadata2.setCreationTimestamp(LocalDateTime.parse("2020-05-05T10:41:20"));
+    metadataWithCreationTimestamp.setCreationTimestamp(LocalDateTime.parse("2020-06-05T10:41:20"));
+    insertExpiredMetadata(testMetadata1);
+    insertExpiredMetadata(testMetadata2);
+    insertExpiredMetadata(metadataWithCreationTimestamp);
+
+    HttpResponse<String> response = testClient.getTablesWithRegisteredAfterFilter("2020-05-06T10:41:20");
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    Page<HousekeepingMetadata> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
+    List<HousekeepingMetadata> result = responsePage.getContent();
+
+    assertTrue(metadataWithCreationTimestamp.equals(result.get(0)));
+    assertThat(result.size()).isEqualTo(1);
+  }
+
 }
