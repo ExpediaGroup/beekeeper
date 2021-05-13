@@ -68,4 +68,9 @@ public class BeekeeperApiTestClient {
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
+  public HttpResponse<String> getTablesWithDeletedAfterFilter(String timestamp) throws IOException, InterruptedException {
+    HttpRequest request = newBuilder().uri(URI.create(tablesUrl+"?deleted_after="+timestamp)).GET().build();
+    return httpClient.send(request, BodyHandlers.ofString());
+  }
+
 }
