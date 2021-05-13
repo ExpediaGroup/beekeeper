@@ -60,13 +60,7 @@ import com.expediagroup.beekeeper.integration.utils.RestResponsePage;
 
 
 public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
-  
-  @Mock
-  private Specification<HousekeepingMetadata> spec;
 
-  @Mock
-  private Pageable pageable;
-  
   @Bean
   @Primary
   public ObjectMapper geObjMapper() {
@@ -108,7 +102,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   }
   
   @Test
-  public void testGetTablesWhenNoTables() throws SQLException, InterruptedException, IOException {
+  public void testGetTablesWhenNoTables() throws InterruptedException, IOException {
     HttpResponse<String> response = testClient.getTables();
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
