@@ -1,11 +1,8 @@
-package com.expediagroup.beekeeper.core.model;
+package com.expediagroup.beekeeper.api.model;
 
 import java.util.List;
 
 import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 import lombok.Builder;
@@ -15,10 +12,6 @@ import lombok.Value;
 @Builder
 @Table(name = "housekeeping_metadata")
 public class HousekeepingMetadataResponse{
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  Long id;
 
   @Column(name = "database_name", nullable = false)
   String databaseName;
