@@ -330,7 +330,6 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
     List<HousekeepingMetadata> result = responsePage.getContent();
 
-
   }
 
 }
