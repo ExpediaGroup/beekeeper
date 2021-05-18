@@ -44,7 +44,7 @@ import com.expediagroup.beekeeper.path.cleanup.service.PagingPathCleanupService;
 @Configuration
 @EnableScheduling
 @ComponentScan({ "com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.cleanup" })
-@EntityScan(basePackages = { "com.expediagroup.beekeeper.core.model" })
+@EntityScan(basePackages = { "com.expediagroup.beekeeper.core.response" })
 @EnableJpaRepositories(basePackages = { "com.expediagroup.beekeeper.core.repository" })
 public class CommonBeans {
 

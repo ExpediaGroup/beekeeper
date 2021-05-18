@@ -1,4 +1,4 @@
-package com.expediagroup.beekeeper.api.model;
+package com.expediagroup.beekeeper.api.response;
 
 import java.util.Map;
 
