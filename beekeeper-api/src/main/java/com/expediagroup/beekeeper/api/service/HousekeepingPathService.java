@@ -22,8 +22,7 @@ public class HousekeepingPathService implements HousekeepingEntityService<Housek
   }
 
   @Override
-  public Page<HousekeepingPath> getAll(String databaseName, String tableName, Specification<HousekeepingPath> spec, Pageable pageable) {
-    housekeepingPathRepository.findAllByDatabaseNameAndTableName(databaseName, tableName, spec);
+  public Page<HousekeepingPath> getAll(Specification<HousekeepingPath> spec, Pageable pageable) {
     return housekeepingPathRepository.findAll(spec, pageable);
   }
 }

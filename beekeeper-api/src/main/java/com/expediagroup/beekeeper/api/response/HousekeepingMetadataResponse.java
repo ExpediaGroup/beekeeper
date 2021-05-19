@@ -1,5 +1,7 @@
 package com.expediagroup.beekeeper.api.response;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -24,11 +26,16 @@ public class HousekeepingMetadataResponse {
   @Column(name = "path", nullable = false)
   String path;
 
-  @Column(name = "lifecycles", nullable = false)
-  List<Lifecycle> lifecycles;
+//  @Column(name = "lifecycles", nullable = false)
+//  List<Lifecycle> lifecycles;
 
   public static HousekeepingMetadataResponse convertToHouseKeepingMetadataResponse(
       HousekeepingMetadata housekeepingMetadata) {
-    HousekeepingMetadataResponse.builder().databaseName()
+    HousekeepingMetadataResponse housekeepingMetadataResponse = HousekeepingMetadataResponse.builder()
+        .databaseName(housekeepingMetadata.getDatabaseName())
+        .tableName(housekeepingMetadata.getTableName())
+        .path(housekeepingMetadata.getPath())
+        .build();
+    return null;
   }
 }
