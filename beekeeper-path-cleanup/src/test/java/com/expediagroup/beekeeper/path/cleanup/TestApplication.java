@@ -28,7 +28,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication
 @EnableConfigurationProperties
 @ComponentScan("com.expediagroup.beekeeper.core")
-@EntityScan(basePackages = { "com.expediagroup.beekeeper.core.response" })
+@EntityScan(basePackages = { "com.expediagroup.beekeeper.core.model" })
 @EnableJpaRepositories(basePackages = { "com.expediagroup.beekeeper.core.repository" })
 public class TestApplication {
 

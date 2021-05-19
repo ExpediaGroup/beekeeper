@@ -39,5 +39,5 @@ public interface HousekeepingPathRepository extends PagingAndSortingRepository<H
       Pageable pageable);
 
   Page<HousekeepingPath> findAllByDatabaseNameAndTableName(String databaseName, String tableName,
-      Specification<HousekeepingPath> spec);
+      Pageable pageable);
 }

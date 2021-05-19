@@ -35,7 +35,7 @@ import com.hotels.hcommon.hive.metastore.client.closeable.CloseableMetaStoreClie
 import com.hotels.hcommon.hive.metastore.client.supplier.HiveMetaStoreClientSupplier;
 
 @Configuration
-@EntityScan(basePackages = { "com.expediagroup.beekeeper.core.response" })
+@EntityScan(basePackages = { "com.expediagroup.beekeeper.core.model" })
 @EnableJpaRepositories(basePackages = { "com.expediagroup.beekeeper.core.repository",
                                         "com.expediagroup.beekeeper.vacuum.repository" })
 public class CommonBeans {

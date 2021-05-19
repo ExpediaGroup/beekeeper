@@ -30,7 +30,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @SpringBootApplication
 @EnableConfigurationProperties
-@EntityScan(basePackages = { "com.expediagroup.beekeeper.core.response" })
+@EntityScan(basePackages = { "com.expediagroup.beekeeper.core.model" })
 @EnableJpaRepositories(basePackages = { "com.expediagroup.beekeeper.core.repository" })
 @ComponentScan(basePackages = {
     "com.expediagroup.beekeeper.api.conf",

@@ -31,11 +31,10 @@ public class HousekeepingMetadataResponse {
 
   public static HousekeepingMetadataResponse convertToHouseKeepingMetadataResponse(
       HousekeepingMetadata housekeepingMetadata) {
-    HousekeepingMetadataResponse housekeepingMetadataResponse = HousekeepingMetadataResponse.builder()
+    return HousekeepingMetadataResponse.builder()
         .databaseName(housekeepingMetadata.getDatabaseName())
         .tableName(housekeepingMetadata.getTableName())
         .path(housekeepingMetadata.getPath())
         .build();
-    return null;
   }
 }
