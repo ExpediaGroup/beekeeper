@@ -30,15 +30,27 @@ public class HousekeepingMetadataResponse {
   @Column(name = "path", nullable = false)
   String path;
 
-//  @Column(name = "lifecycles", nullable = false)
-//  List<Lifecycle> lifecycles;
+  @Column(name = "lifecycles", nullable = false)
+  List<Lifecycle> lifecycles;
 
   public static HousekeepingMetadataResponse convertToHouseKeepingMetadataResponse(
       HousekeepingMetadata housekeepingMetadata) {
+
+    List<Lifecycle> lifecyclesTempList = new ArrayList<>();
+
+    String lifecycleType = housekeepingMetadata.getLifecycleType();
+
+    Lifecycle lifecycle = Lifecycle.builder()
+        .lifecycleEventType(lifecycleType)
+        .build()
+        ;
+    lifecyclesTempList.add(lifecycle);
+
     return HousekeepingMetadataResponse.builder()
         .databaseName(housekeepingMetadata.getDatabaseName())
         .tableName(housekeepingMetadata.getTableName())
         .path(housekeepingMetadata.getPath())
+        .lifecycles(lifecyclesTempList)
         .build();
   }
 
@@ -46,7 +58,39 @@ public class HousekeepingMetadataResponse {
     List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
     for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
       housekeepingMetadataResponseList.add(convertToHouseKeepingMetadataResponse(housekeepingMetadata));
+      //housekeepingMetadataResponseList = checkIfTableExists(housekeepingMetadataResponseList,housekeepingMetadata);
     }
+
+
     return new PageImpl<>(housekeepingMetadataResponseList);
+  }
+
+  public static List<HousekeepingMetadataResponse> checkIfTableExists(
+      List<HousekeepingMetadataResponse> housekeepingMetadataResponseList, HousekeepingMetadata housekeepingMetadata){
+
+    String tableName = housekeepingMetadata.getTableName();
+    String databaseName = housekeepingMetadata.getDatabaseName();
+    if(!housekeepingMetadataResponseList.isEmpty()) {
+      for (HousekeepingMetadataResponse table : housekeepingMetadataResponseList) {
+        String tableName2 = table.getTableName();
+        String databaseName2 = table.getDatabaseName();
+        if (tableName.equals(tableName2) && databaseName.equals(databaseName2)) {
+          System.out.println("duplicate table found");
+          String lifecycleType = housekeepingMetadata.getLifecycleType();
+          Lifecycle lifecycle = Lifecycle.builder()
+              .lifecycleEventType(lifecycleType)
+              .build();
+
+          table.addLifecycle(lifecycle);
+          housekeepingMetadataResponseList.remove(table);
+        }
+      }
+    }
+    return housekeepingMetadataResponseList;
+
+  }
+
+  public void addLifecycle(Lifecycle lifecycle){
+    lifecycles.add(lifecycle);
   }
 }

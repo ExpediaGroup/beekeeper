@@ -18,16 +18,10 @@ package com.expediagroup.beekeeper.api.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHouseKeepingMetadataResponse;
 import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHouseKeepingMetadataResponsePage;
-
-
-import java.util.ArrayList;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
@@ -42,18 +36,19 @@ import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
+import com.expediagroup.beekeeper.api.service.BeekeeperService;
 import com.expediagroup.beekeeper.api.service.HousekeepingMetadataService;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 @RequestMapping("/api/v1")
 @RestController
 public class BeekeeperController {
-
-  private final HousekeepingMetadataService housekeepingMetadataService;
+  private final BeekeeperService beekeeperService;
 
   @Autowired
-  public BeekeeperController(HousekeepingMetadataService housekeepingMetadataService) {
-    this.housekeepingMetadataService = housekeepingMetadataService;
+  public BeekeeperController(HousekeepingMetadataService housekeepingMetadataService,
+      BeekeeperService beekeeperService) {
+    this.beekeeperService = beekeeperService;
   }
 
   @GetMapping(path = "/tables", produces = APPLICATION_JSON_VALUE)
@@ -69,7 +64,7 @@ public class BeekeeperController {
           @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class)
       })
       Specification<HousekeepingMetadata> spec, Pageable pageable) {
-    return ResponseEntity.ok(convertToHouseKeepingMetadataResponsePage(housekeepingMetadataService.getAll(spec, pageable).getContent()));
+    return ResponseEntity.ok(convertToHouseKeepingMetadataResponsePage(beekeeperService.getAllTables(spec, pageable).getContent()));
   }
 
 }

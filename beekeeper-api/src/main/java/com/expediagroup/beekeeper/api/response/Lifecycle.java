@@ -11,7 +11,7 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 @Builder
 public class Lifecycle {
 
-  LifecycleEventType lifecycleEventType;
+  String lifecycleEventType;
   Map<String, String> configuration;
 
 }
