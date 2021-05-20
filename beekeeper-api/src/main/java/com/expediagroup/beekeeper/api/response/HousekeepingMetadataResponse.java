@@ -58,10 +58,10 @@ public class HousekeepingMetadataResponse {
     List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
     for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
       HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHouseKeepingMetadataResponse(housekeepingMetadata);
-      boolean tableExists = checkIfTableExists(housekeepingMetadataResponseList, housekeepingMetadata);
-      if(tableExists){
+      int repeatedTablePosition = checkIfTableExists(housekeepingMetadataResponseList, housekeepingMetadata);
+      if(!(repeatedTablePosition ==-1)){
         System.out.println("before removing"+housekeepingMetadataResponseList.size());
-        housekeepingMetadataResponseList.remove(housekeepingMetadataResponse);
+        housekeepingMetadataResponseList.remove(repeatedTablePosition);
         System.out.println("after removing"+housekeepingMetadataResponseList.size());
         String lifecycleType = housekeepingMetadata.getLifecycleType();
         Lifecycle lifecycle = Lifecycle.builder()
@@ -80,21 +80,24 @@ public class HousekeepingMetadataResponse {
     return new PageImpl<>(housekeepingMetadataResponseList);
   }
 
-  public static boolean checkIfTableExists(
+  public static int checkIfTableExists(
       List<HousekeepingMetadataResponse> housekeepingMetadataResponseList, HousekeepingMetadata housekeepingMetadata){
 
     boolean tableExists = false;
-
+    int count = -1;
+    int positionOfRepeatedTable = -1;
     System.out.println("does it go through this method");
     String tableName = housekeepingMetadata.getTableName();
     String databaseName = housekeepingMetadata.getDatabaseName();
     if(!housekeepingMetadataResponseList.isEmpty()) {
       for (HousekeepingMetadataResponse table : housekeepingMetadataResponseList) {
+        count++;
         String tableName2 = table.getTableName();
         String databaseName2 = table.getDatabaseName();
         if (tableName.equals(tableName2) && databaseName.equals(databaseName2)) {
           System.out.println("duplicate table foundd");
           tableExists = true;
+          positionOfRepeatedTable = count;
 //          String lifecycleType = housekeepingMetadata.getLifecycleType();
 //          Lifecycle lifecycle = Lifecycle.builder()
 //              .lifecycleEventType(lifecycleType)
@@ -105,7 +108,7 @@ public class HousekeepingMetadataResponse {
         }
       }
     }
-    return tableExists;
+    return positionOfRepeatedTable;
 
   }
 
