@@ -19,7 +19,10 @@ package com.expediagroup.beekeeper.api.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHouseKeepingMetadataResponse;
+import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHouseKeepingMetadataResponsePage;
 
+
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,16 +69,7 @@ public class BeekeeperController {
           @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class)
       })
       Specification<HousekeepingMetadata> spec, Pageable pageable) {
-    Page<HousekeepingMetadata> page = housekeepingMetadataService.getAll(spec, pageable);
-    List<HousekeepingMetadataResponse> listpage2 = null;
-    List<HousekeepingMetadata> list = page.getContent();
-    for(int i = 0; i < list.size(); i++){
-      HousekeepingMetadataResponse responseObject = convertToHouseKeepingMetadataResponse(list.get(i));
-      listpage2.add(responseObject);
-    }
-    assert listpage2 != null;
-    Page<HousekeepingMetadataResponse> page2 = new PageImpl<>(listpage2);;
-    return ResponseEntity.ok(page2);
+    return ResponseEntity.ok(convertToHouseKeepingMetadataResponsePage(housekeepingMetadataService.getAll(spec, pageable).getContent()));
   }
 
 }

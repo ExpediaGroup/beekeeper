@@ -2,10 +2,14 @@ package com.expediagroup.beekeeper.api.response;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Table;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
 import lombok.Builder;
 import lombok.Value;
@@ -36,5 +40,13 @@ public class HousekeepingMetadataResponse {
         .tableName(housekeepingMetadata.getTableName())
         .path(housekeepingMetadata.getPath())
         .build();
+  }
+
+  public static Page<HousekeepingMetadataResponse> convertToHouseKeepingMetadataResponsePage(List<HousekeepingMetadata> housekeepingMetadataList){
+    List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
+    for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
+      housekeepingMetadataResponseList.add(convertToHouseKeepingMetadataResponse(housekeepingMetadata));
+    }
+    return new PageImpl<>(housekeepingMetadataResponseList);
   }
 }

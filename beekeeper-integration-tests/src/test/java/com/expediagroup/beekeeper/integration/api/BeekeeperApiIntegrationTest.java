@@ -18,6 +18,7 @@ package com.expediagroup.beekeeper.integration.api;
 import static java.lang.String.format;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -51,6 +52,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import com.expediagroup.beekeeper.api.BeekeeperApiApplication;
+import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
@@ -167,10 +169,11 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HttpResponse<String> response = testClient.getTablesWithDatabaseNameFilter("bobs_database");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
-    Page<HousekeepingMetadata> responsePage = mapper
-        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
-    List<HousekeepingMetadata> result = responsePage.getContent();
+    Page<HousekeepingMetadataResponse> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
+    List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
+    assertEquals(metadataWithDatabaseName,result.get(0));
     assertTrue(metadataWithDatabaseName.equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
