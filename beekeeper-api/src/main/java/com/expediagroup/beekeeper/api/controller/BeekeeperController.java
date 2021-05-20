@@ -64,7 +64,7 @@ public class BeekeeperController {
           @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class)
       })
       Specification<HousekeepingMetadata> spec, Pageable pageable) {
-    return ResponseEntity.ok(convertToHouseKeepingMetadataResponsePage(beekeeperService.getAllTables(spec, pageable).getContent()));
+    return ResponseEntity.ok(beekeeperService.getAllTables(spec, pageable));
   }
 
 }
