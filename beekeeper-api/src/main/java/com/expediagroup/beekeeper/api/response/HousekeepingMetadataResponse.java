@@ -57,17 +57,35 @@ public class HousekeepingMetadataResponse {
   public static Page<HousekeepingMetadataResponse> convertToHouseKeepingMetadataResponsePage(List<HousekeepingMetadata> housekeepingMetadataList){
     List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
     for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
-      housekeepingMetadataResponseList.add(convertToHouseKeepingMetadataResponse(housekeepingMetadata));
-      //housekeepingMetadataResponseList = checkIfTableExists(housekeepingMetadataResponseList,housekeepingMetadata);
+      HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHouseKeepingMetadataResponse(housekeepingMetadata);
+      boolean tableExists = checkIfTableExists(housekeepingMetadataResponseList, housekeepingMetadata);
+      if(tableExists){
+        System.out.println("before removing"+housekeepingMetadataResponseList.size());
+        housekeepingMetadataResponseList.remove(housekeepingMetadataResponse);
+        System.out.println("after removing"+housekeepingMetadataResponseList.size());
+        String lifecycleType = housekeepingMetadata.getLifecycleType();
+        Lifecycle lifecycle = Lifecycle.builder()
+            .lifecycleEventType(lifecycleType)
+            .build();
+
+        housekeepingMetadataResponse.addLifecycle(lifecycle);
+        housekeepingMetadataResponseList.add(housekeepingMetadataResponse);
+      }
+      else {
+        housekeepingMetadataResponseList.add(housekeepingMetadataResponse);
+      }
     }
 
 
     return new PageImpl<>(housekeepingMetadataResponseList);
   }
 
-  public static List<HousekeepingMetadataResponse> checkIfTableExists(
+  public static boolean checkIfTableExists(
       List<HousekeepingMetadataResponse> housekeepingMetadataResponseList, HousekeepingMetadata housekeepingMetadata){
 
+    boolean tableExists = false;
+
+    System.out.println("does it go through this method");
     String tableName = housekeepingMetadata.getTableName();
     String databaseName = housekeepingMetadata.getDatabaseName();
     if(!housekeepingMetadataResponseList.isEmpty()) {
@@ -75,18 +93,19 @@ public class HousekeepingMetadataResponse {
         String tableName2 = table.getTableName();
         String databaseName2 = table.getDatabaseName();
         if (tableName.equals(tableName2) && databaseName.equals(databaseName2)) {
-          System.out.println("duplicate table found");
-          String lifecycleType = housekeepingMetadata.getLifecycleType();
-          Lifecycle lifecycle = Lifecycle.builder()
-              .lifecycleEventType(lifecycleType)
-              .build();
-
-          table.addLifecycle(lifecycle);
-          housekeepingMetadataResponseList.remove(table);
+          System.out.println("duplicate table foundd");
+          tableExists = true;
+//          String lifecycleType = housekeepingMetadata.getLifecycleType();
+//          Lifecycle lifecycle = Lifecycle.builder()
+//              .lifecycleEventType(lifecycleType)
+//              .build();
+//
+//          table.addLifecycle(lifecycle);
+//          housekeepingMetadataResponseList.remove(table);
         }
       }
     }
-    return housekeepingMetadataResponseList;
+    return tableExists;
 
   }
 
