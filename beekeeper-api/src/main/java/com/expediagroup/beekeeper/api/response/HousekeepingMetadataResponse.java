@@ -60,16 +60,19 @@ public class HousekeepingMetadataResponse {
       HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHouseKeepingMetadataResponse(housekeepingMetadata);
       int repeatedTablePosition = checkIfTableExists(housekeepingMetadataResponseList, housekeepingMetadata);
       if(!(repeatedTablePosition ==-1)){
-        System.out.println("before removing"+housekeepingMetadataResponseList.size());
+        HousekeepingMetadataResponse tampeTable = housekeepingMetadataResponseList.get(repeatedTablePosition);
         housekeepingMetadataResponseList.remove(repeatedTablePosition);
-        System.out.println("after removing"+housekeepingMetadataResponseList.size());
+        System.out.println(housekeepingMetadata.toString());
         String lifecycleType = housekeepingMetadata.getLifecycleType();
+        System.out.println("lifecycle:"+lifecycleType);
         Lifecycle lifecycle = Lifecycle.builder()
             .lifecycleEventType(lifecycleType)
             .build();
+        System.out.println(housekeepingMetadataResponse.toString());
 
-        housekeepingMetadataResponse.addLifecycle(lifecycle);
-        housekeepingMetadataResponseList.add(housekeepingMetadataResponse);
+        tampeTable.addLifecycle(lifecycle);
+        System.out.println(tampeTable.toString());
+        housekeepingMetadataResponseList.add(tampeTable);
       }
       else {
         housekeepingMetadataResponseList.add(housekeepingMetadataResponse);
@@ -86,7 +89,6 @@ public class HousekeepingMetadataResponse {
     boolean tableExists = false;
     int count = -1;
     int positionOfRepeatedTable = -1;
-    System.out.println("does it go through this method");
     String tableName = housekeepingMetadata.getTableName();
     String databaseName = housekeepingMetadata.getDatabaseName();
     if(!housekeepingMetadataResponseList.isEmpty()) {
@@ -113,6 +115,10 @@ public class HousekeepingMetadataResponse {
   }
 
   public void addLifecycle(Lifecycle lifecycle){
+    System.out.println("lifecycle:"+lifecycle);
+    System.out.println("lifecycles:"+lifecycles);
     lifecycles.add(lifecycle);
+    System.out.println("lifecycle:"+lifecycle);
+    System.out.println("lifecycles:"+lifecycles);
   }
 }
