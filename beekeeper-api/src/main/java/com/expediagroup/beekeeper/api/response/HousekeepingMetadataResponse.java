@@ -36,77 +36,55 @@ public class HousekeepingMetadataResponse {
   public static HousekeepingMetadataResponse convertToHouseKeepingMetadataResponse(
       HousekeepingMetadata housekeepingMetadata) {
 
-    List<Lifecycle> lifecyclesTempList = new ArrayList<>();
-
-    String lifecycleType = housekeepingMetadata.getLifecycleType();
-
+    List<Lifecycle> lifecyclesList = new ArrayList<>();
     Lifecycle lifecycle = Lifecycle.builder()
-        .lifecycleEventType(lifecycleType)
+        .lifecycleEventType(housekeepingMetadata.getLifecycleType())
         .build()
         ;
-    lifecyclesTempList.add(lifecycle);
+    lifecyclesList.add(lifecycle);
 
     return HousekeepingMetadataResponse.builder()
         .databaseName(housekeepingMetadata.getDatabaseName())
         .tableName(housekeepingMetadata.getTableName())
         .path(housekeepingMetadata.getPath())
-        .lifecycles(lifecyclesTempList)
+        .lifecycles(lifecyclesList)
         .build();
   }
 
   public static Page<HousekeepingMetadataResponse> convertToHouseKeepingMetadataResponsePage(List<HousekeepingMetadata> housekeepingMetadataList){
     List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
+
     for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
       HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHouseKeepingMetadataResponse(housekeepingMetadata);
       int repeatedTablePosition = checkIfTableExists(housekeepingMetadataResponseList, housekeepingMetadata);
-      if(!(repeatedTablePosition ==-1)){
-        HousekeepingMetadataResponse tampeTable = housekeepingMetadataResponseList.get(repeatedTablePosition);
+
+      if(repeatedTablePosition!=-1){
+        housekeepingMetadataResponse = housekeepingMetadataResponseList.get(repeatedTablePosition);
         housekeepingMetadataResponseList.remove(repeatedTablePosition);
-        System.out.println(housekeepingMetadata.toString());
-        String lifecycleType = housekeepingMetadata.getLifecycleType();
-        System.out.println("lifecycle:"+lifecycleType);
         Lifecycle lifecycle = Lifecycle.builder()
-            .lifecycleEventType(lifecycleType)
+            .lifecycleEventType(housekeepingMetadata.getLifecycleType())
             .build();
-        System.out.println(housekeepingMetadataResponse.toString());
+        housekeepingMetadataResponse.addLifecycle(lifecycle);
+      }
 
-        tampeTable.addLifecycle(lifecycle);
-        System.out.println(tampeTable.toString());
-        housekeepingMetadataResponseList.add(tampeTable);
-      }
-      else {
-        housekeepingMetadataResponseList.add(housekeepingMetadataResponse);
-      }
+      housekeepingMetadataResponseList.add(housekeepingMetadataResponse);
     }
-
-
     return new PageImpl<>(housekeepingMetadataResponseList);
   }
 
   public static int checkIfTableExists(
       List<HousekeepingMetadataResponse> housekeepingMetadataResponseList, HousekeepingMetadata housekeepingMetadata){
-
-    boolean tableExists = false;
     int count = -1;
     int positionOfRepeatedTable = -1;
-    String tableName = housekeepingMetadata.getTableName();
-    String databaseName = housekeepingMetadata.getDatabaseName();
+    String tableName1 = housekeepingMetadata.getTableName();
+    String databaseName1 = housekeepingMetadata.getDatabaseName();
     if(!housekeepingMetadataResponseList.isEmpty()) {
       for (HousekeepingMetadataResponse table : housekeepingMetadataResponseList) {
         count++;
         String tableName2 = table.getTableName();
         String databaseName2 = table.getDatabaseName();
-        if (tableName.equals(tableName2) && databaseName.equals(databaseName2)) {
-          System.out.println("duplicate table foundd");
-          tableExists = true;
+        if (tableName1.equals(tableName2) && databaseName1.equals(databaseName2)) {
           positionOfRepeatedTable = count;
-//          String lifecycleType = housekeepingMetadata.getLifecycleType();
-//          Lifecycle lifecycle = Lifecycle.builder()
-//              .lifecycleEventType(lifecycleType)
-//              .build();
-//
-//          table.addLifecycle(lifecycle);
-//          housekeepingMetadataResponseList.remove(table);
         }
       }
     }
@@ -115,10 +93,6 @@ public class HousekeepingMetadataResponse {
   }
 
   public void addLifecycle(Lifecycle lifecycle){
-    System.out.println("lifecycle:"+lifecycle);
-    System.out.println("lifecycles:"+lifecycles);
     lifecycles.add(lifecycle);
-    System.out.println("lifecycle:"+lifecycle);
-    System.out.println("lifecycles:"+lifecycles);
   }
 }
