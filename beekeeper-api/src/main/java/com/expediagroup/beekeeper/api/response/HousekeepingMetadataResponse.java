@@ -1,9 +1,8 @@
 package com.expediagroup.beekeeper.api.response;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.Column;
 import javax.persistence.Table;
@@ -35,10 +34,13 @@ public class HousekeepingMetadataResponse {
 
   public static HousekeepingMetadataResponse convertToHouseKeepingMetadataResponse(
       HousekeepingMetadata housekeepingMetadata) {
-
     List<Lifecycle> lifecyclesList = new ArrayList<>();
     Lifecycle lifecycle = Lifecycle.builder()
         .lifecycleEventType(housekeepingMetadata.getLifecycleType())
+        .configuration(Map.of(
+            "beekeeper.unreferenced.data.retention.period",housekeepingMetadata.getCleanupDelay().toString(),
+            "clean up timestamp", housekeepingMetadata.getCleanupTimestamp().toString()
+        ))
         .build()
         ;
     lifecyclesList.add(lifecycle);
@@ -53,7 +55,6 @@ public class HousekeepingMetadataResponse {
 
   public static Page<HousekeepingMetadataResponse> convertToHouseKeepingMetadataResponsePage(List<HousekeepingMetadata> housekeepingMetadataList){
     List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
-
     for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
       HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHouseKeepingMetadataResponse(housekeepingMetadata);
       int repeatedTablePosition = checkIfTableExists(housekeepingMetadataResponseList, housekeepingMetadata);
@@ -63,6 +64,10 @@ public class HousekeepingMetadataResponse {
         housekeepingMetadataResponseList.remove(repeatedTablePosition);
         Lifecycle lifecycle = Lifecycle.builder()
             .lifecycleEventType(housekeepingMetadata.getLifecycleType())
+            .configuration(Map.of(
+                "beekeeper.unreferenced.data.retention.period",housekeepingMetadata.getCleanupDelay().toString(),
+                "clean up timestamp", housekeepingMetadata.getCleanupTimestamp().toString()
+                ))
             .build();
         housekeepingMetadataResponse.addLifecycle(lifecycle);
       }
@@ -89,10 +94,10 @@ public class HousekeepingMetadataResponse {
       }
     }
     return positionOfRepeatedTable;
-
   }
 
   public void addLifecycle(Lifecycle lifecycle){
     lifecycles.add(lifecycle);
   }
+
 }

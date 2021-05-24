@@ -324,6 +324,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HousekeepingMetadata unreferencedMetadata2 = createHousekeepingMetadata("myTableName","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
     HousekeepingMetadata unreferencedMetadata3 = createHousekeepingMetadata("myTableName","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
     HousekeepingMetadata unreferencedMetadata4 = createHousekeepingMetadata("myTableName","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
+    testMetadata1.setCleanupDelay(Duration.parse("P4D"));
     insertExpiredMetadata(testMetadata1);
     insertExpiredMetadata(testMetadata2);
     insertExpiredMetadata(testMetadata3);

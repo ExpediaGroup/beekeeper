@@ -21,8 +21,6 @@ public class BeekeeperService {
       HousekeepingMetadataService housekeepingMetadataService) {this.housekeepingMetadataService = housekeepingMetadataService;}
 
   public Page<HousekeepingMetadataResponse> getAllTables(Specification<HousekeepingMetadata> spec, Pageable pageable) {
-    Page<HousekeepingMetadataResponse> housekeepingMetadataResponsePage = convertToHouseKeepingMetadataResponsePage(housekeepingMetadataService.getAll(spec, pageable).getContent());
-    Page<HousekeepingMetadata> housekeepingMetadataPage = housekeepingMetadataService.getAll(spec, pageable);
-    return housekeepingMetadataResponsePage;
+    return convertToHouseKeepingMetadataResponsePage(housekeepingMetadataService.getAll(spec, pageable).getContent());
   }
 }
