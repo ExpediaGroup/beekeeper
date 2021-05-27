@@ -38,13 +38,22 @@ public class HousekeepingMetadataResponse {
     Lifecycle lifecycle = Lifecycle.builder()
         .lifecycleEventType(housekeepingMetadata.getLifecycleType())
         .configuration(Map.of(
-            "beekeeper.unreferenced.data.retention.period",housekeepingMetadata.getCleanupDelay().toString(),
-            "clean up timestamp", housekeepingMetadata.getCleanupTimestamp().toString()
+            "beekeeper.unreferenced.data.retention.period",housekeepingMetadata.getCleanupDelay().toString()
         ))
         .build()
         ;
     lifecyclesList.add(lifecycle);
 
+    return HousekeepingMetadataResponse.builder()
+        .databaseName(housekeepingMetadata.getDatabaseName())
+        .tableName(housekeepingMetadata.getTableName())
+        .path(housekeepingMetadata.getPath())
+        .lifecycles(lifecyclesList)
+        .build();
+  }
+
+  public static HousekeepingMetadataResponse convertToHouseKeepingMetadataResponse(
+      HousekeepingMetadata housekeepingMetadata, List<Lifecycle> lifecyclesList) {
     return HousekeepingMetadataResponse.builder()
         .databaseName(housekeepingMetadata.getDatabaseName())
         .tableName(housekeepingMetadata.getTableName())
@@ -65,8 +74,7 @@ public class HousekeepingMetadataResponse {
         Lifecycle lifecycle = Lifecycle.builder()
             .lifecycleEventType(housekeepingMetadata.getLifecycleType())
             .configuration(Map.of(
-                "beekeeper.unreferenced.data.retention.period",housekeepingMetadata.getCleanupDelay().toString(),
-                "clean up timestamp", housekeepingMetadata.getCleanupTimestamp().toString()
+                "beekeeper.unreferenced.data.retention.period",housekeepingMetadata.getCleanupDelay().toString()
                 ))
             .build();
         housekeepingMetadataResponse.addLifecycle(lifecycle);
