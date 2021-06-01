@@ -8,19 +8,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 @Service
-public class BeekeeperService {
+public class BeekeeperService implements HousekeepingEntityService<HousekeepingMetadata>{
 
-  private final HousekeepingMetadataService housekeepingMetadataService;
+  private final HousekeepingMetadataRepository housekeepingMetadataRepository;
 
   @Autowired
-  public BeekeeperService(
-      HousekeepingMetadataService housekeepingMetadataService) {this.housekeepingMetadataService = housekeepingMetadataService;}
+  public BeekeeperService(HousekeepingMetadataRepository housekeepingMetadataRepository) {
+    this.housekeepingMetadataRepository = housekeepingMetadataRepository;
+  }
 
-  public Page<HousekeepingMetadataResponse> getAllTables(Specification<HousekeepingMetadata> spec, Pageable pageable) {
-    return convertToHouseKeepingMetadataResponsePage(housekeepingMetadataService.getAll(spec, pageable).getContent());
+  public Page<HousekeepingMetadata> getAll(Specification<HousekeepingMetadata> spec, Pageable pageable) {
+    return housekeepingMetadataRepository.findAll(spec, pageable);
   }
 }

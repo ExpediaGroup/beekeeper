@@ -51,8 +51,8 @@ public class BeekeeperController {
     this.beekeeperService = beekeeperService;
   }
 
-  @GetMapping(path = "/tables", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Page<HousekeepingMetadataResponse>> getAll(
+  @GetMapping(path = "/metadata", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Page<HousekeepingMetadata>> getAll(
       @And({
           @Spec(path = "tableName", params = "table_name", spec = EqualIgnoreCase.class),
           @Spec(path = "databaseName", params = "database_name", spec = EqualIgnoreCase.class),
@@ -64,7 +64,7 @@ public class BeekeeperController {
           @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class)
       })
       Specification<HousekeepingMetadata> spec, Pageable pageable) {
-    return ResponseEntity.ok(beekeeperService.getAllTables(spec, pageable));
+    return ResponseEntity.ok(beekeeperService.getAll(spec, pageable));
   }
 
 }
