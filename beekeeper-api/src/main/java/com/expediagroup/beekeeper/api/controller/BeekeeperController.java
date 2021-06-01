@@ -18,8 +18,6 @@ package com.expediagroup.beekeeper.api.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHouseKeepingMetadataResponsePage;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,9 +33,7 @@ import net.kaczmarzyk.spring.data.jpa.domain.LessThan;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
-import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
 import com.expediagroup.beekeeper.api.service.BeekeeperService;
-import com.expediagroup.beekeeper.api.service.HousekeepingMetadataService;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 @RequestMapping("/api/v1")
@@ -46,8 +42,7 @@ public class BeekeeperController {
   private final BeekeeperService beekeeperService;
 
   @Autowired
-  public BeekeeperController(HousekeepingMetadataService housekeepingMetadataService,
-      BeekeeperService beekeeperService) {
+  public BeekeeperController(BeekeeperService beekeeperService) {
     this.beekeeperService = beekeeperService;
   }
 

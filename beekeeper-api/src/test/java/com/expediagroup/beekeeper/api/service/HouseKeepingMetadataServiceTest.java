@@ -41,7 +41,7 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository
 @ExtendWith(MockitoExtension.class)
 public class HouseKeepingMetadataServiceTest {
 
-  private HousekeepingMetadataService housekeepingMetadataService;
+  private BeekeeperService housekeepingMetadataService;
 
   @Mock
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
@@ -52,7 +52,7 @@ public class HouseKeepingMetadataServiceTest {
 
   @BeforeEach
   public void beforeEach() {
-    housekeepingMetadataService = new HousekeepingMetadataService(housekeepingMetadataRepository);
+    housekeepingMetadataService = new BeekeeperService(housekeepingMetadataRepository);
   }
 
   @Test

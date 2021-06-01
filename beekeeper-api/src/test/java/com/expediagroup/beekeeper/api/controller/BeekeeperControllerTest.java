@@ -48,7 +48,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.expediagroup.beekeeper.api.TestApplication;
-import com.expediagroup.beekeeper.api.service.HousekeepingMetadataService;
+import com.expediagroup.beekeeper.api.service.BeekeeperService;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 @WebMvcTest(BeekeeperController.class)
@@ -67,7 +67,7 @@ public class BeekeeperControllerTest {
   private Pageable pageable;
 
   @MockBean
-  private HousekeepingMetadataService housekeepingMetadataService;
+  private BeekeeperService housekeepingMetadataService;
 
   @Test
   public void testGetAllWhenTablesValid() throws Exception {
