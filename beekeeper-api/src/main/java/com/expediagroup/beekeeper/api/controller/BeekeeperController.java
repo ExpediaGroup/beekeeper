@@ -23,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -48,42 +47,8 @@ public class BeekeeperController {
     this.beekeeperService = beekeeperService;
   }
 
-  @GetMapping(path = "/metadata", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Page<HousekeepingMetadata>> getAll(
-      @And({
-          @Spec(path = "tableName", params = "table_name", spec = EqualIgnoreCase.class),
-          @Spec(path = "databaseName", params = "database_name", spec = EqualIgnoreCase.class),
-          @Spec(path = "housekeepingStatus", params = "housekeeping_status", spec = EqualIgnoreCase.class),
-          @Spec(path = "lifecycleType", params = "lifecycle_type", spec = EqualIgnoreCase.class),
-          @Spec(path = "cleanupTimestamp", params = "deleted_before", spec = LessThan.class),
-          @Spec(path = "cleanupTimestamp", params = "deleted_after", spec = GreaterThan.class),
-          @Spec(path = "creationTimestamp", params = "registered_before", spec = LessThan.class),
-          @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class)
-      })
-      Specification<HousekeepingMetadata> spec, Pageable pageable) {
-    return ResponseEntity.ok(beekeeperService.getAll(spec, pageable));
-  }
-
   @RequestMapping(value = "/database/{databaseName}/table/{tableName}/metadata", method = RequestMethod.GET)
-  public ResponseEntity<Page<HousekeepingMetadata>> getAll2(
-      @PathVariable String databaseName,
-      @PathVariable String tableName,
-      @And({
-          @Spec(path = "tableName", params = "table_name", spec = EqualIgnoreCase.class),
-          @Spec(path = "databaseName", params = "database_name", spec = EqualIgnoreCase.class),
-          @Spec(path = "housekeepingStatus", params = "housekeeping_status", spec = EqualIgnoreCase.class),
-          @Spec(path = "lifecycleType", params = "lifecycle_type", spec = EqualIgnoreCase.class),
-          @Spec(path = "cleanupTimestamp", params = "deleted_before", spec = LessThan.class),
-          @Spec(path = "cleanupTimestamp", params = "deleted_after", spec = GreaterThan.class),
-          @Spec(path = "creationTimestamp", params = "registered_before", spec = LessThan.class),
-          @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class)
-      })
-          Specification<HousekeepingMetadata> spec, Pageable pageable) {
-    return ResponseEntity.ok(beekeeperService.findMetadataForDbAndTable(databaseName, tableName, spec, pageable));
-  }
-
-  @RequestMapping(value = "/database/{databaseName}/table/{tableName}/metadata2", method = RequestMethod.GET)
-  public ResponseEntity<Page<HousekeepingMetadata>> getAll3(
+  public ResponseEntity<Page<HousekeepingMetadata>> getAll(
       @PathVariable String databaseName,
       @PathVariable String tableName,
       @And({
