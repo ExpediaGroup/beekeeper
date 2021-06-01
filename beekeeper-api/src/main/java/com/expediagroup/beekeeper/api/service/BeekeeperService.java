@@ -25,7 +25,4 @@ public class BeekeeperService implements HousekeepingEntityService<HousekeepingM
     return housekeepingMetadataRepository.findAll(spec, pageable);
   }
 
-  public Page<HousekeepingMetadata> findMetadataForDbAndTable(String dbName, String tableName, Specification<HousekeepingMetadata> spec, Pageable pageable) {
-    return housekeepingMetadataRepository.findMetadataForDbAndTable(dbName, tableName, pageable);
-  }
 }

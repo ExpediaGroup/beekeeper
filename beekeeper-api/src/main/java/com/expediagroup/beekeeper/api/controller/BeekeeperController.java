@@ -18,6 +18,8 @@ package com.expediagroup.beekeeper.api.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHouseKeepingMetadataResponsePage;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +36,7 @@ import net.kaczmarzyk.spring.data.jpa.domain.LessThan;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
+import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
 import com.expediagroup.beekeeper.api.service.BeekeeperService;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
@@ -48,12 +51,13 @@ public class BeekeeperController {
   }
 
   @RequestMapping(value = "/database/{databaseName}/table/{tableName}/metadata", method = RequestMethod.GET)
-  public ResponseEntity<Page<HousekeepingMetadata>> getAll(
+  public ResponseEntity<Page<HousekeepingMetadataResponse>> getAll(
       @PathVariable String databaseName,
       @PathVariable String tableName,
       @And({
           @Spec(path = "tableName", pathVars = "tableName", spec = EqualIgnoreCase.class),
           @Spec(path = "databaseName", pathVars = "databaseName", spec = EqualIgnoreCase.class),
+          @Spec(path = "path", params = "path_name", spec = EqualIgnoreCase.class),
           @Spec(path = "housekeepingStatus", params = "housekeeping_status", spec = EqualIgnoreCase.class),
           @Spec(path = "lifecycleType", params = "lifecycle_type", spec = EqualIgnoreCase.class),
           @Spec(path = "cleanupTimestamp", params = "deleted_before", spec = LessThan.class),
@@ -62,7 +66,7 @@ public class BeekeeperController {
           @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class)
       })
           Specification<HousekeepingMetadata> spec, Pageable pageable) {
-    return ResponseEntity.ok(beekeeperService.getAll(spec, pageable));
+    return ResponseEntity.ok(convertToHouseKeepingMetadataResponsePage(beekeeperService.getAll(spec, pageable).getContent()));
   }
 
 }
