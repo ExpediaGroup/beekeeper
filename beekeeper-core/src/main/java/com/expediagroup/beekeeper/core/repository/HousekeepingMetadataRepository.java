@@ -73,6 +73,23 @@ public interface HousekeepingMetadataRepository extends PagingAndSortingReposito
       @Param("tableName") String tableName);
 
   /**
+   * Returns the metadata for a database and table name pair.
+   *
+   * @param databaseName
+   * @param tableName
+   * @return
+   */
+  @Query(value = "from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  Page<HousekeepingMetadata> findMetadataForDbAndTable(
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName,
+      Pageable pageable);
+
+
+  /**
    * This method returns the count of all records for a database and table name pair where the partitionName is not null.
    *
    * @param databaseName

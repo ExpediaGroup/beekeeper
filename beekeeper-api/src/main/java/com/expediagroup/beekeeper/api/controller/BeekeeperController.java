@@ -24,7 +24,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import net.kaczmarzyk.spring.data.jpa.domain.EqualIgnoreCase;
@@ -60,6 +62,24 @@ public class BeekeeperController {
       })
       Specification<HousekeepingMetadata> spec, Pageable pageable) {
     return ResponseEntity.ok(beekeeperService.getAll(spec, pageable));
+  }
+
+  @RequestMapping(value = "/database/{databaseName}/table/{tableName}", method = RequestMethod.GET)
+  public ResponseEntity<Page<HousekeepingMetadata>> getAll2(
+      @PathVariable String databaseName,
+      @PathVariable String tableName,
+      @And({
+          @Spec(path = "tableName", params = "table_name", spec = EqualIgnoreCase.class),
+          @Spec(path = "databaseName", params = "database_name", spec = EqualIgnoreCase.class),
+          @Spec(path = "housekeepingStatus", params = "housekeeping_status", spec = EqualIgnoreCase.class),
+          @Spec(path = "lifecycleType", params = "lifecycle_type", spec = EqualIgnoreCase.class),
+          @Spec(path = "cleanupTimestamp", params = "deleted_before", spec = LessThan.class),
+          @Spec(path = "cleanupTimestamp", params = "deleted_after", spec = GreaterThan.class),
+          @Spec(path = "creationTimestamp", params = "registered_before", spec = LessThan.class),
+          @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class)
+      })
+          Specification<HousekeepingMetadata> spec, Pageable pageable) {
+    return ResponseEntity.ok(beekeeperService.findMetadataForDbAndTable(databaseName, tableName, pageable));
   }
 
 }
