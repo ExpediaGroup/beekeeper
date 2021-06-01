@@ -32,4 +32,5 @@ public class JPAConfiguration implements WebMvcConfigurer {
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
     argumentResolvers.add(new SpecificationArgumentResolver());
   }
+
 }

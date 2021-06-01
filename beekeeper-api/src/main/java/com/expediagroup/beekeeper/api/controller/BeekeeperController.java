@@ -15,9 +15,6 @@
  */
 package com.expediagroup.beekeeper.api.controller;
 
-
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-
 import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHouseKeepingMetadataResponsePage;
 
 import org.springframework.beans.factory.annotation.Autowired;

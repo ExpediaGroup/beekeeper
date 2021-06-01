@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.OK;
 
+import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHouseKeepingMetadataResponse;
+
 import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.sql.SQLException;
@@ -31,6 +33,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
@@ -104,86 +107,32 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   }
   
   @Test
-  public void testGetTablesWhenNoTables() throws InterruptedException, IOException {
-    HttpResponse<String> response = testClient.getTables();
-    assertThat(response.statusCode()).isEqualTo(OK.value());
-    String body = response.body();
-    Page<HousekeepingMetadata> responsePage = mapper
-        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
-    assertThat(responsePage.getContent()).isEqualTo(List.of());
-  }
-  
-  @Test
   public void testGetTablesWhenTablesValid() throws SQLException, InterruptedException, IOException {
 
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("myTableName1","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("myTableName2","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table","s3://some/path/1","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table","s3://some/path/2","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
     insertExpiredMetadata(testMetadata1);
     insertExpiredMetadata(testMetadata2);
 
     HttpResponse<String> response = testClient.getTables();
-    assertThat(response.statusCode()).isEqualTo(OK.value());
-    String body = response.body();
-    Page<HousekeepingMetadata> responsePage = mapper
-        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
-    List<HousekeepingMetadata> result = responsePage.getContent();
-
-    assertTrue(testMetadata1.equals(result.get(0)));
-    assertTrue(testMetadata2.equals(result.get(1)));
-    assertThat(result.size()).isEqualTo(2);
-
-  }
-
-  @Test
-  public void testGetTablesWhenTableNameFilter() throws SQLException, InterruptedException, IOException {
-
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("myTableName1","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("myTableName2","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata metadataWithTableName = createHousekeepingMetadata("bobs_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    insertExpiredMetadata(testMetadata1);
-    insertExpiredMetadata(testMetadata2);
-    insertExpiredMetadata(metadataWithTableName);
-    
-    HttpResponse<String> response = testClient.getTablesWithTableNameFilter("bobs_table");
-    assertThat(response.statusCode()).isEqualTo(OK.value());
-    String body = response.body();
-    Page<HousekeepingMetadata> responsePage = mapper
-        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
-    List<HousekeepingMetadata> result = responsePage.getContent();
-
-    assertTrue(metadataWithTableName.equals(result.get(0)));
-    assertThat(result.size()).isEqualTo(1);
-  }
-  
-  @Test
-  public void testGetTablesWhenDatabaseNameFilter() throws SQLException, InterruptedException, IOException {
-
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("myTableName1","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("myTableName2","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata metadataWithDatabaseName = createHousekeepingMetadata("bobs_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    metadataWithDatabaseName.setDatabaseName("bobs_database");
-    insertExpiredMetadata(testMetadata1);
-    insertExpiredMetadata(testMetadata2);
-    insertExpiredMetadata(metadataWithDatabaseName);
-    
-    HttpResponse<String> response = testClient.getTablesWithDatabaseNameFilter("bobs_database");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertEquals(metadataWithDatabaseName,result.get(0));
-    assertTrue(metadataWithDatabaseName.equals(result.get(0)));
-    assertThat(result.size()).isEqualTo(1);
+    assertTrue(convertToHouseKeepingMetadataResponse(testMetadata1).equals(result.get(0)));
+    assertTrue(convertToHouseKeepingMetadataResponse(testMetadata2).equals(result.get(1)));
+    assertThat(result.size()).isEqualTo(2);
+
   }
   
   @Test
   public void testGetTablesWhenHousekeepingStatusFilter() throws SQLException, InterruptedException, IOException {
 
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("myTableName1","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("myTableName2","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata metadataWithHousekeepingStatus = createHousekeepingMetadata("bobs_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata metadataWithHousekeepingStatus = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
     metadataWithHousekeepingStatus.setHousekeepingStatus(HousekeepingStatus.FAILED);
     insertExpiredMetadata(testMetadata1);
     insertExpiredMetadata(testMetadata2);
@@ -192,19 +141,19 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HttpResponse<String> response = testClient.getTablesWithHousekeepingStatusFilter("FAILED");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
-    Page<HousekeepingMetadata> responsePage = mapper
-        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
-    List<HousekeepingMetadata> result = responsePage.getContent();
+    Page<HousekeepingMetadataResponse> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
+    List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(metadataWithHousekeepingStatus.equals(result.get(0)));
+    assertTrue(convertToHouseKeepingMetadataResponse(metadataWithHousekeepingStatus).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
 
   @Test
   public void testGetTablesWhenLifecycleEventTypeFilter() throws SQLException, InterruptedException, IOException {
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("myTableName2","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("myTableName3","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata unreferencedMetadata = createHousekeepingMetadata("myTableName","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata unreferencedMetadata = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
     insertExpiredMetadata(testMetadata1);
     insertExpiredMetadata(testMetadata2);
     insertExpiredMetadata(unreferencedMetadata);
@@ -213,20 +162,20 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HttpResponse<String> response = testClient.getTablesWithLifecycleEventTypeFilter("UNREFERENCED");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
-    Page<HousekeepingMetadata> responsePage = mapper
-        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
-    List<HousekeepingMetadata> result = responsePage.getContent();
+    Page<HousekeepingMetadataResponse> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
+    List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(unreferencedMetadata.equals(result.get(0)));
+    assertTrue(convertToHouseKeepingMetadataResponse(unreferencedMetadata).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
   
   @Test
   public void testGetTablesWhenDeletedBeforeFilter() throws SQLException, InterruptedException, IOException {
 
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("myTableName2","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("myTableName3","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata metadataWithCleanupTimestamp = createHousekeepingMetadata("myTableName","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata metadataWithCleanupTimestamp = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
     metadataWithCleanupTimestamp.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
     insertExpiredMetadata(testMetadata1);
     insertExpiredMetadata(testMetadata2);
@@ -235,20 +184,20 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HttpResponse<String> response = testClient.getTablesWithDeletedBeforeFilter("2000-05-05T10:41:20");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
-    Page<HousekeepingMetadata> responsePage = mapper
-        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
-    List<HousekeepingMetadata> result = responsePage.getContent();
+    Page<HousekeepingMetadataResponse> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
+    List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(metadataWithCleanupTimestamp.equals(result.get(0)));
+    assertTrue(convertToHouseKeepingMetadataResponse(metadataWithCleanupTimestamp).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
 
   @Test
   public void testGetTablesWhenDeletedAfterFilter() throws SQLException, InterruptedException, IOException {
 
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("myTableName2","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("myTableName3","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata metadataWithCleanupTimestamp = createHousekeepingMetadata("myTableName","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata metadataWithCleanupTimestamp = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
     testMetadata1.setCleanupTimestamp(LocalDateTime.parse("2020-05-05T10:41:20"));
     testMetadata2.setCleanupTimestamp(LocalDateTime.parse("2020-05-05T10:41:20"));
     metadataWithCleanupTimestamp.setCleanupTimestamp(LocalDateTime.parse("2020-06-05T10:41:20"));
@@ -259,20 +208,20 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HttpResponse<String> response = testClient.getTablesWithDeletedAfterFilter("2020-05-06T10:41:20");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
-    Page<HousekeepingMetadata> responsePage = mapper
-        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
-    List<HousekeepingMetadata> result = responsePage.getContent();
+    Page<HousekeepingMetadataResponse> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
+    List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(metadataWithCleanupTimestamp.equals(result.get(0)));
+    assertTrue(convertToHouseKeepingMetadataResponse(metadataWithCleanupTimestamp).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
 
   @Test
   public void testGetTablesWhenRegisteredBeforeFilter() throws SQLException, InterruptedException, IOException {
 
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("myTableName2","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("myTableName3","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata metadataWithCreationTimestamp = createHousekeepingMetadata("myTableName","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata metadataWithCreationTimestamp = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
     testMetadata1.setCreationTimestamp(LocalDateTime.parse("2020-05-05T10:41:20"));
     testMetadata2.setCreationTimestamp(LocalDateTime.parse("2020-05-05T10:41:20"));
     metadataWithCreationTimestamp.setCreationTimestamp(LocalDateTime.parse("2020-04-05T10:41:20"));
@@ -283,20 +232,20 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HttpResponse<String> response = testClient.getTablesWithRegisteredBeforeFilter("2020-05-04T10:41:20");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
-    Page<HousekeepingMetadata> responsePage = mapper
-        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
-    List<HousekeepingMetadata> result = responsePage.getContent();
+    Page<HousekeepingMetadataResponse> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
+    List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(metadataWithCreationTimestamp.equals(result.get(0)));
+    assertTrue(convertToHouseKeepingMetadataResponse(metadataWithCreationTimestamp).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
 
   @Test
   public void testGetTablesWhenRegisteredAfterFilter() throws SQLException, InterruptedException, IOException {
 
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("myTableName2","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("myTableName3","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata metadataWithCreationTimestamp = createHousekeepingMetadata("myTableName","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata metadataWithCreationTimestamp = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
     testMetadata1.setCreationTimestamp(LocalDateTime.parse("2020-05-05T10:41:20"));
     testMetadata2.setCreationTimestamp(LocalDateTime.parse("2020-05-05T10:41:20"));
     metadataWithCreationTimestamp.setCreationTimestamp(LocalDateTime.parse("2020-06-05T10:41:20"));
@@ -307,14 +256,15 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HttpResponse<String> response = testClient.getTablesWithRegisteredAfterFilter("2020-05-06T10:41:20");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
-    Page<HousekeepingMetadata> responsePage = mapper
-        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadata>>() {});
-    List<HousekeepingMetadata> result = responsePage.getContent();
+    Page<HousekeepingMetadataResponse> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
+    List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(metadataWithCreationTimestamp.equals(result.get(0)));
+    assertTrue(convertToHouseKeepingMetadataResponse(metadataWithCreationTimestamp).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
 
+  @Disabled
   @Test
   public void TESTING() throws SQLException, InterruptedException, IOException {
     HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("myTableName2","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
@@ -333,7 +283,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     insertExpiredMetadata(unreferencedMetadata3);
     insertExpiredMetadata(unreferencedMetadata4);
 
-    Thread.sleep(10000000L);
+    //Thread.sleep(10000000L);
 
     HttpResponse<String> response = testClient.getTables();
     assertThat(response.statusCode()).isEqualTo(OK.value());

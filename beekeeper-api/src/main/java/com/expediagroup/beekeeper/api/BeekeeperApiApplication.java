@@ -49,4 +49,5 @@ public class BeekeeperApiApplication {
   public void setUp() {
     objectMapper.registerModule(new JavaTimeModule());
   }
+
 }
