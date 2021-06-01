@@ -79,7 +79,25 @@ public class BeekeeperController {
           @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class)
       })
           Specification<HousekeepingMetadata> spec, Pageable pageable) {
-    return ResponseEntity.ok(beekeeperService.findMetadataForDbAndTable(databaseName, tableName, pageable));
+    return ResponseEntity.ok(beekeeperService.findMetadataForDbAndTable(databaseName, tableName, spec, pageable));
+  }
+
+  @RequestMapping(value = "/database/{databaseName}/table/{tableName}/metadata2", method = RequestMethod.GET)
+  public ResponseEntity<Page<HousekeepingMetadata>> getAll3(
+      @PathVariable String databaseName,
+      @PathVariable String tableName,
+      @And({
+          @Spec(path = "tableName", pathVars = "tableName", spec = EqualIgnoreCase.class),
+          @Spec(path = "databaseName", pathVars = "databaseName", spec = EqualIgnoreCase.class),
+          @Spec(path = "housekeepingStatus", params = "housekeeping_status", spec = EqualIgnoreCase.class),
+          @Spec(path = "lifecycleType", params = "lifecycle_type", spec = EqualIgnoreCase.class),
+          @Spec(path = "cleanupTimestamp", params = "deleted_before", spec = LessThan.class),
+          @Spec(path = "cleanupTimestamp", params = "deleted_after", spec = GreaterThan.class),
+          @Spec(path = "creationTimestamp", params = "registered_before", spec = LessThan.class),
+          @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class)
+      })
+          Specification<HousekeepingMetadata> spec, Pageable pageable) {
+    return ResponseEntity.ok(beekeeperService.getAll(spec, pageable));
   }
 
 }
