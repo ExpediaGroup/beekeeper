@@ -21,8 +21,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
-import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 public interface HousekeepingEntityService<U extends HousekeepingEntity> {
 
