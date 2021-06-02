@@ -38,43 +38,43 @@ public class BeekeeperApiTestClient {
     this.httpClient = HttpClient.newHttpClient();
   }
   
-  public HttpResponse<String> getTables() throws IOException, InterruptedException {
+  public HttpResponse<String> getMetadata() throws IOException, InterruptedException {
     HttpRequest request = newBuilder().uri(URI.create(metadataUrl+"/database/some_database/table/some_table"+SUFIX)).GET().build();
     System.out.println(request);
     return httpClient.send(request, BodyHandlers.ofString());
   }
   
-  public HttpResponse<String> getTablesWithHousekeepingStatusFilter(String housekeepingStatus) throws IOException, InterruptedException {
+  public HttpResponse<String> getMetadataWithHousekeepingStatusFilter(String housekeepingStatus) throws IOException, InterruptedException {
     HttpRequest request = newBuilder().uri(URI.create(metadataUrl+"/database/some_database/table/some_table"+SUFIX+"?housekeeping_status="+housekeepingStatus)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
   
-  public HttpResponse<String> getTablesWithLifecycleEventTypeFilter(String lifecycleEventType) throws IOException, InterruptedException {
+  public HttpResponse<String> getMetadataWithLifecycleEventTypeFilter(String lifecycleEventType) throws IOException, InterruptedException {
     HttpRequest request = newBuilder().uri(URI.create(metadataUrl+"/database/some_database/table/some_table"+SUFIX+"?lifecycle_type="+lifecycleEventType)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
   
-  public HttpResponse<String> getTablesWithDeletedBeforeFilter(String timestamp) throws IOException, InterruptedException {
+  public HttpResponse<String> getMetadataWithDeletedBeforeFilter(String timestamp) throws IOException, InterruptedException {
     HttpRequest request = newBuilder().uri(URI.create(metadataUrl+"/database/some_database/table/some_table"+SUFIX+"?deleted_before="+timestamp)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
-  public HttpResponse<String> getTablesWithDeletedAfterFilter(String timestamp) throws IOException, InterruptedException {
+  public HttpResponse<String> getMetadataWithDeletedAfterFilter(String timestamp) throws IOException, InterruptedException {
     HttpRequest request = newBuilder().uri(URI.create(metadataUrl+"/database/some_database/table/some_table"+SUFIX+"?deleted_after="+timestamp)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
-  public HttpResponse<String> getTablesWithRegisteredBeforeFilter(String timestamp) throws IOException, InterruptedException {
+  public HttpResponse<String> getMetadataWithRegisteredBeforeFilter(String timestamp) throws IOException, InterruptedException {
     HttpRequest request = newBuilder().uri(URI.create(metadataUrl+"/database/some_database/table/some_table"+SUFIX+"?registered_before="+timestamp)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
-  public HttpResponse<String> getTablesWithRegisteredAfterFilter(String timestamp) throws IOException, InterruptedException {
+  public HttpResponse<String> getMetadataWithRegisteredAfterFilter(String timestamp) throws IOException, InterruptedException {
     HttpRequest request = newBuilder().uri(URI.create(metadataUrl+"/database/some_database/table/some_table"+SUFIX+"?registered_after="+timestamp)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
-  public HttpResponse<String> getTablesWithPathNameFilter(String path) throws IOException, InterruptedException {
+  public HttpResponse<String> getMetadataWithPathNameFilter(String path) throws IOException, InterruptedException {
     HttpRequest request = newBuilder().uri(URI.create(metadataUrl+"/database/some_database/table/some_table"+SUFIX+"?path_name="+path)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }

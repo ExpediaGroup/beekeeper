@@ -18,6 +18,7 @@ package com.expediagroup.beekeeper.integration.api;
 import static java.lang.String.format;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -46,6 +47,7 @@ import org.springframework.util.SocketUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
@@ -110,7 +112,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     insertExpiredMetadata(testMetadata1);
     insertExpiredMetadata(testMetadata2);
 
-    HttpResponse<String> response = testClient.getTables();
+    HttpResponse<String> response = testClient.getMetadata();
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
@@ -120,6 +122,21 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     assertTrue(convertToHouseKeepingMetadataResponse(testMetadata1).equals(result.get(0)));
     assertTrue(convertToHouseKeepingMetadataResponse(testMetadata2).equals(result.get(1)));
     assertThat(result.size()).isEqualTo(2);
+  }
+
+  @Test
+  public void testGetMetadataWhenTableNotFound() throws SQLException, InterruptedException, IOException {
+
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("wrong_table","s3://some/path/1","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("wrong_table","s3://some/path/2","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    insertExpiredMetadata(testMetadata1);
+    insertExpiredMetadata(testMetadata2);
+
+    HttpResponse<String> response = testClient.getMetadata();
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    assertThrows(ValueInstantiationException.class, () -> mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {}));
   }
   
   @Test
@@ -133,7 +150,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     insertExpiredMetadata(testMetadata2);
     insertExpiredMetadata(metadataWithHousekeepingStatus);
     
-    HttpResponse<String> response = testClient.getTablesWithHousekeepingStatusFilter("FAILED");
+    HttpResponse<String> response = testClient.getMetadataWithHousekeepingStatusFilter("FAILED");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
@@ -154,7 +171,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     insertExpiredMetadata(testMetadata2);
     insertExpiredMetadata(unreferencedMetadata);
 
-    HttpResponse<String> response = testClient.getTablesWithLifecycleEventTypeFilter("UNREFERENCED");
+    HttpResponse<String> response = testClient.getMetadataWithLifecycleEventTypeFilter("UNREFERENCED");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
@@ -176,7 +193,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     insertExpiredMetadata(testMetadata2);
     insertExpiredMetadata(metadataWithCleanupTimestamp);
     
-    HttpResponse<String> response = testClient.getTablesWithDeletedBeforeFilter("2000-05-05T10:41:20");
+    HttpResponse<String> response = testClient.getMetadataWithDeletedBeforeFilter("2000-05-05T10:41:20");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
@@ -200,7 +217,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     insertExpiredMetadata(testMetadata2);
     insertExpiredMetadata(metadataWithCleanupTimestamp);
 
-    HttpResponse<String> response = testClient.getTablesWithDeletedAfterFilter("2020-05-06T10:41:20");
+    HttpResponse<String> response = testClient.getMetadataWithDeletedAfterFilter("2020-05-06T10:41:20");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
@@ -224,7 +241,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     insertExpiredMetadata(testMetadata2);
     insertExpiredMetadata(metadataWithCreationTimestamp);
 
-    HttpResponse<String> response = testClient.getTablesWithRegisteredBeforeFilter("2020-05-04T10:41:20");
+    HttpResponse<String> response = testClient.getMetadataWithRegisteredBeforeFilter("2020-05-04T10:41:20");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
@@ -248,7 +265,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     insertExpiredMetadata(testMetadata2);
     insertExpiredMetadata(metadataWithCreationTimestamp);
 
-    HttpResponse<String> response = testClient.getTablesWithRegisteredAfterFilter("2020-05-06T10:41:20");
+    HttpResponse<String> response = testClient.getMetadataWithRegisteredAfterFilter("2020-05-06T10:41:20");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
@@ -269,7 +286,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     insertExpiredMetadata(testMetadata2);
     insertExpiredMetadata(metadataWithPathName);
 
-    HttpResponse<String> response = testClient.getTablesWithPathNameFilter("s3://some/path/to/partition3");
+    HttpResponse<String> response = testClient.getMetadataWithPathNameFilter("s3://some/path/to/partition3");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
@@ -301,7 +318,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
     //Thread.sleep(10000000L);
 
-    HttpResponse<String> response = testClient.getTables();
+    HttpResponse<String> response = testClient.getMetadata();
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadata> responsePage = mapper
