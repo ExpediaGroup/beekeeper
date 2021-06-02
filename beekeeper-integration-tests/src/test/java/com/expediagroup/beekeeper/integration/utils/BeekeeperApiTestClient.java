@@ -74,4 +74,9 @@ public class BeekeeperApiTestClient {
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
+  public HttpResponse<String> getTablesWithPathNameFilter(String path) throws IOException, InterruptedException {
+    HttpRequest request = newBuilder().uri(URI.create(metadataUrl+"/database/some_database/table/some_table"+SUFIX+"?path_name="+path)).GET().build();
+    return httpClient.send(request, BodyHandlers.ofString());
+  }
+
 }
