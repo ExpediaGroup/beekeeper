@@ -262,7 +262,7 @@ public abstract class BeekeeperIntegrationTestBase {
         .build();
   }
 
-  public HousekeepingMetadata createHousekeepingMetadata(
+  protected HousekeepingMetadata createHousekeepingMetadata(
       String tableName,
       String path,
       String partitionName,
