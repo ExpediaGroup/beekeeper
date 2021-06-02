@@ -72,35 +72,22 @@ public class BeekeeperControllerTest {
   private BeekeeperService beekeeperService;
 
   @Test
-  public void testGetAllWhenTablesValid() throws Exception {
-    HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable1", "aRandomDatabase");
-    HousekeepingMetadata table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
-    Page<HousekeepingMetadata> tables = new PageImpl<>(List.of(table1, table2));
+  public void testGetMetadataWhenValidInput() throws Exception {
+    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_table", "some_database");
+    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_table", "some_database");
+    HousekeepingMetadataResponse metadataResponse1 = convertToHouseKeepingMetadataResponse(metadata1);
+    HousekeepingMetadataResponse metadataResponse2 = convertToHouseKeepingMetadataResponse(metadata2);
+    Page<HousekeepingMetadata> metadataPage = new PageImpl<>(List.of(metadata1, metadata2));
+    Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse1, metadataResponse2));
 
-    when(beekeeperService.getAll(any(), any())).thenReturn(tables);
+    when(beekeeperService.getAll(any(), any())).thenReturn(metadataPage);
 
     mockMvc
-        .perform(get("/api/v1/tables"))
+        .perform(get("/api/v1/database/some_database/table/some_table/metadata"))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-        .andExpect(content().json(objectMapper.writeValueAsString(tables)));
-    verify(beekeeperService, times(1)).getAll(any(), any());
-    verifyNoMoreInteractions(beekeeperService);
-  }
-
-  @Test
-  public void testGetAllWhenNoTables() throws Exception {
-    Page<HousekeepingMetadata> tables = new PageImpl<>(List.of());
-
-    when(beekeeperService.getAll(any(), any())).thenReturn(tables);
-
-    mockMvc
-        .perform(get("/api/v1/tables"))
-        .andDo(MockMvcResultHandlers.print())
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-        .andExpect(content().json(objectMapper.writeValueAsString(tables)));
+        .andExpect(content().json(objectMapper.writeValueAsString(metadataResponsePage)));
     verify(beekeeperService, times(1)).getAll(any(), any());
     verifyNoMoreInteractions(beekeeperService);
   }
@@ -112,7 +99,7 @@ public class BeekeeperControllerTest {
     when(beekeeperService.getAll(any(), any())).thenReturn(tables);
 
     mockMvc
-        .perform(get("/api/v1/tablessssss"))
+        .perform(get("/api/v1/database/some_database/table/some_table/metadataa"))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(status().isNotFound());
   }

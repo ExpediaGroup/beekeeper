@@ -56,16 +56,15 @@ public class HouseKeepingMetadataServiceTest {
   }
 
   @Test
-  public void testGetAllWhenTablesValid(){
-    HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
-    HousekeepingMetadata table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
+  public void testGetMetadataWhenMetadataIsValid(){
+    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_table", "some_database");
+    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_table", "some_database");
 
-
-    Page<HousekeepingMetadata> tables = new PageImpl<>(List.of(table1, table2));
-    when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(tables);
+    Page<HousekeepingMetadata> metadataPage = new PageImpl<>(List.of(metadata1, metadata2));
+    when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(metadataPage);
     Page<HousekeepingMetadata> result = housekeepingMetadataService.getAll(spec, pageable);
 
-    assertThat(tables).isEqualTo(result);
+    assertThat(metadataPage).isEqualTo(result);
     verify(housekeepingMetadataRepository, times(1)).findAll(spec, pageable);
     verifyNoMoreInteractions(housekeepingMetadataRepository);
   }
