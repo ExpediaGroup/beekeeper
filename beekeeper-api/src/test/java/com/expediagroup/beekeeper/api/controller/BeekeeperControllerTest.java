@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHouseKeepingMetadataResponse;
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 
 import java.util.List;
@@ -48,6 +49,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.expediagroup.beekeeper.api.TestApplication;
+import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
 import com.expediagroup.beekeeper.api.service.BeekeeperService;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
@@ -67,15 +69,15 @@ public class BeekeeperControllerTest {
   private Pageable pageable;
 
   @MockBean
-  private BeekeeperService housekeepingMetadataService;
+  private BeekeeperService beekeeperService;
 
   @Test
   public void testGetAllWhenTablesValid() throws Exception {
-    HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
+    HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable1", "aRandomDatabase");
     HousekeepingMetadata table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
     Page<HousekeepingMetadata> tables = new PageImpl<>(List.of(table1, table2));
 
-    when(housekeepingMetadataService.getAll(any(), any())).thenReturn(tables);
+    when(beekeeperService.getAll(any(), any())).thenReturn(tables);
 
     mockMvc
         .perform(get("/api/v1/tables"))
@@ -83,15 +85,15 @@ public class BeekeeperControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(content().json(objectMapper.writeValueAsString(tables)));
-    verify(housekeepingMetadataService, times(1)).getAll(any(), any());
-    verifyNoMoreInteractions(housekeepingMetadataService);
+    verify(beekeeperService, times(1)).getAll(any(), any());
+    verifyNoMoreInteractions(beekeeperService);
   }
 
   @Test
   public void testGetAllWhenNoTables() throws Exception {
     Page<HousekeepingMetadata> tables = new PageImpl<>(List.of());
 
-    when(housekeepingMetadataService.getAll(any(), any())).thenReturn(tables);
+    when(beekeeperService.getAll(any(), any())).thenReturn(tables);
 
     mockMvc
         .perform(get("/api/v1/tables"))
@@ -99,15 +101,15 @@ public class BeekeeperControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(content().json(objectMapper.writeValueAsString(tables)));
-    verify(housekeepingMetadataService, times(1)).getAll(any(), any());
-    verifyNoMoreInteractions(housekeepingMetadataService);
+    verify(beekeeperService, times(1)).getAll(any(), any());
+    verifyNoMoreInteractions(beekeeperService);
   }
 
   @Test
   public void testControllerWhenWrongUrl() throws Exception {
     Page<HousekeepingMetadata> tables = new PageImpl<>(List.of());
 
-    when(housekeepingMetadataService.getAll(any(), any())).thenReturn(tables);
+    when(beekeeperService.getAll(any(), any())).thenReturn(tables);
 
     mockMvc
         .perform(get("/api/v1/tablessssss"))
@@ -119,21 +121,24 @@ public class BeekeeperControllerTest {
   public void testPaging() throws Exception {
     int pageNumber = 5;
     int pageSize = 10;
-    HousekeepingMetadata table1 = generateDummyHousekeepingMetadata("aRandomTable", "aRandomDatabase");
-    HousekeepingMetadata table2 = generateDummyHousekeepingMetadata("aRandomTable2", "aRandomDatabase2");
-    Page<HousekeepingMetadata> tables = new PageImpl<>(List.of(table1, table2));
+    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_table", "some_database");
+    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_table", "some_database");
+    HousekeepingMetadataResponse metadataResponse1 = convertToHouseKeepingMetadataResponse(metadata1);
+    HousekeepingMetadataResponse metadataResponse2 = convertToHouseKeepingMetadataResponse(metadata2);
+    Page<HousekeepingMetadata> metadataPage = new PageImpl<>(List.of(metadata1, metadata2));
+    Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse1, metadataResponse2));
 
-    when(housekeepingMetadataService.getAll(any(), eq(PageRequest.of(pageNumber, pageSize)))).thenReturn(tables);
+    when(beekeeperService.getAll(any(), eq(PageRequest.of(pageNumber, pageSize)))).thenReturn(metadataPage);
 
     mockMvc
-        .perform(get("/api/v1/tables")
+        .perform(get("/api/v1/database/some_database/table/some_table/metadata")
             .param("page", String.valueOf(pageNumber))
             .param("size", String.valueOf(pageSize)))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-        .andExpect(content().json(objectMapper.writeValueAsString(tables)));
-    verify(housekeepingMetadataService, times(1)).getAll(any(), any());
-    verifyNoMoreInteractions(housekeepingMetadataService);
+        .andExpect(content().json(objectMapper.writeValueAsString(metadataResponsePage)));
+    verify(beekeeperService, times(1)).getAll(any(), any());
+    verifyNoMoreInteractions(beekeeperService);
   }
 }
