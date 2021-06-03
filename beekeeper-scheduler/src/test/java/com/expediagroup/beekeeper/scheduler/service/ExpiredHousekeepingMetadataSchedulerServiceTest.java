@@ -98,9 +98,6 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     verify(existingTable).setHousekeepingStatus(metadata.getHousekeepingStatus());
     verify(existingTable).setClientId(metadata.getClientId());
     verify(existingTable).setCleanupDelay(metadata.getCleanupDelay());
-
-    //if we uncomment his line exception disappears
-    //verifyNoMoreInteractions(existingTable);
     verify(housekeepingMetadataRepository).save(existingTable);
   }
 

@@ -34,6 +34,5 @@
   <root level="ERROR">
     <appender-ref ref="TEST"/>
   </root>
-  
 
 </configuration>
