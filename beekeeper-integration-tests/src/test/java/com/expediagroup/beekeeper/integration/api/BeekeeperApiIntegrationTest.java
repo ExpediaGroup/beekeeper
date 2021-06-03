@@ -318,24 +318,25 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     assertThat(result.size()).isEqualTo(1);
   }
 
+  //This test is to manually test the API
   @Disabled
   @Test
   public void TESTING() throws SQLException, InterruptedException {
     HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
     HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata3 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
-    HousekeepingMetadata unreferencedMetadata = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
-    HousekeepingMetadata unreferencedMetadata2 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata unreferencedMetadata3 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
-    HousekeepingMetadata unreferencedMetadata4 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
-    testMetadata1.setCleanupDelay(Duration.parse("P4D"));
+    HousekeepingMetadata testMetadata3 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P4D").toString());
+    HousekeepingMetadata testMetadata4 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.UNREFERENCED,Duration.parse("P5D").toString());
+    HousekeepingMetadata testMetadata5 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata6 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata7 = createHousekeepingMetadata("some_table","s3://some/path/","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
+
     insertExpiredMetadata(testMetadata1);
     insertExpiredMetadata(testMetadata2);
     insertExpiredMetadata(testMetadata3);
-    insertExpiredMetadata(unreferencedMetadata);
-    insertExpiredMetadata(unreferencedMetadata2);
-    insertExpiredMetadata(unreferencedMetadata3);
-    insertExpiredMetadata(unreferencedMetadata4);
+    insertExpiredMetadata(testMetadata4);
+    insertExpiredMetadata(testMetadata5);
+    insertExpiredMetadata(testMetadata6);
+    insertExpiredMetadata(testMetadata7);
 
     Thread.sleep(10000000L);
   }
