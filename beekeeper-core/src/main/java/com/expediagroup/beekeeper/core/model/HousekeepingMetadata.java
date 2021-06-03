@@ -110,16 +110,6 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     this.clientId = clientId;
   }
 
-  private LocalDateTime configureCleanupTimestamp() {
-    if (creationTimestamp == null) {
-      throw new BeekeeperException("Table requires a creation timestamp");
-    }
-    if (cleanupDelay == null) {
-      throw new BeekeeperException("Table requires a cleanup delay");
-    }
-    return creationTimestamp.plus(cleanupDelay);
-  }
-
   public void setCleanupDelay(Duration cleanupDelay) {
     this.cleanupDelay = cleanupDelay;
     cleanupTimestamp = creationTimestamp.plus(cleanupDelay);
@@ -128,5 +118,15 @@ public class HousekeepingMetadata implements HousekeepingEntity {
   @Override
   public MetricTag getMetricTag() {
     return new MetricTag("table", String.join(".", databaseName, tableName));
+  }
+
+  private LocalDateTime configureCleanupTimestamp() {
+    if (creationTimestamp == null) {
+      throw new BeekeeperException("Table requires a creation timestamp");
+    }
+    if (cleanupDelay == null) {
+      throw new BeekeeperException("Table requires a cleanup delay");
+    }
+    return creationTimestamp.plus(cleanupDelay);
   }
 }
