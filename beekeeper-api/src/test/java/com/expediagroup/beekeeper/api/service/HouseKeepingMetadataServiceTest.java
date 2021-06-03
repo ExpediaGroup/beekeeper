@@ -56,7 +56,7 @@ public class HouseKeepingMetadataServiceTest {
   }
 
   @Test
-  public void testGetMetadataWhenMetadataIsValid(){
+  public void testFindAllMetadata(){
     HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_table", "some_database");
     HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_table", "some_database");
 

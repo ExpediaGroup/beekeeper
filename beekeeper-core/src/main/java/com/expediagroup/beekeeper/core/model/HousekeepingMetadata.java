@@ -90,11 +90,6 @@ public class HousekeepingMetadata implements HousekeepingEntity {
   @Column(name = "lifecycle_type", nullable = false)
   private String lifecycleType;
 
-  public void setCleanupDelay(Duration cleanupDelay) {
-    this.cleanupDelay = cleanupDelay;
-    cleanupTimestamp = creationTimestamp.plus(cleanupDelay);
-  }
-
   @Builder
   public HousekeepingMetadata(Long id, String path, String databaseName, String tableName,
       String partitionName, HousekeepingStatus housekeepingStatus, LocalDateTime creationTimestamp,
@@ -123,6 +118,11 @@ public class HousekeepingMetadata implements HousekeepingEntity {
       throw new BeekeeperException("Table requires a cleanup delay");
     }
     return creationTimestamp.plus(cleanupDelay);
+  }
+
+  public void setCleanupDelay(Duration cleanupDelay) {
+    this.cleanupDelay = cleanupDelay;
+    cleanupTimestamp = creationTimestamp.plus(cleanupDelay);
   }
 
   @Override

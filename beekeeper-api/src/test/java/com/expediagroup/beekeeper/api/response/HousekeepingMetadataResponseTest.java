@@ -83,7 +83,7 @@ public class HousekeepingMetadataResponseTest {
     HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_table", "some_database");
     HousekeepingMetadataResponse metadataResponse1 = convertToHouseKeepingMetadataResponse(metadata1);
     HousekeepingMetadataResponse metadataResponse2 = convertToHouseKeepingMetadataResponse(metadata2);
-    
+
     List<HousekeepingMetadata> housekeepingMetadataList = List.of(metadata1, metadata2);
     Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse1, metadataResponse2));
 
