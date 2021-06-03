@@ -18,14 +18,19 @@ package com.expediagroup.beekeeper.api.response;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHouseKeepingMetadataResponse;
+import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHouseKeepingMetadataResponsePage;
+import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
@@ -59,6 +64,7 @@ public class HousekeepingMetadataResponseTest {
         .build();
 
     HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHouseKeepingMetadataResponse(metadata);
+
     assertEquals(housekeepingMetadataResponse.getPath(),path);
     assertEquals(housekeepingMetadataResponse.getDatabaseName(),databaseName);
     assertEquals(housekeepingMetadataResponse.getTableName(),tableName);
@@ -71,4 +77,18 @@ public class HousekeepingMetadataResponseTest {
     assertEquals(housekeepingMetadataResponse.getLifecycleType(),lifecycleEventType);
   }
 
+  @Test
+  public void testConvertToHouseKeepingMetadataResponsePage(){
+    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_table", "some_database");
+    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_table", "some_database");
+    HousekeepingMetadataResponse metadataResponse1 = convertToHouseKeepingMetadataResponse(metadata1);
+    HousekeepingMetadataResponse metadataResponse2 = convertToHouseKeepingMetadataResponse(metadata2);
+    
+    List<HousekeepingMetadata> housekeepingMetadataList = List.of(metadata1, metadata2);
+    Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse1, metadataResponse2));
+
+    assertEquals(metadataResponsePage, convertToHouseKeepingMetadataResponsePage(housekeepingMetadataList));
+  }
+
 }
+
