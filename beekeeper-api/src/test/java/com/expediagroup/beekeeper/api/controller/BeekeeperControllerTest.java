@@ -32,15 +32,12 @@ import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGener
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -61,12 +58,6 @@ public class BeekeeperControllerTest {
   private MockMvc mockMvc;
   @Autowired
   private ObjectMapper objectMapper;
-
-  @Mock
-  private Specification<HousekeepingMetadata> spec;
-
-  @Mock
-  private Pageable pageable;
 
   @MockBean
   private BeekeeperService beekeeperService;
@@ -94,10 +85,6 @@ public class BeekeeperControllerTest {
 
   @Test
   public void testControllerWhenWrongUrl() throws Exception {
-    Page<HousekeepingMetadata> tables = new PageImpl<>(List.of());
-
-    when(beekeeperService.getAll(any(), any())).thenReturn(tables);
-
     mockMvc
         .perform(get("/api/v1/database/some_database/table/some_table/metadataa"))
         .andDo(MockMvcResultHandlers.print())
@@ -128,4 +115,5 @@ public class BeekeeperControllerTest {
     verify(beekeeperService, times(1)).getAll(any(), any());
     verifyNoMoreInteractions(beekeeperService);
   }
+
 }
