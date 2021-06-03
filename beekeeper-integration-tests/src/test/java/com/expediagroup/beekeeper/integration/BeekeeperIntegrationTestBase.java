@@ -170,21 +170,9 @@ public abstract class BeekeeperIntegrationTestBase {
     insertExpiredMetadata(TABLE_NAME_VALUE, path, partitionName, SHORT_CLEANUP_DELAY_VALUE);
   }
 
-  protected void insertExpiredMetadata(String tableName, String path, String partitionName, String cleanupDelay)
-      throws SQLException {
+  protected void insertExpiredMetadata(String tableName, String path, String partitionName, String cleanupDelay)throws SQLException {
     HousekeepingMetadata metadata = createHousekeepingMetadata(tableName, path, partitionName, EXPIRED, cleanupDelay);
-    String values = Stream
-        .of(metadata.getId().toString(), metadata.getPath(), metadata.getDatabaseName(), metadata.getTableName(),
-            metadata.getPartitionName(), metadata.getHousekeepingStatus().toString(),
-            metadata.getCreationTimestamp().toString(), metadata.getModifiedTimestamp().toString(),
-            metadata.getCleanupTimestamp().toString(), metadata.getCleanupDelay().toString(),
-            String.valueOf(metadata.getCleanupAttempts()), metadata.getClientId(), metadata.getLifecycleType())
-        .map(s -> s == null ? null : "\"" + s + "\"")
-        .collect(Collectors.joining(", "));
-
-    mySQLTestUtils
-        .insertToTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME, HOUSEKEEPING_METADATA_FIELDS,
-            values);
+    insertExpiredMetadata(metadata);
   }
 
   protected void insertExpiredMetadata(HousekeepingMetadata metadata) throws SQLException {
@@ -283,4 +271,5 @@ public abstract class BeekeeperIntegrationTestBase {
         .clientId(CLIENT_ID_FIELD)
         .build();
   }
+
 }
