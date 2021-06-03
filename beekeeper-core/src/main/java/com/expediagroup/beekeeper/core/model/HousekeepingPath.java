@@ -89,7 +89,6 @@ public class HousekeepingPath implements HousekeepingEntity {
       HousekeepingStatus housekeepingStatus, LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,
       LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts, String lifecycleType,
       String clientId) {
-
     this.id = id;
     this.path = path;
     this.databaseName = databaseName;
@@ -102,7 +101,6 @@ public class HousekeepingPath implements HousekeepingEntity {
     this.cleanupAttempts = cleanupAttempts;
     this.lifecycleType = lifecycleType;
     this.clientId = clientId;
-
   }
 
   public void setCleanupDelay(Duration cleanupDelay) {
@@ -132,6 +130,5 @@ public class HousekeepingPath implements HousekeepingEntity {
       }
       return creationTimestamp.plus(cleanupDelay);
     }
-
 
 }
