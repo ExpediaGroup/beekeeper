@@ -320,7 +320,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   //This test is to manually test the API
   @Disabled
   @Test
-  public void TESTING() throws SQLException, InterruptedException {
+  public void manualTest() throws SQLException, InterruptedException {
     HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table","s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
     HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table","s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
     HousekeepingMetadata testMetadata3 = createHousekeepingMetadata("some_table","s3://some/path/event_date=2020-01-01/event_hour=0/event_type=C","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.UNREFERENCED,Duration.parse("P4D").toString());
