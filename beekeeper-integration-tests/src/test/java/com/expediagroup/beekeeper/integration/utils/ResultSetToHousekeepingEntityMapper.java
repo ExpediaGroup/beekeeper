@@ -56,7 +56,6 @@ public class ResultSetToHousekeepingEntityMapper {
   }
 
   public static HousekeepingMetadata mapToHousekeepingMetadata(ResultSet resultSet) throws SQLException {
-
     return HousekeepingMetadata.builder()
     .id(resultSet.getLong(ID_FIELD))
     .path(resultSet.getString(PATH_FIELD))
