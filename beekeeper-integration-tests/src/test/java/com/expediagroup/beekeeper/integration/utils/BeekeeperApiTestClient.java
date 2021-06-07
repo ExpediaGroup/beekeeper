@@ -41,7 +41,6 @@ public class BeekeeperApiTestClient {
   
   public HttpResponse<String> getMetadata() throws IOException, InterruptedException {
     HttpRequest request = newBuilder().uri(URI.create(metadataUrl+SUFIX)).GET().build();
-    System.out.println(request);
     return httpClient.send(request, BodyHandlers.ofString());
   }
   
