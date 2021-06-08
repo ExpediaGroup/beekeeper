@@ -30,13 +30,13 @@ public class DummyHousekeepingMetadataGenerator {
   private static final String DEFAULT_DB_NAME = "randomDatabase";
   private static final String DEFAULT_TABLE_NAME = "randomTable";
   private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
-  private static final Duration CLEANUP_DELAY = Duration.parse("P3D");
+  private static final Duration CLEANUP_DELAY = Duration.ofDays(3);
 
   public static HousekeepingMetadata generateDummyHousekeepingMetadata() {
     return generateDummyHousekeepingMetadata(DEFAULT_DB_NAME, DEFAULT_TABLE_NAME);
   }
 
-  public static HousekeepingMetadata generateDummyHousekeepingMetadata(String tableName, String databaseName) {
+  public static HousekeepingMetadata generateDummyHousekeepingMetadata(String databaseName, String tableName) {
     return HousekeepingMetadata.builder()
         .path("s3://some/path/")
         .databaseName(databaseName)
@@ -45,9 +45,11 @@ public class DummyHousekeepingMetadataGenerator {
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(CREATION_TIMESTAMP)
         .modifiedTimestamp(CREATION_TIMESTAMP)
-        .cleanupDelay(Duration.parse("P3D"))
+        .cleanupDelay(CLEANUP_DELAY)
         .cleanupAttempts(0)
         .lifecycleType(EXPIRED.toString())
         .build();
   }
 }
+
+

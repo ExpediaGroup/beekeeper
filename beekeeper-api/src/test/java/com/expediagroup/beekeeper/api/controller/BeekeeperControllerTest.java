@@ -64,8 +64,8 @@ public class BeekeeperControllerTest {
 
   @Test
   public void testGetMetadataWhenValidInput() throws Exception {
-    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_table", "some_database");
-    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_table", "some_database");
+    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");
+    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database", "some_table");
     HousekeepingMetadataResponse metadataResponse1 = convertToHousekeepingMetadataResponse(metadata1);
     HousekeepingMetadataResponse metadataResponse2 = convertToHousekeepingMetadataResponse(metadata2);
     Page<HousekeepingMetadata> metadataPage = new PageImpl<>(List.of(metadata1, metadata2));
@@ -95,8 +95,8 @@ public class BeekeeperControllerTest {
   public void testPaging() throws Exception {
     int pageNumber = 5;
     int pageSize = 10;
-    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_table", "some_database");
-    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_table", "some_database");
+    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");
+    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database", "some_table");
     HousekeepingMetadataResponse metadataResponse1 = convertToHousekeepingMetadataResponse(metadata1);
     HousekeepingMetadataResponse metadataResponse2 = convertToHousekeepingMetadataResponse(metadata2);
     Page<HousekeepingMetadata> metadataPage = new PageImpl<>(List.of(metadata1, metadata2));

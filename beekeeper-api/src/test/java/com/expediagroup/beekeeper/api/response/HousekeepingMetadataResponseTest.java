@@ -79,8 +79,8 @@ public class HousekeepingMetadataResponseTest {
 
   @Test
   public void testConvertToHouseKeepingMetadataResponsePage(){
-    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_table", "some_database");
-    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_table", "some_database");
+    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");
+    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database", "some_table");
     HousekeepingMetadataResponse metadataResponse1 = convertToHousekeepingMetadataResponse(metadata1);
     HousekeepingMetadataResponse metadataResponse2 = convertToHousekeepingMetadataResponse(metadata2);
 
