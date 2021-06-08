@@ -70,7 +70,6 @@ public class HousekeepingMetadataResponse {
 
   public static HousekeepingMetadataResponse convertToHousekeepingMetadataResponse(
       HousekeepingMetadata housekeepingMetadata) {
-
     return HousekeepingMetadataResponse.builder()
         .path(housekeepingMetadata.getPath())
         .databaseName(housekeepingMetadata.getDatabaseName())
