@@ -15,7 +15,7 @@
  */
 package com.expediagroup.beekeeper.api.response;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHousekeepingMetadataResponse;
 import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHousekeepingMetadataResponsePage;
@@ -65,16 +65,16 @@ public class HousekeepingMetadataResponseTest {
 
     HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHousekeepingMetadataResponse(metadata);
 
-    assertEquals(housekeepingMetadataResponse.getPath(),path);
-    assertEquals(housekeepingMetadataResponse.getDatabaseName(),databaseName);
-    assertEquals(housekeepingMetadataResponse.getTableName(),tableName);
-    assertEquals(housekeepingMetadataResponse.getPartitionName(),partitionName);
-    assertEquals(housekeepingMetadataResponse.getHousekeepingStatus(),housekeepingStatus);
-    assertEquals(housekeepingMetadataResponse.getCreationTimestamp(),creationTimestamp);
-    assertEquals(housekeepingMetadataResponse.getModifiedTimestamp(),creationTimestamp);
-    assertEquals(housekeepingMetadataResponse.getCleanupDelay(),cleanupDelay);
-    assertEquals(housekeepingMetadataResponse.getCleanupAttempts(),cleanupAttempts);
-    assertEquals(housekeepingMetadataResponse.getLifecycleType(),lifecycleEventType);
+    assertThat(housekeepingMetadataResponse.getPath()).isEqualTo(path);
+    assertThat(housekeepingMetadataResponse.getDatabaseName()).isEqualTo(databaseName);
+    assertThat(housekeepingMetadataResponse.getTableName()).isEqualTo(tableName);
+    assertThat(housekeepingMetadataResponse.getPartitionName()).isEqualTo(partitionName);
+    assertThat(housekeepingMetadataResponse.getHousekeepingStatus()).isEqualTo(housekeepingStatus);
+    assertThat(housekeepingMetadataResponse.getCreationTimestamp()).isEqualTo(creationTimestamp);
+    assertThat(housekeepingMetadataResponse.getModifiedTimestamp()).isEqualTo(creationTimestamp);
+    assertThat(housekeepingMetadataResponse.getCleanupDelay()).isEqualTo(cleanupDelay);
+    assertThat(housekeepingMetadataResponse.getCleanupAttempts()).isEqualTo(cleanupAttempts);
+    assertThat(housekeepingMetadataResponse.getLifecycleType()).isEqualTo(lifecycleEventType);
   }
 
   @Test
@@ -87,7 +87,7 @@ public class HousekeepingMetadataResponseTest {
     List<HousekeepingMetadata> housekeepingMetadataList = List.of(metadata1, metadata2);
     Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse1, metadataResponse2));
 
-    assertEquals(metadataResponsePage, convertToHousekeepingMetadataResponsePage(housekeepingMetadataList));
+    assertThat(metadataResponsePage).isEqualTo(convertToHousekeepingMetadataResponsePage(housekeepingMetadataList));
   }
 
 }
