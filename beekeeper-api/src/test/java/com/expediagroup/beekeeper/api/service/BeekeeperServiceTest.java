@@ -39,7 +39,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class HouseKeepingMetadataServiceTest {
+public class BeekeeperServiceTest {
 
   private BeekeeperService housekeepingMetadataService;
 
