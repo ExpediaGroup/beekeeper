@@ -145,8 +145,8 @@ public abstract class BeekeeperIntegrationTestBase {
   protected void insertUnreferencedPath(String path) throws SQLException {
     HousekeepingPath housekeepingPath = createHousekeepingPath(path, UNREFERENCED);
     housekeepingPath.setCleanupTimestamp(housekeepingPath.getCleanupTimestamp().minus(Duration.ofDays(1)));
-    String values = Stream.of(housekeepingPath.getId().toString(),
-        housekeepingPath.getPath(), housekeepingPath.getDatabaseName(),
+    String values = Stream.of(housekeepingPath.getId().toString(), housekeepingPath.getPath(),
+        housekeepingPath.getDatabaseName(),
         housekeepingPath.getTableName(), housekeepingPath.getHousekeepingStatus().toString(),
         housekeepingPath.getCreationTimestamp().toString(), housekeepingPath.getModifiedTimestamp().toString(),
         housekeepingPath.getCleanupTimestamp().toString(), housekeepingPath.getCleanupDelay().toString(),
@@ -164,7 +164,7 @@ public abstract class BeekeeperIntegrationTestBase {
   }
 
   protected void insertExpiredMetadata(String tableName, String path, String partitionName, String cleanupDelay)
-      throws SQLException {
+    throws SQLException {
     HousekeepingMetadata metadata = createHousekeepingMetadata(tableName, path, partitionName, EXPIRED, cleanupDelay);
     insertExpiredMetadata(metadata);
   }
