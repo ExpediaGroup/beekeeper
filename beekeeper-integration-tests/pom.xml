@@ -60,6 +60,7 @@
       <version>${project.version}</version>
     </dependency>
 
+
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-aws</artifactId>
@@ -76,6 +77,12 @@
       </exclusions>
     </dependency>
 
+    <dependency>
+      <groupId>com.expediagroup</groupId>
+      <artifactId>beekeeper-api</artifactId>
+      <version>3.1.1-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
@@ -121,12 +128,6 @@
           <artifactId>jetty-all</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.expediagroup</groupId>
-      <artifactId>beekeeper-api</artifactId>
-      <version>3.1.1-SNAPSHOT</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
