@@ -34,6 +34,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
@@ -62,9 +63,11 @@ public class HousekeepingPath implements HousekeepingEntity {
   @Enumerated(EnumType.STRING)
   private HousekeepingStatus housekeepingStatus;
 
+  @EqualsAndHashCode.Exclude
   @Column(name = "creation_timestamp", nullable = false, updatable = false)
   private LocalDateTime creationTimestamp;
 
+  @EqualsAndHashCode.Exclude
   @Column(name = "modified_timestamp")
   @UpdateTimestamp
   private LocalDateTime modifiedTimestamp;
