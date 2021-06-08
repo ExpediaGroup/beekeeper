@@ -60,7 +60,6 @@
       <version>${project.version}</version>
     </dependency>
 
-
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-aws</artifactId>
