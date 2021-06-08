@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.OK;
 
-import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHouseKeepingMetadataResponse;
+import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHousekeepingMetadataResponse;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
@@ -118,8 +118,8 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(convertToHouseKeepingMetadataResponse(testMetadata1).equals(result.get(0)));
-    assertTrue(convertToHouseKeepingMetadataResponse(testMetadata2).equals(result.get(1)));
+    assertTrue(convertToHousekeepingMetadataResponse(testMetadata1).equals(result.get(0)));
+    assertTrue(convertToHousekeepingMetadataResponse(testMetadata2).equals(result.get(1)));
     assertThat(result.size()).isEqualTo(2);
   }
 
@@ -156,7 +156,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(convertToHouseKeepingMetadataResponse(metadataWithHousekeepingStatus).equals(result.get(0)));
+    assertTrue(convertToHousekeepingMetadataResponse(metadataWithHousekeepingStatus).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
 
@@ -177,7 +177,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(convertToHouseKeepingMetadataResponse(unreferencedMetadata).equals(result.get(0)));
+    assertTrue(convertToHousekeepingMetadataResponse(unreferencedMetadata).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
   
@@ -199,7 +199,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(convertToHouseKeepingMetadataResponse(metadataWithCleanupTimestamp).equals(result.get(0)));
+    assertTrue(convertToHousekeepingMetadataResponse(metadataWithCleanupTimestamp).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
 
@@ -223,7 +223,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(convertToHouseKeepingMetadataResponse(metadataWithCleanupTimestamp).equals(result.get(0)));
+    assertTrue(convertToHousekeepingMetadataResponse(metadataWithCleanupTimestamp).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
 
@@ -247,7 +247,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(convertToHouseKeepingMetadataResponse(metadataWithCreationTimestamp).equals(result.get(0)));
+    assertTrue(convertToHousekeepingMetadataResponse(metadataWithCreationTimestamp).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
 
@@ -271,7 +271,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(convertToHouseKeepingMetadataResponse(metadataWithCreationTimestamp).equals(result.get(0)));
+    assertTrue(convertToHousekeepingMetadataResponse(metadataWithCreationTimestamp).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
 
@@ -292,7 +292,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(convertToHouseKeepingMetadataResponse(metadataWithPathName).equals(result.get(0)));
+    assertTrue(convertToHousekeepingMetadataResponse(metadataWithPathName).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
 
@@ -313,7 +313,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(convertToHouseKeepingMetadataResponse(metadataWithPartitionName).equals(result.get(0)));
+    assertTrue(convertToHousekeepingMetadataResponse(metadataWithPartitionName).equals(result.get(0)));
     assertThat(result.size()).isEqualTo(1);
   }
 

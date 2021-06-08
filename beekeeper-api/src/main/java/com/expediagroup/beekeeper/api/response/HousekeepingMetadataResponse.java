@@ -20,11 +20,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.Table;
 
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.domain.Page;
@@ -70,7 +68,7 @@ public class HousekeepingMetadataResponse {
 
   String lifecycleType;
 
-  public static HousekeepingMetadataResponse convertToHouseKeepingMetadataResponse(
+  public static HousekeepingMetadataResponse convertToHousekeepingMetadataResponse(
       HousekeepingMetadata housekeepingMetadata) {
 
     return HousekeepingMetadataResponse.builder()
@@ -88,10 +86,10 @@ public class HousekeepingMetadataResponse {
         .build();
   }
 
-  public static Page<HousekeepingMetadataResponse> convertToHouseKeepingMetadataResponsePage(List<HousekeepingMetadata> housekeepingMetadataList){
+  public static Page<HousekeepingMetadataResponse> convertToHousekeepingMetadataResponsePage(List<HousekeepingMetadata> housekeepingMetadataList){
     List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
     for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
-      HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHouseKeepingMetadataResponse(housekeepingMetadata);
+      HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHousekeepingMetadataResponse(housekeepingMetadata);
       housekeepingMetadataResponseList.add(housekeepingMetadataResponse);
     }
     return new PageImpl<>(housekeepingMetadataResponseList);

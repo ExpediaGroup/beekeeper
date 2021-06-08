@@ -15,7 +15,7 @@
  */
 package com.expediagroup.beekeeper.api.controller;
 
-import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHouseKeepingMetadataResponsePage;
+import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHousekeepingMetadataResponsePage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -64,7 +64,7 @@ public class BeekeeperController {
           @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class)
       })
           Specification<HousekeepingMetadata> spec, Pageable pageable) {
-    return ResponseEntity.ok(convertToHouseKeepingMetadataResponsePage(beekeeperService.getAll(spec, pageable).getContent()));
+    return ResponseEntity.ok(convertToHousekeepingMetadataResponsePage(beekeeperService.getAll(spec, pageable).getContent()));
   }
 
 }
