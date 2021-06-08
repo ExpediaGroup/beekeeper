@@ -40,46 +40,34 @@ import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 
 @Value
 @Builder
-@Table(name = "housekeeping_metadata")
 public class HousekeepingMetadataResponse {
 
-  @Column(name = "path", nullable = false)
   String path;
 
-  @Column(name = "database_name", nullable = false)
   String databaseName;
 
-  @Column(name = "table_name", nullable = false)
   String tableName;
 
-  @Column(name = "partition_name")
   String partitionName;
 
-  @Column(name = "housekeeping_status", nullable = false)
   @Enumerated(EnumType.STRING)
   HousekeepingStatus housekeepingStatus;
 
   @EqualsAndHashCode.Exclude
-  @Column(name = "creation_timestamp", nullable = false, updatable = false)
   LocalDateTime creationTimestamp;
 
   @EqualsAndHashCode.Exclude
-  @Column(name = "modified_timestamp")
   @UpdateTimestamp
   LocalDateTime modifiedTimestamp;
 
   @EqualsAndHashCode.Exclude
-  @Column(name = "cleanup_timestamp", nullable = false)
   LocalDateTime cleanupTimestamp;
 
-  @Column(name = "cleanup_delay", nullable = false)
   @Convert(converter = DurationConverter.class)
   Duration cleanupDelay;
 
-  @Column(name = "cleanup_attempts", nullable = false)
   int cleanupAttempts;
 
-  @Column(name = "lifecycle_type", nullable = false)
   String lifecycleType;
 
   public static HousekeepingMetadataResponse convertToHouseKeepingMetadataResponse(
