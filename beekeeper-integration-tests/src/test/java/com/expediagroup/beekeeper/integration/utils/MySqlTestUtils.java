@@ -43,17 +43,12 @@ public class MySqlTestUtils {
     connection.createStatement().executeUpdate(format(INSERT_TO_TABLE, database, table, fields, values));
   }
 
-  public int getTableRowCount(String database, String table) throws SQLException {
-    return getTableRowCount(format(SELECT_TABLE, database, table, ""));
-  }
-
   public int getTableRowCount(String database, String table, String additionalFilters) throws SQLException {
     return getTableRowCount(format(SELECT_TABLE, database, table, additionalFilters));
   }
 
   private int getTableRowCount(String statementString) throws SQLException {
-    Statement statement;
-    statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
+    Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
         ResultSet.CONCUR_READ_ONLY);
     ResultSet resultSet = statement.executeQuery(statementString);
     resultSet.last();
@@ -62,10 +57,6 @@ public class MySqlTestUtils {
 
   public ResultSet getTableRows(String database, String table, String additionalFilters) throws SQLException {
     return getTableRows(format(SELECT_TABLE, database, table, additionalFilters));
-  }
-
-  public ResultSet getTableRows(String database, String table) throws SQLException {
-    return getTableRows(format(SELECT_TABLE, database, table, ""));
   }
 
   private ResultSet getTableRows(String statement) throws SQLException {
