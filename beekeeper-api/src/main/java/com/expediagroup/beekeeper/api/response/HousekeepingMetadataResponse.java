@@ -85,7 +85,7 @@ public class HousekeepingMetadataResponse {
         .build();
   }
 
-  public static Page<HousekeepingMetadataResponse> convertToHousekeepingMetadataResponsePage(List<HousekeepingMetadata> housekeepingMetadataList){
+  public static Page<HousekeepingMetadataResponse> convertToHousekeepingMetadataResponsePage(List<HousekeepingMetadata> housekeepingMetadataList) {
     List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
     for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
       HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHousekeepingMetadataResponse(housekeepingMetadata);
