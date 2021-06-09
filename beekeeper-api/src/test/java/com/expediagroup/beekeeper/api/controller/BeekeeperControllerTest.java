@@ -63,13 +63,11 @@ public class BeekeeperControllerTest {
   private BeekeeperService beekeeperService;
 
   @Test
-  public void testGetMetadataWhenValidInput() throws Exception {
-    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");
-    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database", "some_table");
-    HousekeepingMetadataResponse metadataResponse1 = convertToHousekeepingMetadataResponse(metadata1);
-    HousekeepingMetadataResponse metadataResponse2 = convertToHousekeepingMetadataResponse(metadata2);
-    Page<HousekeepingMetadata> metadataPage = new PageImpl<>(List.of(metadata1, metadata2));
-    Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse1, metadataResponse2));
+  public void testGetAllMetadataWhenValidInput() throws Exception {
+    HousekeepingMetadata metadata = generateDummyHousekeepingMetadata("some_database", "some_table");
+    HousekeepingMetadataResponse metadataResponse = convertToHousekeepingMetadataResponse(metadata);
+    Page<HousekeepingMetadata> metadataPage = new PageImpl<>(List.of(metadata, metadata));
+    Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse, metadataResponse));
 
     when(beekeeperService.getAll(any(), any())).thenReturn(metadataPage);
 
@@ -92,7 +90,7 @@ public class BeekeeperControllerTest {
   }
 
   @Test
-  public void testPaging() throws Exception {
+  public void testPagingWhenValidInput() throws Exception {
     int pageNumber = 5;
     int pageSize = 10;
     HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");
