@@ -22,20 +22,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 @Service
-public class BeekeeperService implements HousekeepingEntityService<HousekeepingMetadata> {
+public class HousekeepingEntityServiceImpl implements HousekeepingEntityService<HousekeepingEntity>{
 
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
 
   @Autowired
-  public BeekeeperService(HousekeepingMetadataRepository housekeepingMetadataRepository) {
+  public HousekeepingEntityServiceImpl(HousekeepingMetadataRepository housekeepingMetadataRepository) {
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
   }
 
-  public Page<HousekeepingMetadata> getAll(Specification<HousekeepingMetadata> spec, Pageable pageable) {
+  public Page<HousekeepingMetadata> getAllMetadata(Specification<HousekeepingMetadata> spec, Pageable pageable) {
     return housekeepingMetadataRepository.findAll(spec, pageable);
   }
 

@@ -47,7 +47,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.expediagroup.beekeeper.api.TestApplication;
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
-import com.expediagroup.beekeeper.api.service.BeekeeperService;
+import com.expediagroup.beekeeper.api.service.HousekeepingEntityServiceImpl;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 @WebMvcTest(BeekeeperController.class)
@@ -60,7 +60,7 @@ public class BeekeeperControllerTest {
   private ObjectMapper objectMapper;
 
   @MockBean
-  private BeekeeperService beekeeperService;
+  private HousekeepingEntityServiceImpl housekeepingEntityServiceImpl;
 
   @Test
   public void testGetAllMetadataWhenValidInput() throws Exception {
@@ -69,7 +69,7 @@ public class BeekeeperControllerTest {
     Page<HousekeepingMetadata> metadataPage = new PageImpl<>(List.of(metadata, metadata));
     Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse, metadataResponse));
 
-    when(beekeeperService.getAll(any(), any())).thenReturn(metadataPage);
+    when(housekeepingEntityServiceImpl.getAllMetadata(any(), any())).thenReturn(metadataPage);
 
     mockMvc
         .perform(get("/api/v1/database/some_database/table/some_table/metadata"))
@@ -77,8 +77,8 @@ public class BeekeeperControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(content().json(objectMapper.writeValueAsString(metadataResponsePage)));
-    verify(beekeeperService, times(1)).getAll(any(), any());
-    verifyNoMoreInteractions(beekeeperService);
+    verify(housekeepingEntityServiceImpl, times(1)).getAllMetadata(any(), any());
+    verifyNoMoreInteractions(housekeepingEntityServiceImpl);
   }
 
   @Test
@@ -100,7 +100,7 @@ public class BeekeeperControllerTest {
     Page<HousekeepingMetadata> metadataPage = new PageImpl<>(List.of(metadata1, metadata2));
     Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse1, metadataResponse2));
 
-    when(beekeeperService.getAll(any(), eq(PageRequest.of(pageNumber, pageSize)))).thenReturn(metadataPage);
+    when(housekeepingEntityServiceImpl.getAllMetadata(any(), eq(PageRequest.of(pageNumber, pageSize)))).thenReturn(metadataPage);
 
     mockMvc
         .perform(get("/api/v1/database/some_database/table/some_table/metadata")
@@ -110,8 +110,8 @@ public class BeekeeperControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(content().json(objectMapper.writeValueAsString(metadataResponsePage)));
-    verify(beekeeperService, times(1)).getAll(any(), any());
-    verifyNoMoreInteractions(beekeeperService);
+    verify(housekeepingEntityServiceImpl, times(1)).getAllMetadata(any(), any());
+    verifyNoMoreInteractions(housekeepingEntityServiceImpl);
   }
 
 }

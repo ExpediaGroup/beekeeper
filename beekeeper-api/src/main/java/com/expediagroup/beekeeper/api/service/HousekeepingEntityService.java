@@ -20,10 +20,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
+import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
-public interface HousekeepingEntityService<U extends HousekeepingEntity> {
+public interface HousekeepingEntityService<HousekeepingEntity> {
 
-  Page<U> getAll(Specification<U> spec, Pageable pageable);
+  Page<HousekeepingMetadata> getAllMetadata(Specification<HousekeepingMetadata> spec, Pageable pageable);
 
 }
