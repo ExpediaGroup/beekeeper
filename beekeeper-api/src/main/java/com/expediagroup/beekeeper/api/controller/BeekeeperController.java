@@ -40,6 +40,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 @RequestMapping("/api/v1")
 @RestController
 public class BeekeeperController {
+
   private final HousekeepingEntityServiceImpl housekeepingEntityServiceImpl;
 
   @Autowired

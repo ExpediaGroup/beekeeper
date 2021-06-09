@@ -49,7 +49,6 @@ public class HousekeepingMetadataResponseTest {
 
   @Test
   public void testConvertToHouseKeepingMetadataResponse(){
-
     HousekeepingMetadata metadata = HousekeepingMetadata.builder()
         .path(path)
         .databaseName(databaseName)
