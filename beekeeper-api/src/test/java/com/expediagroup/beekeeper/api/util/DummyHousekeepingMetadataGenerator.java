@@ -15,7 +15,6 @@
  */
 package com.expediagroup.beekeeper.api.util;
 
-
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
