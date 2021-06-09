@@ -44,8 +44,7 @@ public class BeekeeperApiTestClient {
   }
   
   public HttpResponse<String> getMetadataWithHousekeepingStatusFilter(String housekeepingStatus) throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(
-        getHousekeepingEntityUrl + METADATA_PATH + "?housekeeping_status=" + housekeepingStatus)).GET().build();
+    HttpRequest request = newBuilder().uri(URI.create(getHousekeepingEntityUrl + METADATA_PATH + "?housekeeping_status=" + housekeepingStatus)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
   
