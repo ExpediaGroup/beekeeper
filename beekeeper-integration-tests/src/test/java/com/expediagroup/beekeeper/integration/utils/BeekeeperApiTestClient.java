@@ -26,7 +26,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 
 public class BeekeeperApiTestClient {
   
-  private static final String PREFIX = "/api/v1";
+  private static final String API_ROOT = "/api/v1";
   private static final String DATABASE_AND_TABLE = "/database/some_database/table/some_table";
   private static final String METADATA_SUFIX = "/metadata";
 
@@ -34,7 +34,7 @@ public class BeekeeperApiTestClient {
   private final HttpClient httpClient;
 
   public BeekeeperApiTestClient(String baseUrl) {
-    this.metadataUrl = baseUrl + PREFIX + DATABASE_AND_TABLE;
+    this.metadataUrl = baseUrl + API_ROOT + DATABASE_AND_TABLE;
     this.httpClient = HttpClient.newHttpClient();
   }
   
