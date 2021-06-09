@@ -25,59 +25,62 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 
 public class BeekeeperApiTestClient {
-  
+
+  private static final String API_ROOT = "/api/v1";
+  private static final String DATABASE_AND_TABLE = "/database/some_database/table/some_table";
   private static final String METADATA_PATH = "/metadata";
 
-  private final String metadataUrl;
+  private final String getHousekeepingEntityUrl;
   private final HttpClient httpClient;
 
   public BeekeeperApiTestClient(String baseUrl) {
-    this.metadataUrl = baseUrl + "/api/v1/database/some_database/table/some_table";
+    this.getHousekeepingEntityUrl = baseUrl + API_ROOT + DATABASE_AND_TABLE;
     this.httpClient = HttpClient.newHttpClient();
   }
   
   public HttpResponse<String> getMetadata() throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(metadataUrl + METADATA_PATH)).GET().build();
+    HttpRequest request = newBuilder().uri(URI.create(getHousekeepingEntityUrl + METADATA_PATH)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
   
   public HttpResponse<String> getMetadataWithHousekeepingStatusFilter(String housekeepingStatus) throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(metadataUrl + METADATA_PATH + "?housekeeping_status=" + housekeepingStatus)).GET().build();
+    HttpRequest request = newBuilder().uri(URI.create(
+        getHousekeepingEntityUrl + METADATA_PATH + "?housekeeping_status=" + housekeepingStatus)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
   
   public HttpResponse<String> getMetadataWithLifecycleEventTypeFilter(String lifecycleEventType) throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(metadataUrl + METADATA_PATH + "?lifecycle_type=" + lifecycleEventType)).GET().build();
+    HttpRequest request = newBuilder().uri(URI.create(getHousekeepingEntityUrl + METADATA_PATH + "?lifecycle_type=" + lifecycleEventType)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
   
   public HttpResponse<String> getMetadataWithDeletedBeforeFilter(String timestamp) throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(metadataUrl + METADATA_PATH + "?deleted_before=" + timestamp)).GET().build();
+    HttpRequest request = newBuilder().uri(URI.create(getHousekeepingEntityUrl + METADATA_PATH + "?deleted_before=" + timestamp)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
   public HttpResponse<String> getMetadataWithDeletedAfterFilter(String timestamp) throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(metadataUrl + METADATA_PATH + "?deleted_after=" + timestamp)).GET().build();
+    HttpRequest request = newBuilder().uri(URI.create(getHousekeepingEntityUrl + METADATA_PATH + "?deleted_after=" + timestamp)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
   public HttpResponse<String> getMetadataWithRegisteredBeforeFilter(String timestamp) throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(metadataUrl + METADATA_PATH + "?registered_before=" + timestamp)).GET().build();
+    HttpRequest request = newBuilder().uri(URI.create(getHousekeepingEntityUrl + METADATA_PATH + "?registered_before=" + timestamp)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
   public HttpResponse<String> getMetadataWithRegisteredAfterFilter(String timestamp) throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(metadataUrl + METADATA_PATH + "?registered_after=" + timestamp)).GET().build();
+    HttpRequest request = newBuilder().uri(URI.create(getHousekeepingEntityUrl + METADATA_PATH + "?registered_after=" + timestamp)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
   public HttpResponse<String> getMetadataWithPathNameFilter(String path) throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(metadataUrl + METADATA_PATH + "?path_name=" + path)).GET().build();
+    HttpRequest request = newBuilder().uri(URI.create(getHousekeepingEntityUrl + METADATA_PATH + "?path_name=" + path)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
   public HttpResponse<String> getMetadataWithPartitionNameFilter(String path) throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(metadataUrl + METADATA_PATH + "?partition_name=" + path)).GET().build();
+    HttpRequest request = newBuilder().uri(URI.create(getHousekeepingEntityUrl + METADATA_PATH + "?partition_name=" + path)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
