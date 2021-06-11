@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponse;
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 
 import java.util.List;
@@ -35,6 +36,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
@@ -59,12 +61,15 @@ public class HousekeepingEntityServiceImplTest {
   public void testFindAllMetadata(){
     HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");
     HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database", "some_table");
+    HousekeepingMetadataResponse metadataResponse1 = convertToHousekeepingMetadataResponse(generateDummyHousekeepingMetadata("some_database", "some_table"));
+    HousekeepingMetadataResponse metadataResponse2 = convertToHousekeepingMetadataResponse(generateDummyHousekeepingMetadata("some_database", "some_table"));
 
     Page<HousekeepingMetadata> metadataPage = new PageImpl<>(List.of(metadata1, metadata2));
+    Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse1, metadataResponse2));
     when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(metadataPage);
-    Page<HousekeepingMetadata> result = housekeepingEntityServiceImpl.getAllMetadata(spec, pageable);
+    Page<HousekeepingMetadataResponse> result = housekeepingEntityServiceImpl.getAllMetadata(spec, pageable);
 
-    assertThat(metadataPage).isEqualTo(result);
+    assertThat(result).isEqualTo(metadataResponsePage);
     verify(housekeepingMetadataRepository, times(1)).findAll(spec, pageable);
     verifyNoMoreInteractions(housekeepingMetadataRepository);
   }

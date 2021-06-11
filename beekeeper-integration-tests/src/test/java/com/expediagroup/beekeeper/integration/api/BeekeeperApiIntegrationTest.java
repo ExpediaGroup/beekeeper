@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.OK;
 
-import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHousekeepingMetadataResponse;
+import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponse;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
@@ -60,7 +60,6 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.integration.BeekeeperIntegrationTestBase;
 import com.expediagroup.beekeeper.integration.utils.BeekeeperApiTestClient;
 import com.expediagroup.beekeeper.integration.utils.RestResponsePage;
-
 
 public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 

@@ -17,8 +17,8 @@ package com.expediagroup.beekeeper.api.response;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHousekeepingMetadataResponse;
-import static com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse.convertToHousekeepingMetadataResponsePage;
+import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponse;
+import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponsePage;
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
@@ -83,7 +83,7 @@ public class HousekeepingMetadataResponseTest {
     HousekeepingMetadataResponse metadataResponse1 = convertToHousekeepingMetadataResponse(metadata1);
     HousekeepingMetadataResponse metadataResponse2 = convertToHousekeepingMetadataResponse(metadata2);
 
-    List<HousekeepingMetadata> housekeepingMetadataList = List.of(metadata1, metadata2);
+    Page<HousekeepingMetadata> housekeepingMetadataList = new PageImpl<>(List.of(metadata1, metadata2));
     Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse1, metadataResponse2));
 
     assertThat(metadataResponsePage).isEqualTo(convertToHousekeepingMetadataResponsePage(housekeepingMetadataList));

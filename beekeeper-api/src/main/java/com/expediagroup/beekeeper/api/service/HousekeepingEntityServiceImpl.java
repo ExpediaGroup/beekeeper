@@ -16,12 +16,15 @@
 package com.expediagroup.beekeeper.api.service;
 
 
+import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponsePage;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
@@ -36,8 +39,8 @@ public class HousekeepingEntityServiceImpl implements HousekeepingEntityService<
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
   }
 
-  public Page<HousekeepingMetadata> getAllMetadata(Specification<HousekeepingMetadata> spec, Pageable pageable) {
-    return housekeepingMetadataRepository.findAll(spec, pageable);
+  public Page<HousekeepingMetadataResponse> getAllMetadata(Specification<HousekeepingMetadata> spec, Pageable pageable) {
+    return convertToHousekeepingMetadataResponsePage(housekeepingMetadataRepository.findAll(spec, pageable));
   }
 
 }

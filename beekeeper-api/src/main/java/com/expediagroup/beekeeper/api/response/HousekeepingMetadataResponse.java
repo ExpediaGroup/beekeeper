@@ -17,23 +17,18 @@ package com.expediagroup.beekeeper.api.response;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.persistence.Convert;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import com.expediagroup.beekeeper.core.model.DurationConverter;
-import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 
 @Value
@@ -67,31 +62,5 @@ public class HousekeepingMetadataResponse {
   int cleanupAttempts;
 
   String lifecycleType;
-
-  public static HousekeepingMetadataResponse convertToHousekeepingMetadataResponse(
-      HousekeepingMetadata housekeepingMetadata) {
-    return HousekeepingMetadataResponse.builder()
-        .path(housekeepingMetadata.getPath())
-        .databaseName(housekeepingMetadata.getDatabaseName())
-        .tableName(housekeepingMetadata.getTableName())
-        .partitionName(housekeepingMetadata.getPartitionName())
-        .housekeepingStatus(housekeepingMetadata.getHousekeepingStatus())
-        .creationTimestamp(housekeepingMetadata.getCreationTimestamp())
-        .modifiedTimestamp(housekeepingMetadata.getModifiedTimestamp())
-        .cleanupTimestamp(housekeepingMetadata.getCleanupTimestamp())
-        .cleanupDelay(housekeepingMetadata.getCleanupDelay())
-        .cleanupAttempts(housekeepingMetadata.getCleanupAttempts())
-        .lifecycleType(housekeepingMetadata.getLifecycleType())
-        .build();
-  }
-
-  public static Page<HousekeepingMetadataResponse> convertToHousekeepingMetadataResponsePage(List<HousekeepingMetadata> housekeepingMetadataList) {
-    List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
-    for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
-      HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHousekeepingMetadataResponse(housekeepingMetadata);
-      housekeepingMetadataResponseList.add(housekeepingMetadataResponse);
-    }
-    return new PageImpl<>(housekeepingMetadataResponseList);
-  }
 
 }
