@@ -15,7 +15,6 @@
  */
 package com.expediagroup.beekeeper.api.service;
 
-
 import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponsePage;
 
 import org.springframework.beans.factory.annotation.Autowired;

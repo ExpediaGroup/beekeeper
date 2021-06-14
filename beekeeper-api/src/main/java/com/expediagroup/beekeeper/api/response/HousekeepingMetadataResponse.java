@@ -18,17 +18,12 @@ package com.expediagroup.beekeeper.api.response;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import javax.persistence.Convert;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-
 import org.hibernate.annotations.UpdateTimestamp;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
-import com.expediagroup.beekeeper.core.model.DurationConverter;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 
 @Value
@@ -43,7 +38,6 @@ public class HousekeepingMetadataResponse {
 
   String partitionName;
 
-  @Enumerated(EnumType.STRING)
   HousekeepingStatus housekeepingStatus;
 
   @EqualsAndHashCode.Exclude
@@ -53,10 +47,8 @@ public class HousekeepingMetadataResponse {
   @UpdateTimestamp
   LocalDateTime modifiedTimestamp;
 
-  @EqualsAndHashCode.Exclude
   LocalDateTime cleanupTimestamp;
 
-  @Convert(converter = DurationConverter.class)
   Duration cleanupDelay;
 
   int cleanupAttempts;
