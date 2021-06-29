@@ -23,7 +23,6 @@ services:
       HOSTNAME_EXTERNAL: awslocal
     ports:
       - "127.0.0.1:4566:4566"
-      - "127.0.0.1:4571:4571"
       - "127.0.0.1:${PORT_WEB_UI-8080}:${PORT_WEB_UI-8080}"
     volumes:
       - "./.localstack:/tmp/localstack"
