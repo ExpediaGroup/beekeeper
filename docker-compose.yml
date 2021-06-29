@@ -22,6 +22,8 @@ services:
       DOCKER_HOST: unix:///var/run/docker.sock
       HOST_TMP_FOLDER: /tmp/localstack
       HOSTNAME_EXTERNAL: awslocal
+      EDGE_PORT: 4576
+      SQS_PORT_EXTERNAL: 4576
     ports:
       - "127.0.0.1:4566:4566"
       - "127.0.0.1:4571:4571"
