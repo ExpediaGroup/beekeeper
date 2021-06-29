@@ -12,3 +12,18 @@ services:
       - '3306:3306'
     expose:
       - '3306'
+
+  localstack:
+    image: localstack/localstack
+    container_name: awslocal
+    hostname: awslocal
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock
+      HOST_TMP_FOLDER: /tmp/localstack
+      HOSTNAME_EXTERNAL: awslocal
+    ports:
+      - "4566:4566"
+      - "8055:8080"
+    volumes:
+      - "./.localstack:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
