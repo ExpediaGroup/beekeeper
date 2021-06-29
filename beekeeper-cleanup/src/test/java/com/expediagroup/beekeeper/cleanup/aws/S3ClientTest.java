@@ -56,6 +56,7 @@ class S3ClientTest {
 
   @BeforeEach
   void setUp() {
+    System.out.println("AAA: checking jenkins builds right branch");
     amazonS3 = TestUtils.getClientS3();
     amazonS3.createBucket(bucket);
     emptyBucket(bucket);
