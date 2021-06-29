@@ -9,6 +9,7 @@ services:
       - MYSQL_USER=user
       - MYSQL_PASSWORD=password
     ports:
-      - '3306'
+      - '3306:3306'
+      - '4571:4571'
     expose:
       - '3306'
