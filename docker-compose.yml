@@ -23,7 +23,7 @@ services:
       HOSTNAME_EXTERNAL: awslocal
     ports:
       - "127.0.0.1:4566:4566"
-      - "8055:8080"
+      - "127.0.0.1:4571:4571"
     volumes:
       - "./.localstack:/tmp/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
