@@ -23,7 +23,7 @@ import org.springframework.data.domain.PageImpl;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
-public final class MetadataResponseConverter {
+public class MetadataResponseConverter {
 
   public static HousekeepingMetadataResponse convertToHousekeepingMetadataResponse(
       HousekeepingMetadata housekeepingMetadata) {
