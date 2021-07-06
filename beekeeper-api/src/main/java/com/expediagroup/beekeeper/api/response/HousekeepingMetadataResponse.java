@@ -18,7 +18,6 @@ package com.expediagroup.beekeeper.api.response;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import javax.persistence.Convert;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
@@ -28,14 +27,13 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
-import com.expediagroup.beekeeper.core.model.DurationConverter;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 
 /*
 Ideally, this should be done with Spring projections (See https://www.baeldung.com/spring-data-jpa-projections)
 but currently projections do not support using Specification (See https://github.com/spring-projects/spring-data-jpa/issues/1378).
 
-Therefore, this is a 'manual' porjection of the HousekeepingMetadata object, which will be used in the API.
+Therefore, this is a 'manual' projection of the HousekeepingMetadata object, which will be used in the API.
 */
 
 @Value
@@ -60,10 +58,8 @@ public class HousekeepingMetadataResponse {
   @UpdateTimestamp
   LocalDateTime modifiedTimestamp;
 
-  @EqualsAndHashCode.Exclude
   LocalDateTime cleanupTimestamp;
 
-  @Convert(converter = DurationConverter.class)
   Duration cleanupDelay;
 
   int cleanupAttempts;
