@@ -21,9 +21,9 @@
     <module>beekeeper-path-cleanup</module>
     <module>beekeeper-scheduler</module>
     <module>beekeeper-scheduler-apiary</module>
+    <module>beekeeper-api</module>
     <module>beekeeper-integration-tests</module>
     <module>beekeeper-vacuum-tool</module>
-    <module>beekeeper-api</module>
   </modules>
 
   <scm>
