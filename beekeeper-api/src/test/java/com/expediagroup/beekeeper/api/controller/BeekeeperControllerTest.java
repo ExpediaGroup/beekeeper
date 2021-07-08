@@ -48,6 +48,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
+import net.kaczmarzyk.spring.data.jpa.domain.Conjunction;
+import net.kaczmarzyk.spring.data.jpa.domain.EmptyResultOnTypeMismatch;
+import net.kaczmarzyk.spring.data.jpa.domain.EqualIgnoreCase;
+import net.kaczmarzyk.spring.data.jpa.utils.Converter;
+import net.kaczmarzyk.spring.data.jpa.web.annotation.OnTypeMismatch;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.expediagroup.beekeeper.api.TestApplication;
@@ -114,8 +120,10 @@ public class BeekeeperControllerTest {
     verifyNoMoreInteractions(housekeepingEntityServiceImpl);
 
     Mockito.verify(housekeepingEntityServiceImpl).getAllMetadata(specCaptor.capture(), any());
-    Specification<HousekeepingMetadata> result = specCaptor.getValue();
+    Conjunction<HousekeepingMetadata> result = (Conjunction<HousekeepingMetadata>) specCaptor.getValue();
+    new Conjunction<HousekeepingMetadata>(List.of(new EmptyResultOnTypeMismatch<>(new EqualIgnoreCase<>(null, "tableName", new String[] {"ss"}, new Converter(null, OnTypeMismatch.EMPTY_RESULT, null)))));
     String spec = "Conjunction [innerSpecs=[EmptyResultOnTypeMismatch [wrappedSpec=EqualIgnoreCase [expectedValue=some_table, converter=Converter [dateFormat=null, onTypeMismatch=EMPTY_RESULT], path=tableName]], EmptyResultOnTypeMismatch [wrappedSpec=EqualIgnoreCase [expectedValue=some_database, converter=Converter [dateFormat=null, onTypeMismatch=EMPTY_RESULT], path=databaseName]], EmptyResultOnTypeMismatch [wrappedSpec=EqualIgnoreCase [expectedValue=event_date=2020-01-01/event_hour=0/event_type=B, converter=Converter [dateFormat=null, onTypeMismatch=EMPTY_RESULT], path=partitionName]], EmptyResultOnTypeMismatch [wrappedSpec=EqualIgnoreCase [expectedValue=UNREFERENCED, converter=Converter [dateFormat=null, onTypeMismatch=EMPTY_RESULT], path=lifecycleType]]]]";
+    new EmptyResultOnTypeMismatch(new EqualIgnoreCase())
     assertThat(result.toString()).isEqualTo(spec);
   }
 
