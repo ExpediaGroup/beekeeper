@@ -31,8 +31,7 @@ jobs:
         settings-path: ${{ github.workspace }}
        
     - name: Run Maven Targets
-      run: mvn deploy --settings $GITHUB_WORKSPACE/settings.xml --batch-mode --show-version --no-transfer-progress --activate-profiles oss-release
-      # This is in Jenkins try after to see if works jacoco:report checkstyle:checkstyle spotbugs:spotbugs 
+      run: mvn deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs --settings $GITHUB_WORKSPACE/settings.xml --batch-mode --show-version --no-transfer-progress --activate-profiles oss-release
       env:
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
