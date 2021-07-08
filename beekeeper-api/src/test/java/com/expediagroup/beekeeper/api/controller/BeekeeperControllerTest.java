@@ -103,31 +103,6 @@ public class BeekeeperControllerTest {
   }
 
   @Test
-  public void testGetAllMetadataWhenThereIsSpecification() throws Exception {
-    HousekeepingMetadata metadata = generateDummyHousekeepingMetadata("some_database", "some_table");
-    HousekeepingMetadataResponse metadataResponse = convertToHousekeepingMetadataResponse(metadata);
-    Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse, metadataResponse));
-
-    when(housekeepingEntityServiceImpl.getAllMetadata(any(), any())).thenReturn(metadataResponsePage);
-
-    mockMvc
-        .perform(get("/api/v1/database/some_database/table/some_table/metadata?partition_name=event_date=2020-01-01/event_hour=0/event_type=B&lifecycle_type=UNREFERENCED"))
-        .andDo(MockMvcResultHandlers.print())
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-        .andExpect(content().json(objectMapper.writeValueAsString(metadataResponsePage)));
-    verify(housekeepingEntityServiceImpl, times(1)).getAllMetadata(any(), any());
-    verifyNoMoreInteractions(housekeepingEntityServiceImpl);
-
-    Mockito.verify(housekeepingEntityServiceImpl).getAllMetadata(specCaptor.capture(), any());
-    Conjunction<HousekeepingMetadata> result = (Conjunction<HousekeepingMetadata>) specCaptor.getValue();
-    new Conjunction<HousekeepingMetadata>(List.of(new EmptyResultOnTypeMismatch<>(new EqualIgnoreCase<>(null, "tableName", new String[] {"ss"}, new Converter(null, OnTypeMismatch.EMPTY_RESULT, null)))));
-    String spec = "Conjunction [innerSpecs=[EmptyResultOnTypeMismatch [wrappedSpec=EqualIgnoreCase [expectedValue=some_table, converter=Converter [dateFormat=null, onTypeMismatch=EMPTY_RESULT], path=tableName]], EmptyResultOnTypeMismatch [wrappedSpec=EqualIgnoreCase [expectedValue=some_database, converter=Converter [dateFormat=null, onTypeMismatch=EMPTY_RESULT], path=databaseName]], EmptyResultOnTypeMismatch [wrappedSpec=EqualIgnoreCase [expectedValue=event_date=2020-01-01/event_hour=0/event_type=B, converter=Converter [dateFormat=null, onTypeMismatch=EMPTY_RESULT], path=partitionName]], EmptyResultOnTypeMismatch [wrappedSpec=EqualIgnoreCase [expectedValue=UNREFERENCED, converter=Converter [dateFormat=null, onTypeMismatch=EMPTY_RESULT], path=lifecycleType]]]]";
-    new EmptyResultOnTypeMismatch(new EqualIgnoreCase())
-    assertThat(result.toString()).isEqualTo(spec);
-  }
-
-  @Test
   public void testPagingWhenValidInput() throws Exception {
     int pageNumber = 5;
     int pageSize = 10;
