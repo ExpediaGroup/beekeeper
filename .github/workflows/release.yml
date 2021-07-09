@@ -41,3 +41,4 @@ jobs:
         DOCKERHUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
         GPG_PASSPHRASE: ${{secrets.GPG_PRIVATE_KEY_PASSPHRASE}}
+        
