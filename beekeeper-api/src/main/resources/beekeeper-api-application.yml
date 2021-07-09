@@ -1,0 +1,16 @@
+management.endpoints.web.exposure.include: health,info,prometheus
+
+server:
+  port: 7008
+
+spring:
+  jpa:
+    database: default
+    hibernate:
+      ddl-auto: validate
+    properties.hibernate:
+      dialect: org.hibernate.dialect.MySQL8Dialect
+properties:
+  cleanup-page-size: 500
+  dry-run-enabled: false
+  scheduler-delay-ms: 300000 # 5 minutes
