@@ -23,7 +23,6 @@ public class BeekeeperApi {
 
   public static void main(String[] args) {
     new SpringApplicationBuilder(BeekeeperApi.class)
-        .properties("spring.config.additional-location:classpath:/beekeeper-api-application.yml")
         .properties("server.port:${endpoint.port:7008}")
         .build()
         .run(args);
