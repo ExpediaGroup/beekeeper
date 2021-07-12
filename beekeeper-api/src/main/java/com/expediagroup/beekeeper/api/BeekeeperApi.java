@@ -15,14 +15,18 @@
  */
 package com.expediagroup.beekeeper.api;
 
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 
 @SpringBootApplication
 public class BeekeeperApi {
 
   public static void main(String[] args) {
-    SpringApplication.run(BeekeeperApi.class, args);
+    new SpringApplicationBuilder(BeekeeperApi.class)
+        .properties("spring.config.additional-location:classpath:/beekeeper-api-application.yml")
+        .properties("server.port:${endpoint.port:7008}")
+        .build()
+        .run(args);
   }
 
 }
