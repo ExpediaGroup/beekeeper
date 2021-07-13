@@ -60,8 +60,6 @@ import com.expediagroup.beekeeper.integration.utils.RestResponsePage;
 
 public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
-  @Bean
-  @Primary
   public ObjectMapper geObjMapper() {
     return new ObjectMapper()
         .registerModule(new ParameterNamesModule())
@@ -74,7 +72,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   // APP CONTEXT AND TEST CLIENT
   protected static ConfigurableApplicationContext context;
   protected BeekeeperApiTestClient testClient;
-
+  
   protected final ObjectMapper mapper = geObjMapper();
 
   @BeforeEach
