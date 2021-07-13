@@ -2,4 +2,4 @@
 
 In progress.
 
-Right it just has a GET /health endpoint.
+Right now it only has a GET /health endpoint.
