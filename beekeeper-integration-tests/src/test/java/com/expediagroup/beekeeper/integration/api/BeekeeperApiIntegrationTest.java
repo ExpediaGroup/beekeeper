@@ -36,8 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.util.SocketUtils;
 
@@ -72,7 +70,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   // APP CONTEXT AND TEST CLIENT
   protected static ConfigurableApplicationContext context;
   protected BeekeeperApiTestClient testClient;
-  
+
   protected final ObjectMapper mapper = geObjMapper();
 
   @BeforeEach
