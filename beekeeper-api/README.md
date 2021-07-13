@@ -1,3 +1,5 @@
 ## Beekeeper API
 
-In progress :) !
+In progress.
+
+Right now it only has a GET /health endpoint.
