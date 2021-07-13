@@ -1,22 +1,23 @@
-name: Make a build
+name: Release to Maven Central
 on:
   workflow_dispatch:
     inputs:
       branch:
-        description: "The branch to use to build a SNAPSHOT from."
+        description: "The branch to use to release from."
         required: true
         default: "main"
 jobs:
-  deploy:
-    name: Build SNAPSHOT to Sonatype
+  release:
+    name: Release to Maven Central
     runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout source code
+      uses: actions/checkout@v2
       with:
         fetch-depth: 0
         ref: ${{ github.event.inputs.branch }}
-        
+
     - name: Set up JDK
       uses: actions/setup-java@v2
       with:
@@ -31,12 +32,12 @@ jobs:
         gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
         # this creates a settings.xml with the following server
         settings-path: ${{ github.workspace }}
-       
+
     - name: Run Maven Targets
-      run: mvn deploy jacoco:report checkstyle:checkstyle spotbugs:spotbugs --settings $GITHUB_WORKSPACE/settings.xml --batch-mode --show-version --no-transfer-progress --activate-profiles oss-release
+      run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml --activate-profiles oss-release --batch-mode --show-version --no-transfer-progress 
       env:
-        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         DOCKERHUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-        GPG_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
+        GPG_PASSPHRASE: ${{secrets.GPG_PRIVATE_KEY_PASSPHRASE}}
