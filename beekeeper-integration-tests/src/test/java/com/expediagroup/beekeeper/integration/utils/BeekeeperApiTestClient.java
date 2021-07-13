@@ -43,7 +43,7 @@ public class BeekeeperApiTestClient {
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
-  public HttpResponse<String> getMetadataWithFiltering(String filters) throws IOException, InterruptedException {
+  public HttpResponse<String> getMetadata(String filters) throws IOException, InterruptedException {
     HttpRequest request = newBuilder()
         .uri(URI.create(getHousekeepingEntityUrl + METADATA_PATH + filters))
         .GET()

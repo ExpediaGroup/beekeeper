@@ -146,7 +146,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         + "&path_name=s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A"
         + "&partition_name=event_date=2020-01-01/event_hour=0/event_type=A";
 
-    HttpResponse<String> response = testClient.getMetadataWithFiltering(filters);
+    HttpResponse<String> response = testClient.getMetadata(filters);
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
