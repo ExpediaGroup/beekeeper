@@ -5,7 +5,7 @@
   <parent>
     <artifactId>beekeeper-parent</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>3.1.1-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -26,6 +26,10 @@
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
       <groupId>net.kaczmarzyk</groupId>
       <artifactId>specification-arg-resolver</artifactId>
       <version>${specification-arg-resolver.version}</version>
@@ -42,5 +46,45 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${springframework.boot.version}</version>
+        <configuration>
+          <requiresUnpack>
+            <!-- We are hitting an issue introduced in hive-common-2.1.1 and fixed in https://issues.apache.org/jira/browse/HIVE-17155
+              The HiveConf class tries loading conf (e.g. hive-site.xml) from the uberjar and fails. Unpacking it with this
+              setting fixes that problem.
+            -->
+            <dependency>
+              <groupId>org.apache.hive</groupId>
+              <artifactId>hive-common</artifactId>
+            </dependency>
+          </requiresUnpack>
+          <classifier>spring-boot</classifier>
+          <mainClass>com.expediagroup.beekeeper.api.BeekeeperApi</mainClass>
+          <executable>true</executable>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>pl.project13.maven</groupId>
+        <artifactId>git-commit-id-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
