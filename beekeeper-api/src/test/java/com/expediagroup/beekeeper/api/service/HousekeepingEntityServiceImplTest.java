@@ -58,11 +58,12 @@ public class HousekeepingEntityServiceImplTest {
   }
 
   @Test
-  public void testFindAllMetadata(){
+  public void testFindAllMetadata() {
     HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");
     HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database", "some_table");
     Page<HousekeepingMetadata> metadataPage = new PageImpl<>(List.of(metadata1, metadata2));
-    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(new PageImpl<>(List.of(metadata1, metadata2)));
+    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(
+        new PageImpl<>(List.of(metadata1, metadata2)));
 
     when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(metadataPage);
     Page<HousekeepingMetadataResponse> result = housekeepingEntityServiceImpl.getAllMetadata(spec, pageable);

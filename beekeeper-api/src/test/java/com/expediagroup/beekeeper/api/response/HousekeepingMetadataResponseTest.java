@@ -47,12 +47,13 @@ public class HousekeepingMetadataResponseTest {
   private static final String lifecycleEventType = EXPIRED.toString();
 
   @Test
-  public void testConvertToHouseKeepingMetadataResponsePage(){
+  public void testConvertToHouseKeepingMetadataResponsePage() {
     HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database1", "some_table1");
     HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database2", "some_table2");
 
     List<HousekeepingMetadata> housekeepingMetadataList = List.of(metadata1, metadata2);
-    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(new PageImpl<>(housekeepingMetadataList));
+    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(
+        new PageImpl<>(housekeepingMetadataList));
 
     List<HousekeepingMetadataResponse> metadataResponsePageList = metadataResponsePage.getContent();
     assertThat(metadataResponsePageList.get(0).getDatabaseName()).isEqualTo(metadata1.getDatabaseName());

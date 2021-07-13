@@ -74,7 +74,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   // APP CONTEXT AND TEST CLIENT
   protected static ConfigurableApplicationContext context;
   protected BeekeeperApiTestClient testClient;
-  
+
   protected final ObjectMapper mapper = geObjMapper();
 
   @BeforeEach
@@ -82,14 +82,13 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     int port = SocketUtils.findAvailableTcpPort();
-    String[] args = new String[] {
-        "--server.port=" + port};
+    String[] args = new String[] { "--server.port=" + port };
     final String url = format("http://localhost:%d", port);
     log.info("Starting to run Beekeeper API on: {} and args: {}", url, args);
     context = SpringApplication.run(BeekeeperApiApplication.class, args);
     testClient = new BeekeeperApiTestClient(url);
   }
-  
+
   @AfterEach
   public final void afterEach() {
     log.info("Stopping Beekeeper API");
@@ -101,23 +100,38 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   @Test
   public void testGetMetadataWhenTableNotFound() throws SQLException, InterruptedException, IOException {
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("wrong_table","s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("wrong_table","s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("wrong_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A",
+        "event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED,
+        Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("wrong_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B",
+        "event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.EXPIRED,
+        Duration.parse("P3D").toString());
     insertExpiredMetadata(testMetadata1);
     insertExpiredMetadata(testMetadata2);
 
     HttpResponse<String> response = testClient.getMetadata();
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
-    assertThrows(ValueInstantiationException.class, () -> mapper
-        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {}));
+    assertThrows(ValueInstantiationException.class,
+        () -> mapper.readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {}));
   }
 
   @Test
   public void testGetMetadataWhenThereIsFiltering() throws SQLException, InterruptedException, IOException {
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table","s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table","s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata3 = createHousekeepingMetadata("some_table","s3://some/path/event_date=2020-01-01/event_hour=0/event_type=C","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.UNREFERENCED,Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A",
+        "event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED,
+        Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B",
+        "event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.UNREFERENCED,
+        Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata3 = createHousekeepingMetadata("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=C",
+        "event_date=2020-01-01/event_hour=0/event_type=C", LifecycleEventType.UNREFERENCED,
+        Duration.parse("P3D").toString());
     testMetadata1.setHousekeepingStatus(HousekeepingStatus.FAILED);
     testMetadata1.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
     testMetadata1.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
@@ -143,18 +157,26 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     assertThat(result.size()).isEqualTo(1);
   }
 
-  //This test is to manually test the API
+  // This test is to manually test the API
   @Disabled
   @Test
   public void manualTest() throws SQLException, InterruptedException {
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table","s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A","event_date=2020-01-01/event_hour=0/event_type=A",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table","s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B","event_date=2020-01-01/event_hour=0/event_type=B",LifecycleEventType.EXPIRED,Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata3 = createHousekeepingMetadata("some_table","s3://some/path/event_date=2020-01-01/event_hour=0/event_type=C","event_date=2020-01-01/event_hour=0/event_type=C",LifecycleEventType.UNREFERENCED,Duration.parse("P4D").toString());
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A",
+        "event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED,
+        Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B",
+        "event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.EXPIRED,
+        Duration.parse("P3D").toString());
+    HousekeepingMetadata testMetadata3 = createHousekeepingMetadata("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=C",
+        "event_date=2020-01-01/event_hour=0/event_type=C", LifecycleEventType.UNREFERENCED,
+        Duration.parse("P4D").toString());
     insertExpiredMetadata(testMetadata1);
     insertExpiredMetadata(testMetadata2);
     insertExpiredMetadata(testMetadata3);
 
     Thread.sleep(10000000L);
   }
-
 }

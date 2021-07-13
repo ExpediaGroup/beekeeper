@@ -60,9 +60,8 @@ public class BeekeeperController {
           @Spec(path = "cleanupTimestamp", params = "deleted_before", spec = LessThan.class),
           @Spec(path = "cleanupTimestamp", params = "deleted_after", spec = GreaterThan.class),
           @Spec(path = "creationTimestamp", params = "registered_before", spec = LessThan.class),
-          @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class)
-      })
-          Specification<HousekeepingMetadata> spec, Pageable pageable) {
+          @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class) }) Specification<HousekeepingMetadata> spec,
+      Pageable pageable) {
     return ResponseEntity.ok(housekeepingEntityServiceImpl.getAllMetadata(spec, pageable));
   }
 

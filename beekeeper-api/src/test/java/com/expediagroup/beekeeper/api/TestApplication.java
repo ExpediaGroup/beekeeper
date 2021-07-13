@@ -21,9 +21,5 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableConfigurationProperties
-@ComponentScan(basePackages = {
-    "com.expediagroup.beekeeper.api.conf",
-    "com.expediagroup.beekeeper.api.controller"})
-public class TestApplication {
-
-}
+@ComponentScan(basePackages = { "com.expediagroup.beekeeper.api.conf", "com.expediagroup.beekeeper.api.controller" })
+public class TestApplication {}

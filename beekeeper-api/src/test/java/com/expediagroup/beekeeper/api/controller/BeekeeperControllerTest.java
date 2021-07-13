@@ -15,8 +15,6 @@
  */
 package com.expediagroup.beekeeper.api.controller;
 
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -35,7 +33,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -47,12 +44,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-
-import net.kaczmarzyk.spring.data.jpa.domain.Conjunction;
-import net.kaczmarzyk.spring.data.jpa.domain.EmptyResultOnTypeMismatch;
-import net.kaczmarzyk.spring.data.jpa.domain.EqualIgnoreCase;
-import net.kaczmarzyk.spring.data.jpa.utils.Converter;
-import net.kaczmarzyk.spring.data.jpa.web.annotation.OnTypeMismatch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -79,7 +70,8 @@ public class BeekeeperControllerTest {
   @Test
   public void testGetAllMetadataWhenValidInput() throws Exception {
     HousekeepingMetadata metadata = generateDummyHousekeepingMetadata("some_database", "some_table");
-    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(new PageImpl<>(List.of(metadata)));
+    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(
+        new PageImpl<>(List.of(metadata)));
 
     when(housekeepingEntityServiceImpl.getAllMetadata(any(), any())).thenReturn(metadataResponsePage);
 
@@ -107,9 +99,11 @@ public class BeekeeperControllerTest {
     int pageSize = 10;
     HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");
     HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database", "some_table");
-    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(new PageImpl<>(List.of(metadata1, metadata2)));
+    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(
+        new PageImpl<>(List.of(metadata1, metadata2)));
 
-    when(housekeepingEntityServiceImpl.getAllMetadata(any(), eq(PageRequest.of(pageNumber, pageSize)))).thenReturn(metadataResponsePage);
+    when(housekeepingEntityServiceImpl.getAllMetadata(any(), eq(PageRequest.of(pageNumber, pageSize))))
+        .thenReturn(metadataResponsePage);
 
     mockMvc
         .perform(get("/api/v1/database/some_database/table/some_table/metadata")

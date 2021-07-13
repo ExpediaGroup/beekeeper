@@ -27,7 +27,8 @@ public final class MetadataResponseConverter {
 
   private static HousekeepingMetadataResponse convertToHousekeepingMetadataResponse(
       HousekeepingMetadata housekeepingMetadata) {
-    return HousekeepingMetadataResponse.builder()
+    return HousekeepingMetadataResponse
+        .builder()
         .path(housekeepingMetadata.getPath())
         .databaseName(housekeepingMetadata.getDatabaseName())
         .tableName(housekeepingMetadata.getTableName())
@@ -47,7 +48,8 @@ public final class MetadataResponseConverter {
     List<HousekeepingMetadata> housekeepingMetadataList = housekeepingMetadataPage.getContent();
     List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
     for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
-      HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHousekeepingMetadataResponse(housekeepingMetadata);
+      HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHousekeepingMetadataResponse(
+          housekeepingMetadata);
       housekeepingMetadataResponseList.add(housekeepingMetadataResponse);
     }
     return new PageImpl<>(housekeepingMetadataResponseList);
