@@ -25,7 +25,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 public final class MetadataResponseConverter {
 
-  public static HousekeepingMetadataResponse convertToHousekeepingMetadataResponse(
+  private static HousekeepingMetadataResponse convertToHousekeepingMetadataResponse(
       HousekeepingMetadata housekeepingMetadata) {
     return HousekeepingMetadataResponse.builder()
         .path(housekeepingMetadata.getPath())

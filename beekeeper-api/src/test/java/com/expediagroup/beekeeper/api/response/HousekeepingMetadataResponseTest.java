@@ -17,7 +17,6 @@ package com.expediagroup.beekeeper.api.response;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponse;
 import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponsePage;
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
@@ -48,45 +47,16 @@ public class HousekeepingMetadataResponseTest {
   private static final String lifecycleEventType = EXPIRED.toString();
 
   @Test
-  public void testConvertToHouseKeepingMetadataResponse(){
-    HousekeepingMetadata metadata = HousekeepingMetadata.builder()
-        .path(path)
-        .databaseName(databaseName)
-        .tableName(tableName)
-        .partitionName(partitionName)
-        .housekeepingStatus(housekeepingStatus)
-        .creationTimestamp(creationTimestamp)
-        .modifiedTimestamp(creationTimestamp)
-        .cleanupDelay(cleanupDelay)
-        .cleanupAttempts(cleanupAttempts)
-        .lifecycleType(lifecycleEventType)
-        .build();
-
-    HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHousekeepingMetadataResponse(metadata);
-
-    assertThat(housekeepingMetadataResponse.getPath()).isEqualTo(path);
-    assertThat(housekeepingMetadataResponse.getDatabaseName()).isEqualTo(databaseName);
-    assertThat(housekeepingMetadataResponse.getTableName()).isEqualTo(tableName);
-    assertThat(housekeepingMetadataResponse.getPartitionName()).isEqualTo(partitionName);
-    assertThat(housekeepingMetadataResponse.getHousekeepingStatus()).isEqualTo(housekeepingStatus);
-    assertThat(housekeepingMetadataResponse.getCreationTimestamp()).isEqualTo(creationTimestamp);
-    assertThat(housekeepingMetadataResponse.getModifiedTimestamp()).isEqualTo(creationTimestamp);
-    assertThat(housekeepingMetadataResponse.getCleanupDelay()).isEqualTo(cleanupDelay);
-    assertThat(housekeepingMetadataResponse.getCleanupAttempts()).isEqualTo(cleanupAttempts);
-    assertThat(housekeepingMetadataResponse.getLifecycleType()).isEqualTo(lifecycleEventType);
-  }
-
-  @Test
   public void testConvertToHouseKeepingMetadataResponsePage(){
-    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");
-    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database", "some_table");
-    HousekeepingMetadataResponse metadataResponse1 = convertToHousekeepingMetadataResponse(metadata1);
-    HousekeepingMetadataResponse metadataResponse2 = convertToHousekeepingMetadataResponse(metadata2);
+    HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database1", "some_table1");
+    HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database2", "some_table2");
 
-    Page<HousekeepingMetadata> housekeepingMetadataList = new PageImpl<>(List.of(metadata1, metadata2));
-    Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse1, metadataResponse2));
+    List<HousekeepingMetadata> housekeepingMetadataList = List.of(metadata1, metadata2);
+    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(new PageImpl<>(housekeepingMetadataList));
 
-    assertThat(metadataResponsePage).isEqualTo(convertToHousekeepingMetadataResponsePage(housekeepingMetadataList));
+    List<HousekeepingMetadataResponse> metadataResponsePageList = metadataResponsePage.getContent();
+    assertThat(metadataResponsePageList.get(0).getDatabaseName()).isEqualTo(metadata1.getDatabaseName());
+    assertThat(metadataResponsePageList.get(1).getDatabaseName()).isEqualTo(metadata2.getDatabaseName());
   }
 
 }

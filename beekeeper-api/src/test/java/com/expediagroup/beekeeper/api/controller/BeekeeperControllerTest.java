@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponse;
+import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponsePage;
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 
 import java.util.List;
@@ -79,8 +79,7 @@ public class BeekeeperControllerTest {
   @Test
   public void testGetAllMetadataWhenValidInput() throws Exception {
     HousekeepingMetadata metadata = generateDummyHousekeepingMetadata("some_database", "some_table");
-    HousekeepingMetadataResponse metadataResponse = convertToHousekeepingMetadataResponse(metadata);
-    Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse, metadataResponse));
+    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(new PageImpl<>(List.of(metadata)));
 
     when(housekeepingEntityServiceImpl.getAllMetadata(any(), any())).thenReturn(metadataResponsePage);
 
@@ -108,9 +107,7 @@ public class BeekeeperControllerTest {
     int pageSize = 10;
     HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");
     HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database", "some_table");
-    HousekeepingMetadataResponse metadataResponse1 = convertToHousekeepingMetadataResponse(metadata1);
-    HousekeepingMetadataResponse metadataResponse2 = convertToHousekeepingMetadataResponse(metadata2);
-    Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse1, metadataResponse2));
+    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(new PageImpl<>(List.of(metadata1, metadata2)));
 
     when(housekeepingEntityServiceImpl.getAllMetadata(any(), eq(PageRequest.of(pageNumber, pageSize)))).thenReturn(metadataResponsePage);
 

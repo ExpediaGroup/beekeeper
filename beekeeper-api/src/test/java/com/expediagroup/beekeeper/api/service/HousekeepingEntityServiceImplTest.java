@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponse;
+import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponsePage;
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
 
 import java.util.List;
@@ -61,11 +61,9 @@ public class HousekeepingEntityServiceImplTest {
   public void testFindAllMetadata(){
     HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");
     HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database", "some_table");
-    HousekeepingMetadataResponse metadataResponse1 = convertToHousekeepingMetadataResponse(generateDummyHousekeepingMetadata("some_database", "some_table"));
-    HousekeepingMetadataResponse metadataResponse2 = convertToHousekeepingMetadataResponse(generateDummyHousekeepingMetadata("some_database", "some_table"));
-
     Page<HousekeepingMetadata> metadataPage = new PageImpl<>(List.of(metadata1, metadata2));
-    Page<HousekeepingMetadataResponse> metadataResponsePage = new PageImpl<>(List.of(metadataResponse1, metadataResponse2));
+    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(new PageImpl<>(List.of(metadata1, metadata2)));
+
     when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(metadataPage);
     Page<HousekeepingMetadataResponse> result = housekeepingEntityServiceImpl.getAllMetadata(spec, pageable);
 

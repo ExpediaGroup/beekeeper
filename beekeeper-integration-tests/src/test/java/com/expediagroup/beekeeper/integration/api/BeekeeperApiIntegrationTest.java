@@ -19,10 +19,7 @@ import static java.lang.String.format;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.OK;
-
-import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponse;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
@@ -142,7 +139,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertTrue(convertToHousekeepingMetadataResponse(testMetadata1).equals(result.get(0)));
+    assertThat(result.get(0).getPath()).isEqualTo(testMetadata1.getPath());
     assertThat(result.size()).isEqualTo(1);
   }
 
