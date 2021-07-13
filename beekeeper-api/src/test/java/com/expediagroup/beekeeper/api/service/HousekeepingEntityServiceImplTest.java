@@ -58,7 +58,7 @@ public class HousekeepingEntityServiceImplTest {
   }
 
   @Test
-  public void testFindAllMetadata() {
+  public void testGetAllMetadata() {
     HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");
     HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database", "some_table");
     Page<HousekeepingMetadata> metadataPage = new PageImpl<>(List.of(metadata1, metadata2));
