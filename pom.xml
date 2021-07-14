@@ -34,20 +34,7 @@
     <url>https://github.com/ExpediaGroup/beekeeper</url>
     <tag>HEAD</tag>
   </scm>
-
-  <distributionManagement>
-    <snapshotRepository>
-      <id>oss-sonatype</id>
-      <name>Sonatype Nexus Snapshots Repository</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
-    <repository>
-      <id>oss-sonatype</id>
-      <name>Sonatype Nexus Release Repository</name>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-  </distributionManagement>
-
+  
   <properties>
     <apache.commons.lang3>3.0</apache.commons.lang3>
     <assertj.version>3.12.2</assertj.version>
