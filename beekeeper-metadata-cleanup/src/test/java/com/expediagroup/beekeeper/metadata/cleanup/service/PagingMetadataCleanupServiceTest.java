@@ -49,6 +49,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
 import com.expediagroup.beekeeper.cleanup.hive.HiveClientFactory;
@@ -210,7 +211,7 @@ public class PagingMetadataCleanupServiceTest {
         .extracting("tableName")
         .containsExactly(tables.get(0).getTableName(), tables.get(1).getTableName());
 
-    List<HousekeepingMetadata> result = (List<HousekeepingMetadata>) metadataRepository.findAll();
+    List<HousekeepingMetadata> result = Lists.newArrayList(metadataRepository.findAll());
     assertThat(result.size()).isEqualTo(2);
     HousekeepingMetadata housekeepingMetadata1 = result.get(0);
     HousekeepingMetadata housekeepingMetadata2 = result.get(1);
