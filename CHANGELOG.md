@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.3.0] - TBD
 ### Added
-- Added a `GET /metadata` endpoint.
+- Added a `GET /metadata` endpoint to the `beekeeper-api`.
 
 ## [3.2.0] - TBD
 ### Added
