@@ -32,7 +32,7 @@ Therefore, this is a 'manual' conversion of the HousekeepingMetadata object, whi
 
 public final class MetadataResponseConverter {
 
-  private MetadataResponseConverter(){};
+  private MetadataResponseConverter() {};
 
   public static Page<HousekeepingMetadataResponse> convertToHousekeepingMetadataResponsePage(
       Page<HousekeepingMetadata> housekeepingMetadataPage) {
