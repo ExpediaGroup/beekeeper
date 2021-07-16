@@ -29,13 +29,6 @@ import lombok.Value;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 
-/*
-Ideally, this should be done with Spring projections (See https://www.baeldung.com/spring-data-jpa-projections)
-but currently projections do not support using Specification (See https://github.com/spring-projects/spring-data-jpa/issues/1378).
-
-Therefore, this is a 'manual' projection of the HousekeepingMetadata object, which will be used in the API.
-*/
-
 @Value
 @Builder
 public class HousekeepingMetadataResponse {
