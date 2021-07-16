@@ -32,6 +32,8 @@ Therefore, this is a 'manual' conversion of the HousekeepingMetadata object, whi
 
 public final class MetadataResponseConverter {
 
+  private MetadataResponseConverter(){};
+
   private static HousekeepingMetadataResponse convertToHousekeepingMetadataResponse(
       HousekeepingMetadata housekeepingMetadata) {
     return HousekeepingMetadataResponse
