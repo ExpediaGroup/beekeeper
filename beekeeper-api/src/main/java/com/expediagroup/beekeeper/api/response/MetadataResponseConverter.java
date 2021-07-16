@@ -34,6 +34,18 @@ public final class MetadataResponseConverter {
 
   private MetadataResponseConverter(){};
 
+  public static Page<HousekeepingMetadataResponse> convertToHousekeepingMetadataResponsePage(
+      Page<HousekeepingMetadata> housekeepingMetadataPage) {
+    List<HousekeepingMetadata> housekeepingMetadataList = housekeepingMetadataPage.getContent();
+    List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
+    for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
+      HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHousekeepingMetadataResponse(
+          housekeepingMetadata);
+      housekeepingMetadataResponseList.add(housekeepingMetadataResponse);
+    }
+    return new PageImpl<>(housekeepingMetadataResponseList);
+  }
+
   private static HousekeepingMetadataResponse convertToHousekeepingMetadataResponse(
       HousekeepingMetadata housekeepingMetadata) {
     return HousekeepingMetadataResponse
@@ -50,18 +62,6 @@ public final class MetadataResponseConverter {
         .cleanupAttempts(housekeepingMetadata.getCleanupAttempts())
         .lifecycleType(housekeepingMetadata.getLifecycleType())
         .build();
-  }
-
-  public static Page<HousekeepingMetadataResponse> convertToHousekeepingMetadataResponsePage(
-      Page<HousekeepingMetadata> housekeepingMetadataPage) {
-    List<HousekeepingMetadata> housekeepingMetadataList = housekeepingMetadataPage.getContent();
-    List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
-    for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
-      HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHousekeepingMetadataResponse(
-          housekeepingMetadata);
-      housekeepingMetadataResponseList.add(housekeepingMetadataResponse);
-    }
-    return new PageImpl<>(housekeepingMetadataResponseList);
   }
 
 }

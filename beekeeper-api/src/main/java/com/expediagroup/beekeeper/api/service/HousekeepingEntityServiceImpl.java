@@ -24,12 +24,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
-import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 @Service
-public class HousekeepingEntityServiceImpl implements HousekeepingEntityService<HousekeepingEntity> {
+public class HousekeepingEntityServiceImpl implements HousekeepingEntityService{
 
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
 

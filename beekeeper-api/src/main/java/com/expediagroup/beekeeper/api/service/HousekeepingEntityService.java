@@ -22,7 +22,7 @@ import org.springframework.data.jpa.domain.Specification;
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
-public interface HousekeepingEntityService<HousekeepingEntity> {
+public interface HousekeepingEntityService {
 
   Page<HousekeepingMetadataResponse> getAllMetadata(Specification<HousekeepingMetadata> spec, Pageable pageable);
 
