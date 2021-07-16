@@ -170,4 +170,17 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
     Thread.sleep(10000000L);
   }
+
+  private void assertThatMetadataEqualsResponse(
+      HousekeepingMetadata housekeepingMetadata,
+      HousekeepingMetadataResponse housekeepingMetadataResponse) {
+    assertThat(housekeepingMetadata.getDatabaseName()).isEqualTo(housekeepingMetadataResponse.getDatabaseName());
+    assertThat(housekeepingMetadata.getTableName()).isEqualTo(housekeepingMetadataResponse.getTableName());
+    assertThat(housekeepingMetadata.getPath()).isEqualTo(housekeepingMetadataResponse.getPath());
+    assertThat(housekeepingMetadata.getHousekeepingStatus()).isEqualTo(housekeepingMetadataResponse.getHousekeepingStatus());
+    assertThat(housekeepingMetadata.getCleanupDelay()).isEqualTo(housekeepingMetadataResponse.getCleanupDelay());
+    assertThat(housekeepingMetadata.getCleanupAttempts()).isEqualTo(housekeepingMetadataResponse.getCleanupAttempts());
+    assertThat(housekeepingMetadata.getLifecycleType()).isEqualTo(housekeepingMetadataResponse.getLifecycleType());
+  }
+
 }
