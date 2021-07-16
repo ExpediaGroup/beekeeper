@@ -31,15 +31,12 @@ import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGener
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -63,9 +60,6 @@ public class BeekeeperControllerTest {
 
   @MockBean
   private HousekeepingEntityServiceImpl housekeepingEntityServiceImpl;
-
-  @Captor
-  ArgumentCaptor<Specification<HousekeepingMetadata>> specCaptor;
 
   @Test
   public void testGetAllMetadataWhenValidInput() throws Exception {
