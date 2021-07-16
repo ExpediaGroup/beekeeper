@@ -27,7 +27,6 @@ import java.net.http.HttpResponse.BodyHandlers;
 public class BeekeeperApiTestClient {
 
   private static final String API_ROOT = "/api/v1";
-  private static final String DATABASE_AND_TABLE = "/database/some_database/table/some_table";
   private static final String METADATA_PATH = "/metadata";
 
   private final String housekeepingEntityUrl;
