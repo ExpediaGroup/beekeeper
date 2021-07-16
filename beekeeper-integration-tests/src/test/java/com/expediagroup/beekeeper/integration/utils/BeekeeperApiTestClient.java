@@ -30,22 +30,22 @@ public class BeekeeperApiTestClient {
   private static final String DATABASE_AND_TABLE = "/database/some_database/table/some_table";
   private static final String METADATA_PATH = "/metadata";
 
-  private final String getHousekeepingEntityUrl;
+  private final String housekeepingEntityUrl;
   private final HttpClient httpClient;
 
   public BeekeeperApiTestClient(String baseUrl) {
-    this.getHousekeepingEntityUrl = baseUrl + API_ROOT + DATABASE_AND_TABLE;
+    this.housekeepingEntityUrl = baseUrl + API_ROOT + DATABASE_AND_TABLE;
     this.httpClient = HttpClient.newHttpClient();
   }
 
   public HttpResponse<String> getMetadata() throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(getHousekeepingEntityUrl + METADATA_PATH)).GET().build();
+    HttpRequest request = newBuilder().uri(URI.create(housekeepingEntityUrl + METADATA_PATH)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
   public HttpResponse<String> getMetadata(String filters) throws IOException, InterruptedException {
     HttpRequest request = newBuilder()
-        .uri(URI.create(getHousekeepingEntityUrl + METADATA_PATH + filters))
+        .uri(URI.create(housekeepingEntityUrl + METADATA_PATH + filters))
         .GET()
         .build();
     return httpClient.send(request, BodyHandlers.ofString());
