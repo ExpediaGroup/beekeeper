@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponsePage;
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
+import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadataResponse;
+
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -34,14 +36,17 @@ public class HousekeepingMetadataResponseTest {
   public void testConvertToHouseKeepingMetadataResponsePage() {
     HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database1", "some_table1");
     HousekeepingMetadata metadata2 = generateDummyHousekeepingMetadata("some_database2", "some_table2");
+    HousekeepingMetadataResponse metadataResponse1 = generateDummyHousekeepingMetadataResponse(metadata1);
+    HousekeepingMetadataResponse metadataResponse2 = generateDummyHousekeepingMetadataResponse(metadata2);
 
     List<HousekeepingMetadata> housekeepingMetadataList = List.of(metadata1, metadata2);
     Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(
         new PageImpl<>(housekeepingMetadataList));
 
     List<HousekeepingMetadataResponse> metadataResponsePageList = metadataResponsePage.getContent();
-    assertThat(metadataResponsePageList.get(0).getDatabaseName()).isEqualTo(metadata1.getDatabaseName());
-    assertThat(metadataResponsePageList.get(1).getDatabaseName()).isEqualTo(metadata2.getDatabaseName());
+
+    assertThat(metadataResponsePageList.get(0)).isEqualTo(metadataResponse1);
+    assertThat(metadataResponsePageList.get(1)).isEqualTo(metadataResponse2);
     assertTrue(metadataResponsePage.getPageable().equals((new PageImpl<>(housekeepingMetadataList).getPageable())));
   }
 
