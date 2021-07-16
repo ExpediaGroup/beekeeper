@@ -34,20 +34,21 @@ public class BeekeeperApiTestClient {
   private final HttpClient httpClient;
 
   public BeekeeperApiTestClient(String baseUrl) {
-    this.housekeepingEntityUrl = baseUrl + API_ROOT + DATABASE_AND_TABLE;
+    this.housekeepingEntityUrl = baseUrl + API_ROOT;
     this.httpClient = HttpClient.newHttpClient();
   }
 
-  public HttpResponse<String> getMetadata() throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(housekeepingEntityUrl + METADATA_PATH)).GET().build();
+  public HttpResponse<String> getMetadata(String database, String table) throws IOException, InterruptedException {
+    HttpRequest request = newBuilder()
+        .uri(URI.create(housekeepingEntityUrl + "/database/" + database + "/table/" + table + METADATA_PATH))
+        .GET()
+        .build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
-  public HttpResponse<String> getMetadata(String filters) throws IOException, InterruptedException {
-    HttpRequest request = newBuilder()
-        .uri(URI.create(housekeepingEntityUrl + METADATA_PATH + filters))
-        .GET()
-        .build();
+  public HttpResponse<String> getMetadata(String database, String table, String filters)
+    throws IOException, InterruptedException {
+    HttpRequest request = newBuilder().uri(URI.create(housekeepingEntityUrl + "/database/" + database + "/table/" + table + METADATA_PATH + filters)).GET().build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
