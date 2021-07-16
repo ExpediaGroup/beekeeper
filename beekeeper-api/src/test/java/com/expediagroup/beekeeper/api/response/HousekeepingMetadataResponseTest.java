@@ -16,7 +16,6 @@
 package com.expediagroup.beekeeper.api.response;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponsePage;
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
@@ -47,7 +46,7 @@ public class HousekeepingMetadataResponseTest {
 
     assertThat(metadataResponsePageList.get(0)).isEqualTo(metadataResponse1);
     assertThat(metadataResponsePageList.get(1)).isEqualTo(metadataResponse2);
-    assertTrue(metadataResponsePage.getPageable().equals((new PageImpl<>(housekeepingMetadataList).getPageable())));
+    assertThat(metadataResponsePage.getPageable()).isEqualTo((new PageImpl<>(housekeepingMetadataList).getPageable()));
   }
 
 }
