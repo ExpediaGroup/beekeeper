@@ -40,7 +40,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.util.SocketUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
@@ -61,7 +60,6 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   public ObjectMapper geObjMapper() {
     return new ObjectMapper()
         .registerModule(new ParameterNamesModule())
-        .registerModule(new Jdk8Module())
         .registerModule(new JavaTimeModule());
   }
 
@@ -75,8 +73,6 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   @BeforeEach
   public void beforeEach() {
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
     int port = SocketUtils.findAvailableTcpPort();
     String[] args = new String[] { "--server.port=" + port };
     final String url = format("http://localhost:%d", port);
