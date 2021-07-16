@@ -144,7 +144,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertThat(result.get(0).getPath()).isEqualTo(testMetadata1.getPath());
+    assertThatMetadataEqualsResponse(testMetadata1,result.get(0));
     assertThat(result.size()).isEqualTo(1);
   }
 
