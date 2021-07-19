@@ -39,15 +39,24 @@ public class BeekeeperApiTestClient {
 
   public HttpResponse<String> getMetadata(String database, String table) throws IOException, InterruptedException {
     HttpRequest request = newBuilder()
-        .uri(URI.create(housekeepingEntityUrl + "/database/" + database + "/table/" + table + METADATA_PATH))
+        .uri(
+            URI.create(String.format(housekeepingEntityUrl + "/database/%s/table/%s" + METADATA_PATH, database, table)))
         .GET()
         .build();
+    System.out.println(request.toString());
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
   public HttpResponse<String> getMetadata(String database, String table, String filters)
     throws IOException, InterruptedException {
-    HttpRequest request = newBuilder().uri(URI.create(housekeepingEntityUrl + "/database/" + database + "/table/" + table + METADATA_PATH + filters)).GET().build();
+    HttpRequest request = newBuilder()
+        .uri(URI
+            .create(String
+                .format(housekeepingEntityUrl + "/database/%s/table/%s" + METADATA_PATH + "%s", database, table,
+                    filters)))
+        .GET()
+        .build();
+    System.out.println(request.toString());
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
