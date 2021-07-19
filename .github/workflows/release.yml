@@ -32,7 +32,12 @@ jobs:
         gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
         # this creates a settings.xml with the following server
         settings-path: ${{ github.workspace }}
-
+        
+    - name: Configure Git User
+      run: |
+        git config user.email "actions@github.com"
+        git config user.name "GitHub Actions"
+        
     - name: Run Maven Targets
       run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml --activate-profiles oss-release --batch-mode --show-version --no-transfer-progress 
       env:
