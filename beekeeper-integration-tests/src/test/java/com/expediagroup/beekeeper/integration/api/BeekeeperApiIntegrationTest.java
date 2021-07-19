@@ -190,6 +190,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     assertThat(housekeepingMetadata.getCleanupAttempts()).isEqualTo(housekeepingMetadataResponse.getCleanupAttempts());
     assertThat(housekeepingMetadata.getLifecycleType()).isEqualTo(housekeepingMetadataResponse.getLifecycleType());
   }
+  
   private HousekeepingMetadata createHousekeepingMetadata(
       String tableName,
       String path,
