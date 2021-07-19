@@ -21,6 +21,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.OK;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_ATTEMPTS_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLIENT_ID_FIELD;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.CREATION_TIMESTAMP_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
+
 import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.sql.SQLException;
@@ -69,6 +75,8 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   protected BeekeeperApiTestClient testClient;
 
   protected final ObjectMapper mapper = geObjMapper();
+
+  private Long id = 1L;
 
   @BeforeEach
   public void beforeEach() {
@@ -181,6 +189,28 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     assertThat(housekeepingMetadata.getCleanupDelay()).isEqualTo(housekeepingMetadataResponse.getCleanupDelay());
     assertThat(housekeepingMetadata.getCleanupAttempts()).isEqualTo(housekeepingMetadataResponse.getCleanupAttempts());
     assertThat(housekeepingMetadata.getLifecycleType()).isEqualTo(housekeepingMetadataResponse.getLifecycleType());
+  }
+  private HousekeepingMetadata createHousekeepingMetadata(
+      String tableName,
+      String path,
+      String partitionName,
+      LifecycleEventType lifecycleEventType,
+      String cleanupDelay) {
+    return HousekeepingMetadata
+        .builder()
+        .id(id++)
+        .path(path)
+        .databaseName(DATABASE_NAME_VALUE)
+        .tableName(tableName)
+        .partitionName(partitionName)
+        .housekeepingStatus(SCHEDULED)
+        .creationTimestamp(CREATION_TIMESTAMP_VALUE)
+        .modifiedTimestamp(CREATION_TIMESTAMP_VALUE)
+        .cleanupDelay(Duration.parse(cleanupDelay))
+        .cleanupAttempts(CLEANUP_ATTEMPTS_VALUE)
+        .lifecycleType(lifecycleEventType.toString())
+        .clientId(CLIENT_ID_FIELD)
+        .build();
   }
 
 }
