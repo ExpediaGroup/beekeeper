@@ -43,7 +43,6 @@ public class BeekeeperApiTestClient {
             URI.create(String.format(housekeepingEntityUrl + "/database/%s/table/%s" + METADATA_PATH, database, table)))
         .GET()
         .build();
-    System.out.println(request.toString());
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
@@ -56,7 +55,6 @@ public class BeekeeperApiTestClient {
                     filters)))
         .GET()
         .build();
-    System.out.println(request.toString());
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
