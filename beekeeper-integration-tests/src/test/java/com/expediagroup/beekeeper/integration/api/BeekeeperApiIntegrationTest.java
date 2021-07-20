@@ -58,6 +58,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.integration.BeekeeperIntegrationTestBase;
 import com.expediagroup.beekeeper.integration.utils.BeekeeperApiTestClient;
+import com.expediagroup.beekeeper.integration.utils.EmptyPage;
 import com.expediagroup.beekeeper.integration.utils.RestResponsePage;
 
 public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
@@ -113,8 +114,9 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HttpResponse<String> response = testClient.getMetadata("wrong_database","wrong_table");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
-    assertThrows(ValueInstantiationException.class,
-        () -> mapper.readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {}));
+    Page<HousekeepingMetadataResponse> responsePage = mapper
+        .readValue(body, new TypeReference<EmptyPage<HousekeepingMetadataResponse>>() {});
+    assertThat(responsePage.getTotalElements()).isEqualTo(0);
   }
 
   @Test
