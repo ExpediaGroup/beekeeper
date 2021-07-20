@@ -16,7 +16,7 @@ public class EmptyPage<T> extends PageImpl<T> {
 //    size 0 and this class is a workaround to that issue. This class should only be used for that test and nothing else.
 
   @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-  public EmptyPage(
+  protected EmptyPage(
       @JsonProperty("content") List<T> content,
       @JsonProperty("number") int number,
       @JsonProperty("size") int size,
@@ -30,6 +30,5 @@ public class EmptyPage<T> extends PageImpl<T> {
       @JsonProperty("empty") boolean empty) {
     super(content, PageRequest.of(number, 1), totalElements);
   }
-
 
 }
