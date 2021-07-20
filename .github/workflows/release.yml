@@ -35,8 +35,8 @@ jobs:
         
     - name: Configure Git User
       run: |
-        git config user.email "actions@github.com"
-        git config user.name "GitHub Actions"
+        git config user.email "oss@expediagroup.com"
+        git config user.name "eg-oss-ci"
         
     - name: Run Maven Targets
       run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml --activate-profiles oss-release --batch-mode --show-version --no-transfer-progress 
