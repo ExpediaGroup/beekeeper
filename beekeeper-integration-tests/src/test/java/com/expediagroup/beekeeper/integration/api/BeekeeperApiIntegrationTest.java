@@ -56,7 +56,6 @@ import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.integration.BeekeeperIntegrationTestBase;
 import com.expediagroup.beekeeper.integration.utils.BeekeeperApiTestClient;
-import com.expediagroup.beekeeper.integration.utils.EmptyPage;
 import com.expediagroup.beekeeper.integration.utils.RestResponsePage;
 
 public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
