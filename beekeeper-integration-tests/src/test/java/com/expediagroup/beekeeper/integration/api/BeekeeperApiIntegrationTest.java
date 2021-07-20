@@ -113,7 +113,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
-        .readValue(body, new TypeReference<EmptyPage<HousekeepingMetadataResponse>>() {});
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     assertThat(responsePage.getTotalElements()).isEqualTo(0);
   }
 
