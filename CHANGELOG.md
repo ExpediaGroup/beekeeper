@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added a `GET /metadata` endpoint to the `beekeeper-api`.
 
-## [3.2.0] - TBD
+## [3.2.0] - 2021-07-19
 ### Added
 - Added `beekeeper-api` module.
 ### Changed
