@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,7 +175,7 @@ class BeekeeperVacuumToolApplicationTest {
   void vacuumAfterPathWasScheduledForHousekeeping() throws IOException {
     initialiseApp();
     setUnpartitionedTable();
-    HousekeepingPath path = new HousekeepingPath.Builder().databaseName(databaseName)
+    HousekeepingPath path = HousekeepingPath.builder().databaseName(databaseName)
         .tableName(tableName)
         .path("file:" + snapshot0Dir.toString())
         .housekeepingStatus(SCHEDULED)
@@ -224,7 +224,7 @@ class BeekeeperVacuumToolApplicationTest {
     Path partition3InSnapshot1Dir = Files.createTempDirectory(snapshot1Dir, "partition 3_");
     File file3 = File.createTempFile("000000_", null, partition3InSnapshot1Dir.toFile());
     writeContentToFiles(file3.toPath(), file3.toPath(), file3.toPath());
-    HousekeepingPath path = new HousekeepingPath.Builder().databaseName(databaseName)
+    HousekeepingPath path = HousekeepingPath.builder().databaseName(databaseName)
         .tableName(tableName)
         .path("file:" + partition3InSnapshot1Dir.toString())
         .housekeepingStatus(SCHEDULED)

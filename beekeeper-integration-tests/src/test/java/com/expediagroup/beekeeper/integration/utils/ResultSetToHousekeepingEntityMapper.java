@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 public class ResultSetToHousekeepingEntityMapper {
 
   public static HousekeepingPath mapToHousekeepingPath(ResultSet resultSet) throws SQLException {
-    return new HousekeepingPath.Builder()
+    return HousekeepingPath.builder()
         .id(resultSet.getLong(ID_FIELD))
         .path(resultSet.getString(PATH_FIELD))
         .databaseName(resultSet.getString(DATABASE_NAME_FIELD))
@@ -56,7 +56,7 @@ public class ResultSetToHousekeepingEntityMapper {
   }
 
   public static HousekeepingMetadata mapToHousekeepingMetadata(ResultSet resultSet) throws SQLException {
-    return new HousekeepingMetadata.Builder()
+    return HousekeepingMetadata.builder()
         .id(resultSet.getLong(ID_FIELD))
         .path(resultSet.getString(PATH_FIELD))
         .databaseName(resultSet.getString(DATABASE_NAME_FIELD))

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class MySqlTestUtils {
 
@@ -42,27 +43,20 @@ public class MySqlTestUtils {
     connection.createStatement().executeUpdate(format(INSERT_TO_TABLE, database, table, fields, values));
   }
 
-  public int getTableRowCount(String database, String table) throws SQLException {
-    return getTableRowCount(format(SELECT_TABLE, database, table, ""));
-  }
-
   public int getTableRowCount(String database, String table, String additionalFilters) throws SQLException {
     return getTableRowCount(format(SELECT_TABLE, database, table, additionalFilters));
   }
 
-  private int getTableRowCount(String statement) throws SQLException {
-    ResultSet resultSet = getTableRows(statement);
+  private int getTableRowCount(String statementString) throws SQLException {
+    Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
+        ResultSet.CONCUR_READ_ONLY);
+    ResultSet resultSet = statement.executeQuery(statementString);
     resultSet.last();
-    int rowsInTable = resultSet.getRow();
-    return rowsInTable;
+    return resultSet.getRow();
   }
 
   public ResultSet getTableRows(String database, String table, String additionalFilters) throws SQLException {
     return getTableRows(format(SELECT_TABLE, database, table, additionalFilters));
-  }
-
-  public ResultSet getTableRows(String database, String table) throws SQLException {
-    return getTableRows(format(SELECT_TABLE, database, table, ""));
   }
 
   private ResultSet getTableRows(String statement) throws SQLException {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,7 +110,7 @@ class BeekeeperRepositoryTest {
 
   private HousekeepingPath createEntityHousekeepingPath() {
     LocalDateTime creationTimestamp = LocalDateTime.now(ZoneId.of("UTC"));
-    return new HousekeepingPath.Builder()
+    return HousekeepingPath.builder()
         .path("path")
         .databaseName("database")
         .tableName("table")

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,7 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
@@ -100,7 +98,6 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     verify(existingTable).setHousekeepingStatus(metadata.getHousekeepingStatus());
     verify(existingTable).setClientId(metadata.getClientId());
     verify(existingTable).setCleanupDelay(metadata.getCleanupDelay());
-    verifyNoMoreInteractions(existingTable);
     verify(housekeepingMetadataRepository).save(existingTable);
   }
 
@@ -123,13 +120,9 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     verify(existingTable).setHousekeepingStatus(metadata.getHousekeepingStatus());
     verify(existingTable).setCleanupDelay(metadata.getCleanupDelay());
     verify(existingTable).setClientId(metadata.getClientId());
-    verify(existingTable).getCleanupTimestamp();
-    verify(existingTable, times(2)).getDatabaseName();
-    verify(existingTable, times(2)).getTableName();
     // new delay is 3 hours, which is less than the current maximum of 30 days, so cleanup timestamp set as max value
     verify(existingTable).setCleanupTimestamp(CREATION_TIMESTAMP.plus(Duration.parse("P30D")));
 
-    verifyNoMoreInteractions(existingTable);
     verify(housekeepingMetadataRepository).save(existingTable);
   }
 
@@ -160,7 +153,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
   }
 
   private HousekeepingMetadata createEntityHousekeepingTable(String partitionName) {
-    return new HousekeepingMetadata.Builder()
+    return HousekeepingMetadata.builder()
         .path(PATH)
         .databaseName(DATABASE_NAME)
         .tableName(TABLE_NAME)

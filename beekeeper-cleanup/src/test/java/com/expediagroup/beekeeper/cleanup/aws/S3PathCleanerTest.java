@@ -91,7 +91,7 @@ class S3PathCleanerTest {
     s3Client = new S3Client(amazonS3, dryRunEnabled);
     s3SentinelFilesCleaner = new S3SentinelFilesCleaner(s3Client);
     s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
-    housekeepingPath = new HousekeepingPath.Builder()
+    housekeepingPath = HousekeepingPath.builder()
       .path(absolutePath)
       .tableName(tableName)
       .databaseName(databaseName)

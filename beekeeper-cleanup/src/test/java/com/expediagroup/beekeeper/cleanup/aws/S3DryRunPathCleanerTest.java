@@ -69,7 +69,7 @@ class S3DryRunPathCleanerTest {
       .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     s3Client = new S3Client(amazonS3, dryRunEnabled);
     s3DryRunPathCleaner = new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
-    housekeepingPath = new HousekeepingPath.Builder()
+    housekeepingPath = HousekeepingPath.builder()
       .path(absolutePath)
       .tableName(tableName)
       .databaseName(databaseName)

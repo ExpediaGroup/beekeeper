@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ public class UnreferencedHousekeepingPathGenerator implements HousekeepingEntity
   public HousekeepingEntity generateHousekeepingEntity(ListenerEvent listenerEvent, String clientId,
       String cleanupPath) {
     Duration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
-    HousekeepingPath.Builder builder = new HousekeepingPath.Builder()
+    HousekeepingPath.HousekeepingPathBuilder builder = HousekeepingPath.builder()
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(LocalDateTime.now(clock))
         .cleanupDelay(cleanupDelay)
