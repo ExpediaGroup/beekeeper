@@ -163,7 +163,7 @@
 
   <profiles>
     <profile>
-      <id>sonatype-oss-release-beekeper</id>
+      <id>sonatype-oss-release-beekepeer</id>
       <build>
         <plugins>
           <plugin>
