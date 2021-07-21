@@ -40,7 +40,8 @@ jobs:
         git config user.email "oss@expediagroup.com"
         git config user.name "eg-oss-ci"
         
-    - name: Run Maven Targetsrun: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml --activate-profiles sonatype-oss-release --batch-mode --show-version --no-transfer-progress
+    - name: Run Maven Targets
+      run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml --activate-profiles sonatype-oss-release --batch-mode --show-version --no-transfer-progress
       env:
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
