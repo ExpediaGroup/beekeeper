@@ -28,7 +28,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 @Service
-public class HousekeepingEntityServiceImpl implements HousekeepingEntityService{
+public class HousekeepingEntityServiceImpl implements HousekeepingEntityService {
 
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
 

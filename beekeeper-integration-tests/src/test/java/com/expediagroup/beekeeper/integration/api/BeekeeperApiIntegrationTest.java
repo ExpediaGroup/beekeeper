@@ -61,14 +61,11 @@ import com.expediagroup.beekeeper.integration.utils.RestResponsePage;
 public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   public ObjectMapper geObjMapper() {
-    return new ObjectMapper()
-        .registerModule(new ParameterNamesModule())
-        .registerModule(new JavaTimeModule());
+    return new ObjectMapper().registerModule(new ParameterNamesModule()).registerModule(new JavaTimeModule());
   }
 
   private static final Logger log = LoggerFactory.getLogger(BeekeeperApiIntegrationTest.class);
 
-  // APP CONTEXT AND TEST CLIENT
   protected static ConfigurableApplicationContext context;
   protected BeekeeperApiTestClient testClient;
 
@@ -108,7 +105,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     insertExpiredMetadata(testMetadata1);
     insertExpiredMetadata(testMetadata2);
 
-    HttpResponse<String> response = testClient.getMetadata("wrong_database","wrong_table");
+    HttpResponse<String> response = testClient.getMetadata("wrong_database", "wrong_table");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
@@ -144,14 +141,14 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         + "&path_name=s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A"
         + "&partition_name=event_date=2020-01-01/event_hour=0/event_type=A";
 
-    HttpResponse<String> response = testClient.getMetadata("some_database","some_table",filters);
+    HttpResponse<String> response = testClient.getMetadata("some_database", "some_table", filters);
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertThatMetadataEqualsResponse(testMetadata1,result.get(0));
+    assertThatMetadataEqualsResponse(testMetadata1, result.get(0));
     assertThat(result.size()).isEqualTo(1);
   }
 
@@ -184,12 +181,13 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     assertThat(housekeepingMetadata.getDatabaseName()).isEqualTo(housekeepingMetadataResponse.getDatabaseName());
     assertThat(housekeepingMetadata.getTableName()).isEqualTo(housekeepingMetadataResponse.getTableName());
     assertThat(housekeepingMetadata.getPath()).isEqualTo(housekeepingMetadataResponse.getPath());
-    assertThat(housekeepingMetadata.getHousekeepingStatus()).isEqualTo(housekeepingMetadataResponse.getHousekeepingStatus());
+    assertThat(housekeepingMetadata.getHousekeepingStatus())
+        .isEqualTo(housekeepingMetadataResponse.getHousekeepingStatus());
     assertThat(housekeepingMetadata.getCleanupDelay()).isEqualTo(housekeepingMetadataResponse.getCleanupDelay());
     assertThat(housekeepingMetadata.getCleanupAttempts()).isEqualTo(housekeepingMetadataResponse.getCleanupAttempts());
     assertThat(housekeepingMetadata.getLifecycleType()).isEqualTo(housekeepingMetadataResponse.getLifecycleType());
   }
-  
+
   private HousekeepingMetadata createHousekeepingMetadata(
       String tableName,
       String path,
