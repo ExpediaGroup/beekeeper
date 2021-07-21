@@ -32,6 +32,7 @@ import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
+import com.expediagroup.beekeeper.api.service.HousekeepingEntityService;
 import com.expediagroup.beekeeper.api.service.HousekeepingEntityServiceImpl;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
@@ -39,11 +40,11 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 @RestController
 public class BeekeeperController {
 
-  private final HousekeepingEntityServiceImpl housekeepingEntityServiceImpl;
+  private final HousekeepingEntityService housekeepingEntityService;
 
   @Autowired
-  public BeekeeperController(HousekeepingEntityServiceImpl housekeepingEntityServiceImpl) {
-    this.housekeepingEntityServiceImpl = housekeepingEntityServiceImpl;
+  public BeekeeperController(HousekeepingEntityServiceImpl housekeepingEntityService) {
+    this.housekeepingEntityService = housekeepingEntityService;
   }
 
   @RequestMapping(value = "/database/{databaseName}/table/{tableName}/metadata", method = RequestMethod.GET)
@@ -62,7 +63,7 @@ public class BeekeeperController {
           @Spec(path = "creationTimestamp", params = "registered_before", spec = LessThan.class),
           @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class) }) Specification<HousekeepingMetadata> spec,
       Pageable pageable) {
-    return ResponseEntity.ok(housekeepingEntityServiceImpl.getAllMetadata(spec, pageable));
+    return ResponseEntity.ok(housekeepingEntityService.getAllMetadata(spec, pageable));
   }
 
 }
