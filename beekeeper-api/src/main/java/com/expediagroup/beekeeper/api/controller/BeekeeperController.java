@@ -33,7 +33,6 @@ import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
 import com.expediagroup.beekeeper.api.service.HousekeepingEntityService;
-import com.expediagroup.beekeeper.api.service.HousekeepingEntityServiceImpl;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 @RequestMapping("/api/v1")
@@ -43,7 +42,7 @@ public class BeekeeperController {
   private final HousekeepingEntityService housekeepingEntityService;
 
   @Autowired
-  public BeekeeperController(HousekeepingEntityServiceImpl housekeepingEntityService) {
+  public BeekeeperController(HousekeepingEntityService housekeepingEntityService) {
     this.housekeepingEntityService = housekeepingEntityService;
   }
 
