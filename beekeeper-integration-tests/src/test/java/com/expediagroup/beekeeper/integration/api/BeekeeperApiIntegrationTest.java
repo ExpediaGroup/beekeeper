@@ -60,7 +60,7 @@ import com.expediagroup.beekeeper.integration.utils.RestResponsePage;
 
 public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
-  public ObjectMapper geObjMapper() {
+  public ObjectMapper geObjectMapper() {
     return new ObjectMapper().registerModule(new ParameterNamesModule()).registerModule(new JavaTimeModule());
   }
 
@@ -69,7 +69,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   protected static ConfigurableApplicationContext context;
   protected BeekeeperApiTestClient testClient;
 
-  protected final ObjectMapper mapper = geObjMapper();
+  protected final ObjectMapper mapper = geObjectMapper();
 
   private Long id = 1L;
 
@@ -153,7 +153,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   }
 
   // This test is to manually test the API
-  //@Disabled
+  @Disabled
   @Test
   public void manualTest() throws SQLException, InterruptedException {
     HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table",
