@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
+import com.google.common.collect.Lists;
+
 import com.expediagroup.beekeeper.core.TestApplication;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
@@ -77,7 +79,7 @@ public class HousekeepingPathRepositoryTest {
 
     housekeepingPathRepository.save(path);
 
-    List<HousekeepingPath> paths = housekeepingPathRepository.findAll();
+    List<HousekeepingPath> paths = Lists.newArrayList(housekeepingPathRepository.findAll());
     assertThat(paths.size()).isEqualTo(1);
     HousekeepingPath savedPath = paths.get(0);
     assertThat(savedPath.getPath()).isEqualTo("path");
@@ -101,7 +103,7 @@ public class HousekeepingPathRepositoryTest {
     savedPath.setCleanupAttempts(savedPath.getCleanupAttempts() + 1);
     housekeepingPathRepository.save(savedPath);
 
-    List<HousekeepingPath> paths = housekeepingPathRepository.findAll();
+    List<HousekeepingPath> paths = Lists.newArrayList(housekeepingPathRepository.findAll());
     assertThat(paths.size()).isEqualTo(1);
     HousekeepingPath updatedPath = paths.get(0);
     assertThat(updatedPath.getHousekeepingStatus()).isEqualTo(DELETED);
@@ -120,7 +122,7 @@ public class HousekeepingPathRepositoryTest {
   void timezone() {
     HousekeepingPath path = createEntityHousekeepingPath();
     housekeepingPathRepository.save(path);
-    List<HousekeepingPath> paths = housekeepingPathRepository.findAll();
+    List<HousekeepingPath> paths = Lists.newArrayList(housekeepingPathRepository.findAll());
     assertThat(paths.size()).isEqualTo(1);
 
     HousekeepingPath savedPath = paths.get(0);
@@ -204,7 +206,7 @@ public class HousekeepingPathRepositoryTest {
   }
 
   private HousekeepingPath createEntityHousekeepingPath() {
-    return new HousekeepingPath.Builder()
+    return HousekeepingPath.builder()
         .path("path")
         .databaseName("database")
         .tableName("table")

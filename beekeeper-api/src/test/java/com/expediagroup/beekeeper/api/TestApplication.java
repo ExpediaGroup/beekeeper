@@ -16,16 +16,9 @@
 package com.expediagroup.beekeeper.api;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-public class BeekeeperApi {
-
-  public static void main(String[] args) {
-    new SpringApplicationBuilder(BeekeeperApi.class)
-        .properties("server.port:${endpoint.port:7008}")
-        .build()
-        .run(args);
-  }
-
-}
+@EnableConfigurationProperties
+public class TestApplication {}

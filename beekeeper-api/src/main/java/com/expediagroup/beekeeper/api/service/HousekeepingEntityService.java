@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.api;
+package com.expediagroup.beekeeper.api.service;
 
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
-@RestController
-public class BeekeeperController {
-  
+import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
+import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+
+public interface HousekeepingEntityService {
+
+  Page<HousekeepingMetadataResponse> getAllMetadata(Specification<HousekeepingMetadata> spec, Pageable pageable);
+
 }

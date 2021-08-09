@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,7 @@ public class BeekeeperSchedulerApiary implements ApplicationContextAware {
   public static void main(String[] args) {
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     new SpringApplicationBuilder(BeekeeperSchedulerApiary.class)
-        .properties("spring.config.additional-location:classpath:/beekeeper-scheduler-apiary-application.yml,"
-            + "${config:null}")
+        .properties("spring.config.additional-location:classpath:/beekeeper-scheduler-apiary-application.yml,"+"${config:/}")
         .build()
         .run(args);
   }
