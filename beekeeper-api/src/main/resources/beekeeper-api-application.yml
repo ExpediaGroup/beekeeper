@@ -8,3 +8,6 @@ spring:
       ddl-auto: validate
     properties.hibernate:
       dialect: org.hibernate.dialect.MySQL8Dialect
+
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver

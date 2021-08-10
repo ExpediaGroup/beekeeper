@@ -50,6 +50,14 @@
           <groupId>org.apache.geronimo.specs</groupId>
           <artifactId>geronimo-jaspic_1.0_spec</artifactId>
         </exclusion>
+        <exclusion>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-util</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty.aggregate</groupId>
+          <artifactId>jetty-all</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
