@@ -1,0 +1,10 @@
+server:
+  port: 7008
+
+spring:
+  jpa:
+    database: default
+    hibernate:
+      ddl-auto: validate
+    properties.hibernate:
+      dialect: org.hibernate.dialect.MySQL8Dialect
