@@ -1,7 +1,7 @@
 management.endpoints.web.exposure.include: health,info,prometheus
 
 server:
-  port: 6008
+  port: 8080
 
 spring:
   jpa:
