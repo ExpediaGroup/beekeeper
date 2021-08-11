@@ -44,12 +44,6 @@
       <version>27.1-jre</version>
     </dependency>
 
-    <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
-      <version>${snakeyaml.version}</version>
-    </dependency>
-
     <!-- micrometer -->
     <dependency>
       <groupId>io.micrometer</groupId>

@@ -73,8 +73,8 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
 
   private static final String QUEUE = "apiary-receiver-queue";
   private static final String SCHEDULED_EXPIRED_METRIC = "metadata-scheduled";
-  private static final String HEALTHCHECK_URI = "http://localhost:6008/actuator/health";
-  private static final String PROMETHEUS_URI = "http://localhost:6008/actuator/prometheus";
+  private static final String HEALTHCHECK_URI = "http://localhost:8080/actuator/health";
+  private static final String PROMETHEUS_URI = "http://localhost:8080/actuator/prometheus";
 
   private static final String PARTITION_KEYS = "{ \"event_date\": \"date\", \"event_hour\": \"smallint\"}";
   private static final String PARTITION_A_VALUES = "[ \"2020-01-01\", \"0\" ]";
