@@ -73,8 +73,8 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
 
   private static final String QUEUE = "apiary-receiver-queue";
   private static final String SCHEDULED_ORPHANED_METRIC = "paths-scheduled";
-  private static final String HEALTHCHECK_URI = "http://localhost:8080/actuator/health";
-  private static final String PROMETHEUS_URI = "http://localhost:8080/actuator/prometheus";
+  private static final String HEALTHCHECK_URI = "http://localhost:6008/actuator/health";
+  private static final String PROMETHEUS_URI = "http://localhost:6008/actuator/prometheus";
 
   @Container
   private static final LocalStackContainer SQS_CONTAINER = ContainerTestUtils.awsContainer(SQS);
