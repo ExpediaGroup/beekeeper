@@ -14,6 +14,3 @@ properties:
   beekeeper:
     default-cleanup-delay: P3D
     default-expiration-delay: P30D
-    cleanup-page-size: 500
-    dry-run-enabled: false
-    scheduler-delay-ms: 300000 # 5 minutes
