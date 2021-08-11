@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponsePage;
-import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
+import static com.expediagroup.beekeeper.api.util.DummyHousekeepingEntityGenerator.generateDummyHousekeepingMetadata;
 
 import java.util.List;
 
@@ -37,8 +37,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
+import com.expediagroup.beekeeper.api.response.HousekeepingPathResponse;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
+import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class HousekeepingEntityServiceImplTest {
@@ -48,13 +51,15 @@ public class HousekeepingEntityServiceImplTest {
   @Mock
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
   @Mock
+  private HousekeepingPathRepository housekeepingPathRepository;
+  @Mock
   private Specification<HousekeepingMetadata> spec;
   @Mock
   private Pageable pageable;
 
   @BeforeEach
   public void beforeEach() {
-    housekeepingEntityServiceImpl = new HousekeepingEntityServiceImpl(housekeepingMetadataRepository);
+    housekeepingEntityServiceImpl = new HousekeepingEntityServiceImpl(housekeepingMetadataRepository, housekeepingPathRepository);
   }
 
   @Test
@@ -71,6 +76,22 @@ public class HousekeepingEntityServiceImplTest {
     assertThat(result).isEqualTo(metadataResponsePage);
     verify(housekeepingMetadataRepository, times(1)).findAll(spec, pageable);
     verifyNoMoreInteractions(housekeepingMetadataRepository);
+  }
+
+  @Test
+  public void testGetAllPaths() {
+    HousekeepingPath path1 = generateDummyHousekeepingPath("some_database", "some_table");
+    HousekeepingPath path2 = generateDummyHousekeepingPath("some_database", "some_table");
+    Page<HousekeepingPath> pathsPage = new PageImpl<>(List.of(path1, path2));
+    Page<HousekeepingPathResponse> pathsResponsePage = convertToHousekeepingPathResponsePage(
+        new PageImpl<>(List.of(path1, path2)));
+
+    when(housekeepingPathRepository.findAll(pathsSpec, pageable)).thenReturn(pathsPage);
+    Page<HousekeepingPathResponse> result = housekeepingEntityServiceImpl.getAllPaths(pathsSpec, pageable);
+
+    assertThat(result).isEqualTo(pathsResponsePage);
+    verify(housekeepingPathRepository, times(1)).findAll(pathsSpec, pageable);
+    verifyNoMoreInteractions(housekeepingPathRepository);
   }
 
 }

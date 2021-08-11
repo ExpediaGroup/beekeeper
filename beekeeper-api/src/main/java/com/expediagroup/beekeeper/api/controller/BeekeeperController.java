@@ -32,6 +32,7 @@ import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
+import com.expediagroup.beekeeper.api.response.HousekeepingPathResponse;
 import com.expediagroup.beekeeper.api.service.HousekeepingEntityService;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
@@ -63,6 +64,26 @@ public class BeekeeperController {
           @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class) }) Specification<HousekeepingMetadata> spec,
       Pageable pageable) {
     return ResponseEntity.ok(housekeepingEntityService.getAllMetadata(spec, pageable));
+  }
+
+
+  @RequestMapping(value = "/database/{databaseName}/table/{tableName}/paths", method = RequestMethod.GET)
+  public ResponseEntity<Page<HousekeepingPathResponse>> getAllPaths(
+      @PathVariable String databaseName,
+      @PathVariable String tableName,
+      @And({
+          @Spec(path = "tableName", pathVars = "tableName", spec = EqualIgnoreCase.class),
+          @Spec(path = "databaseName", pathVars = "databaseName", spec = EqualIgnoreCase.class),
+          @Spec(path = "path", params = "path_name", spec = EqualIgnoreCase.class),
+          @Spec(path = "partitionName", params = "partition_name", spec = EqualIgnoreCase.class),
+          @Spec(path = "housekeepingStatus", params = "housekeeping_status", spec = EqualIgnoreCase.class),
+          @Spec(path = "lifecycleType", params = "lifecycle_type", spec = EqualIgnoreCase.class),
+          @Spec(path = "cleanupTimestamp", params = "deleted_before", spec = LessThan.class),
+          @Spec(path = "cleanupTimestamp", params = "deleted_after", spec = GreaterThan.class),
+          @Spec(path = "creationTimestamp", params = "registered_before", spec = LessThan.class),
+          @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class) }) Specification<HousekeepingPath> spec,
+      Pageable pageable) {
+    return ResponseEntity.ok(housekeepingEntityService.getAllPaths(spec, pageable));
   }
 
 }
