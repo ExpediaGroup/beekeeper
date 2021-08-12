@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated `eg-oss-parent` to version `2.4.0` (was `2.3.2`).
 - Updated `snakeyaml` to version `1.27` (was `1.24`).
+- Updated `mockito.version` to version `3.11.2` (was `3.9.0`).
 
 ## [3.2.0] - 2021-07-21
 ### Added
