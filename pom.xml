@@ -46,7 +46,7 @@
     <lombok.version>1.18.20</lombok.version>
     <maven.assembly.plugin.version>3.1.0</maven.assembly.plugin.version>
     <mockito.version>3.9.0</mockito.version>
-    <snakeyaml.version>1.24</snakeyaml.version>
+    <snakeyaml.version>1.27</snakeyaml.version>
     <springframework.boot.version>2.4.4</springframework.boot.version>
     <springframework.version>5.3.5</springframework.version>
     <testcontainers.version>1.15.2</testcontainers.version>
