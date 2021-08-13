@@ -24,7 +24,7 @@ import com.expediagroup.beekeeper.api.response.HousekeepingPathResponse;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
-public interface HousekeepingEntityService<HousekeepingEntity> {
+public interface HousekeepingEntityService {
 
   Page<HousekeepingMetadataResponse> getAllMetadata(Specification<HousekeepingMetadata> spec, Pageable pageable);
 
