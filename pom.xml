@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -10,7 +9,7 @@
   </parent>
 
   <artifactId>beekeeper-parent</artifactId>
-  <version>3.3.0-SNAPSHOT</version>
+  <version>3.3.1-SNAPSHOT</version>
   <description>Beekeeper is a service which manages the cleanup of tables and unreferenced S3 paths.</description>
   <inceptionYear>2019</inceptionYear>
   <packaging>pom</packaging>
@@ -45,8 +44,8 @@
     <logback.version>1.2.3</logback.version>
     <lombok.version>1.18.20</lombok.version>
     <maven.assembly.plugin.version>3.1.0</maven.assembly.plugin.version>
-    <mockito.version>3.9.0</mockito.version>
-    <snakeyaml.version>1.24</snakeyaml.version>
+    <mockito.version>3.11.2</mockito.version>
+    <snakeyaml.version>1.27</snakeyaml.version>
     <springframework.boot.version>2.4.4</springframework.boot.version>
     <springframework.version>5.3.5</springframework.version>
     <testcontainers.version>1.15.2</testcontainers.version>
