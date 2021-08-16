@@ -68,7 +68,7 @@ public class BeekeeperController {
   }
 
 
-  @RequestMapping(value = "/database/{databaseName}/table/{tableName}/unreferencedPaths", method = RequestMethod.GET)
+  @RequestMapping(value = "/database/{databaseName}/table/{tableName}/unreferenced-paths", method = RequestMethod.GET)
   public ResponseEntity<Page<HousekeepingPathResponse>> getAllPaths(
       @PathVariable String databaseName,
       @PathVariable String tableName,

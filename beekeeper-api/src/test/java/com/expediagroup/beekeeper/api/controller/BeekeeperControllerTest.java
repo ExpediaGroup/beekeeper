@@ -92,7 +92,7 @@ public class BeekeeperControllerTest {
     when(housekeepingEntityServiceImpl.getAllPaths(any(), any())).thenReturn(pathsResponsePage);
 
     mockMvc
-        .perform(get("/api/v1/database/some_database/table/some_table/unreferencedPaths"))
+        .perform(get("/api/v1/database/some_database/table/some_table/unreferenced-paths"))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
