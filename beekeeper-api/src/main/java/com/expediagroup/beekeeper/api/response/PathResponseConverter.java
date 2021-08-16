@@ -8,6 +8,13 @@ import org.springframework.data.domain.PageImpl;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
+/*
+Ideally, this should be done with Spring projections (See https://www.baeldung.com/spring-data-jpa-projections)
+but currently projections do not support using Specification (See https://github.com/spring-projects/spring-data-jpa/issues/1378).
+
+Therefore, this is a 'manual' conversion of the HousekeepingPath object, which will be used in the API.
+*/
+
 public class PathResponseConverter {
 
   private static HousekeepingPathResponse convertToHousekeepingPathResponse(
