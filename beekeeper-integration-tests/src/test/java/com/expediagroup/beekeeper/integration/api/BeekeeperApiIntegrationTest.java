@@ -190,7 +190,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   }
 
   // This test is to manually test the API
-  //@Disabled
+  @Disabled
   @Test
   public void manualTest() throws SQLException, InterruptedException {
     HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table",
