@@ -22,7 +22,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponsePage;
+import static com.expediagroup.beekeeper.api.response.PathResponseConverter.convertToHousekeepingPathResponsePage;
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingEntityGenerator.generateDummyHousekeepingMetadata;
+import static com.expediagroup.beekeeper.api.util.DummyHousekeepingEntityGenerator.generateDummyHousekeepingPath;
 
 import java.util.List;
 
@@ -53,7 +55,9 @@ public class HousekeepingEntityServiceImplTest {
   @Mock
   private HousekeepingPathRepository housekeepingPathRepository;
   @Mock
-  private Specification<HousekeepingMetadata> spec;
+  private Specification<HousekeepingMetadata> metadataSpec;
+  @Mock
+  private Specification<HousekeepingPath> pathsSpec;
   @Mock
   private Pageable pageable;
 
@@ -70,11 +74,11 @@ public class HousekeepingEntityServiceImplTest {
     Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(
         new PageImpl<>(List.of(metadata1, metadata2)));
 
-    when(housekeepingMetadataRepository.findAll(spec, pageable)).thenReturn(metadataPage);
-    Page<HousekeepingMetadataResponse> result = housekeepingEntityServiceImpl.getAllMetadata(spec, pageable);
+    when(housekeepingMetadataRepository.findAll(metadataSpec, pageable)).thenReturn(metadataPage);
+    Page<HousekeepingMetadataResponse> result = housekeepingEntityServiceImpl.getAllMetadata(metadataSpec, pageable);
 
     assertThat(result).isEqualTo(metadataResponsePage);
-    verify(housekeepingMetadataRepository, times(1)).findAll(spec, pageable);
+    verify(housekeepingMetadataRepository, times(1)).findAll(metadataSpec, pageable);
     verifyNoMoreInteractions(housekeepingMetadataRepository);
   }
 
