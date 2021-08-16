@@ -140,7 +140,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         + "&lifecycle_type=EXPIRED"
         + "&deleted_before=2000-05-05T10:41:20"
         + "&registered_before=2000-04-04T10:41:20"
-        + "&path_name=s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A"
+        + "&path=s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A"
         + "&partition_name=event_date=2020-01-01/event_hour=0/event_type=A";
 
     HttpResponse<String> response = testClient.getMetadata("some_database", "some_table", filters);
@@ -176,7 +176,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         + "&lifecycle_type=EXPIRED"
         + "&deleted_before=2000-05-05T10:41:20"
         + "&registered_before=2000-04-04T10:41:20"
-        + "&path_name=s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A";
+        + "&path=s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A";
 
     HttpResponse<String> response = testClient.getUnreferencedPaths("some_database", "some_table", filters);
     assertThat(response.statusCode()).isEqualTo(OK.value());
@@ -190,7 +190,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   }
 
   // This test is to manually test the API
-  @Disabled
+  //@Disabled
   @Test
   public void manualTest() throws SQLException, InterruptedException {
     HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table",
@@ -208,6 +208,19 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     insertExpiredMetadata(testMetadata1);
     insertExpiredMetadata(testMetadata2);
     insertExpiredMetadata(testMetadata3);
+
+    HousekeepingPath testPath1 = createHousekeepingPath("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED,
+        Duration.parse("P3D").toString());
+    HousekeepingPath testPath2 = createHousekeepingPath("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.UNREFERENCED,
+        Duration.parse("P3D").toString());
+    HousekeepingPath testPath3 = createHousekeepingPath("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=C", LifecycleEventType.UNREFERENCED,
+        Duration.parse("P3D").toString());
+    insertUnreferencedPath(testPath1);
+    insertUnreferencedPath(testPath2);
+    insertUnreferencedPath(testPath3);
 
     Thread.sleep(10000000L);
   }

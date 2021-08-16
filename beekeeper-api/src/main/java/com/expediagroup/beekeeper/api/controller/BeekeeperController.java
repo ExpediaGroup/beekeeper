@@ -55,7 +55,7 @@ public class BeekeeperController {
       @And({
           @Spec(path = "tableName", pathVars = "tableName", spec = EqualIgnoreCase.class),
           @Spec(path = "databaseName", pathVars = "databaseName", spec = EqualIgnoreCase.class),
-          @Spec(path = "path", params = "path_name", spec = EqualIgnoreCase.class),
+          @Spec(path = "path", params = "path", spec = EqualIgnoreCase.class),
           @Spec(path = "partitionName", params = "partition_name", spec = EqualIgnoreCase.class),
           @Spec(path = "housekeepingStatus", params = "housekeeping_status", spec = EqualIgnoreCase.class),
           @Spec(path = "lifecycleType", params = "lifecycle_type", spec = EqualIgnoreCase.class),
@@ -75,7 +75,7 @@ public class BeekeeperController {
       @And({
           @Spec(path = "tableName", pathVars = "tableName", spec = EqualIgnoreCase.class),
           @Spec(path = "databaseName", pathVars = "databaseName", spec = EqualIgnoreCase.class),
-          @Spec(path = "path", params = "path_name", spec = EqualIgnoreCase.class),
+          @Spec(path = "path", params = "path", spec = EqualIgnoreCase.class),
           @Spec(path = "partitionName", params = "partition_name", spec = EqualIgnoreCase.class),
           @Spec(path = "housekeepingStatus", params = "housekeeping_status", spec = EqualIgnoreCase.class),
           @Spec(path = "lifecycleType", params = "lifecycle_type", spec = EqualIgnoreCase.class),
