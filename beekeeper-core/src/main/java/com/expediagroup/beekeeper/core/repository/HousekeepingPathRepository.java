@@ -25,11 +25,10 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @Repository
-public interface HousekeepingPathRepository extends PagingAndSortingRepository<HousekeepingMetadata, Long>,
+public interface HousekeepingPathRepository extends PagingAndSortingRepository<HousekeepingPath, Long>,
     JpaSpecificationExecutor<HousekeepingPath> {
 
   @Query(value = "from HousekeepingPath p where p.cleanupTimestamp <= :instant "

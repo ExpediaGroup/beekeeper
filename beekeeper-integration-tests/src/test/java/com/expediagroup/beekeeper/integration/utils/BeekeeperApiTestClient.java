@@ -28,6 +28,7 @@ public class BeekeeperApiTestClient {
 
   private static final String API_ROOT = "/api/v1";
   private static final String METADATA_PATH = "/metadata";
+  private static final String UNREFERENCED_PATHS_PATH = "/unreferencedPaths";
 
   private final String housekeepingEntityUrl;
   private final HttpClient httpClient;

@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
@@ -46,6 +47,23 @@ public class DummyHousekeepingEntityGenerator {
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(CREATION_TIMESTAMP)
         .modifiedTimestamp(CREATION_TIMESTAMP)
+        .cleanupDelay(CLEANUP_DELAY)
+        .cleanupAttempts(0)
+        .lifecycleType(EXPIRED.toString())
+        .build();
+  }
+
+  public static HousekeepingMetadataResponse generateDummyHousekeepingMetadataResponse(HousekeepingMetadata housekeepingMetadata) {
+    return HousekeepingMetadataResponse
+        .builder()
+        .path("s3://some/path/")
+        .databaseName(housekeepingMetadata.getDatabaseName())
+        .tableName(housekeepingMetadata.getTableName())
+        .partitionName("event_date=2020-01-01/event_hour=0/event_type=A")
+        .housekeepingStatus(SCHEDULED)
+        .creationTimestamp(CREATION_TIMESTAMP)
+        .modifiedTimestamp(CREATION_TIMESTAMP)
+        .cleanupTimestamp(housekeepingMetadata.getCleanupTimestamp())
         .cleanupDelay(CLEANUP_DELAY)
         .cleanupAttempts(0)
         .lifecycleType(EXPIRED.toString())
