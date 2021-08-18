@@ -243,9 +243,14 @@ This lets the user manually enter a database and a table name and check whether 
 
 It currently supports two endpoints; one for the expired metadata (TTL) and another one for the unreferenced paths.
 
-### Expired metadata endpoint
+### Expired metadata endpoint (`GET /metadata`)
 
-### Expired metadata endpoint
+This endpoint will return the TTL configuration of all expired partitions that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
+
+It has this structure
+### Unreferenced paths endpoint (`GET /unreferenced-paths`)
+
+This endpoint will return the configuration of all unreferenced paths that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
 
 ### Metrics
 
