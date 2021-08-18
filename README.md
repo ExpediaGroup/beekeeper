@@ -18,10 +18,11 @@ Docker images can be found in Expedia Group's [dockerhub](https://hub.docker.com
 
 Beekeeper makes use of [Apiary](https://github.com/ExpediaGroup/apiary) - an open source federated cloud data lake - to detect changes in the Hive Metastore. One of Apiary’s components, the [Apiary Metastore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/main/apiary-metastore-events/sns-metastore-events/apiary-metastore-listener), captures Hive events and publishes these as messages to an SNS topic. Beekeeper uses these messages to detect changes to the Hive Metastore, and perform appropriate deletions.
 
-Beekeeper is comprised of three separate Spring-based Java applications:
+Beekeeper is comprised of four separate Spring-based Java applications:
 1. Scheduler Apiary - An application that schedules paths and metadata for deletion in a shared database, with one table for unreferenced paths and another for expired metadata. 
 2. Path Cleanup - An application that perform deletions of unreferenced paths.
 3. Metadata Cleanup - An application that perform deletions of expired metadata.
+4. Beekeeper API - An application that allows users to see what metadata and paths are in the database.
 
 ## Beekeeper Architecture
 
@@ -48,6 +49,8 @@ By default, `alter_partition` and `alter_table` events require no further config
 The "expired" TTL property will delete tables, partitions, and their locations after a configurable delay. If no delay is specified the default is 30 days. 
 
 If the table is partitioned the cleanup delay will also apply to each partition that is added to the table. The table will only be dropped when there are no remaining partitions. 
+
+Once users have configured a table to use the TTL feature, they can use the `beekeeper-api` `GET /metadata` endpoint to check if their table has been successfully registered in the Beekeeper database. More information in the [Beekeeper API section]()
 
 ### End-to-end lifecycle example
 1. A Hive table is configured with the TTL parameter `beekeeper.remove.expired.data=true` (see [Hive table configuration](#hive-table-configuration) for more details).
@@ -105,13 +108,14 @@ ALTER TABLE <table> SET TBLPROPERTIES("beekeeper.remove.expired.data"="true", "b
 
 # Running Beekeeper
 
-Beekeeper consists of three Spring Boot applications which run independently of each other:
+Beekeeper consists of four Spring Boot applications which run independently of each other:
 
 - `beekeeper-path-cleanup` periodically queries a database for paths to delete and performs deletions. 
 - `beekeeper-metadata-cleanup` periodically queries a database for metadata to delete and performs deletions on hive tables, partitions, and s3 paths. 
 - `beekeeper-scheduler-apiary` periodically polls an Apiary SQS queue for Hive Metastore events and inserts S3 paths and Hive tables to be deleted into a database, scheduling them for deletion.
+- `beekeeper-api` allows users to retrieve information from the database and see what has been scheduled for deletion.
 
-All applications require configuration to be provided, see [Application configuration](#application-configuration) for details.
+All applications (except the `beekeeper-api`) require configuration to be provided, see [Application configuration](#application-configuration) for details.
 
     java -jar <spring-boot-application>.jar --config=<config>.yml
     
@@ -204,7 +208,7 @@ Being a Spring Boot Application, all [standard actuator endpoints](https://docs.
 
 For example, the healthcheck endpoint at: `http://<address>:<port>/actuator/health`. 
 
-By default, `beekeeper-scheduler-apiary` listens on port 8080, `beekeeper-path-cleanup` listens on port 8008, and `beekeeper-metadata-cleanup` listens on 9008. To access this endpoint when running in a Docker container, the port must be published:
+By default, `beekeeper-scheduler-apiary` listens on port 8080, `beekeeper-path-cleanup` listens on port 8008, `beekeeper-metadata-cleanup` listens on 9008 and `beekeeper-api` listens on 7008. To access this endpoint when running in a Docker container, the port must be published:
 
     docker run -p <port>:<port> <image-id>
 
@@ -230,6 +234,18 @@ By default, `beekeeper-scheduler-apiary` listens on port 8080, `beekeeper-path-c
 | `dry-run-enabled`                   | No       | Enable to simply display the deletions that would be performed, without actually doing so. Default value is `false`. |
 | `scheduler-delay-ms`                | No       | Amount of time (in milliseconds) between consecutive cleanups. Default value is `300000` (5 minutes after the previous cleanup completes). |
 | `Metastore-uri`                     | Yes      | URI of the Hive Metastore where tables to be cleaned-up are located. |
+
+## Beekeeper-API
+
+Beekeeper also has an API which allows users to access the Beekeeper database and see what metadata and paths are currently being managed in the database.
+
+This lets the user manually enter a database and a table name and check whether this table has been successfully registered in Beekeeper along with things like the current status of the table, the date and time it will be deleted, the current cleanup delay... etc.
+
+It currently supports two endpoints; one for the expired metadata (TTL) and another one for the unreferenced paths.
+
+### Expired metadata endpoint
+
+### Expired metadata endpoint
 
 ### Metrics
 
