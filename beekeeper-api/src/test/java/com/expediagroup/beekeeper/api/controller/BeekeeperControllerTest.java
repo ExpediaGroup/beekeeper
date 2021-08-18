@@ -26,7 +26,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponsePage;
-import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
+import static com.expediagroup.beekeeper.api.response.PathResponseConverter.convertToHousekeepingPathResponsePage;
+import static com.expediagroup.beekeeper.api.util.DummyHousekeepingEntityGenerator.generateDummyHousekeepingMetadata;
+import static com.expediagroup.beekeeper.api.util.DummyHousekeepingEntityGenerator.generateDummyHousekeepingPath;
 
 import java.util.List;
 
@@ -46,8 +48,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.expediagroup.beekeeper.api.TestApplication;
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
+import com.expediagroup.beekeeper.api.response.HousekeepingPathResponse;
 import com.expediagroup.beekeeper.api.service.HousekeepingEntityServiceImpl;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @WebMvcTest(BeekeeperController.class)
 @ContextConfiguration(classes = TestApplication.class)
@@ -76,6 +80,24 @@ public class BeekeeperControllerTest {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(content().json(objectMapper.writeValueAsString(metadataResponsePage)));
     verify(housekeepingEntityServiceImpl, times(1)).getAllMetadata(any(), any());
+    verifyNoMoreInteractions(housekeepingEntityServiceImpl);
+  }
+
+  @Test
+  public void testGetAllPathsWhenValidInput() throws Exception {
+    HousekeepingPath path = generateDummyHousekeepingPath("some_database", "some_table");
+    Page<HousekeepingPathResponse> pathsResponsePage = convertToHousekeepingPathResponsePage(
+        new PageImpl<>(List.of(path)));
+
+    when(housekeepingEntityServiceImpl.getAllPaths(any(), any())).thenReturn(pathsResponsePage);
+
+    mockMvc
+        .perform(get("/api/v1/database/some_database/table/some_table/unreferenced-paths"))
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(content().json(objectMapper.writeValueAsString(pathsResponsePage)));
+    verify(housekeepingEntityServiceImpl, times(1)).getAllPaths(any(), any());
     verifyNoMoreInteractions(housekeepingEntityServiceImpl);
   }
 

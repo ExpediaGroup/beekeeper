@@ -24,8 +24,9 @@ import java.time.ZoneId;
 
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
-public class DummyHousekeepingMetadataGenerator {
+public class DummyHousekeepingEntityGenerator {
 
   private static final String DEFAULT_DB_NAME = "randomDatabase";
   private static final String DEFAULT_TABLE_NAME = "randomTable";
@@ -68,4 +69,20 @@ public class DummyHousekeepingMetadataGenerator {
         .lifecycleType(EXPIRED.toString())
         .build();
   }
+
+  public static HousekeepingPath generateDummyHousekeepingPath(String databaseName, String tableName) {
+    return HousekeepingPath
+        .builder()
+        .path("s3://some/path/")
+        .databaseName(databaseName)
+        .tableName(tableName)
+        .housekeepingStatus(SCHEDULED)
+        .creationTimestamp(CREATION_TIMESTAMP)
+        .modifiedTimestamp(CREATION_TIMESTAMP)
+        .cleanupDelay(CLEANUP_DELAY)
+        .cleanupAttempts(0)
+        .lifecycleType(EXPIRED.toString())
+        .build();
+  }
+
 }

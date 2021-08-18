@@ -28,6 +28,7 @@ public class BeekeeperApiTestClient {
 
   private static final String API_ROOT = "/api/v1";
   private static final String METADATA_PATH = "/metadata";
+  private static final String UNREFERENCED_PATHS_PATH = "/unreferenced-paths";
 
   private final String housekeepingEntityUrl;
   private final HttpClient httpClient;
@@ -52,6 +53,18 @@ public class BeekeeperApiTestClient {
         .uri(URI
             .create(String
                 .format(housekeepingEntityUrl + "/database/%s/table/%s" + METADATA_PATH + "%s", database, table,
+                    filters)))
+        .GET()
+        .build();
+    return httpClient.send(request, BodyHandlers.ofString());
+  }
+
+  public HttpResponse<String> getUnreferencedPaths(String database, String table, String filters)
+      throws IOException, InterruptedException {
+    HttpRequest request = newBuilder()
+        .uri(URI
+            .create(String
+                .format(housekeepingEntityUrl + "/database/%s/table/%s" + UNREFERENCED_PATHS_PATH + "%s", database, table,
                     filters)))
         .GET()
         .build();

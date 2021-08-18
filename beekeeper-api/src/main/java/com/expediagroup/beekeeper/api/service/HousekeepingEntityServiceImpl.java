@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.api.service;
 
 import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponsePage;
+import static com.expediagroup.beekeeper.api.response.PathResponseConverter.convertToHousekeepingPathResponsePage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,23 +25,32 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
+import com.expediagroup.beekeeper.api.response.HousekeepingPathResponse;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
+import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @Service
 public class HousekeepingEntityServiceImpl implements HousekeepingEntityService {
 
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
+  private final HousekeepingPathRepository housekeepingPathRepository;
 
   @Autowired
-  public HousekeepingEntityServiceImpl(HousekeepingMetadataRepository housekeepingMetadataRepository) {
+  public HousekeepingEntityServiceImpl(HousekeepingMetadataRepository housekeepingMetadataRepository, HousekeepingPathRepository housekeepingPathRepository) {
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
+    this.housekeepingPathRepository = housekeepingPathRepository;
   }
 
   public Page<HousekeepingMetadataResponse> getAllMetadata(
       Specification<HousekeepingMetadata> spec,
       Pageable pageable) {
     return convertToHousekeepingMetadataResponsePage(housekeepingMetadataRepository.findAll(spec, pageable));
+  }
+
+  public Page<HousekeepingPathResponse> getAllPaths(Specification<HousekeepingPath> spec, Pageable pageable) {
+    return convertToHousekeepingPathResponsePage(housekeepingPathRepository.findAll(spec, pageable));
   }
 
 }
