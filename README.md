@@ -50,7 +50,7 @@ The "expired" TTL property will delete tables, partitions, and their locations a
 
 If the table is partitioned the cleanup delay will also apply to each partition that is added to the table. The table will only be dropped when there are no remaining partitions. 
 
-Once users have configured a table to use the TTL feature, they can use the `beekeeper-api` `GET /metadata` endpoint to check if their table has been successfully registered in the Beekeeper database. More information in the [Beekeeper API section]()
+Once users have configured a table to use the TTL feature, they can use the `beekeeper-api` `GET /metadata` endpoint to check if their table has been successfully registered in the Beekeeper database, and also be able to see when it is going to be deleted. More information in the [Beekeeper API section]()
 
 ### End-to-end lifecycle example
 1. A Hive table is configured with the TTL parameter `beekeeper.remove.expired.data=true` (see [Hive table configuration](#hive-table-configuration) for more details).
@@ -247,7 +247,8 @@ It currently supports two endpoints; one for the expired metadata (TTL) and anot
 
 This endpoint will return the TTL configuration of all expired partitions that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
 
-It has this structure
+It is available in this url; `http://beekeeper-api.<address>/api/v1/database/{databaseName}/table/{tableName}/metadata`, where `{databaseName}` and `{tableName}` must be replaced by the database and table name the user wants to search for. So for example, if they wanted to check a table called `my_cool_table` in the database `my_cool_database`, they would go to `http://beekeeper-api.<address>/api/v1/database/my_cool_database/table/my_cool_table/metadata`.
+
 ### Unreferenced paths endpoint (`GET /unreferenced-paths`)
 
 This endpoint will return the configuration of all unreferenced paths that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
