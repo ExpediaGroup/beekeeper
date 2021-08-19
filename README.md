@@ -243,6 +243,8 @@ This lets the user manually enter a database and a table name and check whether 
 
 It currently supports two endpoints; one for the expired metadata (TTL) and another one for the unreferenced paths.
 
+It also supports different types of filtering (see filtering section).
+
 ### Expired metadata endpoint (`GET /metadata`)
 
 This endpoint will return the TTL configuration of all expired partitions that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
@@ -255,12 +257,21 @@ It is available in this url;
  
     http://beekeeper-api.<address>/api/v1/database/my_cool_database/table/my_cool_table/metadata
 
-![Filtering table](.README_images/filtering_table.png)
-
 If it's a partitioned table it will display all its partitions as different objects and if it's unpartitioned it will display just one object; the table.
+
 ### Unreferenced paths endpoint (`GET /unreferenced-paths`)
 
 This endpoint will return the configuration of all unreferenced paths that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
+
+### Filtering
+
+The filtering available is the same in both endpoints, just keep in mind that in the first one we are referring to expired metadata and in the second one we are referring to unreferenced paths. 
+
+The following table gives an overview of the filters available. It uses the metadata endpoint for the examples, but if the user wants to refer to paths they just have to replace `/database/{databaseName}/table/{tableName}/metadata` with `/database/{databaseName}/table/{tableName}/paths`.
+
+![Filtering table](.README_images/filtering_table.png)
+
+Note: the `partition_name` filter is only available for the expired metadata endpoint, as this variable is not available in the paths.
 
 ### Metrics
 
