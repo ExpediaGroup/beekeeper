@@ -37,6 +37,8 @@ The "unreferenced" property can be added to tables to detect when paths become u
 
 By default, `alter_partition` and `alter_table` events require no further configuration. However, in order to avoid unexpected data loss, other event types require whitelisting on a per table basis. See [Hive table configuration](#hive-table-configuration) for more details.
 
+To check whether a table has been configured with the "unreferenced" property, the `beekeeper-api` can be used to look for the table and it's current unreferenced paths (see [Unreferenced path section](#unreferenced-paths-endpoint-get-unreferenced-paths).
+
 ### End-to-end lifecycle example
 1. A Hive table is configured with the parameter `beekeeper.remove.unreferenced.data=true` (see [Hive table configuration](#hive-table-configuration) for more details.)
 2. An operation is executed on the table that orphans some data (alter partition, drop partition, etc.)
