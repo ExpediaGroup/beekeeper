@@ -249,6 +249,7 @@ This endpoint will return the TTL configuration of all expired partitions that a
 
 It is available in this url; `http://beekeeper-api.<address>/api/v1/database/{databaseName}/table/{tableName}/metadata`, where `{databaseName}` and `{tableName}` must be replaced by the database and table name the user wants to search for. So for example, if they wanted to check a table called `my_cool_table` in the database `my_cool_database`, they would go to `http://beekeeper-api.<address>/api/v1/database/my_cool_database/table/my_cool_table/metadata`.
 
+If it's a partitioned table it will display all its partitions as different objects and if it's unpartitioned it will display just one object; the table.
 ### Unreferenced paths endpoint (`GET /unreferenced-paths`)
 
 This endpoint will return the configuration of all unreferenced paths that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
