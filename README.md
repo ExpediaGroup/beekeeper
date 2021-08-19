@@ -37,7 +37,7 @@ The "unreferenced" property can be added to tables to detect when paths become u
 
 By default, `alter_partition` and `alter_table` events require no further configuration. However, in order to avoid unexpected data loss, other event types require whitelisting on a per table basis. See [Hive table configuration](#hive-table-configuration) for more details.
 
-To check whether a table has been configured with the "unreferenced" property, the `beekeeper-api` can be used to look for the table and it's current unreferenced paths (see [Unreferenced path section](#unreferenced-paths-endpoint-get-unreferenced-paths).
+To check whether a table has been configured with the "unreferenced" property, the `beekeeper-api` can be used to look for the table and it's current unreferenced paths (see [Unreferenced paths](#unreferenced-paths-endpoint-get-unreferenced-paths)).
 
 ### End-to-end lifecycle example
 1. A Hive table is configured with the parameter `beekeeper.remove.unreferenced.data=true` (see [Hive table configuration](#hive-table-configuration) for more details.)
@@ -52,7 +52,7 @@ The "expired" TTL property will delete tables, partitions, and their locations a
 
 If the table is partitioned the cleanup delay will also apply to each partition that is added to the table. The table will only be dropped when there are no remaining partitions. 
 
-Once users have configured a table to use the TTL feature, they can use the `beekeeper-api` metadata endpoint to check if their table has been successfully registered in the Beekeeper database, and also be able to see when it is going to be deleted. More information in the [Beekeeper API section](https://github.com/ExpediaGroup/beekeeper#Beekeeper-API)).
+Once users have configured a table to use the TTL feature, they can use the `beekeeper-api` metadata endpoint to check if their table has been successfully registered in the Beekeeper database, and also be able to see when it is going to be deleted. More information in the [Beekeeper API](https://github.com/ExpediaGroup/beekeeper#Beekeeper-API) section.
 
 ### End-to-end lifecycle example
 1. A Hive table is configured with the TTL parameter `beekeeper.remove.expired.data=true` (see [Hive table configuration](#hive-table-configuration) for more details).
@@ -245,7 +245,7 @@ This allows the user to manually enter a database and a table name and check whe
 
 It currently supports two endpoints; one for the expired metadata (TTL) and another one for the unreferenced paths.
 
-It also supports different types of filtering (see [filtering section](https://github.com/ExpediaGroup/beekeeper#filtering)).
+It also supports different types of filtering (see [filtering section](#filtering)).
 
 ### Expired metadata endpoint (`GET /metadata`)
 
