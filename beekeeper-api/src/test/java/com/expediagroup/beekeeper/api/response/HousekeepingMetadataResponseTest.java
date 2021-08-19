@@ -18,8 +18,8 @@ package com.expediagroup.beekeeper.api.response;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.convertToHousekeepingMetadataResponsePage;
-import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadata;
-import static com.expediagroup.beekeeper.api.util.DummyHousekeepingMetadataGenerator.generateDummyHousekeepingMetadataResponse;
+import static com.expediagroup.beekeeper.api.util.DummyHousekeepingEntityGenerator.generateDummyHousekeepingMetadata;
+import static com.expediagroup.beekeeper.api.util.DummyHousekeepingEntityGenerator.generateDummyHousekeepingMetadataResponse;
 
 import java.util.List;
 

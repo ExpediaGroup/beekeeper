@@ -151,6 +151,10 @@ public abstract class BeekeeperIntegrationTestBase {
 
   protected void insertUnreferencedPath(String path) throws SQLException {
     HousekeepingPath housekeepingPath = createHousekeepingPath(path, UNREFERENCED);
+    insertUnreferencedPath(housekeepingPath);
+  }
+
+  protected void insertUnreferencedPath(HousekeepingPath housekeepingPath) throws SQLException {
     housekeepingPath.setCleanupTimestamp(housekeepingPath.getCleanupTimestamp().minus(Duration.ofDays(1)));
     String values = Stream
         .of(housekeepingPath.getId().toString(), housekeepingPath.getPath(), housekeepingPath.getDatabaseName(),
