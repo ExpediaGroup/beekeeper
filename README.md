@@ -50,7 +50,7 @@ The "expired" TTL property will delete tables, partitions, and their locations a
 
 If the table is partitioned the cleanup delay will also apply to each partition that is added to the table. The table will only be dropped when there are no remaining partitions. 
 
-Once users have configured a table to use the TTL feature, they can use the `beekeeper-api` `GET /metadata` endpoint to check if their table has been successfully registered in the Beekeeper database, and also be able to see when it is going to be deleted. More information in the [Beekeeper API section]()
+Once users have configured a table to use the TTL feature, they can use the `beekeeper-api` metadata endpoint to check if their table has been successfully registered in the Beekeeper database, and also be able to see when it is going to be deleted. More information in the [Beekeeper API section](![filtering section](https://github.com/ExpediaGroup/beekeeper#Beekeeper-API)).
 
 ### End-to-end lifecycle example
 1. A Hive table is configured with the TTL parameter `beekeeper.remove.expired.data=true` (see [Hive table configuration](#hive-table-configuration) for more details).
@@ -237,13 +237,13 @@ By default, `beekeeper-scheduler-apiary` listens on port 8080, `beekeeper-path-c
 
 ## Beekeeper-API
 
-Beekeeper also has an API which allows users to access the Beekeeper database and see what metadata and paths are currently being managed in the database.
+Beekeeper also has an API which provides access to the Beekeeper database and allows to see what metadata and paths are currently being managed in the database.
 
-This lets the user manually enter a database and a table name and check whether this table has been successfully registered in Beekeeper along with things like the current status of the table, the date and time it will be deleted, the current cleanup delay... etc.
+This allows the user to manually enter a database and a table name and check whether this table has been successfully registered in Beekeeper along with the TTL configuration: the current status of the table, the date and time it will be deleted, the current cleanup delay... etc.
 
 It currently supports two endpoints; one for the expired metadata (TTL) and another one for the unreferenced paths.
 
-It also supports different types of filtering (see filtering section).
+It also supports different types of filtering (see ![filtering section](https://github.com/ExpediaGroup/beekeeper#filtering)).
 
 ### Expired metadata endpoint (`GET /metadata`)
 
@@ -257,11 +257,18 @@ It is available in this url;
  
     http://beekeeper-api.<address>/api/v1/database/my_cool_database/table/my_cool_table/metadata
 
-If it's a partitioned table it will display all its partitions as different objects and if it's unpartitioned it will display just one object; the table.
-
 ### Unreferenced paths endpoint (`GET /unreferenced-paths`)
 
 This endpoint will return the configuration of all unreferenced paths that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
+
+It is available in this url; 
+
+    http://beekeeper-api.<address>/api/v1/database/{databaseName}/table/{tableName}/unreferenced-paths
+
+ where `{databaseName}` and `{tableName}` must be replaced by the database and table name the user wants to search for. So for example, if they wanted to check a table called `my_cool_table` in the database `my_cool_database`, they would go to 
+ 
+    http://beekeeper-api.<address>/api/v1/database/my_cool_database/table/my_cool_table/unreferenced-paths
+
 
 ### Filtering
 
