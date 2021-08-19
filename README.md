@@ -243,7 +243,7 @@ This allows the user to manually enter a database and a table name and check whe
 
 It currently supports two endpoints; one for the expired metadata (TTL) and another one for the unreferenced paths.
 
-It also supports different types of filtering (see ![filtering section](https://github.com/ExpediaGroup/beekeeper#filtering)).
+It also supports different types of filtering (see [filtering section](https://github.com/ExpediaGroup/beekeeper#filtering)).
 
 ### Expired metadata endpoint (`GET /metadata`)
 
