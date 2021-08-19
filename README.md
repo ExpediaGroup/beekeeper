@@ -243,9 +243,9 @@ Beekeeper also has an API which provides access to the Beekeeper database and al
 
 This allows the user to manually enter a database and a table name and check whether this table has been successfully registered in Beekeeper along with the TTL configuration: the current status of the table, the date and time it will be deleted, the current cleanup delay... etc.
 
-It currently supports two endpoints; one for the expired metadata (TTL) and another one for the unreferenced paths.
+It currently supports two endpoints; one for the expired metadata and another one for the unreferenced paths.
 
-It also supports different types of filtering (see [filtering section](#filtering)).
+It also supports different filters (see [filtering section](#filtering)).
 
 ### Expired metadata endpoint (`GET /metadata`)
 
