@@ -50,7 +50,7 @@ The "expired" TTL property will delete tables, partitions, and their locations a
 
 If the table is partitioned the cleanup delay will also apply to each partition that is added to the table. The table will only be dropped when there are no remaining partitions. 
 
-Once users have configured a table to use the TTL feature, they can use the `beekeeper-api` metadata endpoint to check if their table has been successfully registered in the Beekeeper database, and also be able to see when it is going to be deleted. More information in the [Beekeeper API section](![filtering section](https://github.com/ExpediaGroup/beekeeper#Beekeeper-API)).
+Once users have configured a table to use the TTL feature, they can use the `beekeeper-api` metadata endpoint to check if their table has been successfully registered in the Beekeeper database, and also be able to see when it is going to be deleted. More information in the [Beekeeper API section](https://github.com/ExpediaGroup/beekeeper#Beekeeper-API)).
 
 ### End-to-end lifecycle example
 1. A Hive table is configured with the TTL parameter `beekeeper.remove.expired.data=true` (see [Hive table configuration](#hive-table-configuration) for more details).
@@ -272,9 +272,9 @@ It is available in this url;
 
 ### Filtering
 
-The filtering available is the same in both endpoints, just keep in mind that in the first one we are referring to expired metadata and in the second one we are referring to unreferenced paths. 
+The filtering available is the same in both endpoints, just keep in mind that in the first one it is referring to expired metadata and in the second one it is referring to unreferenced paths. 
 
-The following table gives an overview of the filters available. It uses the metadata endpoint for the examples, but if the user wants to refer to paths they just have to replace `/database/{databaseName}/table/{tableName}/metadata` with `/database/{databaseName}/table/{tableName}/paths`.
+The following table gives an overview of the filters available. It uses the metadata endpoint for the examples, but if the user wants to refer to paths they just have to replace `/database/{databaseName}/table/{tableName}/metadata` with `/database/{databaseName}/table/{tableName}/unreferenced-paths`.
 
 ![Filtering table](.README_images/filtering_table.png)
 
