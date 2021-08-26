@@ -35,7 +35,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,7 +189,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   }
 
   // This test is to manually test the API
-  @Disabled
+  //@Disabled
   @Test
   public void manualTest() throws SQLException, InterruptedException {
     HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table",
