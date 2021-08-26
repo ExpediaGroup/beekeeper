@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+
+import com.google.common.collect.Lists;
 
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
@@ -149,7 +151,7 @@ public class PagingCleanupServiceTest {
         .extracting("path")
         .containsExactly(paths.get(0), paths.get(1));
 
-    List<HousekeepingPath> result = housekeepingPathRepository.findAll();
+    List<HousekeepingPath> result = Lists.newArrayList(housekeepingPathRepository.findAll());
     assertThat(result.size()).isEqualTo(2);
     HousekeepingPath housekeepingPath1 = result.get(0);
     HousekeepingPath housekeepingPath2 = result.get(1);
@@ -214,7 +216,7 @@ public class PagingCleanupServiceTest {
   }
 
   private HousekeepingPath createEntityHousekeepingPath(String path, HousekeepingStatus housekeepingStatus) {
-    HousekeepingPath housekeepingPath = new HousekeepingPath.Builder()
+    HousekeepingPath housekeepingPath = HousekeepingPath.builder()
         .path(path)
         .databaseName("database")
         .tableName("table")

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,7 +176,7 @@ public class BeekeeperVacuumToolApplication implements ApplicationRunner {
   private void removePath(Path toRemove, String databaseName, String tableName) {
     log.info("REMOVE path '{}'; it is not referenced and can be deleted.", toRemove);
     if (!isDryRun) {
-      schedulerService.scheduleForHousekeeping(new HousekeepingPath.Builder().databaseName(databaseName)
+      schedulerService.scheduleForHousekeeping(HousekeepingPath.builder().databaseName(databaseName)
           .tableName(tableName)
           .path(toRemove.toString())
           .housekeepingStatus(SCHEDULED)

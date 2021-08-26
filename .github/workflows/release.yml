@@ -17,6 +17,8 @@ jobs:
       with:
         fetch-depth: 0
         ref: ${{ github.event.inputs.branch }}
+        # We need a personal access token to be able to push to a protected branch
+        token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
 
     - name: Set up JDK
       uses: actions/setup-java@v2
@@ -35,11 +37,11 @@ jobs:
         
     - name: Configure Git User
       run: |
-        git config user.email "actions@github.com"
-        git config user.name "GitHub Actions"
+        git config user.email "oss@expediagroup.com"
+        git config user.name "eg-oss-ci"
 
     - name: Run Maven Targets
-      run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml --activate-profiles oss-release --batch-mode --show-version --no-transfer-progress 
+      run: mvn release:prepare release:perform --settings $GITHUB_WORKSPACE/settings.xml --activate-profiles sonatype-oss-release-github-actions --batch-mode --show-version --no-transfer-progress
       env:
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}

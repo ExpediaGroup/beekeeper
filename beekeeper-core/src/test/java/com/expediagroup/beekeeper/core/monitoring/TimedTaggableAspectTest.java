@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class TimedTaggableAspectTest {
 
   @BeforeEach
   public void init() {
-    housekeepingPath = new HousekeepingPath.Builder()
+    housekeepingPath = HousekeepingPath.builder()
       .databaseName(DATABASE)
       .tableName(TABLE)
       .creationTimestamp(LocalDateTime.now())

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
 import com.expediagroup.beekeeper.cleanup.hive.HiveClientFactory;
@@ -210,7 +211,7 @@ public class PagingMetadataCleanupServiceTest {
         .extracting("tableName")
         .containsExactly(tables.get(0).getTableName(), tables.get(1).getTableName());
 
-    List<HousekeepingMetadata> result = metadataRepository.findAll();
+    List<HousekeepingMetadata> result = Lists.newArrayList(metadataRepository.findAll());
     assertThat(result.size()).isEqualTo(2);
     HousekeepingMetadata housekeepingMetadata1 = result.get(0);
     HousekeepingMetadata housekeepingMetadata2 = result.get(1);
@@ -272,7 +273,7 @@ public class PagingMetadataCleanupServiceTest {
       String path,
       String partitionName,
       HousekeepingStatus housekeepingStatus) {
-    HousekeepingMetadata metadata = new HousekeepingMetadata.Builder()
+    HousekeepingMetadata metadata = HousekeepingMetadata.builder()
         .path(path)
         .databaseName("database")
         .tableName(tableName)

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class UnreferencedHousekeepingPathSchedulerServiceTest {
 
   @Test
   public void typicalScheduleForHousekeeping() {
-    HousekeepingPath path = new HousekeepingPath.Builder()
+    HousekeepingPath path = HousekeepingPath.builder()
         .creationTimestamp(LocalDateTime.now())
         .cleanupDelay(Duration.parse("P3D"))
         .build();
@@ -64,7 +64,7 @@ public class UnreferencedHousekeepingPathSchedulerServiceTest {
 
   @Test
   public void scheduleFails() {
-    HousekeepingPath path = new HousekeepingPath.Builder()
+    HousekeepingPath path = HousekeepingPath.builder()
         .path("path_to_schedule")
         .creationTimestamp(LocalDateTime.now())
         .cleanupDelay(Duration.parse("P3D"))

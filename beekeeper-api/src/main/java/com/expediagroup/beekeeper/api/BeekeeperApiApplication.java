@@ -16,16 +16,25 @@
 package com.expediagroup.beekeeper.api;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-public class BeekeeperApi {
-
+@EnableConfigurationProperties
+@EntityScan(basePackages = { "com.expediagroup.beekeeper.core.model" })
+@EnableJpaRepositories(basePackages = { "com.expediagroup.beekeeper.core.repository" })
+@ComponentScan(basePackages = {
+    "com.expediagroup.beekeeper.api.conf",
+    "com.expediagroup.beekeeper.api.controller",
+    "com.expediagroup.beekeeper.api.service" })
+public class BeekeeperApiApplication {
   public static void main(String[] args) {
-    new SpringApplicationBuilder(BeekeeperApi.class)
+    new SpringApplicationBuilder(BeekeeperApiApplication.class)
         .properties("server.port:${endpoint.port:7008}")
         .build()
         .run(args);
   }
-
 }

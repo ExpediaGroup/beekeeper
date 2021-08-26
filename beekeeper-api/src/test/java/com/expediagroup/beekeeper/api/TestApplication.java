@@ -15,9 +15,9 @@
  */
 package com.expediagroup.beekeeper.api;
 
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
-@RestController
-public class BeekeeperController {
-  
-}
+@SpringBootApplication
+@EnableConfigurationProperties
+public class TestApplication {}

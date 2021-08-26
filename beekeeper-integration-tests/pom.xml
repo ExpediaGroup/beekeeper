@@ -5,7 +5,7 @@
   <parent>
     <artifactId>beekeeper-parent</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>3.2.0-SNAPSHOT</version>
+    <version>3.4.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>beekeeper-integration-tests</artifactId>
@@ -76,6 +76,13 @@
       </exclusions>
     </dependency>
 
+    <!-- test -->
+    <dependency>
+      <groupId>com.expediagroup</groupId>
+      <artifactId>beekeeper-api</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
@@ -115,6 +122,10 @@
         <exclusion>
           <artifactId>log4j-slf4j-impl</artifactId>
           <groupId>org.apache.logging.log4j</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty.aggregate</groupId>
+          <artifactId>jetty-all</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
