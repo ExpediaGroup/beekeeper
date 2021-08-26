@@ -22,7 +22,7 @@ Beekeeper is comprised of four separate Spring-based Java applications:
 1. Scheduler Apiary - An application that schedules paths and metadata for deletion in a shared database, with one table for unreferenced paths and another for expired metadata. 
 2. Path Cleanup - An application that perform deletions of unreferenced paths.
 3. Metadata Cleanup - An application that perform deletions of expired metadata.
-4. Beekeeper API - An application that allows users to see what metadata and paths are in the database.
+4. Beekeeper API - A REST API that allows users to see what metadata and paths are in the database.
 
 ## Beekeeper Architecture
 
@@ -241,7 +241,7 @@ By default, `beekeeper-scheduler-apiary` listens on port 8080, `beekeeper-path-c
 
 Beekeeper also has an API which provides access to the Beekeeper database and allows to see what metadata and paths are currently being managed.
 
-This allows the user to manually enter a database and a table name and check whether this table has been successfully registered in Beekeeper along with the TTL configuration: the current status of the table, the date and time it will be deleted, the current cleanup delay... etc.
+This allows the user to manually enter a database and a table name and check whether this table has been successfully registered in Beekeeper along with things like the current status of the table, the date and time it will be deleted, the current cleanup delay... etc.
 
 It currently supports two endpoints; one for the expired metadata and another one for the unreferenced paths.
 
@@ -251,7 +251,7 @@ It also supports different filters (see [filtering section](#filtering)).
 
 This endpoint will return the TTL configuration of all expired partitions that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
 
-It is available in this url; 
+The url is the same one as in the [metadata endpoint]()
 
     http://beekeeper-api.<address>/api/v1/database/{databaseName}/table/{tableName}/metadata
 
