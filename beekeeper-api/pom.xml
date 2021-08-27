@@ -4,29 +4,30 @@
   <parent>
     <artifactId>beekeeper-parent</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>3.4.1-SNAPSHOT</version>
+    <version>3.4.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>beekeeper-api</artifactId>
 
   <properties>
     <specification-arg-resolver.version>2.6.1</specification-arg-resolver.version>
+    <springfox.swagger.version>2.9.2</springfox.swagger.version>
   </properties>
 
   <dependencies>
-  <dependency>
-    <groupId>com.expediagroup</groupId>
-    <artifactId>beekeeper-core</artifactId>
-    <version>${project.version}</version>
-  </dependency>
-  <dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-web</artifactId>
-  </dependency>
-  <dependency>
-  <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-  </dependency>
+    <dependency>
+      <groupId>com.expediagroup</groupId>
+      <artifactId>beekeeper-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
     <dependency>
       <groupId>net.kaczmarzyk</groupId>
       <artifactId>specification-arg-resolver</artifactId>
@@ -39,6 +40,16 @@
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.springfox</groupId>
+      <artifactId>springfox-swagger2</artifactId>
+      <version>${springfox.swagger.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.springfox</groupId>
+      <artifactId>springfox-swagger-ui</artifactId>
+      <version>${springfox.swagger.version}</version>
     </dependency>
 
     <!-- test -->
