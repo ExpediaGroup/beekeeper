@@ -272,7 +272,11 @@ This allows the user to manually enter a database and a table name and check whe
 
 It currently supports two endpoints; one for the expired metadata and another one for the unreferenced paths.
 
-The base url is
+As well as supporting all [standard actuator endpoints](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html), the Beekeeper-API also supports the `swagger` endpoint (see the [Swagger documentation](https://swagger.io/docs/specification/about/)), which provides a visual documentation of the structure of the API, making it easy for the user to explore its capabilities. This is a good start if it's the first time you use the API. You can access it at this url:
+
+    http://<host>/swagger-ui.html
+
+For the two main endpoints, base url is
 
     http://<host>/api/v1
 
