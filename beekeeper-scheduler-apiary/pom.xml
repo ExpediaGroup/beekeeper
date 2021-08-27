@@ -5,7 +5,7 @@
   <parent>
     <artifactId>beekeeper-parent</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>3.4.1</version>
+    <version>3.4.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>beekeeper-scheduler-apiary</artifactId>
