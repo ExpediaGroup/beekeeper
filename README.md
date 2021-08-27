@@ -228,7 +228,7 @@ Being a Spring Boot Application, all [standard actuator endpoints](https://docs.
 
 For example, the healthcheck endpoint at: `http://<address>:<port>/actuator/health`. 
 
-Each application listens on different ports:
+Each application listens on a different port:
 
 | Application                 | Port |
 |:----|:----|
@@ -237,7 +237,7 @@ Each application listens on different ports:
 | `beekeeper-scheduler-apiary`| 8080    |
 | `beekeeper-api`             | 7008    |
 
-To access this endpoint when running in a Docker container, the port must be published:
+To access an endpoint when running in a Docker container, the port must be published:
 
     docker run -p <port>:<port> <image-id>
 
@@ -272,31 +272,37 @@ This allows the user to manually enter a database and a table name and check whe
 
 It currently supports two endpoints; one for the expired metadata and another one for the unreferenced paths.
 
+The base url is
+
+    http://<host>/api/v1
+
+and the rest of the url will depend on which endpoint you want to access (see [Expired metadata endpoint](#expired-metadata-endpoint) and [Unreferenced paths endpoint](#unreferenced-paths-endpoint)).
+
 It also supports different filters (see [filtering section](#filtering)).
 
 ### Expired metadata endpoint (`GET /metadata`)
 
 This endpoint will return the TTL configuration of all expired partitions that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
 
-The url is the same one as in the [metadata endpoint]()
-
-    http://beekeeper-api.<address>/api/v1/database/{databaseName}/table/{tableName}/metadata
+    <base-url>/database/{databaseName}/table/{tableName}/metadata
 
  where `{databaseName}` and `{tableName}` must be replaced by the database and table name the user wants to search for. So for example, if they wanted to check a table called `my_cool_table` in the database `my_cool_database`, they would go to 
  
-    http://beekeeper-api.<address>/api/v1/database/my_cool_database/table/my_cool_table/metadata
+    <base-url>/database/my_cool_database/table/my_cool_table/metadata
 
 ### Unreferenced paths endpoint (`GET /unreferenced-paths`)
 
 This endpoint will return the configuration of all unreferenced paths that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
 
+The url is the same one as in the [metadata endpoint](#expired-metadata-endpoint)
+
 It is available in this url; 
 
-    http://beekeeper-api.<address>/api/v1/database/{databaseName}/table/{tableName}/unreferenced-paths
+    <base-url>/database/{databaseName}/table/{tableName}/unreferenced-paths
 
  where `{databaseName}` and `{tableName}` must be replaced by the database and table name the user wants to search for. So for example, if they wanted to check a table called `my_cool_table` in the database `my_cool_database`, they would go to 
  
-    http://beekeeper-api.<address>/api/v1/database/my_cool_database/table/my_cool_table/unreferenced-paths
+    <base-url>/database/my_cool_database/table/my_cool_table/unreferenced-paths
 
 
 ### Filtering
