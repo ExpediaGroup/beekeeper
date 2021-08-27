@@ -266,7 +266,7 @@ To access an endpoint when running in a Docker container, the port must be publi
 
 ## Beekeeper-API
 
-Beekeeper also has an API which provides access to the Beekeeper database and allows to see what metadata and paths are currently being managed.
+Beekeeper also has an API which provides read access to the Beekeeper database and allows you to see what metadata and paths are currently being managed.
 
 This allows the user to manually enter a database and a table name and check whether this table has been successfully registered in Beekeeper along with things like the current status of the table, the date and time it will be deleted, the current cleanup delay... etc.
 
