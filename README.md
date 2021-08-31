@@ -310,7 +310,7 @@ The API will display all the partitions in that table unless it is unpartitioned
 
 You can do this by using [filters](#filtering). If you want to search for the table object, you'll have to add a filter with the path to the table, for example 
 
-    /database/{databaseName}/table/{tableName}/metadata?path=s3://mybucket/mydatabase/mytable
+    <base-url>/database/{databaseName}/table/{tableName}/metadata?path=s3://mybucket/mydatabase/mytable
 
 ### Unreferenced paths endpoint (`GET /unreferenced-paths`)
 
