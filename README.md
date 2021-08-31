@@ -293,6 +293,24 @@ This endpoint will return the TTL configuration of all expired partitions that a
  where `{databaseName}` and `{tableName}` must be replaced by the database and table name the user wants to search for. So for example, if they wanted to check a table called `my_cool_table` in the database `my_cool_database`, they would go to 
  
     <base-url>/database/my_cool_database/table/my_cool_table/metadata
+    
+The API will display all the partitions in that table unless it is unpartitioned, in that case it will show only one object; the table. If you want to check only the table object without all of its individual partitions, you'll have to search for the one with the variable `"partitionName"=null` as such:
+    
+    "path": "s3://mybucket/mydatabase/mytable",
+    "databaseName": "mydatabase",
+    "tableName": "mytable",
+    "partitionName": null,
+    "housekeepingStatus": "DELETED",
+    "creationTimestamp": "2020-09-14T17:22:55",
+    "modifiedTimestamp": "2020-09-14T18:36:52",
+    "cleanupTimestamp": "2020-09-14T17:36:32",
+    "cleanupDelay": "PT10M",
+    "cleanupAttempts": 1,
+    "lifecycleType": "EXPIRED"
+
+You can do this by using [filters](#filtering). If you want to search for the table object, you'll have to add a filter with the path to the table, for example 
+
+    /database/{databaseName}/table/{tableName}/metadata?path=s3://mybucket/mydatabase/mytable
 
 ### Unreferenced paths endpoint (`GET /unreferenced-paths`)
 
