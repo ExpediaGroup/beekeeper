@@ -317,14 +317,14 @@ The following table gives an overview of the filters available. It uses the meta
 
 | Filter name              | Description | Example |
 |:----|:----:|:----|
-| `path`                   | Given a path name, return if there is a path with that name | `/database/my_database_name/table/my_table_name/metadata?path=s3://mybucket/mydb/mytable/myfile.part0001` |
-| `partition_name`         | Given a partition name, return the partitions with that name | `/database/my_database_name/table/my_table_name/metadata?partition_name=event_date=2020-01-01/event_hour=0/event_type=B` |
-| `housekeeping_status`    | Given  a housekeeping status, return all partitions with that status (SCHEDULED, FAILED or DELETED) | `/database/my_database_name/table/my_table_name/metadata?housekeeping_status=SCHEDULED` |
-| `lifecycle_type`         | Given a lifecycle type, return all partitions with that lifecycle (EXPIRED or UNREFERENCED). Note: currently this filter is useless as the first endpoint only returns EXPIRED metadata and the second only returns UNREFERENCED paths | `/database/my_database_name/table/my_table_name/metadata?lifecycle_type=EXPIRED` |
-| `registered_before`      | Given a timestamp, it will return all partitions that were registered in Beekeeper before that time | `/database/my_database_name/table/my_table_name/metadata?registered_before=2021-02-25T15:33:05` |
-| `registered_after`       | Given a timestamp, it will return all partitions that were registered in Beekeeper after that time | `/database/my_database_name/table/my_table_name/metadata?registered_after=2021-02-25T15:33:05` |
-| `deleted_before`         | Given a timestamp, it will return all partitions that were deleted before that time | `/database/my_database_name/table/my_table_name/metadata?deleted_before=2021-02-25T15:33:05` |
-| `deleted_after`          | Given a timestamp, it will return all partitions that were deleted after that time | `	/database/my_database_name/table/my_table_name/metadata?deleted_after=2021-02-25T15:33:05` |
+| `path`                   | Given a path name, return if there is a path with that name | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?path=s3://mybucket/mydb/mytable/myfile.part0001` |
+| `partition_name`         | Given a partition name, return the partitions with that name | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?partition_name=event_date=2020-01-01/event_hour=0/event_type=B` |
+| `housekeeping_status`    | Given  a housekeeping status, return all partitions with that status (SCHEDULED, FAILED or DELETED) | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?housekeeping_status=SCHEDULED` |
+| `lifecycle_type`         | Given a lifecycle type, return all partitions with that lifecycle (EXPIRED or UNREFERENCED). Note: currently this filter is useless as the first endpoint only returns EXPIRED metadata and the second only returns UNREFERENCED paths | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?lifecycle_type=EXPIRED` |
+| `registered_before`      | Given a timestamp, it will return all partitions that were registered in Beekeeper before that time | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?registered_before=2021-02-25T15:33:05` |
+| `registered_after`       | Given a timestamp, it will return all partitions that were registered in Beekeeper after that time | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?registered_after=2021-02-25T15:33:05` |
+| `deleted_before`         | Given a timestamp, it will return all partitions that were deleted before that time | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?deleted_before=2021-02-25T15:33:05` |
+| `deleted_after`          | Given a timestamp, it will return all partitions that were deleted after that time | `	/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?deleted_after=2021-02-25T15:33:05` |
 
 Note: the `partition_name` filter is only available for the expired metadata endpoint, as this variable is not available in the paths.
 
