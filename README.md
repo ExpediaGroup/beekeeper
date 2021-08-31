@@ -317,7 +317,7 @@ The following table gives an overview of the filters available. It uses the meta
 
 | Filter name              | Description | Example |
 |:----|:----:|:----|
-| `path`                   | Given a path name, return if there is a path with that name | `/database/my_database_name`<br>`/table/my_table_name/metadata?path=`<br>`?s3://mybucket/mydb/mytable/myfile.part0001` |
+| `path`                   | Given a path name, return if there is a path with that name | `/database/my_database_name`<br>`/table/my_table_name/metadata?path=`<br>`s3://mybucket/mydb/mytable/myfile.part0001` |
 | `partition_name`         | Given a partition name, return the partitions with that name | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?partition_name=event_date=2020-01-01/event_hour=0/event_type=B` |
 | `housekeeping_status`    | Given  a housekeeping status, return all partitions with that status (SCHEDULED, FAILED or DELETED) | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?housekeeping_status=SCHEDULED` |
 | `lifecycle_type`         | Given a lifecycle type, return all partitions with that lifecycle (EXPIRED or UNREFERENCED). Note: currently this filter is useless as the first endpoint only returns EXPIRED metadata and the second only returns UNREFERENCED paths | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?lifecycle_type=EXPIRED` |
