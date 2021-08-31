@@ -298,7 +298,7 @@ This endpoint will return the TTL configuration of all expired partitions that a
 
 This endpoint will return the configuration of all unreferenced paths that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
 
-The url is the same one as in the [metadata endpoint](#expired-metadata-endpoint)
+The url is the same one as in the [metadata endpoint](#expired-metadata-endpoint), except instead of ending in `metadata` it ends in `unreferenced-paths`.
 
 It is available in this url; 
 
