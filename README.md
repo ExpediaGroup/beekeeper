@@ -276,7 +276,7 @@ As well as supporting all [standard actuator endpoints](https://docs.spring.io/s
 
     http://<host>/swagger-ui.html
 
-For the two main endpoints, base url is
+For the two main endpoints, the base url (will be referred to as `<base-url>` in the following sections) is
 
     http://<host>/api/v1
 
