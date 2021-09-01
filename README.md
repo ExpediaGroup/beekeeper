@@ -40,7 +40,7 @@ Beekeeper is comprised of four separate Spring-based Java applications:
 1. Scheduler Apiary - An application that schedules paths and metadata for deletion in a shared database, with one table for unreferenced paths and another for expired metadata. 
 2. Path Cleanup - An application that perform deletions of unreferenced paths.
 3. Metadata Cleanup - An application that perform deletions of expired metadata.
-4. Beekeeper API - A REST API that allows users to see what metadata and paths are in the database.
+4. Beekeeper API - A REST API that allows to see what metadata and paths are in the database.
 
 ## Beekeeper Architecture
 
