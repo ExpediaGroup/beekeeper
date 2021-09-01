@@ -1,7 +1,7 @@
 ![Logo](.README_images/full_logo.png)
 
 ![Java CI](https://github.com/ExpediaGroup/beekeeper/workflows/Java%20CI/badge.svg?event=push) [![Coverage Status](https://coveralls.io/repos/github/ExpediaGroup/beekeeper/badge.svg?branch=main)](https://coveralls.io/github/ExpediaGroup/beekeeper?branch=main) ![GitHub license](https://img.shields.io/github/license/ExpediaGroup/beekeeper.svg)
-# Table of contents 
+# Table of Contents 
 
 - [Overview](#overview)
   - [Start Using](#start-using)
