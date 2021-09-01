@@ -36,7 +36,7 @@ Docker images can be found in Expedia Group's [dockerhub](https://hub.docker.com
 
 Beekeeper makes use of [Apiary](https://github.com/ExpediaGroup/apiary) - an open source federated cloud data lake - to detect changes in the Hive Metastore. One of Apiary’s components, the [Apiary Metastore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/main/apiary-metastore-events/sns-metastore-events/apiary-metastore-listener), captures Hive events and publishes these as messages to an SNS topic. Beekeeper uses these messages to detect changes to the Hive Metastore, and perform appropriate deletions.
 
-Beekeeper is comprised of four separate Spring-based Java applications:
+Beekeeper is comprised of separate Spring-based Java applications:
 1. Scheduler Apiary - An application that schedules paths and metadata for deletion in a shared database, with one table for unreferenced paths and another for expired metadata. 
 2. Path Cleanup - An application that perform deletions of unreferenced paths.
 3. Metadata Cleanup - An application that perform deletions of expired metadata.
