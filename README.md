@@ -70,7 +70,7 @@ The "expired" TTL property will delete tables, partitions, and their locations a
 
 If the table is partitioned the cleanup delay will also apply to each partition that is added to the table. The table will only be dropped when there are no remaining partitions. 
 
-Once users have configured a table to use the TTL feature, they can use the `beekeeper-api` metadata endpoint to check if their table has been successfully registered in the Beekeeper database, and also be able to see when it is going to be deleted. More information in the [Beekeeper API](#Beekeeper-API) section.
+To see whether a table has been configured to use the TTL feature, the `beekeeper-api` metadata endpoint can be used to check if a table has been successfully registered in the Beekeeper database, and also be able to see when it is going to be deleted. More information in the [Beekeeper API](#Beekeeper-API) section.
 
 ### End-to-end lifecycle example
 1. A Hive table is configured with the TTL parameter `beekeeper.remove.expired.data=true` (see [Hive table configuration](#hive-table-configuration) for more details).
@@ -272,7 +272,7 @@ It allows to manually enter a database and a table name and check whether this t
 
 It currently supports two endpoints; one for the expired metadata and another one for the unreferenced paths.
 
-As well as supporting all [standard actuator endpoints](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html), the Beekeeper-API also supports the `swagger` endpoint (see the [Swagger documentation](https://swagger.io/docs/specification/about/)), which provides a visual documentation of the structure of the API, making it easy for the user to explore its capabilities. This is a good start if it's the first time they use the API. It can be accessed at this url:
+As well as supporting all [standard actuator endpoints](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html), the Beekeeper-API also supports the `swagger` endpoint (see the [Swagger documentation](https://swagger.io/docs/specification/about/)), which provides a visual documentation of the structure of the API, making it easy to explore its capabilities. This is a good start if it's the first time the user is using the API. It can be accessed at this url:
 
     http://<host>/swagger-ui.html
 
@@ -280,7 +280,7 @@ For the two main endpoints, the base url (will be referred to as `<base-url>` in
 
     http://<host>/api/v1
 
-and the rest of the url will depend on which endpoint they want to access (see [Expired metadata endpoint](#expired-metadata-endpoint) and [Unreferenced paths endpoint](#unreferenced-paths-endpoint)).
+and the rest of the url will depend on which endpoint wants to be accessed (see [Expired metadata endpoint](#expired-metadata-endpoint) and [Unreferenced paths endpoint](#unreferenced-paths-endpoint)).
 
 It also supports different filters (see [filtering section](#filtering)).
 
@@ -290,7 +290,7 @@ This endpoint will return the TTL configuration of all expired partitions that a
 
     <base-url>/database/{databaseName}/table/{tableName}/metadata
 
- where `{databaseName}` and `{tableName}` must be replaced by the database and table name the user wants to search for. So for example, if they wanted to check a table called `my_cool_table` in the database `my_cool_database`, they would go to 
+ where `{databaseName}` and `{tableName}` must be replaced by the database and table name that needs to be searched for. So for example, if they wanted to check a table called `my_cool_table` in the database `my_cool_database`, they would go to 
  
     <base-url>/database/my_cool_database/table/my_cool_table/metadata
     
@@ -322,7 +322,7 @@ It is available in this url;
 
     <base-url>/database/{databaseName}/table/{tableName}/unreferenced-paths
 
- where `{databaseName}` and `{tableName}` must be replaced by the database and table name the user wants to search for. So for example, if they wanted to check a table called `my_cool_table` in the database `my_cool_database`, they would go to 
+ where `{databaseName}` and `{tableName}` must be replaced by the database and table name that needs to be searched for. So for example, if they wanted to check a table called `my_cool_table` in the database `my_cool_database`, they would go to 
  
     <base-url>/database/my_cool_database/table/my_cool_table/unreferenced-paths
 
