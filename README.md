@@ -70,7 +70,7 @@ The "expired" TTL property will delete tables, partitions, and their locations a
 
 If the table is partitioned the cleanup delay will also apply to each partition that is added to the table. The table will only be dropped when there are no remaining partitions. 
 
-To see whether a table has been configured to use the TTL feature, the `beekeeper-api` metadata endpoint can be used to check if a table has been successfully registered in the Beekeeper database, and also be able to see when it is going to be deleted. More information in the [Beekeeper API](#Beekeeper-API) section.
+To see whether a table has been configured to use the TTL feature, the `beekeeper-api` metadata endpoint can be used to check if a table has been successfully registered in the Beekeeper database and see when it is going to be deleted. More information in the [Beekeeper API](#Beekeeper-API) section.
 
 ### End-to-end lifecycle example
 1. A Hive table is configured with the TTL parameter `beekeeper.remove.expired.data=true` (see [Hive table configuration](#hive-table-configuration) for more details).
@@ -280,7 +280,7 @@ For the two main endpoints, the base url (will be referred to as `<base-url>` in
 
     http://<host>/api/v1
 
-and the rest of the url will depend on which endpoint wants to be accessed (see [Expired metadata endpoint](#expired-metadata-endpoint) and [Unreferenced paths endpoint](#unreferenced-paths-endpoint)).
+and the rest of the url will depend on which endpoint needs to be accessed (see [Expired metadata endpoint](#expired-metadata-endpoint) and [Unreferenced paths endpoint](#unreferenced-paths-endpoint)).
 
 It also supports different filters (see [filtering section](#filtering)).
 
@@ -294,7 +294,7 @@ This endpoint will return the TTL configuration of all expired partitions that a
  
     <base-url>/database/my_cool_database/table/my_cool_table/metadata
     
-The API will display all the partitions in that table unless it is unpartitioned, in that case it will show only one object; the table. If they want to check only the table object without all of its individual partitions, they'll have to search for the one with the variable `"partitionName"=null` as such:
+The API will display all the partitions in that table unless it is unpartitioned, in that case it will show only one object; the table. To check only the table object without all of its individual partitions, search for the one with the variable `"partitionName"=null` as such:
     
     {
         "path": "s3://mybucket/mydatabase/mytable",
