@@ -268,7 +268,7 @@ To access an endpoint when running in a Docker container, the port must be publi
 
 Beekeeper also has an API which provides read access to the Beekeeper database and allows to see what metadata and paths are currently being managed.
 
-The user can manually enter a database and a table name and check whether this table has been successfully registered in Beekeeper along with things like the current status of the table, the date and time it will be deleted, the current cleanup delay, etc.
+It allows to manually enter a database and a table name and check whether this table has been successfully registered in Beekeeper along with things like the current status of the table, the date and time it will be deleted, the current cleanup delay, etc.
 
 It currently supports two endpoints; one for the expired metadata and another one for the unreferenced paths.
 
@@ -310,7 +310,7 @@ The API will display all the partitions in that table unless it is unpartitioned
         "lifecycleType": "EXPIRED"
     }
 
-This is possible using [filters](#filtering). If we want to search for the table object, we'll have to add a filter with the path to the table, for example 
+This is possible using [filters](#filtering). To search for the table object, a filter with the path to the table will be needed, for example 
 
     <base-url>/database/{databaseName}/table/{tableName}/metadata?path=s3://mybucket/mydatabase/mytable
 
