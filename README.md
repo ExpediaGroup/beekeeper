@@ -4,18 +4,18 @@
 # Table of contents 
 
 - [Overview](#overview)
-  - [Start using](#start-using)
-- [How does it work?](#how-does-it-work)
+  - [Start Using](#start-using)
+- [How Does it Work?](#how-does-it-work)
   - [Beekeeper Architecture](#beekeeper-architecture)
-  - [Unreferenced paths](#unreferenced-paths)
+  - [Unreferenced Paths](#unreferenced-paths)
   - [Time To Live, TTL](#time-to-live-ttl)
-  - [Hive table configuration](#hive-table-configuration)
+  - [Hive Table Configuration](#hive-table-configuration)
 - [Running Beekeeper](#running-beekeeper)
   - [Using Docker](#using-docker)
   - [Endpoints](#endpoints)
-  - [Application configuration](#application-configuration)
+  - [Application Configuration](#application-configuration)
   - [Beekeeper-API](#beekeeper-api)
-- [External links](#external-links)
+- [External Links](#external-links)
 - [Legal](#legal)
 
 # Overview
