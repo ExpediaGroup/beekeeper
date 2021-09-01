@@ -128,7 +128,7 @@ ALTER TABLE <table> SET TBLPROPERTIES("beekeeper.remove.expired.data"="true", "b
 
 # Running Beekeeper
 
-All the Beekeeper modules are run independently of each other:
+All the Beekeeper modules run independently of each other:
 
 - `beekeeper-path-cleanup` periodically queries a database for paths to delete and performs deletions. 
 - `beekeeper-metadata-cleanup` periodically queries a database for metadata to delete and performs deletions on hive tables, partitions, and s3 paths. 
