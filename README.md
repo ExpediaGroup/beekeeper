@@ -128,12 +128,12 @@ ALTER TABLE <table> SET TBLPROPERTIES("beekeeper.remove.expired.data"="true", "b
 
 # Running Beekeeper
 
-Beekeeper consists of four Spring Boot applications which run independently of each other:
+All the Beekeeper modules are run independently of each other:
 
 - `beekeeper-path-cleanup` periodically queries a database for paths to delete and performs deletions. 
 - `beekeeper-metadata-cleanup` periodically queries a database for metadata to delete and performs deletions on hive tables, partitions, and s3 paths. 
 - `beekeeper-scheduler-apiary` periodically polls an Apiary SQS queue for Hive Metastore events and inserts S3 paths and Hive tables to be deleted into a database, scheduling them for deletion.
-- `beekeeper-api` allows users to retrieve information from the database and see what has been scheduled for deletion.
+- `beekeeper-api` allows to retrieve information from the database and see what has been scheduled for deletion.
 
 All applications (except the `beekeeper-api`) require configuration to be provided, see [Application configuration](#application-configuration) for details.
 
@@ -266,13 +266,13 @@ To access an endpoint when running in a Docker container, the port must be publi
 
 ## Beekeeper-API
 
-Beekeeper also has an API which provides read access to the Beekeeper database and allows you to see what metadata and paths are currently being managed.
+Beekeeper also has an API which provides read access to the Beekeeper database and allows to see what metadata and paths are currently being managed.
 
-The user can manually enter a database and a table name and check whether this table has been successfully registered in Beekeeper along with things like the current status of the table, the date and time it will be deleted, the current cleanup delay... etc.
+The user can manually enter a database and a table name and check whether this table has been successfully registered in Beekeeper along with things like the current status of the table, the date and time it will be deleted, the current cleanup delay, etc.
 
 It currently supports two endpoints; one for the expired metadata and another one for the unreferenced paths.
 
-As well as supporting all [standard actuator endpoints](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html), the Beekeeper-API also supports the `swagger` endpoint (see the [Swagger documentation](https://swagger.io/docs/specification/about/)), which provides a visual documentation of the structure of the API, making it easy for the user to explore its capabilities. This is a good start if it's the first time you use the API. You can access it at this url:
+As well as supporting all [standard actuator endpoints](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html), the Beekeeper-API also supports the `swagger` endpoint (see the [Swagger documentation](https://swagger.io/docs/specification/about/)), which provides a visual documentation of the structure of the API, making it easy for the user to explore its capabilities. This is a good start if it's the first time they use the API. It can be accessed at this url:
 
     http://<host>/swagger-ui.html
 
@@ -280,7 +280,7 @@ For the two main endpoints, the base url (will be referred to as `<base-url>` in
 
     http://<host>/api/v1
 
-and the rest of the url will depend on which endpoint you want to access (see [Expired metadata endpoint](#expired-metadata-endpoint) and [Unreferenced paths endpoint](#unreferenced-paths-endpoint)).
+and the rest of the url will depend on which endpoint they want to access (see [Expired metadata endpoint](#expired-metadata-endpoint) and [Unreferenced paths endpoint](#unreferenced-paths-endpoint)).
 
 It also supports different filters (see [filtering section](#filtering)).
 
@@ -294,29 +294,29 @@ This endpoint will return the TTL configuration of all expired partitions that a
  
     <base-url>/database/my_cool_database/table/my_cool_table/metadata
     
-The API will display all the partitions in that table unless it is unpartitioned, in that case it will show only one object; the table. If you want to check only the table object without all of its individual partitions, you'll have to search for the one with the variable `"partitionName"=null` as such:
+The API will display all the partitions in that table unless it is unpartitioned, in that case it will show only one object; the table. If they want to check only the table object without all of its individual partitions, they'll have to search for the one with the variable `"partitionName"=null` as such:
     
-    "path": "s3://mybucket/mydatabase/mytable",
-    "databaseName": "mydatabase",
-    "tableName": "mytable",
-    "partitionName": null,
-    "housekeepingStatus": "DELETED",
-    "creationTimestamp": "2020-09-14T17:22:55",
-    "modifiedTimestamp": "2020-09-14T18:36:52",
-    "cleanupTimestamp": "2020-09-14T17:36:32",
-    "cleanupDelay": "PT10M",
-    "cleanupAttempts": 1,
-    "lifecycleType": "EXPIRED"
+    {
+        "path": "s3://mybucket/mydatabase/mytable",
+        "databaseName": "mydatabase",
+        "tableName": "mytable",
+        "partitionName": null,
+        "housekeepingStatus": "DELETED",
+        "creationTimestamp": "2020-09-14T17:22:55",
+        "modifiedTimestamp": "2020-09-14T18:36:52",
+        "cleanupTimestamp": "2020-09-14T17:36:32",
+        "cleanupDelay": "PT10M",
+        "cleanupAttempts": 1,
+        "lifecycleType": "EXPIRED"
+    }
 
-You can do this by using [filters](#filtering). If you want to search for the table object, you'll have to add a filter with the path to the table, for example 
+This is possible using [filters](#filtering). If we want to search for the table object, we'll have to add a filter with the path to the table, for example 
 
     <base-url>/database/{databaseName}/table/{tableName}/metadata?path=s3://mybucket/mydatabase/mytable
 
 ### Unreferenced paths endpoint (`GET /unreferenced-paths`)
 
 This endpoint will return the configuration of all unreferenced paths that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
-
-The url is the same one as in the [metadata endpoint](#expired-metadata-endpoint), except instead of ending in `metadata` it ends in `unreferenced-paths`.
 
 It is available in this url; 
 
@@ -329,9 +329,7 @@ It is available in this url;
 
 ### Filtering
 
-The filtering available is the same in both endpoints, just keep in mind that in the first one it is referring to expired metadata and in the second one it is referring to unreferenced paths. 
-
-The following table gives an overview of the filters available. It uses the metadata endpoint for the examples, but if the user wants to refer to paths they just have to replace `/database/{databaseName}/table/{tableName}/metadata` with `/database/{databaseName}/table/{tableName}/unreferenced-paths`.
+Both endpoints are different but they share the same filtering capabilities. The following table gives an overview of the filters available:
 
 | Filter name              | Description | Example |
 |:----|:----:|:----|
