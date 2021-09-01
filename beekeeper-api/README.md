@@ -1,5 +1,5 @@
-## Beekeeper API
+## Beekeeper-API
 
-In progress.
+The `Beekeeper-api` module is an API which provides read access to the Beekeeper database and allows you to see what metadata and paths are currently being managed in the database.
 
-Right now it only has a GET /health endpoint.
+For more information, see the [Beekeeper-API](https://github.com/ExpediaGroup/beekeeper#beekeeper-api) section in the documentation.

@@ -1,6 +1,24 @@
 ![Logo](.README_images/full_logo.png)
 
-# Overview ![Java CI](https://github.com/ExpediaGroup/beekeeper/workflows/Java%20CI/badge.svg?event=push) [![Coverage Status](https://coveralls.io/repos/github/ExpediaGroup/beekeeper/badge.svg?branch=main)](https://coveralls.io/github/ExpediaGroup/beekeeper?branch=main) ![GitHub license](https://img.shields.io/github/license/ExpediaGroup/beekeeper.svg)
+![Java CI](https://github.com/ExpediaGroup/beekeeper/workflows/Java%20CI/badge.svg?event=push) [![Coverage Status](https://coveralls.io/repos/github/ExpediaGroup/beekeeper/badge.svg?branch=main)](https://coveralls.io/github/ExpediaGroup/beekeeper?branch=main) ![GitHub license](https://img.shields.io/github/license/ExpediaGroup/beekeeper.svg)
+# Table of Contents 
+
+- [Overview](#overview)
+  - [Start Using](#start-using)
+- [How Does it Work?](#how-does-it-work)
+  - [Beekeeper Architecture](#beekeeper-architecture)
+  - [Unreferenced Paths](#unreferenced-paths)
+  - [Time To Live, TTL](#time-to-live-ttl)
+  - [Hive Table Configuration](#hive-table-configuration)
+- [Running Beekeeper](#running-beekeeper)
+  - [Using Docker](#using-docker)
+  - [Endpoints](#endpoints)
+  - [Application Configuration](#application-configuration)
+  - [Beekeeper-API](#beekeeper-api)
+- [External Links](#external-links)
+- [Legal](#legal)
+
+# Overview
 
 Beekeeper is a service that schedules orphaned paths and expired metadata for deletion.
 
@@ -18,10 +36,11 @@ Docker images can be found in Expedia Group's [dockerhub](https://hub.docker.com
 
 Beekeeper makes use of [Apiary](https://github.com/ExpediaGroup/apiary) - an open source federated cloud data lake - to detect changes in the Hive Metastore. One of Apiary’s components, the [Apiary Metastore Listener](https://github.com/ExpediaGroup/apiary-extensions/tree/main/apiary-metastore-events/sns-metastore-events/apiary-metastore-listener), captures Hive events and publishes these as messages to an SNS topic. Beekeeper uses these messages to detect changes to the Hive Metastore, and perform appropriate deletions.
 
-Beekeeper is comprised of three separate Spring-based Java applications:
+Beekeeper is comprised of separate Spring-based Java applications:
 1. Scheduler Apiary - An application that schedules paths and metadata for deletion in a shared database, with one table for unreferenced paths and another for expired metadata. 
 2. Path Cleanup - An application that perform deletions of unreferenced paths.
 3. Metadata Cleanup - An application that perform deletions of expired metadata.
+4. Beekeeper API - A REST API that allows to see what metadata and paths are in the database.
 
 ## Beekeeper Architecture
 
@@ -36,6 +55,8 @@ The "unreferenced" property can be added to tables to detect when paths become u
 
 By default, `alter_partition` and `alter_table` events require no further configuration. However, in order to avoid unexpected data loss, other event types require whitelisting on a per table basis. See [Hive table configuration](#hive-table-configuration) for more details.
 
+To check whether a table has been configured with the "unreferenced" property, the `beekeeper-api` can be used to look for the table and its current unreferenced paths (see [Unreferenced paths](#unreferenced-paths-endpoint-get-unreferenced-paths)).
+
 ### End-to-end lifecycle example
 1. A Hive table is configured with the parameter `beekeeper.remove.unreferenced.data=true` (see [Hive table configuration](#hive-table-configuration) for more details.)
 2. An operation is executed on the table that orphans some data (alter partition, drop partition, etc.)
@@ -48,6 +69,8 @@ By default, `alter_partition` and `alter_table` events require no further config
 The "expired" TTL property will delete tables, partitions, and their locations after a configurable delay. If no delay is specified the default is 30 days. 
 
 If the table is partitioned the cleanup delay will also apply to each partition that is added to the table. The table will only be dropped when there are no remaining partitions. 
+
+To see whether a table has been configured to use the TTL feature, the `beekeeper-api` metadata endpoint can be used to check if a table has been successfully registered in the Beekeeper database and see when it is going to be deleted. More information in the [Beekeeper API](#Beekeeper-API) section.
 
 ### End-to-end lifecycle example
 1. A Hive table is configured with the TTL parameter `beekeeper.remove.expired.data=true` (see [Hive table configuration](#hive-table-configuration) for more details).
@@ -105,13 +128,14 @@ ALTER TABLE <table> SET TBLPROPERTIES("beekeeper.remove.expired.data"="true", "b
 
 # Running Beekeeper
 
-Beekeeper consists of three Spring Boot applications which run independently of each other:
+All the Beekeeper modules run independently of each other:
 
 - `beekeeper-path-cleanup` periodically queries a database for paths to delete and performs deletions. 
 - `beekeeper-metadata-cleanup` periodically queries a database for metadata to delete and performs deletions on hive tables, partitions, and s3 paths. 
 - `beekeeper-scheduler-apiary` periodically polls an Apiary SQS queue for Hive Metastore events and inserts S3 paths and Hive tables to be deleted into a database, scheduling them for deletion.
+- `beekeeper-api` allows to retrieve information from the database and see what has been scheduled for deletion.
 
-All applications require configuration to be provided, see [Application configuration](#application-configuration) for details.
+All applications (except the `beekeeper-api`) require configuration to be provided, see [Application configuration](#application-configuration) for details.
 
     java -jar <spring-boot-application>.jar --config=<config>.yml
     
@@ -204,7 +228,16 @@ Being a Spring Boot Application, all [standard actuator endpoints](https://docs.
 
 For example, the healthcheck endpoint at: `http://<address>:<port>/actuator/health`. 
 
-By default, `beekeeper-scheduler-apiary` listens on port 8080, `beekeeper-path-cleanup` listens on port 8008, and `beekeeper-metadata-cleanup` listens on 9008. To access this endpoint when running in a Docker container, the port must be published:
+Each application listens on a different port:
+
+| Application                 | Port |
+|:----|:----|
+| `beekeeper-path-cleanup`    | 8008    |
+| `beekeeper-metadata-cleanup`| 9008    |
+| `beekeeper-scheduler-apiary`| 8080    |
+| `beekeeper-api`             | 7008    |
+
+To access an endpoint when running in a Docker container, the port must be published:
 
     docker run -p <port>:<port> <image-id>
 
@@ -230,6 +263,86 @@ By default, `beekeeper-scheduler-apiary` listens on port 8080, `beekeeper-path-c
 | `dry-run-enabled`                   | No       | Enable to simply display the deletions that would be performed, without actually doing so. Default value is `false`. |
 | `scheduler-delay-ms`                | No       | Amount of time (in milliseconds) between consecutive cleanups. Default value is `300000` (5 minutes after the previous cleanup completes). |
 | `Metastore-uri`                     | Yes      | URI of the Hive Metastore where tables to be cleaned-up are located. |
+
+## Beekeeper-API
+
+Beekeeper also has an API which provides read access to the Beekeeper database and allows to see what metadata and paths are currently being managed.
+
+It allows to manually enter a database and a table name and check whether this table has been successfully registered in Beekeeper along with things like the current status of the table, the date and time it will be deleted, the current cleanup delay, etc.
+
+It currently supports two endpoints; one for the expired metadata and another one for the unreferenced paths.
+
+As well as supporting all [standard actuator endpoints](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html), the Beekeeper-API also supports the `swagger` endpoint (see the [Swagger documentation](https://swagger.io/docs/specification/about/)), which provides a visual documentation of the structure of the API, making it easy to explore its capabilities. This is a good start if it's the first time the user is using the API. It can be accessed at this url:
+
+    http://<host>/swagger-ui.html
+
+For the two main endpoints, the base url (will be referred to as `<base-url>` in the following sections) is
+
+    http://<host>/api/v1
+
+and the rest of the url will depend on which endpoint needs to be accessed (see [Expired metadata endpoint](#expired-metadata-endpoint) and [Unreferenced paths endpoint](#unreferenced-paths-endpoint)).
+
+It also supports different filters (see [filtering section](#filtering)).
+
+### Expired metadata endpoint (`GET /metadata`)
+
+This endpoint will return the TTL configuration of all expired partitions that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
+
+    <base-url>/database/{databaseName}/table/{tableName}/metadata
+
+ where `{databaseName}` and `{tableName}` must be replaced by the database and table name that needs to be searched for. So for example, if they wanted to check a table called `my_cool_table` in the database `my_cool_database`, they would go to 
+ 
+    <base-url>/database/my_cool_database/table/my_cool_table/metadata
+    
+The API will display all the partitions in that table unless it is unpartitioned, in that case it will show only one object; the table. To check only the table object without all of its individual partitions, search for the one with the variable `"partitionName"=null` as such:
+    
+    {
+        "path": "s3://mybucket/mydatabase/mytable",
+        "databaseName": "mydatabase",
+        "tableName": "mytable",
+        "partitionName": null,
+        "housekeepingStatus": "DELETED",
+        "creationTimestamp": "2020-09-14T17:22:55",
+        "modifiedTimestamp": "2020-09-14T18:36:52",
+        "cleanupTimestamp": "2020-09-14T17:36:32",
+        "cleanupDelay": "PT10M",
+        "cleanupAttempts": 1,
+        "lifecycleType": "EXPIRED"
+    }
+
+This is possible using [filters](#filtering). To search for the table object, a filter with the path to the table will be needed, for example 
+
+    <base-url>/database/{databaseName}/table/{tableName}/metadata?path=s3://mybucket/mydatabase/mytable
+
+### Unreferenced paths endpoint (`GET /unreferenced-paths`)
+
+This endpoint will return the configuration of all unreferenced paths that are going to be deleted (or have been deleted) in a specific table. If it is unpartitioned it will just show one object; the table.
+
+It is available in this url; 
+
+    <base-url>/database/{databaseName}/table/{tableName}/unreferenced-paths
+
+ where `{databaseName}` and `{tableName}` must be replaced by the database and table name that needs to be searched for. So for example, if they wanted to check a table called `my_cool_table` in the database `my_cool_database`, they would go to 
+ 
+    <base-url>/database/my_cool_database/table/my_cool_table/unreferenced-paths
+
+
+### Filtering
+
+Both endpoints are different but they share the same filtering capabilities. The following table gives an overview of the filters available:
+
+| Filter name              | Description | Example |
+|:----|:----:|:----|
+| `path`                   | Given a path name, return if there is a path with that name | `/database/my_database_name`<br>`/table/my_table_name/metadata?path=`<br>`s3://mybucket/mydb/mytable/myfile.part0001` |
+| `partition_name`         | Given a partition name, return the partitions with that name | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?partition_name=event_date=2020-01-01/event_hour=0/event_type=B` |
+| `housekeeping_status`    | Given  a housekeeping status, return all partitions with that status (SCHEDULED, FAILED or DELETED) | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?housekeeping_status=SCHEDULED` |
+| `lifecycle_type`         | Given a lifecycle type, return all partitions with that lifecycle (EXPIRED or UNREFERENCED). Note: currently this filter is useless as the first endpoint only returns EXPIRED metadata and the second only returns UNREFERENCED paths | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?lifecycle_type=EXPIRED` |
+| `registered_before`      | Given a timestamp, it will return all partitions that were registered in Beekeeper before that time | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?registered_before=2021-02-25T15:33:05` |
+| `registered_after`       | Given a timestamp, it will return all partitions that were registered in Beekeeper after that time | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?registered_after=2021-02-25T15:33:05` |
+| `deleted_before`         | Given a timestamp, it will return all partitions that were deleted before that time | `/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?deleted_before=2021-02-25T15:33:05` |
+| `deleted_after`          | Given a timestamp, it will return all partitions that were deleted after that time | `	/database/my_database_name`<br>`/table/my_table_name/metadata`<br>`?deleted_after=2021-02-25T15:33:05` |
+
+Note: the `partition_name` filter is only available for the expired metadata endpoint, as this variable is not available in the paths.
 
 ### Metrics
 
