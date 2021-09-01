@@ -280,7 +280,7 @@ For the two main endpoints, the base url (will be referred to as `<base-url>` in
 
     http://<host>/api/v1
 
-and the rest of the url will depend on which endpoint needs to be accessed (see [Expired metadata endpoint](#expired-metadata-endpoint) and [Unreferenced paths endpoint](#unreferenced-paths-endpoint)).
+and the rest of the url will depend on which endpoint needs to be accessed (see [Expired metadata endpoint](#expired-metadata-endpoint-get-metadata) and [Unreferenced paths endpoint](#unreferenced-paths-endpoint-get-unreferenced-paths)).
 
 It also supports different filters (see [filtering section](#filtering)).
 
