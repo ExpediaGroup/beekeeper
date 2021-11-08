@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.4.2] - Unreleased
 ### Changed
-- DB migration to add an index for the `housekeeping_path` table.
+- DB migration to add indexes for the `housekeeping_path` and `housekeeping_metadata` tables.
 
 ## [3.4.1] - 2021-08-27
 ### Added
