@@ -44,9 +44,9 @@ public class S3Client {
 
   void deleteObject(String bucket, String key) {
     if (dryRunEnabled) {
-      log.info("Dry run - deleting: \"{}/{}\"", bucket, key);
+      log.debug("Dry run - deleting: \"{}/{}\"", bucket, key);
     } else {
-      log.info("Deleting \"{}/{}\"", bucket, key);
+      log.debug("Deleting \"{}/{}\"", bucket, key);
       amazonS3.deleteObject(bucket, key);
     }
   }

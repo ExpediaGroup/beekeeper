@@ -22,6 +22,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +37,8 @@ import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.path.cleanup.handler.GenericPathHandler;
 
 public class PagingPathCleanupService implements CleanupService {
+
+  private static final Logger log = LoggerFactory.getLogger(PagingPathCleanupService.class);
 
   private final List<GenericPathHandler> pathHandlers;
   private final boolean dryRunEnabled;
@@ -63,7 +67,9 @@ public class PagingPathCleanupService implements CleanupService {
     LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);
     Page<HousekeepingPath> page = handler.findRecordsToClean(instant, pageable);
 
+    int i = 0;
     while (!page.getContent().isEmpty()) {
+      log.info("Processing page {}", i++);
       pageable = handler.processPage(pageable, page, dryRunEnabled);
       page = handler.findRecordsToClean(instant, pageable);
     }
