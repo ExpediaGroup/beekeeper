@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.4.4] - 2021-11-11
 ### Fixed
-- Fixed DB migration version.
+- Fixed DB migration script version.
 
 ## [3.4.3] - 2021-11-11
 ### Changed
