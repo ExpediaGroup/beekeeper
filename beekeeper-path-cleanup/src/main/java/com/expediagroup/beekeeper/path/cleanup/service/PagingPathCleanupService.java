@@ -67,7 +67,7 @@ public class PagingPathCleanupService implements CleanupService {
     LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);
     Page<HousekeepingPath> page = handler.findRecordsToClean(instant, pageable);
 
-    int i = 0;
+    int i = 1;
     while (!page.getContent().isEmpty()) {
       log.info("Processing page {}", i++);
       pageable = handler.processPage(pageable, page, dryRunEnabled);
