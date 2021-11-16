@@ -35,7 +35,8 @@ public class RepositoryCleanupScheduler {
     this.cleanupService = cleanupService;
   }
 
-  @Scheduled(cron = "")
+  // Every day at 1pm
+  @Scheduled(cron = "0 13 * * ?")
   public void oldRecordsCleanupWithCron() {
     Instant now = Instant.now();
     log.info("Started repository cleanup");
