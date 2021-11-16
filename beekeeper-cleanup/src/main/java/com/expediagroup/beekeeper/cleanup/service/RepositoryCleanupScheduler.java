@@ -38,8 +38,8 @@ public class RepositoryCleanupScheduler {
   @Scheduled(cron = "")
   public void oldRecordsCleanupWithCron() {
     Instant now = Instant.now();
-    log.info("Started cleanup");
+    log.info("Started repository cleanup");
     cleanupService.cleanUp(now);
-    log.info("Finished cleanup");
+    log.info("Finished repository cleanup");
   }
 }

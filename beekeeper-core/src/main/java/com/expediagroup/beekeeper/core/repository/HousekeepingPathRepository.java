@@ -39,7 +39,7 @@ public interface HousekeepingPathRepository extends PagingAndSortingRepository<H
       Pageable pageable);
 
   @Modifying
-  @Query(value = "delete from HousekeepingPath p where p.creationTimestamp < :instant "
+  @Query(value = "delete from HousekeepingPath p where p.cleanupTimestamp < :instant "
       + "and p.housekeepingStatus = 'DELETED'")
   void cleanUpOldDeletedRecords(@Param("instant") LocalDateTime instant);
 }
