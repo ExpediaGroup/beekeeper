@@ -15,6 +15,10 @@
  */
 package com.expediagroup.beekeeper.core.repository;
 
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MONTHS;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -43,11 +47,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 
 import com.expediagroup.beekeeper.core.TestApplication;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(properties = {
@@ -356,6 +362,51 @@ public class HousekeepingMetadataRepositoryTest {
     assertEquals(0L, result);
   }
 
+  @Test
+  @Transactional
+  public void cleanUpOldDeletedRecord() {
+    HousekeepingMetadata housekeepingEntity = createEntityHouseKeepingTable(CLEANUP_TIMESTAMP.minus(4, DAYS), DELETED);
+    housekeepingMetadataRepository.save(housekeepingEntity);
+
+    housekeepingMetadataRepository.cleanUpOldDeletedRecords(CLEANUP_TIMESTAMP);
+    List<HousekeepingMetadata> remainingPaths = Lists.newArrayList(housekeepingMetadataRepository.findAll());
+    assertThat(remainingPaths.size()).isEqualTo(0);
+  }
+
+  @Test
+  @Transactional
+  public void cleanUpOldDeletedRecordsNothingToDelete() {
+    HousekeepingMetadata housekeepingTable = createEntityHouseKeepingTable(CLEANUP_TIMESTAMP.plus(1, HOURS), DELETED);
+    housekeepingMetadataRepository.save(housekeepingTable);
+
+    housekeepingMetadataRepository.cleanUpOldDeletedRecords(CLEANUP_TIMESTAMP);
+    List<HousekeepingMetadata> remainingPaths = Lists.newArrayList(housekeepingMetadataRepository.findAll());
+    assertThat(remainingPaths.size()).isEqualTo(1);
+    assertThat(remainingPaths.get(0)).isEqualTo(housekeepingTable);
+  }
+
+  @Test
+  @Transactional
+  public void cleanUpOldDeletedRecordsMultipleRecords() {
+    HousekeepingMetadata oldDeteled = createEntityHouseKeepingTable(CLEANUP_TIMESTAMP.minus(4, DAYS), DELETED);
+    housekeepingMetadataRepository.save(oldDeteled);
+    HousekeepingMetadata oldDeleted1 = createEntityHouseKeepingTable(CLEANUP_TIMESTAMP.minus(5, MONTHS), DELETED);
+    housekeepingMetadataRepository.save(oldDeleted1);
+    HousekeepingMetadata oldScheduled = createEntityHouseKeepingTable(CLEANUP_TIMESTAMP.minus(4, DAYS), SCHEDULED);
+    housekeepingMetadataRepository.save(oldScheduled);
+    HousekeepingMetadata newDeleted = createEntityHouseKeepingTable(CREATION_TIMESTAMP, DELETED);
+    housekeepingMetadataRepository.save(newDeleted);
+    HousekeepingMetadata newScheduled = createEntityHouseKeepingTable(CREATION_TIMESTAMP, SCHEDULED);
+    housekeepingMetadataRepository.save(newScheduled);
+
+    housekeepingMetadataRepository.cleanUpOldDeletedRecords(CLEANUP_TIMESTAMP);
+    List<HousekeepingMetadata> remainingPaths = Lists.newArrayList(housekeepingMetadataRepository.findAll());
+    assertThat(remainingPaths.size()).isEqualTo(3);
+    assertThat(remainingPaths.get(0)).isEqualTo(oldScheduled);
+    assertThat(remainingPaths.get(1)).isEqualTo(newDeleted);
+    assertThat(remainingPaths.get(2)).isEqualTo(newScheduled);
+  }
+
   private HousekeepingMetadata createUnpartitionedEntityHousekeepingTable() {
     return createEntityHousekeepingTable(null);
   }
@@ -365,21 +416,36 @@ public class HousekeepingMetadataRepositoryTest {
   }
 
   private HousekeepingMetadata createEntityHousekeepingTable(String partitionName) {
-    return createEntityHouseKeepingTable(DATABASE_NAME, TABLE_NAME, partitionName);
+    return createEntityHouseKeepingTable(DATABASE_NAME, TABLE_NAME, partitionName, CREATION_TIMESTAMP, SCHEDULED);
   }
 
   private HousekeepingMetadata createEntityHouseKeepingTable(
       String databaseName,
       String tableName,
       String partitionName) {
+    return createEntityHouseKeepingTable(databaseName, tableName, partitionName, CREATION_TIMESTAMP, SCHEDULED);
+  }
+
+  private HousekeepingMetadata createEntityHouseKeepingTable(
+      LocalDateTime creationDate,
+      HousekeepingStatus status) {
+    return createEntityHouseKeepingTable(DATABASE_NAME, TABLE_NAME, PARTITION_NAME, creationDate, status);
+  }
+
+  private HousekeepingMetadata createEntityHouseKeepingTable(
+      String databaseName,
+      String tableName,
+      String partitionName,
+      LocalDateTime creationDate,
+      HousekeepingStatus status) {
     return HousekeepingMetadata.builder()
         .path(PATH)
         .databaseName(databaseName)
         .tableName(tableName)
         .partitionName(partitionName)
-        .housekeepingStatus(SCHEDULED)
-        .creationTimestamp(CREATION_TIMESTAMP)
-        .modifiedTimestamp(CREATION_TIMESTAMP)
+        .housekeepingStatus(status)
+        .creationTimestamp(creationDate)
+        .modifiedTimestamp(creationDate)
         .cleanupDelay(CLEANUP_DELAY)
         .cleanupAttempts(0)
         .lifecycleType(EXPIRED.toString())

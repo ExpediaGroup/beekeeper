@@ -211,10 +211,10 @@ public class HousekeepingPathRepositoryTest {
   @Test
   @Transactional
   public void cleanUpOldDeletedRecords() {
-    HousekeepingPath path = createEntityHousekeepingPath("path", CREATION_TIMESTAMP.minus(1, MONTHS), DELETED);
+    HousekeepingPath path = createEntityHousekeepingPath("path", CLEANUP_TIMESTAMP.minus(1, MONTHS), DELETED);
     housekeepingPathRepository.save(path);
 
-    housekeepingPathRepository.cleanUpOldDeletedRecords(CREATION_TIMESTAMP);
+    housekeepingPathRepository.cleanUpOldDeletedRecords(CLEANUP_TIMESTAMP);
     List<HousekeepingPath> remainingPaths = Lists.newArrayList(housekeepingPathRepository.findAll());
     assertThat(remainingPaths.size()).isEqualTo(0);
   }
@@ -222,10 +222,10 @@ public class HousekeepingPathRepositoryTest {
   @Test
   @Transactional
   public void cleanUpOldDeletedRecordsNothingToDelete() {
-    HousekeepingPath newScheduledPath = createEntityHousekeepingPath("path", CREATION_TIMESTAMP, SCHEDULED);
+    HousekeepingPath newScheduledPath = createEntityHousekeepingPath("path", CLEANUP_TIMESTAMP, SCHEDULED);
     housekeepingPathRepository.save(newScheduledPath);
 
-    housekeepingPathRepository.cleanUpOldDeletedRecords(CREATION_TIMESTAMP);
+    housekeepingPathRepository.cleanUpOldDeletedRecords(CLEANUP_TIMESTAMP.plus(1, DAYS));
     List<HousekeepingPath> remainingPaths = Lists.newArrayList(housekeepingPathRepository.findAll());
     assertThat(remainingPaths.size()).isEqualTo(1);
     assertThat(remainingPaths.get(0)).isEqualTo(newScheduledPath);
@@ -234,18 +234,20 @@ public class HousekeepingPathRepositoryTest {
   @Test
   @Transactional
   public void cleanUpOldDeletedRecordsMultipleRecords() {
-    HousekeepingPath oldDeletedPath = createEntityHousekeepingPath("path1", CREATION_TIMESTAMP.minus(2, DAYS), DELETED);
+    HousekeepingPath oldDeletedPath = createEntityHousekeepingPath("path1", CLEANUP_TIMESTAMP.minus(2, DAYS), DELETED);
     housekeepingPathRepository.save(oldDeletedPath);
-    HousekeepingPath oldDeletedPath1 = createEntityHousekeepingPath("path11", CREATION_TIMESTAMP.minus(2, HOURS), DELETED);
+    HousekeepingPath oldDeletedPath1 = createEntityHousekeepingPath("path11", CLEANUP_TIMESTAMP.minus(2, HOURS),
+        DELETED);
     housekeepingPathRepository.save(oldDeletedPath1);
-    HousekeepingPath oldScheduledPath = createEntityHousekeepingPath("path2", CREATION_TIMESTAMP.minus(2, DAYS), SCHEDULED);
+    HousekeepingPath oldScheduledPath = createEntityHousekeepingPath("path2", CLEANUP_TIMESTAMP.minus(2, DAYS),
+        SCHEDULED);
     housekeepingPathRepository.save(oldScheduledPath);
     HousekeepingPath newDeletedPath = createEntityHousekeepingPath("path3", CREATION_TIMESTAMP, DELETED);
     housekeepingPathRepository.save(newDeletedPath);
     HousekeepingPath newScheduledPath = createEntityHousekeepingPath("path4", CREATION_TIMESTAMP, SCHEDULED);
     housekeepingPathRepository.save(newScheduledPath);
 
-    housekeepingPathRepository.cleanUpOldDeletedRecords(CREATION_TIMESTAMP);
+    housekeepingPathRepository.cleanUpOldDeletedRecords(CLEANUP_TIMESTAMP);
     List<HousekeepingPath> remainingPaths = Lists.newArrayList(housekeepingPathRepository.findAll());
     assertThat(remainingPaths.size()).isEqualTo(3);
     assertThat(remainingPaths.get(0)).isEqualTo(oldScheduledPath);
@@ -255,16 +257,16 @@ public class HousekeepingPathRepositoryTest {
 
   private HousekeepingPath createEntityHousekeepingPath() {
     return createEntityHousekeepingPath("path", CREATION_TIMESTAMP, SCHEDULED);
-
   }
-  private HousekeepingPath createEntityHousekeepingPath(String path, LocalDateTime creationDate, HousekeepingStatus status) {
+
+  private HousekeepingPath createEntityHousekeepingPath(String path, LocalDateTime creationDate,
+      HousekeepingStatus status) {
     return HousekeepingPath.builder()
         .path(path)
         .databaseName("database")
         .tableName("table")
         .housekeepingStatus(status)
         .creationTimestamp(creationDate)
-        .cleanupTimestamp(creationDate.plus(CLEANUP_DELAY))
         .modifiedTimestamp(creationDate)
         .cleanupDelay(CLEANUP_DELAY)
         .cleanupAttempts(0)
