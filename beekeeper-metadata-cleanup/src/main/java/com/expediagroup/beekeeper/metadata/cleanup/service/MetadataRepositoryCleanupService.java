@@ -31,12 +31,12 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository
 public class MetadataRepositoryCleanupService implements RepositoryCleanupService {
 
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
-  private final int numberOfRetentionDays;
+  private final int retentionPeriodInDays;
 
   public MetadataRepositoryCleanupService(
-      HousekeepingMetadataRepository housekeepingMetadataRepository, int numberOfRetentionDays) {
+      HousekeepingMetadataRepository housekeepingMetadataRepository, int retentionPeriodInDays) {
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
-    this.numberOfRetentionDays = numberOfRetentionDays;
+    this.retentionPeriodInDays = retentionPeriodInDays;
   }
 
   @Override
@@ -44,6 +44,6 @@ public class MetadataRepositoryCleanupService implements RepositoryCleanupServic
   @Timed("metadata-repository-cleanup-job")
   public void cleanUp(Instant referenceTime) {
     LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);
-    housekeepingMetadataRepository.cleanUpOldDeletedRecords(instant.minus(numberOfRetentionDays, DAYS));
+    housekeepingMetadataRepository.cleanUpOldDeletedRecords(instant.minus(retentionPeriodInDays, DAYS));
   }
 }
