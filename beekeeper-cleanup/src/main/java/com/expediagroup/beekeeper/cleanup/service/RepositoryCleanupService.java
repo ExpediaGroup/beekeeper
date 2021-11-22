@@ -20,7 +20,7 @@ import java.time.Instant;
 public interface RepositoryCleanupService {
 
   /**
-   * Deletes all records corresponding to paths/metadata deleted more than a certain amount of time ago.
+   * Deletes all records corresponding to paths/metadata deleted more than x days before the {@code referenceTime}.
    *
    * @param referenceTime Deletion reference time.
    */
