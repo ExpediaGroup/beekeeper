@@ -46,9 +46,11 @@ import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
+import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
+import com.expediagroup.beekeeper.metadata.cleanup.service.MetadataRepositoryCleanupService;
 import com.expediagroup.beekeeper.metadata.cleanup.service.PagingMetadataCleanupService;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
@@ -145,7 +147,8 @@ public class CommonBeans {
       HousekeepingMetadataRepository housekeepingMetadataRepository,
       @Qualifier("hiveTableCleaner") MetadataCleaner metadataCleaner,
       @Qualifier("s3PathCleaner") PathCleaner pathCleaner) {
-    return new ExpiredMetadataHandler(cleanerClientFactory, housekeepingMetadataRepository, metadataCleaner, pathCleaner);
+    return new ExpiredMetadataHandler(cleanerClientFactory, housekeepingMetadataRepository, metadataCleaner,
+        pathCleaner);
   }
 
   @Bean
@@ -154,5 +157,12 @@ public class CommonBeans {
       @Value("${properties.cleanup-page-size}") int pageSize,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
     return new PagingMetadataCleanupService(metadataHandlers, pageSize, dryRunEnabled);
+  }
+
+  @Bean
+  RepositoryCleanupService repositoryCleanupService(
+      HousekeepingMetadataRepository housekeepingMetadataRepository,
+      @Value("${properties.repository-retention-period-days}") int retentionPeriodInDays) {
+    return new MetadataRepositoryCleanupService(housekeepingMetadataRepository, retentionPeriodInDays);
   }
 }
