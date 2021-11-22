@@ -35,38 +35,35 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import com.amazonaws.services.s3.AmazonS3;
-
-import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.CleanupServiceScheduler;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupScheduler;
+import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)
 @TestPropertySource(properties = {
-    "properties.scheduler-delay-ms=2000" })
+    "properties.repository-scheduler-cron=*/4 * * * * *" })
 @ContextConfiguration(classes = { CleanupServiceScheduler.class, TestConfig.class },
     loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class CleanupServiceSchedulerTest {
+class RepositoryCleanupSchedulerTest {
 
-  private @Autowired CleanupServiceScheduler cleanupServiceScheduler;
-  private @MockBean CleanupService cleanupService;
-  private @MockBean AmazonS3 amazonS3;
-  private @MockBean RepositoryCleanupScheduler repositoryCleanupScheduler;
+  private @Autowired RepositoryCleanupScheduler repositoryCleanupScheduler;
+  private @MockBean RepositoryCleanupService repositoryCleanupService;
+  private @MockBean CleanupServiceScheduler cleanupServiceScheduler;
 
   @Test
   void typical() {
     await().atMost(Duration.TEN_SECONDS)
-        .untilAsserted(() -> verify(cleanupService, atLeast(2)).cleanUp(any()));
+        .untilAsserted(() -> verify(repositoryCleanupService, atLeast(2)).cleanUp(any()));
   }
 
   @Test
   void cleanupServiceException() {
-    doThrow(BeekeeperException.class).when(cleanupService)
+    doThrow(BeekeeperException.class).when(repositoryCleanupService)
         .cleanUp(any(Instant.class));
     await().atMost(Duration.TEN_SECONDS)
-        .untilAsserted(() -> verify(cleanupService, atLeast(2)).cleanUp(any()));
+        .untilAsserted(() -> verify(repositoryCleanupService, atLeast(2)).cleanUp(any()));
   }
 }

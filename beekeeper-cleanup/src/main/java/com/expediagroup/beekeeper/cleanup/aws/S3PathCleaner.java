@@ -38,9 +38,9 @@ public class S3PathCleaner implements PathCleaner {
 
   private static final Logger log = LoggerFactory.getLogger(S3PathCleaner.class);
 
-  private S3Client s3Client;
-  private SentinelFilesCleaner sentinelFilesCleaner;
-  private BytesDeletedReporter bytesDeletedReporter;
+  private final S3Client s3Client;
+  private final SentinelFilesCleaner sentinelFilesCleaner;
+  private final BytesDeletedReporter bytesDeletedReporter;
 
   public S3PathCleaner(S3Client s3Client, SentinelFilesCleaner sentinelFilesCleaner,
       BytesDeletedReporter bytesDeletedReporter) {

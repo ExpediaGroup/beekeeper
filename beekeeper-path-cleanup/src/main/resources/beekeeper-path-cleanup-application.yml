@@ -14,5 +14,5 @@ properties:
   cleanup-page-size: 500
   dry-run-enabled: false
   scheduler-delay-ms: 300000 # 5 minutes
-  repository-scheduler-cron: '0 13 * * ?' # Every day at 1pm
+  repository-scheduler-cron: '0 0 13 * * ?' # Every day at 1pm
   repository-retention-period-days: 182 # 6 months
