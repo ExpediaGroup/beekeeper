@@ -99,7 +99,7 @@ public class CommonBeans {
   @Bean
   RepositoryCleanupService repositoryCleanupService(
       HousekeepingPathRepository housekeepingPathRepository,
-      @Value("${properties.repository-retention-period-days}") int retentionPeriodInDays) {
+      @Value("${properties.old-data-retention-period-days}") int retentionPeriodInDays) {
     return new PathRepositoryCleanupService(housekeepingPathRepository, retentionPeriodInDays);
   }
 }

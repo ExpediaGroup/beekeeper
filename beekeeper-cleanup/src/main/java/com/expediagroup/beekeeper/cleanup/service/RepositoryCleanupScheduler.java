@@ -35,7 +35,7 @@ public class RepositoryCleanupScheduler {
     this.cleanupService = cleanupService;
   }
 
-  @Scheduled(cron = "${properties.repository-scheduler-cron}")
+  @Scheduled(cron = "${properties.old-data-cleanup-cron}")
   public void oldRecordsCleanupWithCron() {
     Instant now = Instant.now();
     log.info("Started repository cleanup");

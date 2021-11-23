@@ -162,7 +162,7 @@ public class CommonBeans {
   @Bean
   RepositoryCleanupService repositoryCleanupService(
       HousekeepingMetadataRepository housekeepingMetadataRepository,
-      @Value("${properties.repository-retention-period-days}") int retentionPeriodInDays) {
+      @Value("${properties.old-data-retention-period-days}") int retentionPeriodInDays) {
     return new MetadataRepositoryCleanupService(housekeepingMetadataRepository, retentionPeriodInDays);
   }
 }

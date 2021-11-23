@@ -255,6 +255,8 @@ To access an endpoint when running in a Docker container, the port must be publi
 | `cleanup-page-size`                 | No       | Number of rows that should be processed in one page. Default value is `500`. |
 | `dry-run-enabled`                   | No       | Enable to simply display the deletions that would be performed, without actually doing so. Default value is `false`. |
 | `scheduler-delay-ms`                | No       | Amount of time (in milliseconds) between consecutive cleanups. Default value is `300000` (5 minutes after the previous cleanup completes). |
+| `old-data-cleanup-cron`             | No       | Cron expression which sets the schedule for the cleanup of old rows in the `housekeeping_path` table. Default is `0 0 13 * * ?` (every day at 1pm). |
+| `old-data-retention-period-days`    | No       | Number of days to keep old rows in the `housekeeping_path` table after their corresponding data is deleted. Default is `182` (6 months). |
 
 ### Beekeeper Metadata Cleanup
 | Property                            | Required | Description |
@@ -263,10 +265,12 @@ To access an endpoint when running in a Docker container, the port must be publi
 | `dry-run-enabled`                   | No       | Enable to simply display the deletions that would be performed, without actually doing so. Default value is `false`. |
 | `scheduler-delay-ms`                | No       | Amount of time (in milliseconds) between consecutive cleanups. Default value is `300000` (5 minutes after the previous cleanup completes). |
 | `Metastore-uri`                     | Yes      | URI of the Hive Metastore where tables to be cleaned-up are located. |
+| `old-data-cleanup-cron`             | No       | Cron expression which sets the schedule for the cleanup of old rows in the `housekeepin_metadata` table. Default is `0 0 13 * * ?` (every day at 1pm). |
+| `old-data-retention-period-days`    | No       | Number of days to keep old rows in the `housekeepin_metadata` table after their corresponding data is deleted. Default is `182` (6 months). |
 
 ## Beekeeper-API
 
-Beekeeper also has an API which provides read access to the Beekeeper database and allows to see what metadata and paths are currently being managed.
+Beekeeper also has an API which provides read access to the Beekeeper database and allows seeing what metadata and paths are currently being managed.
 
 It allows to manually enter a database and a table name and check whether this table has been successfully registered in Beekeeper along with things like the current status of the table, the date and time it will be deleted, the current cleanup delay, etc.
 

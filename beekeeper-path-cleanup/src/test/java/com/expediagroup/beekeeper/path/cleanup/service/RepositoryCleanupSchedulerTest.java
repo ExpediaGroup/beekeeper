@@ -43,7 +43,7 @@ import com.expediagroup.beekeeper.core.error.BeekeeperException;
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)
 @TestPropertySource(properties = {
-    "properties.repository-scheduler-cron=*/4 * * * * *" })
+    "properties.old-data-cleanup-cron=*/4 * * * * *" })
 @ContextConfiguration(classes = { CleanupServiceScheduler.class, TestConfig.class },
     loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
