@@ -38,8 +38,10 @@ import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
+import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.path.cleanup.service.PagingPathCleanupService;
+import com.expediagroup.beekeeper.path.cleanup.service.PathRepositoryCleanupService;
 
 @ExtendWith(MockitoExtension.class)
 class CommonBeansTest {
@@ -52,10 +54,9 @@ class CommonBeansTest {
   private static final String BUCKET = "bucket";
   private static final String KEY = "key";
 
-  private boolean dryRunEnabled = false;
+  private final boolean dryRunEnabled = false;
   private final CommonBeans commonBeans = new CommonBeans();
   private @Mock HousekeepingPathRepository repository;
-  private @Mock PathCleaner pathCleaner;
   private @Mock BytesDeletedReporter bytesDeletedReporter;
 
   @BeforeEach
@@ -97,7 +98,7 @@ class CommonBeansTest {
   void verifyS3pathCleaner() {
     S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), dryRunEnabled);
     MeterRegistry meterRegistry = mock(GraphiteMeterRegistry.class);
-    
+
     PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, bytesDeletedReporter);
     assertThat(pathCleaner).isInstanceOf(S3PathCleaner.class);
   }
@@ -106,5 +107,11 @@ class CommonBeansTest {
   void cleanupService() {
     CleanupService cleanupService = commonBeans.cleanupService(Collections.emptyList(), 2, dryRunEnabled);
     assertThat(cleanupService).isInstanceOf(PagingPathCleanupService.class);
+  }
+
+  @Test
+  public void repositoryCleanupService() {
+    RepositoryCleanupService cleanupService = commonBeans.repositoryCleanupService(repository, 5);
+    assertThat(cleanupService).isInstanceOf(PathRepositoryCleanupService.class);
   }
 }

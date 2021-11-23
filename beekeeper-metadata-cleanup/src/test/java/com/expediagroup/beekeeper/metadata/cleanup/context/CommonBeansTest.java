@@ -47,8 +47,10 @@ import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
+import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
+import com.expediagroup.beekeeper.metadata.cleanup.service.MetadataRepositoryCleanupService;
 import com.expediagroup.beekeeper.metadata.cleanup.service.PagingMetadataCleanupService;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
@@ -65,9 +67,7 @@ public class CommonBeansTest {
   private static final String ENDPOINT = "endpoint";
   private static final String BUCKET = "bucket";
   private static final String KEY = "key";
-  private final String metastoreUri = "thrift://localhost:1234";
 
-  private boolean dryRunEnabled = false;
   private final CommonBeans commonBeans = new CommonBeans();
   private @Mock HousekeepingMetadataRepository metadataRepository;
   private @Mock MetadataCleaner metadataCleaner;
@@ -88,15 +88,14 @@ public class CommonBeansTest {
 
   @Test
   public void typicalHiveConf() {
+    String metastoreUri = "thrift://localhost:1234";
     HiveConf hiveConf = commonBeans.hiveConf(metastoreUri);
     assertThat(hiveConf.get(HiveConf.ConfVars.METASTOREURIS.varname)).isEqualTo(metastoreUri);
   }
 
   @Test
   public void hiveConfFailure() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      commonBeans.hiveConf(null);
-    });
+    assertThrows(IllegalArgumentException.class, () -> commonBeans.hiveConf(null));
   }
 
   @Test
@@ -157,7 +156,8 @@ public class CommonBeansTest {
   @Test
   public void verifyExpiredMetadataHandler() {
     HiveClientFactory hiveClientFactory = Mockito.mock(HiveClientFactory.class);
-    ExpiredMetadataHandler expiredMetadataHandler = commonBeans.expiredMetadataHandler(hiveClientFactory, metadataRepository,
+    ExpiredMetadataHandler expiredMetadataHandler = commonBeans.expiredMetadataHandler(hiveClientFactory,
+        metadataRepository,
         metadataCleaner, pathCleaner);
     assertThat(expiredMetadataHandler).isInstanceOf(ExpiredMetadataHandler.class);
   }
@@ -166,8 +166,15 @@ public class CommonBeansTest {
   public void verifyCleanupService() {
     HiveClientFactory hiveClientFactory = Mockito.mock(HiveClientFactory.class);
     CleanupService cleanupService = commonBeans.cleanupService(
-        List.of(commonBeans.expiredMetadataHandler(hiveClientFactory, metadataRepository, metadataCleaner, pathCleaner)), 2,
-        dryRunEnabled);
+        List.of(
+            commonBeans.expiredMetadataHandler(hiveClientFactory, metadataRepository, metadataCleaner, pathCleaner)), 2,
+        false);
     assertThat(cleanupService).isInstanceOf(PagingMetadataCleanupService.class);
+  }
+
+  @Test
+  public void verifyRepositoryCleanupService() {
+    RepositoryCleanupService cleanupService = commonBeans.repositoryCleanupService(metadataRepository, 5);
+    assertThat(cleanupService).isInstanceOf(MetadataRepositoryCleanupService.class);
   }
 }

@@ -86,7 +86,7 @@
       <artifactId>localstack-utils</artifactId>
       <version>0.2.13</version>
       <scope>test</scope>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>

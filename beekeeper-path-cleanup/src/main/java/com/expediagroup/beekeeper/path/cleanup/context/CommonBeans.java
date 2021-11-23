@@ -38,8 +38,11 @@ import com.expediagroup.beekeeper.cleanup.aws.S3SentinelFilesCleaner;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
+import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
+import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.path.cleanup.handler.GenericPathHandler;
 import com.expediagroup.beekeeper.path.cleanup.service.PagingPathCleanupService;
+import com.expediagroup.beekeeper.path.cleanup.service.PathRepositoryCleanupService;
 
 @Configuration
 @EnableScheduling
@@ -91,5 +94,12 @@ public class CommonBeans {
       @Value("${properties.cleanup-page-size}") int pageSize,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
     return new PagingPathCleanupService(pathHandlers, pageSize, dryRunEnabled);
+  }
+
+  @Bean
+  RepositoryCleanupService repositoryCleanupService(
+      HousekeepingPathRepository housekeepingPathRepository,
+      @Value("${properties.old-data-retention-period-days}") int retentionPeriodInDays) {
+    return new PathRepositoryCleanupService(housekeepingPathRepository, retentionPeriodInDays);
   }
 }

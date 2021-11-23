@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
@@ -36,4 +37,9 @@ public interface HousekeepingPathRepository extends PagingAndSortingRepository<H
       + "and p.modifiedTimestamp <= :instant order by p.modifiedTimestamp")
   Page<HousekeepingPath> findRecordsForCleanupByModifiedTimestamp(@Param("instant") LocalDateTime instant,
       Pageable pageable);
+
+  @Modifying
+  @Query(value = "delete from HousekeepingPath p where p.cleanupTimestamp < :instant "
+      + "and p.housekeepingStatus = 'DELETED'")
+  void cleanUpOldDeletedRecords(@Param("instant") LocalDateTime instant);
 }
