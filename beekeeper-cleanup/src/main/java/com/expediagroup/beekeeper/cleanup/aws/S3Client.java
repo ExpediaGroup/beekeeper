@@ -44,9 +44,9 @@ public class S3Client {
 
   void deleteObject(String bucket, String key) {
     if (dryRunEnabled) {
-      log.debug("Dry run - deleting: \"{}/{}\"", bucket, key);
+      log.info("Dry run - deleting: \"{}/{}\"", bucket, key);
     } else {
-      log.debug("Deleting \"{}/{}\"", bucket, key);
+      log.info("Deleting \"{}/{}\"", bucket, key);
       amazonS3.deleteObject(bucket, key);
     }
   }
@@ -73,7 +73,7 @@ public class S3Client {
       return Collections.emptyList();
     }
     if (!dryRunEnabled) {
-      keys.forEach(key -> log.debug("Deleting: \"{}/{}\"", bucket, key));
+      keys.forEach(key -> log.info("Deleting: \"{}/{}\"", bucket, key));
       DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket)
           .withKeys(keys.toArray(new String[] {}));
       DeleteObjectsResult deleteObjectsResult = amazonS3.deleteObjects(deleteObjectsRequest);
@@ -83,7 +83,7 @@ public class S3Client {
           .collect(Collectors.toList());
     } else {
       return keys.stream()
-          .peek(key -> log.debug("Dry run - deleting: \"{}/{}\"", bucket, key))
+          .peek(key -> log.info("Dry run - deleting: \"{}/{}\"", bucket, key))
           .collect(Collectors.toList());
     }
   }

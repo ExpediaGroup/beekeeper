@@ -101,7 +101,7 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   private void cleanUpTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
-    log.info("Cleaning up metadata for \"{}.{}\".", databaseName, tableName);
+    log.info("Cleaning up metadata for \"{}.{}\"", databaseName, tableName);
     if (metadataCleaner.tableExists(client, databaseName, tableName)) {
       metadataCleaner.dropTable(housekeepingMetadata, client);
       pathCleaner.cleanupPath(housekeepingMetadata);
@@ -113,7 +113,7 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   private void cleanupPartition(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
-    log.info("Cleaning up metadata for \"{}.{}\".", databaseName, tableName);
+    log.info("Cleaning up metadata for \"{}.{}\"", databaseName, tableName);
     if (metadataCleaner.tableExists(client, databaseName, tableName)) {
       boolean partitionDeleted = metadataCleaner.dropPartition(housekeepingMetadata, client);
       if (partitionDeleted) {
