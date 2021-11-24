@@ -4,7 +4,7 @@
   <parent>
     <artifactId>beekeeper-parent</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>3.4.5</version>
+    <version>3.4.6-SNAPSHOT</version>
   </parent>
 
   <artifactId>beekeeper-api</artifactId>
