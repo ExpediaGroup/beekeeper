@@ -14,5 +14,5 @@ properties:
   cleanup-page-size: 500
   dry-run-enabled: false
   scheduler-delay-ms: 300000 # 5 minutes
-  old-data-cleanup-cron: '0 0 13 * * ?' # Every day at 1pm
+  old-data-cleanup-cron: 0 0 13 * * ? # Every day at 1pm
   old-data-retention-period-days: 182 # 6 months

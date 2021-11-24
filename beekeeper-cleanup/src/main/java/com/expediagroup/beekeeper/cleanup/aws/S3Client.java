@@ -44,9 +44,9 @@ public class S3Client {
 
   void deleteObject(String bucket, String key) {
     if (dryRunEnabled) {
-      log.debug("Dry run - deleting: \"{}/{}\"", bucket, key);
+      log.info("Dry run - deleting: \"{}/{}\"", bucket, key);
     } else {
-      log.debug("Deleting \"{}/{}\"", bucket, key);
+      log.info("Deleting \"{}/{}\"", bucket, key);
       amazonS3.deleteObject(bucket, key);
     }
   }
@@ -57,10 +57,10 @@ public class S3Client {
     String continuationToken = null;
     do {
       ListObjectsV2Request request = new ListObjectsV2Request()
-        .withBucketName(bucket)
-        .withPrefix(key)
-        .withEncodingType("url")
-        .withContinuationToken(continuationToken);
+          .withBucketName(bucket)
+          .withPrefix(key)
+          .withEncodingType("url")
+          .withContinuationToken(continuationToken);
       listObjectsV2Result = amazonS3.listObjectsV2(request);
       objectSummaries.addAll(listObjectsV2Result.getObjectSummaries());
       continuationToken = listObjectsV2Result.getNextContinuationToken();
@@ -75,7 +75,7 @@ public class S3Client {
     if (!dryRunEnabled) {
       keys.forEach(key -> log.info("Deleting: \"{}/{}\"", bucket, key));
       DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket)
-        .withKeys(keys.toArray(new String[]{}));
+          .withKeys(keys.toArray(new String[] {}));
       DeleteObjectsResult deleteObjectsResult = amazonS3.deleteObjects(deleteObjectsRequest);
       return deleteObjectsResult.getDeletedObjects()
           .stream()
@@ -112,5 +112,4 @@ public class S3Client {
       return true;
     }
   }
-
 }
