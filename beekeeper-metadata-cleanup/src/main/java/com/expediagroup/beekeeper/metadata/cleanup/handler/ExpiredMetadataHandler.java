@@ -18,6 +18,7 @@ package com.expediagroup.beekeeper.metadata.cleanup.handler;
 import static org.apache.commons.lang.math.NumberUtils.LONG_ZERO;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DISABLED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
 
 import java.time.LocalDateTime;
@@ -33,6 +34,7 @@ import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 
 public class ExpiredMetadataHandler implements MetadataHandler {
@@ -56,6 +58,26 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   @Override
   public Page<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable) {
     return housekeepingMetadataRepository.findRecordsForCleanupByModifiedTimestamp(instant, pageable);
+  }
+
+  @Override
+  public void handleDisabledTable(String database, String table) {
+    housekeepingMetadataRepository.deleteScheduledOrFailedPartitionRecordsForTable(database, table);
+    HousekeepingMetadata tableRecord = housekeepingMetadataRepository.findTableRecord(database, table);
+    tableRecord.setHousekeepingStatus(DISABLED);
+    housekeepingMetadataRepository.save(tableRecord);
+  }
+
+  @Override
+  public boolean tableHasBeekeeperProperty(HousekeepingMetadata metadata) {
+    try (CleanerClient client = cleanerClientFactory.newInstance()) {
+      return metadataCleaner.tableHasProperty(client, metadata.getDatabaseName(), metadata.getTableName(),
+          LifecycleEventType.UNREFERENCED.getTableParameterName(), "true");
+    } catch (Exception e) {
+      log.warn("Unexpected exception when getting properties for table \"{}.{}\"", metadata.getDatabaseName(),
+          metadata.getTableName());
+    }
+    return true;
   }
 
   /**

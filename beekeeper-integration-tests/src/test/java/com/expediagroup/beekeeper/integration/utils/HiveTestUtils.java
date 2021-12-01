@@ -34,6 +34,8 @@ import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 import org.apache.thrift.TException;
 
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+
 public class HiveTestUtils {
 
   private HiveMetaStoreClient metastoreClient;
@@ -50,20 +52,27 @@ public class HiveTestUtils {
       .asList(new FieldSchema("event_date", "string", ""), new FieldSchema("event_hour", "string", ""),
           new FieldSchema("event_type", "string", ""));
 
-  public Table createTable(String path, String tableName, boolean partitioned)
+  public Table createTable(String path, String tableName, boolean partitioned) throws TException {
+    return createTable(path, tableName, partitioned, true);
+  }
+
+  public Table createTable(String path, String tableName, boolean partitioned, boolean withBeekeeperProperty)
       throws TException {
     Table hiveTable = new Table();
     hiveTable.setDbName(DATABASE_NAME_VALUE);
     hiveTable.setTableName(tableName);
     hiveTable.setTableType(TableType.EXTERNAL_TABLE.name());
     hiveTable.putToParameters("EXTERNAL", "TRUE");
+    if (withBeekeeperProperty) {
+      hiveTable.putToParameters(LifecycleEventType.UNREFERENCED.getTableParameterName(), "true");
+    }
     if (partitioned) {
       hiveTable.setPartitionKeys(PARTITION_COLUMNS);
     }
     StorageDescriptor sd = new StorageDescriptor();
     sd.setCols(DATA_COLUMNS);
     sd.setLocation(path);
-    sd.setParameters(new HashMap<String, String>());
+    sd.setParameters(new HashMap<>());
     sd.setInputFormat(TextInputFormat.class.getName());
     sd.setOutputFormat(TextOutputFormat.class.getName());
     sd.setSerdeInfo(new SerDeInfo());

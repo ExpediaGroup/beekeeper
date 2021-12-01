@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DISABLED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
@@ -66,7 +67,8 @@ public class ExpiredMetadataHandlerTest {
 
   @BeforeEach
   public void init() {
-    expiredMetadataHandler = new ExpiredMetadataHandler(hiveClientFactory, housekeepingMetadataRepository, hiveMetadataCleaner,
+    expiredMetadataHandler = new ExpiredMetadataHandler(hiveClientFactory, housekeepingMetadataRepository,
+        hiveMetadataCleaner,
         s3PathCleaner);
   }
 
@@ -91,6 +93,39 @@ public class ExpiredMetadataHandlerTest {
     Pageable emptyPageable = PageRequest.of(0, 1);
     expiredMetadataHandler.findRecordsToClean(now, emptyPageable);
     verify(housekeepingMetadataRepository).findRecordsForCleanupByModifiedTimestamp(now, emptyPageable);
+  }
+
+  @Test
+  public void verifyHandleDisabledTable() {
+    HousekeepingMetadata metadata = new HousekeepingMetadata();
+    when(housekeepingMetadataRepository.findTableRecord(DATABASE, TABLE_NAME
+    )).thenReturn(metadata);
+    expiredMetadataHandler.handleDisabledTable(DATABASE, TABLE_NAME);
+    verify(housekeepingMetadataRepository).deleteScheduledOrFailedPartitionRecordsForTable(DATABASE, TABLE_NAME);
+    metadata.setHousekeepingStatus(DISABLED);
+    verify(housekeepingMetadataRepository).save(metadata);
+  }
+
+  @Test
+  public void tableHasBeekeeperProperty() {
+    HousekeepingMetadata metadata = new HousekeepingMetadata();
+    metadata.setDatabaseName(DATABASE);
+    metadata.setTableName(TABLE_NAME);
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(hiveMetadataCleaner.tableHasProperty(hiveClient, DATABASE, TABLE_NAME, "beekeeper.remove.unreferenced.data",
+        "true")).thenReturn(true);
+    assertThat(expiredMetadataHandler.tableHasBeekeeperProperty(metadata)).isTrue();
+  }
+
+  @Test
+  public void tableDoesntHaveBeekeeperProperty() {
+    HousekeepingMetadata metadata = new HousekeepingMetadata();
+    metadata.setDatabaseName(DATABASE);
+    metadata.setTableName(TABLE_NAME);
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(hiveMetadataCleaner.tableHasProperty(hiveClient, DATABASE, TABLE_NAME, "beekeeper.remove.unreferenced.data",
+        "true")).thenReturn(false);
+    assertThat(expiredMetadataHandler.tableHasBeekeeperProperty(metadata)).isFalse();
   }
 
   @Test
@@ -144,7 +179,7 @@ public class ExpiredMetadataHandlerTest {
         .thenReturn(Long.valueOf(1));
 
     expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
-    verify(hiveMetadataCleaner, never()).dropTable( housekeepingMetadata, hiveClient);
+    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata, hiveClient);
     verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
     verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata, hiveClient);
     verify(housekeepingMetadata, never()).setCleanupAttempts(1);

@@ -24,4 +24,6 @@ public interface CleanerClient extends Closeable {
   boolean dropPartition(String databaseName, String tableName, String partitionName);
 
   boolean tableExists(String databaseName, String tableName);
+
+  boolean tableHasProperty(String databaseName, String tableName, String property, String value);
 }

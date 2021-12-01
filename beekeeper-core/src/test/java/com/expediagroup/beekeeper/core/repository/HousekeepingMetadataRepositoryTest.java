@@ -186,12 +186,10 @@ public class HousekeepingMetadataRepositoryTest {
     HousekeepingMetadata housekeepingTable1 = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(housekeepingTable1);
 
-    HousekeepingMetadata housekeepingTable2 = createPartitionedEntityHousekeepingTable();
-    housekeepingTable2.setHousekeepingStatus(FAILED);
+    HousekeepingMetadata housekeepingTable2 = createPartitionedEntityHousekeepingTable(FAILED);
     housekeepingMetadataRepository.save(housekeepingTable2);
 
-    HousekeepingMetadata housekeepingTable3 = createPartitionedEntityHousekeepingTable();
-    housekeepingTable3.setHousekeepingStatus(DELETED);
+    HousekeepingMetadata housekeepingTable3 = createPartitionedEntityHousekeepingTable(DELETED);
     housekeepingMetadataRepository.save(housekeepingTable3);
 
     Page<HousekeepingMetadata> result = housekeepingMetadataRepository
@@ -248,8 +246,7 @@ public class HousekeepingMetadataRepositoryTest {
 
   @Test
   public void findRecordForCleanupByDatabaseAndTableZeroResults() {
-    HousekeepingMetadata table = createPartitionedEntityHousekeepingTable();
-    table.setHousekeepingStatus(DELETED);
+    HousekeepingMetadata table = createPartitionedEntityHousekeepingTable(DELETED);
     housekeepingMetadataRepository.save(table);
 
     Optional<HousekeepingMetadata> result = housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(
@@ -263,8 +260,7 @@ public class HousekeepingMetadataRepositoryTest {
     HousekeepingMetadata housekeepingTable1 = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(housekeepingTable1);
 
-    HousekeepingMetadata housekeepingTable2 = createPartitionedEntityHousekeepingTable();
-    housekeepingTable2.setHousekeepingStatus(DELETED);
+    HousekeepingMetadata housekeepingTable2 = createPartitionedEntityHousekeepingTable(DELETED);
     housekeepingMetadataRepository.save(housekeepingTable2);
 
     Optional<HousekeepingMetadata> result = housekeepingMetadataRepository
@@ -316,8 +312,7 @@ public class HousekeepingMetadataRepositoryTest {
 
   @Test
   public void countPartitionsForGivenDatabaseAndTableMixedHousekeepingStatus() {
-    HousekeepingMetadata housekeepingTable1 = createPartitionedEntityHousekeepingTable();
-    housekeepingTable1.setHousekeepingStatus(DELETED);
+    HousekeepingMetadata housekeepingTable1 = createPartitionedEntityHousekeepingTable(DELETED);
     housekeepingMetadataRepository.save(housekeepingTable1);
     HousekeepingMetadata housekeepingTable2 = createUnpartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(housekeepingTable2);
@@ -341,8 +336,7 @@ public class HousekeepingMetadataRepositoryTest {
 
   @Test
   public void dryRunCountPartitionsForPartitionedTableEmpty() {
-    HousekeepingMetadata housekeepingTable = createPartitionedEntityHousekeepingTable();
-    housekeepingTable.setHousekeepingStatus(DELETED);
+    HousekeepingMetadata housekeepingTable = createPartitionedEntityHousekeepingTable(DELETED);
     housekeepingMetadataRepository.save(housekeepingTable);
 
     long result = housekeepingMetadataRepository.countRecordsForDryRunWherePartitionIsNotNullOrExpired(
@@ -364,8 +358,68 @@ public class HousekeepingMetadataRepositoryTest {
 
   @Test
   @Transactional
+  public void deleteScheduledOrFailedPartitionRecordsForTable() {
+    HousekeepingMetadata housekeepingEntity = createPartitionedEntityHousekeepingTable(SCHEDULED);
+    housekeepingMetadataRepository.save(housekeepingEntity);
+
+    housekeepingMetadataRepository.deleteScheduledOrFailedPartitionRecordsForTable(DATABASE_NAME, TABLE_NAME);
+    List<HousekeepingMetadata> remainingPaths = Lists.newArrayList(housekeepingMetadataRepository.findAll());
+    assertThat(remainingPaths.size()).isEqualTo(0);
+  }
+
+  @Test
+  @Transactional
+  public void deleteScheduledOrFailedPartitionRecordsForTableNothingToDelete() {
+    HousekeepingMetadata housekeepingEntity = createPartitionedEntityHousekeepingTable(DELETED);
+    housekeepingMetadataRepository.save(housekeepingEntity);
+
+    housekeepingMetadataRepository.deleteScheduledOrFailedPartitionRecordsForTable(DATABASE_NAME, TABLE_NAME);
+    List<HousekeepingMetadata> remainingPaths = Lists.newArrayList(housekeepingMetadataRepository.findAll());
+    assertThat(remainingPaths.size()).isEqualTo(1);
+  }
+
+  @Test
+  @Transactional
+  public void deleteScheduledOrFailedPartitionRecordsForTableMixedStatus() {
+    HousekeepingMetadata housekeepingEntity = createPartitionedEntityHousekeepingTable(SCHEDULED);
+    housekeepingMetadataRepository.save(housekeepingEntity);
+    HousekeepingMetadata housekeepingEntity1 = createPartitionedEntityHousekeepingTable(DELETED);
+    housekeepingMetadataRepository.save(housekeepingEntity1);
+    HousekeepingMetadata housekeepingEntity2 = createPartitionedEntityHousekeepingTable(FAILED);
+    housekeepingMetadataRepository.save(housekeepingEntity2);
+
+    housekeepingMetadataRepository.deleteScheduledOrFailedPartitionRecordsForTable(DATABASE_NAME, TABLE_NAME);
+    List<HousekeepingMetadata> remainingPaths = Lists.newArrayList(housekeepingMetadataRepository.findAll());
+    assertThat(remainingPaths.size()).isEqualTo(1);
+  }
+
+  @Test
+  public void findTableRecord() {
+    HousekeepingMetadata table = createUnpartitionedEntityHousekeepingTable();
+    housekeepingMetadataRepository.save(table);
+
+    HousekeepingMetadata result = housekeepingMetadataRepository.findTableRecord(DATABASE_NAME, TABLE_NAME);
+    assertThat(result).isEqualTo(table);
+  }
+
+  @Test
+  public void findTableRecordMultipleRecords() {
+    HousekeepingMetadata table = createEntityHouseKeepingTable("db", "tbl", null);
+    housekeepingMetadataRepository.save(table);
+    HousekeepingMetadata table1 = createUnpartitionedEntityHousekeepingTable();
+    housekeepingMetadataRepository.save(table1);
+    HousekeepingMetadata partition = createPartitionedEntityHousekeepingTable();
+    housekeepingMetadataRepository.save(partition);
+
+    HousekeepingMetadata result = housekeepingMetadataRepository.findTableRecord(DATABASE_NAME, TABLE_NAME);
+    assertThat(result).isEqualTo(table1);
+  }
+
+  @Test
+  @Transactional
   public void cleanUpOldDeletedRecord() {
-    HousekeepingMetadata housekeepingEntity = createEntityHouseKeepingTable(CLEANUP_TIMESTAMP.minus(4, DAYS), DELETED);
+    HousekeepingMetadata housekeepingEntity = createPartitionedEntityHousekeepingTable(CLEANUP_TIMESTAMP.minus(4, DAYS),
+        DELETED);
     housekeepingMetadataRepository.save(housekeepingEntity);
 
     housekeepingMetadataRepository.cleanUpOldDeletedRecords(CLEANUP_TIMESTAMP);
@@ -376,7 +430,8 @@ public class HousekeepingMetadataRepositoryTest {
   @Test
   @Transactional
   public void cleanUpOldDeletedRecordsNothingToDelete() {
-    HousekeepingMetadata housekeepingTable = createEntityHouseKeepingTable(CLEANUP_TIMESTAMP.plus(1, HOURS), DELETED);
+    HousekeepingMetadata housekeepingTable = createPartitionedEntityHousekeepingTable(CLEANUP_TIMESTAMP.plus(1, HOURS),
+        DELETED);
     housekeepingMetadataRepository.save(housekeepingTable);
 
     housekeepingMetadataRepository.cleanUpOldDeletedRecords(CLEANUP_TIMESTAMP);
@@ -388,15 +443,18 @@ public class HousekeepingMetadataRepositoryTest {
   @Test
   @Transactional
   public void cleanUpOldDeletedRecordsMultipleRecords() {
-    HousekeepingMetadata oldDeteled = createEntityHouseKeepingTable(CLEANUP_TIMESTAMP.minus(4, DAYS), DELETED);
-    housekeepingMetadataRepository.save(oldDeteled);
-    HousekeepingMetadata oldDeleted1 = createEntityHouseKeepingTable(CLEANUP_TIMESTAMP.minus(5, MONTHS), DELETED);
+    HousekeepingMetadata oldDeleted = createPartitionedEntityHousekeepingTable(CLEANUP_TIMESTAMP.minus(4, DAYS),
+        DELETED);
+    housekeepingMetadataRepository.save(oldDeleted);
+    HousekeepingMetadata oldDeleted1 = createPartitionedEntityHousekeepingTable(CLEANUP_TIMESTAMP.minus(5, MONTHS),
+        DELETED);
     housekeepingMetadataRepository.save(oldDeleted1);
-    HousekeepingMetadata oldScheduled = createEntityHouseKeepingTable(CLEANUP_TIMESTAMP.minus(4, DAYS), SCHEDULED);
+    HousekeepingMetadata oldScheduled = createPartitionedEntityHousekeepingTable(CLEANUP_TIMESTAMP.minus(4, DAYS),
+        SCHEDULED);
     housekeepingMetadataRepository.save(oldScheduled);
-    HousekeepingMetadata newDeleted = createEntityHouseKeepingTable(CREATION_TIMESTAMP, DELETED);
+    HousekeepingMetadata newDeleted = createPartitionedEntityHousekeepingTable(CREATION_TIMESTAMP, DELETED);
     housekeepingMetadataRepository.save(newDeleted);
-    HousekeepingMetadata newScheduled = createEntityHouseKeepingTable(CREATION_TIMESTAMP, SCHEDULED);
+    HousekeepingMetadata newScheduled = createPartitionedEntityHousekeepingTable(CREATION_TIMESTAMP, SCHEDULED);
     housekeepingMetadataRepository.save(newScheduled);
 
     housekeepingMetadataRepository.cleanUpOldDeletedRecords(CLEANUP_TIMESTAMP);
@@ -426,7 +484,12 @@ public class HousekeepingMetadataRepositoryTest {
     return createEntityHouseKeepingTable(databaseName, tableName, partitionName, CREATION_TIMESTAMP, SCHEDULED);
   }
 
-  private HousekeepingMetadata createEntityHouseKeepingTable(
+  private HousekeepingMetadata createPartitionedEntityHousekeepingTable(
+      HousekeepingStatus status) {
+    return createEntityHouseKeepingTable(DATABASE_NAME, TABLE_NAME, PARTITION_NAME, CREATION_TIMESTAMP, status);
+  }
+
+  private HousekeepingMetadata createPartitionedEntityHousekeepingTable(
       LocalDateTime creationDate,
       HousekeepingStatus status) {
     return createEntityHouseKeepingTable(DATABASE_NAME, TABLE_NAME, PARTITION_NAME, creationDate, status);

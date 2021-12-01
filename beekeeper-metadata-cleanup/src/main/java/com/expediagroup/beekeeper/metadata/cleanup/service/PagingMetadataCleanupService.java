@@ -20,7 +20,11 @@ import static java.lang.String.format;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -70,20 +74,42 @@ public class PagingMetadataCleanupService implements CleanupService {
 
     LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);
     Page<HousekeepingMetadata> page = handler.findRecordsToClean(instant, pageable);
+    Map<String, Boolean> tableToProperty = new HashMap<>();
 
     while (!page.getContent().isEmpty()) {
-      pageable = processPage(handler, pageable, instant, page, dryRunEnabled);
+      pageable = processPage(handler, pageable, instant, page, dryRunEnabled, tableToProperty);
       page = handler.findRecordsToClean(instant, pageable);
     }
   }
 
   private Pageable processPage(MetadataHandler handler, Pageable pageable, LocalDateTime instant,
       Page<HousekeepingMetadata> page,
-      boolean dryRunEnabled) {
-    page.getContent().forEach(metadata -> handler.cleanupMetadata(metadata, instant, dryRunEnabled));
+      boolean dryRunEnabled, Map<String, Boolean> tableToProperty) {
+    Set<String> disabledTables = new HashSet<>();
+    page.getContent()
+        .forEach(metadata -> processRecord(handler, instant, dryRunEnabled, metadata, tableToProperty, disabledTables));
+    disabledTables.forEach(table -> handler.handleDisabledTable(table.split("\\.")[0], table.split("\\.")[1]));
     if (dryRunEnabled) {
       return pageable.next();
     }
     return pageable;
+  }
+
+  private void processRecord(MetadataHandler handler, LocalDateTime instant, boolean dryRunEnabled,
+      HousekeepingMetadata metadata, Map<String, Boolean> tableToProperty, Set<String> disabledTables) {
+    String tableName = metadata.getDatabaseName() + "." + metadata.getTableName();
+    if (disabledTables.contains(tableName)) {
+      return;
+    }
+    Boolean tableEnabled = tableToProperty.get(tableName);
+    if (tableEnabled == null) {
+      tableEnabled = handler.tableHasBeekeeperProperty(metadata);
+      tableToProperty.put(tableName, tableEnabled);
+    }
+    if (tableEnabled) {
+      handler.cleanupMetadata(metadata, instant, dryRunEnabled);
+    } else {
+      disabledTables.add(tableName);
+    }
   }
 }

@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.cleanup.hive;
 
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,6 +103,18 @@ public class HiveClient implements CleanerClient {
     } catch (TException e) {
       throw new BeekeeperException(
           "Unexpected exception when checking if table \"" + databaseName + "." + tableName + "\" exists.", e);
+    }
+  }
+
+  @Override
+  public boolean tableHasProperty(String databaseName, String tableName, String property, String value) {
+    try {
+      Table table = client.getTable(databaseName, tableName);
+      return table.getParameters().get(property).equals(value);
+    } catch (TException e) {
+      throw new BeekeeperException(
+          "Unexpected exception when checking if table \"" + databaseName + "." + tableName + "\" has property"
+              + property + ".", e);
     }
   }
 

@@ -18,5 +18,6 @@ package com.expediagroup.beekeeper.core.model;
 public enum HousekeepingStatus {
   SCHEDULED,
   FAILED,
-  DELETED
+  DELETED,
+  DISABLED
 }

@@ -54,4 +54,9 @@ public class HiveMetadataCleaner implements MetadataCleaner {
     return client.tableExists(databaseName, tableName);
   }
 
+  @Override
+  public boolean tableHasProperty(CleanerClient client, String databaseName, String tableName, String property,
+      String value) {
+    return client.tableHasProperty(databaseName, tableName, property, value);
+  }
 }

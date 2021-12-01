@@ -27,4 +27,8 @@ public interface MetadataHandler {
   Page<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable);
 
   void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled);
+
+  boolean tableHasBeekeeperProperty(HousekeepingMetadata housekeepingMetadata);
+
+  void handleDisabledTable(String database, String table);
 }

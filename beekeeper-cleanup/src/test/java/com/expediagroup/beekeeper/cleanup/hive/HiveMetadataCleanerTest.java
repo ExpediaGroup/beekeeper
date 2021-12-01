@@ -71,4 +71,10 @@ public class HiveMetadataCleanerTest {
     cleaner.dropPartition(housekeepingMetadata, hiveClient);
     verify(deletedMetadataReporter, never()).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
+
+  @Test
+  public void tableExists() {
+    cleaner.tableExists(hiveClient, DATABASE, TABLE_NAME);
+    verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
+  }
 }
