@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -135,6 +136,33 @@ public class PagingMetadataCleanupServiceTest {
   }
 
   @Test
+  public void typicalDryRunEnabled() {
+    pagingCleanupService = new PagingMetadataCleanupService(handlers, 2, true);
+
+    List<String> paths = List.of("s3://some_foo", "s3://some_bar", "s3://some_foobar");
+    List<String> tables = List.of("table1", "table2", "table3");
+
+    IntStream
+        .range(0, tables.size())
+        .forEach(
+            i -> metadataRepository.save(createHousekeepingMetadata(tables.get(i), paths.get(i), null, SCHEDULED)));
+
+    pagingCleanupService.cleanUp(Instant.now());
+
+    verify(metadataCleaner, times(3)).dropTable(metadataCaptor.capture(), hiveClientCaptor.capture());
+    assertThat(metadataCaptor.getAllValues())
+        .extracting("tableName")
+        .containsExactly(tables.get(0), tables.get(1), tables.get(2));
+    verify(pathCleaner, times(3)).cleanupPath(pathCaptor.capture());
+    assertThat(pathCaptor.getAllValues()).extracting("path").containsExactly(paths.get(0), paths.get(1), paths.get(2));
+
+    metadataRepository.findAll().forEach(housekeepingMetadata -> {
+      assertThat(housekeepingMetadata.getCleanupAttempts()).isEqualTo(0);
+      assertThat(housekeepingMetadata.getHousekeepingStatus()).isEqualTo(SCHEDULED);
+    });
+  }
+
+  @Test
   @Transactional
   public void disabledUnpartitioned() {
     // table2 disabled, table1 and table3 enabled
@@ -172,6 +200,28 @@ public class PagingMetadataCleanupServiceTest {
 
     pagingCleanupService.cleanUp(Instant.now());
     verifyNoMoreInteractions(pathCleaner);
+  }
+
+  @Test
+  @Transactional
+  public void disabledTableDryRunEnabled() {
+    pagingCleanupService = new PagingMetadataCleanupService(handlers, 2, true);
+    when(hiveClient.getTableProperties("database", "table")).thenReturn(new HashMap<>());
+
+    metadataRepository.save(createHousekeepingMetadata("table", "path", null, SCHEDULED));
+    metadataRepository.save(createHousekeepingMetadata("table", "path", "partition", SCHEDULED));
+
+    pagingCleanupService.cleanUp(Instant.now());
+    
+    verifyNoInteractions(metadataCleaner);
+    verifyNoInteractions(pathCleaner);
+
+    List<HousekeepingMetadata> remainingRecords = Lists.newArrayList(metadataRepository.findAll());
+    assertThat(remainingRecords.size()).isEqualTo(2);
+    assertThat(remainingRecords.get(0).getCleanupAttempts()).isEqualTo(0);
+    assertThat(remainingRecords.get(0).getHousekeepingStatus()).isEqualTo(SCHEDULED);
+    assertThat(remainingRecords.get(1).getCleanupAttempts()).isEqualTo(0);
+    assertThat(remainingRecords.get(1).getHousekeepingStatus()).isEqualTo(SCHEDULED);
   }
 
   @Test
