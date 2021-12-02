@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.mortbay.log.Log;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -77,26 +78,33 @@ public class PagingMetadataCleanupService implements CleanupService {
     Map<String, Boolean> tableToProperty = new HashMap<>();
 
     while (!page.getContent().isEmpty()) {
-      pageable = processPage(handler, pageable, instant, page, dryRunEnabled, tableToProperty);
+      pageable = processPage(handler, pageable, instant, page, tableToProperty);
       page = handler.findRecordsToClean(instant, pageable);
     }
   }
 
   private Pageable processPage(MetadataHandler handler, Pageable pageable, LocalDateTime instant,
-      Page<HousekeepingMetadata> page,
-      boolean dryRunEnabled, Map<String, Boolean> tableToProperty) {
+      Page<HousekeepingMetadata> page, Map<String, Boolean> tableToProperty) {
     Set<String> tablesToBeDisabled = new HashSet<>();
     page.getContent()
         .forEach(
-            metadata -> processRecord(handler, instant, dryRunEnabled, metadata, tableToProperty, tablesToBeDisabled));
-    tablesToBeDisabled.forEach(table -> handler.disableTable(table.split("\\.")[0], table.split("\\.")[1]));
+            metadata -> processRecord(handler, instant, metadata, tableToProperty, tablesToBeDisabled));
+    tablesToBeDisabled.forEach(table -> handleTable(handler, table));
     if (dryRunEnabled) {
       return pageable.next();
     }
     return pageable;
   }
 
-  private void processRecord(MetadataHandler handler, LocalDateTime instant, boolean dryRunEnabled,
+  private void handleTable(MetadataHandler handler, String table) {
+    if (dryRunEnabled) {
+      Log.info("Disabling table {}", table);
+    } else {
+      handler.disableTable(table.split("\\.")[0], table.split("\\.")[1]);
+    }
+  }
+
+  private void processRecord(MetadataHandler handler, LocalDateTime instant,
       HousekeepingMetadata metadata, Map<String, Boolean> tableToProperty, Set<String> tablesToBeDisabled) {
     String tableName = metadata.getDatabaseName() + "." + metadata.getTableName();
     if (tablesToBeDisabled.contains(tableName)) {
