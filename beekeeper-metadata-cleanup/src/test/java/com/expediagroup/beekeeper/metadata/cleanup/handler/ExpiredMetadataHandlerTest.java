@@ -29,6 +29,8 @@ import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -100,7 +102,7 @@ public class ExpiredMetadataHandlerTest {
     HousekeepingMetadata metadata = new HousekeepingMetadata();
     when(housekeepingMetadataRepository.findTableRecord(DATABASE, TABLE_NAME
     )).thenReturn(metadata);
-    expiredMetadataHandler.handleDisabledTable(DATABASE, TABLE_NAME);
+    expiredMetadataHandler.disableTable(DATABASE, TABLE_NAME);
     verify(housekeepingMetadataRepository).deleteScheduledOrFailedPartitionRecordsForTable(DATABASE, TABLE_NAME);
     metadata.setHousekeepingStatus(DISABLED);
     verify(housekeepingMetadataRepository).save(metadata);
@@ -111,9 +113,10 @@ public class ExpiredMetadataHandlerTest {
     HousekeepingMetadata metadata = new HousekeepingMetadata();
     metadata.setDatabaseName(DATABASE);
     metadata.setTableName(TABLE_NAME);
+    Map<String, String> properties = new HashMap<>();
+    properties.put("beekeeper.remove.unreferenced.data", "true");
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
-    when(hiveMetadataCleaner.tableHasProperty(hiveClient, DATABASE, TABLE_NAME, "beekeeper.remove.unreferenced.data",
-        "true")).thenReturn(true);
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME)).thenReturn(properties);
     assertThat(expiredMetadataHandler.tableHasBeekeeperProperty(metadata)).isTrue();
   }
 
@@ -122,9 +125,20 @@ public class ExpiredMetadataHandlerTest {
     HousekeepingMetadata metadata = new HousekeepingMetadata();
     metadata.setDatabaseName(DATABASE);
     metadata.setTableName(TABLE_NAME);
+    Map<String, String> properties = new HashMap<>();
+    properties.put("other-property", "true");
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
-    when(hiveMetadataCleaner.tableHasProperty(hiveClient, DATABASE, TABLE_NAME, "beekeeper.remove.unreferenced.data",
-        "true")).thenReturn(false);
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME)).thenReturn(properties);
+    assertThat(expiredMetadataHandler.tableHasBeekeeperProperty(metadata)).isFalse();
+  }
+
+  @Test
+  public void tableDoesntHaveBeekeeperPropertyEmptyProperties() {
+    HousekeepingMetadata metadata = new HousekeepingMetadata();
+    metadata.setDatabaseName(DATABASE);
+    metadata.setTableName(TABLE_NAME);
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME)).thenReturn(new HashMap<>());
     assertThat(expiredMetadataHandler.tableHasBeekeeperProperty(metadata)).isFalse();
   }
 

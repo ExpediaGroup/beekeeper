@@ -15,14 +15,21 @@
  */
 package com.expediagroup.beekeeper.cleanup.hive;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -112,6 +119,37 @@ public class HiveClientTest {
     Mockito.doThrow(MetaException.class).when(client).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME, false);
     assertThrows(BeekeeperException.class, () -> {
       hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
+    });
+  }
+
+  @Test
+  public void tableExistsThrowsException() throws TException {
+    when(client.tableExists(DATABASE, TABLE_NAME)).thenThrow(new TException());
+    assertThrows(BeekeeperException.class, () -> {
+      hiveClient.tableExists(DATABASE, TABLE_NAME);
+    });
+  }
+
+  @Test
+  public void getTableProperties() throws TException {
+    Table table = new Table();
+    Map<String, String> params = new HashMap<>();
+    table.setParameters(params);
+    when(client.getTable(DATABASE, TABLE_NAME)).thenReturn(table);
+    assertEquals(hiveClient.getTableProperties(DATABASE, TABLE_NAME), params);
+  }
+
+  @Test
+  public void getTablePropertiesNullProperties() throws TException {
+    when(client.getTable(DATABASE, TABLE_NAME)).thenReturn(new Table());
+    assertNull(hiveClient.getTableProperties(DATABASE, TABLE_NAME));
+  }
+
+  @Test
+  public void getTablePropertiesThrowsException() throws TException {
+    when(client.getTable(DATABASE, TABLE_NAME)).thenThrow(new TException());
+    assertThrows(BeekeeperException.class, () -> {
+      hiveClient.getTableProperties(DATABASE, TABLE_NAME);
     });
   }
 }

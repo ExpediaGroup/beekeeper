@@ -85,10 +85,11 @@ public class PagingMetadataCleanupService implements CleanupService {
   private Pageable processPage(MetadataHandler handler, Pageable pageable, LocalDateTime instant,
       Page<HousekeepingMetadata> page,
       boolean dryRunEnabled, Map<String, Boolean> tableToProperty) {
-    Set<String> disabledTables = new HashSet<>();
+    Set<String> tablesToBeDisabled = new HashSet<>();
     page.getContent()
-        .forEach(metadata -> processRecord(handler, instant, dryRunEnabled, metadata, tableToProperty, disabledTables));
-    disabledTables.forEach(table -> handler.handleDisabledTable(table.split("\\.")[0], table.split("\\.")[1]));
+        .forEach(
+            metadata -> processRecord(handler, instant, dryRunEnabled, metadata, tableToProperty, tablesToBeDisabled));
+    tablesToBeDisabled.forEach(table -> handler.disableTable(table.split("\\.")[0], table.split("\\.")[1]));
     if (dryRunEnabled) {
       return pageable.next();
     }
@@ -96,9 +97,9 @@ public class PagingMetadataCleanupService implements CleanupService {
   }
 
   private void processRecord(MetadataHandler handler, LocalDateTime instant, boolean dryRunEnabled,
-      HousekeepingMetadata metadata, Map<String, Boolean> tableToProperty, Set<String> disabledTables) {
+      HousekeepingMetadata metadata, Map<String, Boolean> tableToProperty, Set<String> tablesToBeDisabled) {
     String tableName = metadata.getDatabaseName() + "." + metadata.getTableName();
-    if (disabledTables.contains(tableName)) {
+    if (tablesToBeDisabled.contains(tableName)) {
       return;
     }
     Boolean tableEnabled = tableToProperty.get(tableName);
@@ -109,7 +110,7 @@ public class PagingMetadataCleanupService implements CleanupService {
     if (tableEnabled) {
       handler.cleanupMetadata(metadata, instant, dryRunEnabled);
     } else {
-      disabledTables.add(tableName);
+      tablesToBeDisabled.add(tableName);
     }
   }
 }

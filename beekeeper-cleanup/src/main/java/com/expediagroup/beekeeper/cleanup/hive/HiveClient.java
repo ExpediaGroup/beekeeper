@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.cleanup.hive;
 
+import java.util.Map;
+
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
@@ -107,14 +109,13 @@ public class HiveClient implements CleanerClient {
   }
 
   @Override
-  public boolean tableHasProperty(String databaseName, String tableName, String property, String value) {
+  public Map<String, String> getTableProperties(String databaseName, String tableName) {
     try {
       Table table = client.getTable(databaseName, tableName);
-      return table.getParameters().get(property).equals(value);
+      return table.getParameters();
     } catch (TException e) {
       throw new BeekeeperException(
-          "Unexpected exception when checking if table \"" + databaseName + "." + tableName + "\" has property"
-              + property + ".", e);
+          "Unexpected exception when getting table properties for \"" + databaseName + "." + tableName + ".", e);
     }
   }
 

@@ -30,5 +30,5 @@ public interface MetadataHandler {
 
   boolean tableHasBeekeeperProperty(HousekeepingMetadata housekeepingMetadata);
 
-  void handleDisabledTable(String database, String table);
+  void disableTable(String database, String table);
 }

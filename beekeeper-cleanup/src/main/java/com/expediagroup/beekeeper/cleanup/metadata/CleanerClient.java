@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.cleanup.metadata;
 
 import java.io.Closeable;
+import java.util.Map;
 
 public interface CleanerClient extends Closeable {
 
@@ -25,5 +26,5 @@ public interface CleanerClient extends Closeable {
 
   boolean tableExists(String databaseName, String tableName);
 
-  boolean tableHasProperty(String databaseName, String tableName, String property, String value);
+  Map<String, String> getTableProperties(String databaseName, String tableName);
 }
