@@ -74,11 +74,8 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     try (CleanerClient client = cleanerClientFactory.newInstance()) {
       Map<String, String> properties = client.getTableProperties(metadata.getDatabaseName(),
           metadata.getTableName());
-      if (properties != null) {
-        String beekeeperProperty = properties.get(UNREFERENCED.getTableParameterName());
-        return beekeeperProperty != null && beekeeperProperty.equals("true");
-      }
-      return false;
+      String beekeeperProperty = properties.get(UNREFERENCED.getTableParameterName());
+      return "true".equals(beekeeperProperty);
     } catch (Exception e) {
       log.warn("Unexpected exception when getting properties for table \"{}.{}\"", metadata.getDatabaseName(),
           metadata.getTableName());

@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.cleanup.hive;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
@@ -112,6 +113,9 @@ public class HiveClient implements CleanerClient {
   public Map<String, String> getTableProperties(String databaseName, String tableName) {
     try {
       Table table = client.getTable(databaseName, tableName);
+      if (table.getParameters() == null) {
+        return new HashMap<>();
+      }
       return table.getParameters();
     } catch (TException e) {
       throw new BeekeeperException(

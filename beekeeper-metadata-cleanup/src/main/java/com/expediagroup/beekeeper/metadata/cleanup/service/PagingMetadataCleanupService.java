@@ -26,7 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.mortbay.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +41,8 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
 
 public class PagingMetadataCleanupService implements CleanupService {
+
+  private static final Logger log = LoggerFactory.getLogger(PagingMetadataCleanupService.class);
 
   private final List<MetadataHandler> metadataHandlers;
   private final boolean dryRunEnabled;
@@ -98,7 +101,7 @@ public class PagingMetadataCleanupService implements CleanupService {
 
   private void handleTable(MetadataHandler handler, String table) {
     if (dryRunEnabled) {
-      Log.info("Disabling table {}", table);
+      log.info("Disabling table {}", table);
     } else {
       handler.disableTable(table.split("\\.")[0], table.split("\\.")[1]);
     }

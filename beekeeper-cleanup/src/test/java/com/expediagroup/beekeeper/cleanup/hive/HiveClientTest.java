@@ -17,7 +17,6 @@ package com.expediagroup.beekeeper.cleanup.hive;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
@@ -140,9 +139,9 @@ public class HiveClientTest {
   }
 
   @Test
-  public void getTablePropertiesNullProperties() throws TException {
+  public void getTablePropertiesNullPropertiesReturnsEmpty() throws TException {
     when(client.getTable(DATABASE, TABLE_NAME)).thenReturn(new Table());
-    assertNull(hiveClient.getTableProperties(DATABASE, TABLE_NAME));
+    assertEquals(hiveClient.getTableProperties(DATABASE, TABLE_NAME), new HashMap<>());
   }
 
   @Test
