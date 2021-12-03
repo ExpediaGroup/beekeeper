@@ -39,6 +39,7 @@ import com.amazonaws.services.s3.AmazonS3;
 
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.CleanupServiceScheduler;
+import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupScheduler;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 
@@ -55,6 +56,7 @@ class CleanupServiceSchedulerTest {
   private @MockBean CleanupService cleanupService;
   private @MockBean AmazonS3 amazonS3;
   private @MockBean RepositoryCleanupScheduler repositoryCleanupScheduler;
+  private @MockBean DisableTablesService disableTablesService;
 
   @Test
   void typical() {

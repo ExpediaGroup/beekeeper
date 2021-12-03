@@ -16,16 +16,13 @@
 package com.expediagroup.beekeeper.metadata.cleanup.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
-import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DISABLED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
@@ -37,7 +34,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -56,7 +52,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
@@ -163,68 +158,6 @@ public class PagingMetadataCleanupServiceTest {
   }
 
   @Test
-  @Transactional
-  public void disabledUnpartitioned() {
-    // table2 disabled, table1 and table3 enabled
-    when(hiveClient.getTableProperties("database", "table2")).thenReturn(new HashMap<>());
-
-    List<String> paths = List.of("s3://some_foo", "s3://some_bar", "s3://some_foobar");
-    List<String> tables = List.of("table1", "table2", "table3");
-
-    IntStream
-        .range(0, tables.size())
-        .forEach(
-            i -> metadataRepository.save(createHousekeepingMetadata(tables.get(i), paths.get(i), null, SCHEDULED)));
-
-    pagingCleanupService.cleanUp(Instant.now());
-
-    verify(metadataCleaner, times(2)).dropTable(metadataCaptor.capture(), hiveClientCaptor.capture());
-    assertThat(metadataCaptor.getAllValues())
-        .extracting("tableName")
-        .containsExactly(tables.get(0), tables.get(2));
-    verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
-    assertThat(pathCaptor.getAllValues()).extracting("path").containsExactly(paths.get(0), paths.get(2));
-
-    Iterator<HousekeepingMetadata> results = metadataRepository.findAll().iterator();
-    HousekeepingMetadata result = results.next();
-    assertThat(result.getCleanupAttempts()).isEqualTo(1);
-    assertThat(result.getHousekeepingStatus()).isEqualTo(DELETED);
-
-    result = results.next();
-    assertThat(result.getCleanupAttempts()).isEqualTo(0);
-    assertThat(result.getHousekeepingStatus()).isEqualTo(DISABLED);
-
-    result = results.next();
-    assertThat(result.getCleanupAttempts()).isEqualTo(1);
-    assertThat(result.getHousekeepingStatus()).isEqualTo(DELETED);
-
-    pagingCleanupService.cleanUp(Instant.now());
-    verifyNoMoreInteractions(pathCleaner);
-  }
-
-  @Test
-  @Transactional
-  public void disabledTableDryRunEnabled() {
-    pagingCleanupService = new PagingMetadataCleanupService(handlers, 2, true);
-    when(hiveClient.getTableProperties("database", "table")).thenReturn(new HashMap<>());
-
-    metadataRepository.save(createHousekeepingMetadata("table", "path", null, SCHEDULED));
-    metadataRepository.save(createHousekeepingMetadata("table", "path", "partition", SCHEDULED));
-
-    pagingCleanupService.cleanUp(Instant.now());
-    
-    verifyNoInteractions(metadataCleaner);
-    verifyNoInteractions(pathCleaner);
-
-    List<HousekeepingMetadata> remainingRecords = Lists.newArrayList(metadataRepository.findAll());
-    assertThat(remainingRecords.size()).isEqualTo(2);
-    assertThat(remainingRecords.get(0).getCleanupAttempts()).isEqualTo(0);
-    assertThat(remainingRecords.get(0).getHousekeepingStatus()).isEqualTo(SCHEDULED);
-    assertThat(remainingRecords.get(1).getCleanupAttempts()).isEqualTo(0);
-    assertThat(remainingRecords.get(1).getHousekeepingStatus()).isEqualTo(SCHEDULED);
-  }
-
-  @Test
   public void typicalPartitioned() {
     List<String> paths = List.of("s3://some_foo", "s3://some_bar", "s3://some_foobar");
     List<String> tables = List.of("table1", "table2", "table3");
@@ -247,54 +180,6 @@ public class PagingMetadataCleanupServiceTest {
       assertThat(housekeepingMetadata.getCleanupAttempts()).isEqualTo(1);
       assertThat(housekeepingMetadata.getHousekeepingStatus()).isEqualTo(DELETED);
     });
-
-    pagingCleanupService.cleanUp(Instant.now());
-    verifyNoMoreInteractions(pathCleaner);
-  }
-
-  @Test
-  @Transactional
-  public void disabledPartitioned() {
-    // table1 and table2 disabled, table3 enabled
-    when(hiveClient.getTableProperties("database", "table1")).thenReturn(new HashMap<>());
-    when(hiveClient.getTableProperties("database", "table2")).thenReturn(new HashMap<>());
-
-    List<String> paths = List.of("s3://some_foo", "s3://some_bar", "s3://some_foobar");
-    List<String> tables = List.of("table1", "table2", "table3");
-
-    // insert 3 table records + 3 corresponding partition records
-    IntStream
-        .range(0, tables.size())
-        .forEach(i -> metadataRepository
-            .save(createHousekeepingMetadata(tables.get(i), paths.get(i), null, SCHEDULED)));
-    IntStream
-        .range(0, tables.size())
-        .forEach(i -> metadataRepository
-            .save(createHousekeepingMetadata(tables.get(i), paths.get(i), PARTITION_NAME, SCHEDULED)));
-
-    pagingCleanupService.cleanUp(Instant.now());
-
-    verify(hiveClient, times(3)).getTableProperties(any(), any());
-
-    verify(metadataCleaner, times(1)).dropTable(metadataCaptor.capture(), hiveClientCaptor.capture());
-    verify(metadataCleaner, times(1)).dropPartition(metadataCaptor.capture(), hiveClientCaptor.capture());
-    assertThat(metadataCaptor.getAllValues())
-        .extracting("tableName")
-        .containsExactly(tables.get(2), tables.get(2));
-    verify(pathCleaner, times(2)).cleanupPath(pathCaptor.capture());
-    assertThat(pathCaptor.getAllValues()).extracting("path").containsExactly(paths.get(2), paths.get(2));
-
-    List<HousekeepingMetadata> remainingRecords = Lists.newArrayList(metadataRepository.findAll());
-    // there should be 3 table records and 1 partition record for the deleted table
-    assertThat(remainingRecords.size()).isEqualTo(4);
-    assertThat(remainingRecords.get(0).getHousekeepingStatus()).isEqualTo(DISABLED);
-    assertThat(remainingRecords.get(0).getPartitionName()).isEqualTo(null);
-    assertThat(remainingRecords.get(1).getHousekeepingStatus()).isEqualTo(DISABLED);
-    assertThat(remainingRecords.get(1).getPartitionName()).isEqualTo(null);
-    assertThat(remainingRecords.get(2).getHousekeepingStatus()).isEqualTo(DELETED);
-    assertThat(remainingRecords.get(2).getPartitionName()).isEqualTo(null);
-    assertThat(remainingRecords.get(3).getHousekeepingStatus()).isEqualTo(DELETED);
-    assertThat(remainingRecords.get(3).getPartitionName()).isNotNull();
 
     pagingCleanupService.cleanUp(Instant.now());
     verifyNoMoreInteractions(pathCleaner);

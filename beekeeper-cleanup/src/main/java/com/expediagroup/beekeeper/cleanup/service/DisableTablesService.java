@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.metadata.cleanup.handler;
+package com.expediagroup.beekeeper.cleanup.service;
 
-import java.time.LocalDateTime;
+public interface DisableTablesService {
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
-import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
-
-public interface MetadataHandler {
-
-  Page<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable);
-
-  void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled);
+  /**
+   * Removes and disables records from the Beekeeper db which no longer have the Beekeeper property on them.
+   */
+  void disable();
 }

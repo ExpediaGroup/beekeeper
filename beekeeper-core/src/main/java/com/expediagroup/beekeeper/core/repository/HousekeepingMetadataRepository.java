@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.core.repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -125,17 +126,12 @@ public interface HousekeepingMetadataRepository extends PagingAndSortingReposito
       @Param("tableName") String tableName);
 
   /**
-   * This method returns the table record for the specified {@code databaseName} and {@code tableName}.
-   *
-   * @param databaseName
-   * @param tableName
+   * This method returns all table records where the partition name is NULL and the status is `SCHEDULED` or `FAILED`
    */
   @Query(value = "from HousekeepingMetadata t "
-      + "where t.databaseName = :databaseName "
-      + "and t.tableName = :tableName "
-      + "and t.partitionName is NULL")
-  HousekeepingMetadata findTableRecord(@Param("databaseName") String databaseName,
-      @Param("tableName") String tableName);
+      + "where t.partitionName is NULL "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  List<HousekeepingMetadata> findActiveTables();
 
   /**
    * This method deletes the rows which have "DELETED" or "DISABLED" status and are older than the specified {@code instant}.

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,8 @@ import static java.lang.String.format;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,8 +35,6 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
 
 public class PagingMetadataCleanupService implements CleanupService {
-
-  private static final Logger log = LoggerFactory.getLogger(PagingMetadataCleanupService.class);
 
   private final List<MetadataHandler> metadataHandlers;
   private final boolean dryRunEnabled;
@@ -78,50 +70,19 @@ public class PagingMetadataCleanupService implements CleanupService {
 
     LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);
     Page<HousekeepingMetadata> page = handler.findRecordsToClean(instant, pageable);
-    Map<String, Boolean> tableToProperty = new HashMap<>();
 
     while (!page.getContent().isEmpty()) {
-      pageable = processPage(handler, pageable, instant, page, tableToProperty);
+      pageable = processPage(handler, pageable, instant, page);
       page = handler.findRecordsToClean(instant, pageable);
     }
   }
 
   private Pageable processPage(MetadataHandler handler, Pageable pageable, LocalDateTime instant,
-      Page<HousekeepingMetadata> page, Map<String, Boolean> tableToProperty) {
-    Set<String> tablesToBeDisabled = new HashSet<>();
-    page.getContent()
-        .forEach(
-            metadata -> processRecord(handler, instant, metadata, tableToProperty, tablesToBeDisabled));
-    tablesToBeDisabled.forEach(table -> handleTable(handler, table));
+      Page<HousekeepingMetadata> page) {
+    page.getContent().forEach(metadata -> handler.cleanupMetadata(metadata, instant, dryRunEnabled));
     if (dryRunEnabled) {
       return pageable.next();
     }
     return pageable;
-  }
-
-  private void handleTable(MetadataHandler handler, String table) {
-    if (dryRunEnabled) {
-      log.info("Disabling table {}", table);
-    } else {
-      handler.disableTable(table.split("\\.")[0], table.split("\\.")[1]);
-    }
-  }
-
-  private void processRecord(MetadataHandler handler, LocalDateTime instant,
-      HousekeepingMetadata metadata, Map<String, Boolean> tableToProperty, Set<String> tablesToBeDisabled) {
-    String tableName = metadata.getDatabaseName() + "." + metadata.getTableName();
-    if (tablesToBeDisabled.contains(tableName)) {
-      return;
-    }
-    Boolean tableEnabled = tableToProperty.get(tableName);
-    if (tableEnabled == null) {
-      tableEnabled = handler.tableHasBeekeeperProperty(metadata);
-      tableToProperty.put(tableName, tableEnabled);
-    }
-    if (tableEnabled) {
-      handler.cleanupMetadata(metadata, instant, dryRunEnabled);
-    } else {
-      tablesToBeDisabled.add(tableName);
-    }
   }
 }

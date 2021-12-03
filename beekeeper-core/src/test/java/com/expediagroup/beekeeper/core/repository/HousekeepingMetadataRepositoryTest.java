@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DISABLED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
@@ -394,25 +395,24 @@ public class HousekeepingMetadataRepositoryTest {
   }
 
   @Test
-  public void findTableRecord() {
-    HousekeepingMetadata table = createUnpartitionedEntityHousekeepingTable();
-    housekeepingMetadataRepository.save(table);
-
-    HousekeepingMetadata result = housekeepingMetadataRepository.findTableRecord(DATABASE_NAME, TABLE_NAME);
-    assertThat(result).isEqualTo(table);
-  }
-
-  @Test
-  public void findTableRecordMultipleRecords() {
-    HousekeepingMetadata table = createEntityHouseKeepingTable("db", "tbl", null);
-    housekeepingMetadataRepository.save(table);
-    HousekeepingMetadata table1 = createUnpartitionedEntityHousekeepingTable();
+  public void findActiveTables() {
+    HousekeepingMetadata table1 = createEntityHouseKeepingTable("db", "tbl1", null);
     housekeepingMetadataRepository.save(table1);
+    HousekeepingMetadata table2 = createEntityHouseKeepingTable("db", "tbl2", null);
+    housekeepingMetadataRepository.save(table2);
+    HousekeepingMetadata copy = createEntityHouseKeepingTable("db", "tbl2", null);
+    housekeepingMetadataRepository.save(copy);
+    HousekeepingMetadata table3 = createEntityHouseKeepingTable("db", "tbl3", null);
+    table3.setHousekeepingStatus(DISABLED);
+    housekeepingMetadataRepository.save(table3);
     HousekeepingMetadata partition = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(partition);
-
-    HousekeepingMetadata result = housekeepingMetadataRepository.findTableRecord(DATABASE_NAME, TABLE_NAME);
-    assertThat(result).isEqualTo(table1);
+    
+    List<HousekeepingMetadata> result = housekeepingMetadataRepository.findActiveTables();
+    assertThat(result.size()).isEqualTo(3);
+    assertThat(result.get(0).getTableName()).isEqualTo("tbl1");
+    assertThat(result.get(1).getTableName()).isEqualTo("tbl2");
+    assertThat(result.get(2).getTableName()).isEqualTo("tbl2");
   }
 
   @Test

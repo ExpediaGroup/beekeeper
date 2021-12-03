@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,15 +22,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
-import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DISABLED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -95,51 +92,6 @@ public class ExpiredMetadataHandlerTest {
     Pageable emptyPageable = PageRequest.of(0, 1);
     expiredMetadataHandler.findRecordsToClean(now, emptyPageable);
     verify(housekeepingMetadataRepository).findRecordsForCleanupByModifiedTimestamp(now, emptyPageable);
-  }
-
-  @Test
-  public void verifyHandleDisabledTable() {
-    HousekeepingMetadata metadata = new HousekeepingMetadata();
-    when(housekeepingMetadataRepository.findTableRecord(DATABASE, TABLE_NAME
-    )).thenReturn(metadata);
-    expiredMetadataHandler.disableTable(DATABASE, TABLE_NAME);
-    verify(housekeepingMetadataRepository).deleteScheduledOrFailedPartitionRecordsForTable(DATABASE, TABLE_NAME);
-    metadata.setHousekeepingStatus(DISABLED);
-    verify(housekeepingMetadataRepository).save(metadata);
-  }
-
-  @Test
-  public void tableHasBeekeeperProperty() {
-    HousekeepingMetadata metadata = new HousekeepingMetadata();
-    metadata.setDatabaseName(DATABASE);
-    metadata.setTableName(TABLE_NAME);
-    Map<String, String> properties = new HashMap<>();
-    properties.put("beekeeper.remove.unreferenced.data", "true");
-    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
-    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME)).thenReturn(properties);
-    assertThat(expiredMetadataHandler.tableHasBeekeeperProperty(metadata)).isTrue();
-  }
-
-  @Test
-  public void tableDoesntHaveBeekeeperProperty() {
-    HousekeepingMetadata metadata = new HousekeepingMetadata();
-    metadata.setDatabaseName(DATABASE);
-    metadata.setTableName(TABLE_NAME);
-    Map<String, String> properties = new HashMap<>();
-    properties.put("other-property", "true");
-    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
-    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME)).thenReturn(properties);
-    assertThat(expiredMetadataHandler.tableHasBeekeeperProperty(metadata)).isFalse();
-  }
-
-  @Test
-  public void tableDoesntHaveBeekeeperPropertyEmptyProperties() {
-    HousekeepingMetadata metadata = new HousekeepingMetadata();
-    metadata.setDatabaseName(DATABASE);
-    metadata.setTableName(TABLE_NAME);
-    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
-    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME)).thenReturn(new HashMap<>());
-    assertThat(expiredMetadataHandler.tableHasBeekeeperProperty(metadata)).isFalse();
   }
 
   @Test

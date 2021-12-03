@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,9 @@ package com.expediagroup.beekeeper.metadata.cleanup.handler;
 import static org.apache.commons.lang.math.NumberUtils.LONG_ZERO;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
-import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DISABLED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,28 +56,6 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   @Override
   public Page<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable) {
     return housekeepingMetadataRepository.findRecordsForCleanupByModifiedTimestamp(instant, pageable);
-  }
-
-  @Override
-  public void disableTable(String database, String table) {
-    housekeepingMetadataRepository.deleteScheduledOrFailedPartitionRecordsForTable(database, table);
-    HousekeepingMetadata tableRecord = housekeepingMetadataRepository.findTableRecord(database, table);
-    tableRecord.setHousekeepingStatus(DISABLED);
-    housekeepingMetadataRepository.save(tableRecord);
-  }
-
-  @Override
-  public boolean tableHasBeekeeperProperty(HousekeepingMetadata metadata) {
-    try (CleanerClient client = cleanerClientFactory.newInstance()) {
-      Map<String, String> properties = client.getTableProperties(metadata.getDatabaseName(),
-          metadata.getTableName());
-      String beekeeperProperty = properties.get(UNREFERENCED.getTableParameterName());
-      return "true".equals(beekeeperProperty);
-    } catch (Exception e) {
-      log.warn("Unexpected exception when getting properties for table \"{}.{}\"", metadata.getDatabaseName(),
-          metadata.getTableName());
-    }
-    return true;
   }
 
   /**
