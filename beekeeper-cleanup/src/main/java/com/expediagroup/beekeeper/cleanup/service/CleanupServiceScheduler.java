@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,18 @@ public class CleanupServiceScheduler {
   private static final Logger log = LoggerFactory.getLogger(CleanupServiceScheduler.class);
 
   private final CleanupService cleanupService;
+  private final DisableTablesService disableTablesService;
 
   @Autowired
-  public CleanupServiceScheduler(CleanupService cleanupService) {
+  public CleanupServiceScheduler(CleanupService cleanupService,
+      DisableTablesService disableTablesService) {
     this.cleanupService = cleanupService;
+    this.disableTablesService = disableTablesService;
   }
 
   @Scheduled(fixedDelayString = "${properties.scheduler-delay-ms}")
   public void scheduleCleanupWithFixedDelay() {
+    disableTablesService.disable();
     Instant now = Instant.now();
     log.info("Started cleanup for instant {}", now.toString());
     cleanupService.cleanUp(now);

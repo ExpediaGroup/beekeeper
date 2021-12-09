@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.cleanup.metadata;
 
 import java.io.Closeable;
+import java.util.Map;
 
 public interface CleanerClient extends Closeable {
 
@@ -24,4 +25,6 @@ public interface CleanerClient extends Closeable {
   boolean dropPartition(String databaseName, String tableName, String partitionName);
 
   boolean tableExists(String databaseName, String tableName);
+
+  Map<String, String> getTableProperties(String databaseName, String tableName);
 }

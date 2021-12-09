@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,11 @@
  */
 package com.expediagroup.beekeeper.cleanup.hive;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,6 +106,20 @@ public class HiveClient implements CleanerClient {
     } catch (TException e) {
       throw new BeekeeperException(
           "Unexpected exception when checking if table \"" + databaseName + "." + tableName + "\" exists.", e);
+    }
+  }
+
+  @Override
+  public Map<String, String> getTableProperties(String databaseName, String tableName) {
+    try {
+      Table table = client.getTable(databaseName, tableName);
+      if (table.getParameters() == null) {
+        return new HashMap<>();
+      }
+      return table.getParameters();
+    } catch (TException e) {
+      throw new BeekeeperException(
+          "Unexpected exception when getting table properties for \"" + databaseName + "." + tableName + ".", e);
     }
   }
 

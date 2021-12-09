@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.core.repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -52,7 +53,8 @@ public interface HousekeepingMetadataRepository extends PagingAndSortingReposito
   @Query(value = "from HousekeepingMetadata t "
       + "where t.databaseName = :databaseName "
       + "and t.tableName = :tableName "
-      + "and (t.partitionName = :partitionName or (:partitionName is NULL and t.partitionName is NULL)) " // To handle special null case
+      + "and (t.partitionName = :partitionName or (:partitionName is NULL and t.partitionName is NULL)) "
+      // To handle special null case
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   Optional<HousekeepingMetadata> findRecordForCleanupByDbTableAndPartitionName(
       @Param("databaseName") String databaseName,
@@ -107,8 +109,37 @@ public interface HousekeepingMetadataRepository extends PagingAndSortingReposito
       @Param("databaseName") String databaseName,
       @Param("tableName") String tableName);
 
+  /**
+   * This method deletes the rows for scheduled or failed partitions for the specified {@code databaseName} and
+   * {@code tableName}.
+   *
+   * @param databaseName
+   * @param tableName
+   */
+  @Modifying
+  @Query(value = "delete from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and t.partitionName is not NULL "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  void deleteScheduledOrFailedPartitionRecordsForTable(@Param("databaseName") String databaseName,
+      @Param("tableName") String tableName);
+
+  /**
+   * This method returns all table records where the partition name is NULL and the status is `SCHEDULED` or `FAILED`
+   */
+  @Query(value = "from HousekeepingMetadata t "
+      + "where t.partitionName is NULL "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  List<HousekeepingMetadata> findActiveTables();
+
+  /**
+   * This method deletes the rows which have "DELETED" or "DISABLED" status and are older than the specified {@code instant}.
+   *
+   * @param instant
+   */
   @Modifying
   @Query(value = "delete from HousekeepingMetadata t where t.cleanupTimestamp < :instant "
-      + "and t.housekeepingStatus = 'DELETED'")
+      + "and t.housekeepingStatus = 'DELETED' or t.housekeepingStatus = 'DISABLED'")
   void cleanUpOldDeletedRecords(@Param("instant") LocalDateTime instant);
 }

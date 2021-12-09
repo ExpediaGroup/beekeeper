@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,8 @@ public class ExpiredMetadataHandlerTest {
 
   @BeforeEach
   public void init() {
-    expiredMetadataHandler = new ExpiredMetadataHandler(hiveClientFactory, housekeepingMetadataRepository, hiveMetadataCleaner,
+    expiredMetadataHandler = new ExpiredMetadataHandler(hiveClientFactory, housekeepingMetadataRepository,
+        hiveMetadataCleaner,
         s3PathCleaner);
   }
 
@@ -144,7 +145,7 @@ public class ExpiredMetadataHandlerTest {
         .thenReturn(Long.valueOf(1));
 
     expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
-    verify(hiveMetadataCleaner, never()).dropTable( housekeepingMetadata, hiveClient);
+    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata, hiveClient);
     verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
     verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata, hiveClient);
     verify(housekeepingMetadata, never()).setCleanupAttempts(1);

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import com.amazonaws.services.s3.AmazonS3;
 
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.CleanupServiceScheduler;
+import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupScheduler;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 
@@ -53,6 +54,7 @@ class CleanupServiceSchedulerTest {
   private @MockBean CleanupService cleanupService;
   private @MockBean AmazonS3 amazonS3;
   private @MockBean RepositoryCleanupScheduler repositoryCleanupScheduler;
+  private @MockBean DisableTablesService disableTablesService;
 
   @Test
   void typical() {

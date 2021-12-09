@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
 
 public class HiveClientFactory implements CleanerClientFactory {
 
-  private Supplier<CloseableMetaStoreClient> metaStoreClientSupplier;
-  private boolean dryRunEnabled;
+  private final Supplier<CloseableMetaStoreClient> metaStoreClientSupplier;
+  private final boolean dryRunEnabled;
 
   public HiveClientFactory(Supplier<CloseableMetaStoreClient> metaStoreClientSupplier, boolean dryRunEnabled) {
     this.metaStoreClientSupplier = metaStoreClientSupplier;
@@ -32,8 +32,7 @@ public class HiveClientFactory implements CleanerClientFactory {
   }
 
   @Override
-  public HiveClient newInstance(){
+  public HiveClient newInstance() {
     return new HiveClient(metaStoreClientSupplier.get(), dryRunEnabled);
   }
-
 }
