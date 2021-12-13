@@ -44,18 +44,20 @@ public class HiveMetadataCleanerTest {
   @BeforeEach
   public void init() {
     cleaner = new HiveMetadataCleaner(deletedMetadataReporter);
-    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
-    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
   }
 
   @Test
   public void typicalDropTable() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     cleaner.dropTable(housekeepingMetadata, hiveClient);
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
   }
 
   @Test
   public void typicalDropPartition() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME)).thenReturn(true);
 
@@ -65,6 +67,8 @@ public class HiveMetadataCleanerTest {
 
   @Test
   public void dontReportWhenPartitionNotDropped() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME)).thenReturn(false);
 
@@ -75,6 +79,6 @@ public class HiveMetadataCleanerTest {
   @Test
   public void tableExists() {
     cleaner.tableExists(hiveClient, DATABASE, TABLE_NAME);
-    verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
+    verify(hiveClient).tableExists(DATABASE, TABLE_NAME);
   }
 }

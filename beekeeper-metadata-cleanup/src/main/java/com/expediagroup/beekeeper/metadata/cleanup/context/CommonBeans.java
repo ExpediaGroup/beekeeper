@@ -46,10 +46,12 @@ import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
+import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
+import com.expediagroup.beekeeper.metadata.cleanup.service.MetadataDisableTablesService;
 import com.expediagroup.beekeeper.metadata.cleanup.service.MetadataRepositoryCleanupService;
 import com.expediagroup.beekeeper.metadata.cleanup.service.PagingMetadataCleanupService;
 
@@ -164,5 +166,13 @@ public class CommonBeans {
       HousekeepingMetadataRepository housekeepingMetadataRepository,
       @Value("${properties.old-data-retention-period-days}") int retentionPeriodInDays) {
     return new MetadataRepositoryCleanupService(housekeepingMetadataRepository, retentionPeriodInDays);
+  }
+
+  @Bean
+  DisableTablesService disableTablesService(
+      HousekeepingMetadataRepository housekeepingMetadataRepository,
+      CleanerClientFactory cleanerClientFactory,
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+    return new MetadataDisableTablesService(cleanerClientFactory, housekeepingMetadataRepository, dryRunEnabled);
   }
 }

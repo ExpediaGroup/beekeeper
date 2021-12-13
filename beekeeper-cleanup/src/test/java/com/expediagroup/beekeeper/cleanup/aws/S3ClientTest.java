@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -42,6 +43,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 @ExtendWith(LocalstackDockerExtension.class)
 @LocalstackDockerProperties(services = { ServiceName.S3 })
+@Disabled
 class S3ClientTest {
 
   private final String content = "content";

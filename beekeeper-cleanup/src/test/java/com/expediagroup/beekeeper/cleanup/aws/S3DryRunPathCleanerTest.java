@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -40,6 +41,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(LocalstackDockerExtension.class)
 @LocalstackDockerProperties(services = { ServiceName.S3 })
+@Disabled
 class S3DryRunPathCleanerTest {
 
   private final String content = "Some content";
@@ -65,17 +67,17 @@ class S3DryRunPathCleanerTest {
     amazonS3 = TestUtils.getClientS3();
     amazonS3.createBucket(bucket);
     amazonS3.listObjectsV2(bucket)
-      .getObjectSummaries()
-      .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
+        .getObjectSummaries()
+        .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     s3Client = new S3Client(amazonS3, dryRunEnabled);
     s3DryRunPathCleaner = new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
     housekeepingPath = HousekeepingPath.builder()
-      .path(absolutePath)
-      .tableName(tableName)
-      .databaseName(databaseName)
-      .creationTimestamp(LocalDateTime.now())
-      .cleanupDelay(Duration.ofDays(1))
-      .build();
+        .path(absolutePath)
+        .tableName(tableName)
+        .databaseName(databaseName)
+        .creationTimestamp(LocalDateTime.now())
+        .cleanupDelay(Duration.ofDays(1))
+        .build();
   }
 
   @Test
@@ -128,7 +130,6 @@ class S3DryRunPathCleanerTest {
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isTrue();
     assertThat(amazonS3.doesObjectExist(bucket, partition1Sentinel)).isTrue();
   }
-
 
   @Test
   void typicalWithAnotherFolderAndSentinelFile() {
@@ -196,5 +197,4 @@ class S3DryRunPathCleanerTest {
   void pathDoesNotExist() {
     assertThatCode(() -> s3DryRunPathCleaner.cleanupPath(housekeepingPath)).doesNotThrowAnyException();
   }
-
 }
