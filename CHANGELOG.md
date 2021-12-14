@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.5.1] - Unreleased
 ### Fixed
 - Added check for beekeeper property before performing the cleanup in the metadata service.
+### Changed
+- Upgraded `log4j2` to `2.15.0` because of log4j security issue.
 
 ## [3.5.0] - 2021-11-24
 ### Added
