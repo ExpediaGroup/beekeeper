@@ -47,9 +47,11 @@ import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
+import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
+import com.expediagroup.beekeeper.metadata.cleanup.service.MetadataDisableTablesService;
 import com.expediagroup.beekeeper.metadata.cleanup.service.MetadataRepositoryCleanupService;
 import com.expediagroup.beekeeper.metadata.cleanup.service.PagingMetadataCleanupService;
 
@@ -73,6 +75,7 @@ public class CommonBeansTest {
   private @Mock MetadataCleaner metadataCleaner;
   private @Mock PathCleaner pathCleaner;
   private @Mock MeterRegistry meterRegistry;
+  private @Mock HiveClientFactory hiveClientFactory;
 
   @BeforeEach
   public void awsSetUp() {
@@ -155,7 +158,6 @@ public class CommonBeansTest {
 
   @Test
   public void verifyExpiredMetadataHandler() {
-    HiveClientFactory hiveClientFactory = Mockito.mock(HiveClientFactory.class);
     ExpiredMetadataHandler expiredMetadataHandler = commonBeans.expiredMetadataHandler(hiveClientFactory,
         metadataRepository,
         metadataCleaner, pathCleaner);
@@ -176,5 +178,12 @@ public class CommonBeansTest {
   public void verifyRepositoryCleanupService() {
     RepositoryCleanupService cleanupService = commonBeans.repositoryCleanupService(metadataRepository, 5);
     assertThat(cleanupService).isInstanceOf(MetadataRepositoryCleanupService.class);
+  }
+
+  @Test
+  public void verifyDisableTablesService() {
+    DisableTablesService disableTablesService = commonBeans.disableTablesService(
+        metadataRepository, hiveClientFactory, false);
+    assertThat(disableTablesService).isInstanceOf(MetadataDisableTablesService.class);
   }
 }
