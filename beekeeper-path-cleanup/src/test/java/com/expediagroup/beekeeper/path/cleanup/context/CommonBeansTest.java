@@ -38,6 +38,7 @@ import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
+import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.path.cleanup.service.PagingPathCleanupService;
@@ -113,5 +114,11 @@ class CommonBeansTest {
   public void repositoryCleanupService() {
     RepositoryCleanupService cleanupService = commonBeans.repositoryCleanupService(repository, 5);
     assertThat(cleanupService).isInstanceOf(PathRepositoryCleanupService.class);
+  }
+
+  @Test
+  public void verifyDisableTablesService() {
+    DisableTablesService disableTablesService = commonBeans.disableTablesService();
+    assertThat(disableTablesService).isNotNull();
   }
 }

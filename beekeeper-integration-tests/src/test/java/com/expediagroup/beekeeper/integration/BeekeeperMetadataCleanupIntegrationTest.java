@@ -302,11 +302,6 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   public void onlyCleanupLocationWhenTableExists() throws SQLException {
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
     insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
-
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
-
     assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isTrue();
   }
 

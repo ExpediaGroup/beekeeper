@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -34,6 +35,7 @@ import com.amazonaws.services.s3.AmazonS3;
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(LocalstackDockerExtension.class)
 @LocalstackDockerProperties(services = { ServiceName.S3 })
+@Disabled
 class S3SentinelFilesCleanerTest {
 
   private final String partition1Sentinel = "table/partition_1_$folder$";
@@ -50,8 +52,8 @@ class S3SentinelFilesCleanerTest {
     amazonS3 = TestUtils.getClientS3();
     amazonS3.createBucket(bucket);
     amazonS3.listObjectsV2(bucket)
-      .getObjectSummaries()
-      .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
+        .getObjectSummaries()
+        .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     s3Client = new S3Client(amazonS3, false);
     s3SentinelFilesCleaner = new S3SentinelFilesCleaner(s3Client);
   }
