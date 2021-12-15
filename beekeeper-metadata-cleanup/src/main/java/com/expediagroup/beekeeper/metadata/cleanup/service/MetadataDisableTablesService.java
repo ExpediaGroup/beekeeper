@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.micrometer.core.annotation.Timed;
 
@@ -52,6 +53,7 @@ public class MetadataDisableTablesService implements DisableTablesService {
 
   @Override
   @Timed("metadata-disable-tables-job")
+  @Transactional
   public void disable() {
     List<HousekeepingMetadata> activeTables = housekeepingMetadataRepository.findActiveTables();
     activeTables.forEach(this::handleTable);
