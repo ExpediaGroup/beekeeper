@@ -25,6 +25,7 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 
 import static com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter.METRIC_NAME;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DISABLED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.LONG_CLEANUP_DELAY_VALUE;
@@ -75,7 +76,7 @@ import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
 @Testcontainers
 public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
 
-  private static final int TIMEOUT = 30;
+  private static final int TIMEOUT = 15;
   private static final String SCHEDULER_DELAY_MS = "5000";
   private static final String HEALTHCHECK_URI = "http://localhost:9008/actuator/health";
   private static final String PROMETHEUS_URI = "http://localhost:9008/actuator/prometheus";
@@ -269,6 +270,39 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isFalse();
+  }
+
+  @Test
+  public void disableTableWithNoPartitions() throws TException, SQLException {
+    hiveTestUtils.createTable(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, false);
+
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
+    insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DISABLED);
+
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isTrue();
+  }
+
+  @Test
+  public void disablePartitionedTable() throws Exception {
+    Table table = hiveTestUtils.createTable(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, false);
+    hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
+
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
+    amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
+
+    insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
+    insertExpiredMetadata(PARTITION_PATH, PARTITION_NAME);
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DISABLED);
+
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isTrue();
   }
 
   @Test
