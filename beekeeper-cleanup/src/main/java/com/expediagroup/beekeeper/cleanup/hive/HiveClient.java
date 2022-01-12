@@ -118,7 +118,7 @@ public class HiveClient implements CleanerClient {
       }
       return table.getParameters();
     } catch (NoSuchObjectException e) {
-      // table doesn't exist
+      log.warn("The table {}.{} does not exist", databaseName, tableName);
       return new HashMap<>();
     } catch (TException e) {
       throw new BeekeeperException(
