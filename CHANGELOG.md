@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - If a table gets deleted before Beekeeper is scheduled to do so, its entries in the `housekeeping_metadata` table will be disabled. 
 
-## [3.4.9] - 2022-01-12
+## [3.4.9] - 2022-01-12 (Released without changes)
 
 ## [3.4.8] - 2021-12-15
 ### Changed
