@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,6 +117,9 @@ public class HiveClient implements CleanerClient {
         return new HashMap<>();
       }
       return table.getParameters();
+    } catch (NoSuchObjectException e) {
+      // table doesn't exist
+      return new HashMap<>();
     } catch (TException e) {
       throw new BeekeeperException(
           "Unexpected exception when getting table properties for \"" + databaseName + "." + tableName + ".", e);

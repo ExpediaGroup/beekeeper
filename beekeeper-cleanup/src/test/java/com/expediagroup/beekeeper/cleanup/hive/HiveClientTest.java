@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,6 +141,12 @@ public class HiveClientTest {
   @Test
   public void getTablePropertiesNullPropertiesReturnsEmpty() throws TException {
     when(client.getTable(DATABASE, TABLE_NAME)).thenReturn(new Table());
+    assertEquals(hiveClient.getTableProperties(DATABASE, TABLE_NAME), new HashMap<>());
+  }
+
+  @Test
+  public void getTablePropertiesForNonexistentTableReturnsEmpty() throws TException {
+    when(client.getTable(DATABASE, TABLE_NAME)).thenThrow(new NoSuchObjectException(""));
     assertEquals(hiveClient.getTableProperties(DATABASE, TABLE_NAME), new HashMap<>());
   }
 
