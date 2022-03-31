@@ -48,7 +48,7 @@
     <mockito.version>3.11.2</mockito.version>
     <snakeyaml.version>1.27</snakeyaml.version>
     <springframework.boot.version>2.4.4</springframework.boot.version>
-    <springframework.version>5.3.5</springframework.version>
+    <springframework.version>5.3.18</springframework.version>
     <testcontainers.version>1.15.2</testcontainers.version>
     <docker.from.tag>11-slim</docker.from.tag>
   </properties>
