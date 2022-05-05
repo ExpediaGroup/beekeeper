@@ -18,24 +18,23 @@ package com.expediagroup.beekeeper.cleanup.aws;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
+import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
-import cloud.localstack.ServiceName;
-import cloud.localstack.awssdkv1.TestUtils;
-import cloud.localstack.docker.LocalstackDockerExtension;
-import cloud.localstack.docker.annotation.LocalstackDockerProperties;
-
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 @ExtendWith(MockitoExtension.class)
-@ExtendWith(LocalstackDockerExtension.class)
-@LocalstackDockerProperties(services = { ServiceName.S3 })
-@Disabled
+@Testcontainers
 class S3SentinelFilesCleanerTest {
 
   private final String partition1Sentinel = "table/partition_1_$folder$";
@@ -43,18 +42,28 @@ class S3SentinelFilesCleanerTest {
   private final String bucket = "bucket";
   private final String tableName = "table";
 
-  private S3Client s3Client;
   private S3SentinelFilesCleaner s3SentinelFilesCleaner;
   private AmazonS3 amazonS3;
 
+  @Rule
+  public static LocalStackContainer awsContainer = new LocalStackContainer(
+      DockerImageName.parse("localstack/localstack:0.14.2")).withServices(S3);
+  static {
+    awsContainer.start();
+  }
+  public static String S3_ENDPOINT = awsContainer.getEndpointConfiguration(S3).getServiceEndpoint();
+
   @BeforeEach
   void setUp() {
-    amazonS3 = TestUtils.getClientS3();
+    amazonS3 = AmazonS3ClientBuilder
+        .standard()
+        .withEndpointConfiguration(
+            new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region")).build();
     amazonS3.createBucket(bucket);
     amazonS3.listObjectsV2(bucket)
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
-    s3Client = new S3Client(amazonS3, false);
+    S3Client s3Client = new S3Client(amazonS3, false);
     s3SentinelFilesCleaner = new S3SentinelFilesCleaner(s3Client);
   }
 

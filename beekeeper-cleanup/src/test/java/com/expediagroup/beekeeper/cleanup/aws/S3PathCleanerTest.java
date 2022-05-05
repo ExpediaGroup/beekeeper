@@ -26,25 +26,26 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import cloud.localstack.ServiceName;
-import cloud.localstack.awssdkv1.TestUtils;
-import cloud.localstack.docker.LocalstackDockerExtension;
-import cloud.localstack.docker.annotation.LocalstackDockerProperties;
+import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
@@ -58,9 +59,7 @@ import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @ExtendWith(MockitoExtension.class)
-@ExtendWith(LocalstackDockerExtension.class)
-@LocalstackDockerProperties(services = { ServiceName.S3 })
-@Disabled
+@Testcontainers
 class S3PathCleanerTest {
 
   private final String content = "Some content";
@@ -71,28 +70,39 @@ class S3PathCleanerTest {
   private final String key2 = "table/id1/partition_1/file2";
   private final String partition1Sentinel = "table/id1/partition_1_$folder$";
   private final String absolutePath = "s3://" + bucket + "/" + keyRoot;
-  private final String tableName = "table";
-  private final String databaseName = "database";
 
   private HousekeepingPath housekeepingPath;
   private AmazonS3 amazonS3;
   private S3Client s3Client;
   private S3SentinelFilesCleaner s3SentinelFilesCleaner;
   private @Mock BytesDeletedReporter bytesDeletedReporter;
-  private boolean dryRunEnabled = false;
 
   private S3PathCleaner s3PathCleaner;
 
+  @Rule
+  public static LocalStackContainer awsContainer = new LocalStackContainer(
+      DockerImageName.parse("localstack/localstack:0.14.2")).withServices(S3);
+  static {
+    awsContainer.start();
+  }
+  public static String S3_ENDPOINT = awsContainer.getEndpointConfiguration(S3).getServiceEndpoint();
+
   @BeforeEach
   void setUp() {
-    amazonS3 = TestUtils.getClientS3();
+    amazonS3 = AmazonS3ClientBuilder
+        .standard()
+        .withEndpointConfiguration(
+            new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region")).build();
     amazonS3.createBucket(bucket);
     amazonS3.listObjectsV2(bucket)
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
+    boolean dryRunEnabled = false;
     s3Client = new S3Client(amazonS3, dryRunEnabled);
     s3SentinelFilesCleaner = new S3SentinelFilesCleaner(s3Client);
     s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
+    String tableName = "table";
+    String databaseName = "database";
     housekeepingPath = HousekeepingPath.builder()
         .path(absolutePath)
         .tableName(tableName)

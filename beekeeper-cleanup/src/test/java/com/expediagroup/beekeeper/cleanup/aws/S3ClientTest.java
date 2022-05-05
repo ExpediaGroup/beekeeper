@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,33 +17,31 @@ package com.expediagroup.beekeeper.cleanup.aws;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
-import cloud.localstack.ServiceName;
-import cloud.localstack.awssdkv1.TestUtils;
-import cloud.localstack.docker.LocalstackDockerExtension;
-import cloud.localstack.docker.annotation.LocalstackDockerProperties;
-
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
-@ExtendWith(LocalstackDockerExtension.class)
-@LocalstackDockerProperties(services = { ServiceName.S3 })
-@Disabled
+@Testcontainers
 class S3ClientTest {
 
   private final String content = "content";
@@ -56,9 +54,20 @@ class S3ClientTest {
   private S3Client s3ClientDryRun;
   private AmazonS3 amazonS3;
 
+  @Rule
+  public static LocalStackContainer awsContainer = new LocalStackContainer(
+      DockerImageName.parse("localstack/localstack:0.14.2")).withServices(S3);
+  static {
+    awsContainer.start();
+  }
+  public static String S3_ENDPOINT = awsContainer.getEndpointConfiguration(S3).getServiceEndpoint();
+
   @BeforeEach
   void setUp() {
-    amazonS3 = TestUtils.getClientS3();
+    amazonS3 = AmazonS3ClientBuilder
+        .standard()
+        .withEndpointConfiguration(
+            new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region")).build();
     amazonS3.createBucket(bucket);
     emptyBucket(bucket);
     assertThat(amazonS3.listObjectsV2(bucket).getObjectSummaries()).isEmpty();
