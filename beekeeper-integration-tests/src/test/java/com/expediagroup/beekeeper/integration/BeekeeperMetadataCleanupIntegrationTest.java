@@ -277,7 +277,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
     insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
     await()
-        .atMost(60, TimeUnit.SECONDS)
+        .atMost(5, TimeUnit.MINUTES)
         .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DISABLED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isTrue();
