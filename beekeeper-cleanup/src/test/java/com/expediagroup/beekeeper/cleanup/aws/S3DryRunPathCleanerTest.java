@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,7 @@ class S3DryRunPathCleanerTest {
   void setUp() {
     amazonS3 = AmazonS3ClientBuilder
         .standard()
+        .disableChunkedEncoding()
         .withEndpointConfiguration(
             new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region")).build();
     amazonS3.createBucket(bucket);
