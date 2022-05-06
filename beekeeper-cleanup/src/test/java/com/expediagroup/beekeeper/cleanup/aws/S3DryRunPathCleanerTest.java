@@ -73,10 +73,9 @@ class S3DryRunPathCleanerTest {
   void setUp() {
     amazonS3 = AmazonS3ClientBuilder
         .standard()
-        .disableChunkedEncoding()
+        .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
         .withEndpointConfiguration(
             new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region"))
-        .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
         .build();
     amazonS3.createBucket(bucket);
     amazonS3.listObjectsV2(bucket)

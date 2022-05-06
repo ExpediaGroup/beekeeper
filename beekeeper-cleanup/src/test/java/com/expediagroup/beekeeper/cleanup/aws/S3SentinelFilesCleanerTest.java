@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
+import org.apache.hadoop.fs.s3a.BasicAWSCredentialsProvider;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,7 @@ class S3SentinelFilesCleanerTest {
   void setUp() {
     amazonS3 = AmazonS3ClientBuilder
         .standard()
+        .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
         .withEndpointConfiguration(
             new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region")).build();
     amazonS3.createBucket(bucket);

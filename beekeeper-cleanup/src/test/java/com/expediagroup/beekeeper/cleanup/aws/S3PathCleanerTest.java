@@ -32,6 +32,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.apache.hadoop.fs.s3a.BasicAWSCredentialsProvider;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,6 +92,7 @@ class S3PathCleanerTest {
   void setUp() {
     amazonS3 = AmazonS3ClientBuilder
         .standard()
+        .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
         .withEndpointConfiguration(
             new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region")).build();
     amazonS3.createBucket(bucket);
