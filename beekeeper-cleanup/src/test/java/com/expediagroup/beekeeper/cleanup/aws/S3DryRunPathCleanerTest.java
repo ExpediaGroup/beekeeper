@@ -22,6 +22,7 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import org.apache.hadoop.fs.s3a.BasicAWSCredentialsProvider;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,7 +75,9 @@ class S3DryRunPathCleanerTest {
         .standard()
         .disableChunkedEncoding()
         .withEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region")).build();
+            new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region"))
+        .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
+        .build();
     amazonS3.createBucket(bucket);
     amazonS3.listObjectsV2(bucket)
         .getObjectSummaries()
