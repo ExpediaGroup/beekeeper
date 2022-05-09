@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.11] - 2022-05-09
+### Fixed
+- S3 tests by using `test-containers` instead of `localstack-utils`.
+### Changed
+- Upgraded `test-containers` to `1.17.1` (was `1.15.2`).
+
 ## [3.4.10] - 2022-01-12
 ### Fixed
 - If a table gets deleted before Beekeeper is scheduled to do so, its entries in the `housekeeping_metadata` table will be disabled. 
