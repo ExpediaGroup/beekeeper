@@ -73,8 +73,8 @@
       <version>${hcommon-hive-metastore.version}</version>
       <exclusions>
         <exclusion>
-          <artifactId>jna</artifactId>
           <groupId>net.java.dev.jna</groupId>
+          <artifactId>jna</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
