@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.12] - unreleased
+### Fixed
+- Error when deleting over 1000 files in a single request, added logic to break down the request in smaller parts
+### Changed
+- Upgraded `com.amazonaws` dependency version to `1.12.311` (was `1.11.960`).
+
 ## [3.4.11] - 2022-05-09
 ### Fixed
 - S3 tests by using `test-containers` instead of `localstack-utils`.
