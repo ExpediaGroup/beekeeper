@@ -96,12 +96,8 @@ public class S3Client {
             deleteObjectsResult.getDeletedObjects().addAll(
                     amazonS3.deleteObjects(deleteObjectsRequest).getDeletedObjects());
           }
-
         }
       }
-      // https://github.com/aws/aws-sdk-java/issues/2578
-      // https://github.com/aws/aws-sdk-java/issues/1293
-      //keys.forEach(key -> log.info("Deleted: \"{}/{}\"", bucket, key));
       log.info("Successfully deleted {} objects", keys.size());
       return deleteObjectsResult.getDeletedObjects()
           .stream()
