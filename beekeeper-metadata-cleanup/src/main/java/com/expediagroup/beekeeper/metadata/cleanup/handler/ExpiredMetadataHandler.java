@@ -99,14 +99,14 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     return false;
   }
 
-  @Transactional
+
   private void cleanUpTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
     log.info("Cleaning up metadata for \"{}.{}\"", databaseName, tableName);
     if (metadataCleaner.tableExists(client, databaseName, tableName)) {
-      pathCleaner.cleanupPath(housekeepingMetadata);
       metadataCleaner.dropTable(housekeepingMetadata, client);
+      pathCleaner.cleanupPath(housekeepingMetadata);
     } else {
       log.info("Cannot drop table \"{}.{}\". Table does not exist.", databaseName, tableName);
     }
