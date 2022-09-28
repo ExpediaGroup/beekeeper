@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
@@ -72,11 +73,36 @@ public class S3Client {
     if (keys.isEmpty()) {
       return Collections.emptyList();
     }
+    DeleteObjectsResult deleteObjectsResult = new DeleteObjectsResult(new ArrayList<>());
+    DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket);
     if (!dryRunEnabled) {
-      keys.forEach(key -> log.info("Deleting: \"{}/{}\"", bucket, key));
-      DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket)
-          .withKeys(keys.toArray(new String[] {}));
-      DeleteObjectsResult deleteObjectsResult = amazonS3.deleteObjects(deleteObjectsRequest);
+      deleteObjectsRequest.withKeys(keys.toArray(new String[] {}));
+      try {
+        log.info("Attempting to delete a total of {} objects, from [{}] to [{}]", keys.size(), keys.get(0), keys.get(keys.size()-1));
+        deleteObjectsResult = amazonS3.deleteObjects(deleteObjectsRequest);
+      } catch (AmazonS3Exception amazonS3Exception) {
+        log.error(amazonS3Exception.toString());
+        int totalKeys = keys.size();
+        int chunkSize = 1000;
+        if(totalKeys > chunkSize) {
+          log.info("Reattempting by breaking down the request");
+          int indexStart;
+          int indexEnd = 0;
+          deleteObjectsRequest = new DeleteObjectsRequest(bucket);
+          while(indexEnd < totalKeys) {
+            indexStart = indexEnd;
+            indexEnd = indexStart + chunkSize < totalKeys ? indexStart + chunkSize : totalKeys;
+            deleteObjectsRequest .withKeys(keys.subList(indexStart, indexEnd).toArray(new String[] {}));
+            deleteObjectsResult.getDeletedObjects().addAll(
+                    amazonS3.deleteObjects(deleteObjectsRequest).getDeletedObjects());
+          }
+
+        }
+      }
+      // https://github.com/aws/aws-sdk-java/issues/2578
+      // https://github.com/aws/aws-sdk-java/issues/1293
+      //keys.forEach(key -> log.info("Deleted: \"{}/{}\"", bucket, key));
+      log.info("Successfully deleted {} objects", keys.size());
       return deleteObjectsResult.getDeletedObjects()
           .stream()
           .map(DeleteObjectsResult.DeletedObject::getKey)

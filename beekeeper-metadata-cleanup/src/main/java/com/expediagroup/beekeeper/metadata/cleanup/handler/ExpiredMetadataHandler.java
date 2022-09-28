@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClient;
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
@@ -98,13 +99,14 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     return false;
   }
 
+  @Transactional
   private void cleanUpTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
     log.info("Cleaning up metadata for \"{}.{}\"", databaseName, tableName);
     if (metadataCleaner.tableExists(client, databaseName, tableName)) {
-      metadataCleaner.dropTable(housekeepingMetadata, client);
       pathCleaner.cleanupPath(housekeepingMetadata);
+      metadataCleaner.dropTable(housekeepingMetadata, client);
     } else {
       log.info("Cannot drop table \"{}.{}\". Table does not exist.", databaseName, tableName);
     }

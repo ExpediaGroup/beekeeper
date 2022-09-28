@@ -208,6 +208,21 @@ class S3ClientTest {
   }
 
   @Test
+  void deleteThousandObjectsInDirectory() {
+    ArrayList<String> keys = new ArrayList<>();
+    int totalObjects = 1234;
+    for(int i = 1; i <= totalObjects; i++){
+      var key = key1+i;
+      amazonS3.putObject(bucket, key, content);
+      keys.add(key);
+    }
+
+    List<String> result = s3Client.deleteObjects(bucket, keys);
+
+    assertThat(result.size()).isEqualTo(totalObjects);
+  }
+
+  @Test
   void deleteObjectsInDirectoryDryRun() {
     amazonS3.putObject(bucket, key1, content);
     amazonS3.putObject(bucket, key2, content);
