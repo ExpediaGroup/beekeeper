@@ -73,30 +73,20 @@ public class S3Client {
     if (keys.isEmpty()) {
       return Collections.emptyList();
     }
-    DeleteObjectsResult deleteObjectsResult = new DeleteObjectsResult(new ArrayList<>());
-    DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket);
     if (!dryRunEnabled) {
-      deleteObjectsRequest.withKeys(keys.toArray(new String[] {}));
-      try {
-        log.info("Attempting to delete a total of {} objects, from [{}] to [{}]", keys.size(), keys.get(0), keys.get(keys.size()-1));
-        deleteObjectsResult = amazonS3.deleteObjects(deleteObjectsRequest);
-      } catch (AmazonS3Exception amazonS3Exception) {
-        log.error(amazonS3Exception.toString());
-        int totalKeys = keys.size();
-        int chunkSize = 1000;
-        if(totalKeys > chunkSize) {
-          log.info("Reattempting by breaking down the request");
-          int indexStart;
-          int indexEnd = 0;
-          deleteObjectsRequest = new DeleteObjectsRequest(bucket);
-          while(indexEnd < totalKeys) {
-            indexStart = indexEnd;
-            indexEnd = indexStart + chunkSize < totalKeys ? indexStart + chunkSize : totalKeys;
-            deleteObjectsRequest .withKeys(keys.subList(indexStart, indexEnd).toArray(new String[] {}));
-            deleteObjectsResult.getDeletedObjects().addAll(
-                    amazonS3.deleteObjects(deleteObjectsRequest).getDeletedObjects());
-          }
-        }
+      log.info("Attempting to delete a total of {} objects, from [{}] to [{}]", keys.size(), keys.get(0), keys.get(keys.size()-1));
+      DeleteObjectsResult deleteObjectsResult = new DeleteObjectsResult(new ArrayList<>());
+      DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket);
+      int totalKeys = keys.size();
+      int chunkSize = 1000;
+      int indexStart;
+      int indexEnd = 0;
+      while(indexEnd < totalKeys) {
+        indexStart = indexEnd;
+        indexEnd = indexStart + chunkSize < totalKeys ? indexStart + chunkSize : totalKeys;
+        deleteObjectsRequest .withKeys(keys.subList(indexStart, indexEnd).toArray(new String[] {}));
+        deleteObjectsResult.getDeletedObjects().addAll(
+                amazonS3.deleteObjects(deleteObjectsRequest).getDeletedObjects());
       }
       log.info("Successfully deleted {} objects", keys.size());
       return deleteObjectsResult.getDeletedObjects()
