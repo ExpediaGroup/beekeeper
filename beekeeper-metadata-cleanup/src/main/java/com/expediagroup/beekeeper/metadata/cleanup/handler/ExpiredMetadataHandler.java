@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClient;
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
@@ -105,8 +104,8 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     String tableName = housekeepingMetadata.getTableName();
     log.info("Cleaning up metadata for \"{}.{}\"", databaseName, tableName);
     if (metadataCleaner.tableExists(client, databaseName, tableName)) {
-      metadataCleaner.dropTable(housekeepingMetadata, client);
       pathCleaner.cleanupPath(housekeepingMetadata);
+      metadataCleaner.dropTable(housekeepingMetadata, client);
     } else {
       log.info("Cannot drop table \"{}.{}\". Table does not exist.", databaseName, tableName);
     }

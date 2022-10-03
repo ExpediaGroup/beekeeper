@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
@@ -74,7 +73,7 @@ public class S3Client {
       return Collections.emptyList();
     }
     if (!dryRunEnabled) {
-      log.info("Attempting to delete a total of {} objects, from [{}] to [{}]", keys.size(), keys.get(0), keys.get(keys.size()-1));
+      log.info("Attempting to delete a total of {} objects, from [{}] to [{}]", keys.size(), keys.get(0), keys.get(keys.size() - 1));
       DeleteObjectsResult deleteObjectsResult = new DeleteObjectsResult(new ArrayList<>());
       DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket);
       int totalKeys = keys.size();
@@ -83,8 +82,8 @@ public class S3Client {
       int indexEnd = 0;
       while(indexEnd < totalKeys) {
         indexStart = indexEnd;
-        indexEnd = indexStart + chunkSize < totalKeys ? indexStart + chunkSize : totalKeys;
-        deleteObjectsRequest .withKeys(keys.subList(indexStart, indexEnd).toArray(new String[] {}));
+        indexEnd = nextIndexEnd(indexStart, chunkSize, totalKeys);
+        deleteObjectsRequest.withKeys(keys.subList(indexStart, indexEnd).toArray(String[]::new));
         deleteObjectsResult.getDeletedObjects().addAll(
                 amazonS3.deleteObjects(deleteObjectsRequest).getDeletedObjects());
       }
@@ -123,5 +122,10 @@ public class S3Client {
       }
       return true;
     }
+  }
+
+  private int nextIndexEnd(final int indexStart, final int chunkSize, final int totalKeys) {
+    int calculatedNextIndexEnd = indexStart + chunkSize;
+    return Math.min(calculatedNextIndexEnd, totalKeys);
   }
 }
