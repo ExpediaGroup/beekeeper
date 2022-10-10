@@ -33,6 +33,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 public class S3Client {
 
+  private static final int REQUEST_CHUNK_SIZE = 1000;
   private static final Logger log = LoggerFactory.getLogger(S3Client.class);
   private final AmazonS3 amazonS3;
   private final boolean dryRunEnabled;
@@ -77,12 +78,11 @@ public class S3Client {
       DeleteObjectsResult deleteObjectsResult = new DeleteObjectsResult(new ArrayList<>());
       DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket);
       int totalKeys = keys.size();
-      int chunkSize = 1000;
       int indexStart;
       int indexEnd = 0;
       while(indexEnd < totalKeys) {
         indexStart = indexEnd;
-        indexEnd = nextIndexEnd(indexStart, chunkSize, totalKeys);
+        indexEnd = nextIndexEnd(indexStart, REQUEST_CHUNK_SIZE, totalKeys);
         deleteObjectsRequest.withKeys(keys.subList(indexStart, indexEnd).toArray(String[]::new));
         deleteObjectsResult.getDeletedObjects().addAll(
                 amazonS3.deleteObjects(deleteObjectsRequest).getDeletedObjects());
