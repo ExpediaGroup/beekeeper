@@ -104,8 +104,8 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     String tableName = housekeepingMetadata.getTableName();
     log.info("Cleaning up metadata for \"{}.{}\"", databaseName, tableName);
     if (metadataCleaner.tableExists(client, databaseName, tableName)) {
-      pathCleaner.cleanupPath(housekeepingMetadata);
       metadataCleaner.dropTable(housekeepingMetadata, client);
+      pathCleaner.cleanupPath(housekeepingMetadata);
     } else {
       log.info("Cannot drop table \"{}.{}\". Table does not exist.", databaseName, tableName);
     }

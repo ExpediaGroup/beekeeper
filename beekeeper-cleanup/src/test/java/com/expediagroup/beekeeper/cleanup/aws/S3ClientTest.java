@@ -216,11 +216,26 @@ class S3ClientTest {
       keys.add(key);
     }
     keys.parallelStream().forEach(key -> amazonS3.putObject(bucket, key, content));
-    int numberOfObjectsLeft = amazonS3.listObjects(bucket, keyRoot).getObjectSummaries().size();
-    assertThat(numberOfObjectsLeft).isEqualTo(totalObjects);
 
     List<String> result = s3Client.deleteObjects(bucket, keys);
-    numberOfObjectsLeft = amazonS3.listObjects(bucket, keyRoot).getObjectSummaries().size();
+    assertThat(result.size()).isEqualTo(totalObjects);
+
+    int numberOfObjectsLeft = amazonS3.listObjects(bucket, keyRoot).getObjectSummaries().size();
+    assertThat(numberOfObjectsLeft).isEqualTo(0);
+  }
+
+  @Test
+  void deleteOverThousandObjectsInDirectory() {
+    ArrayList<String> keys = new ArrayList<>();
+    int totalObjects = 1100;
+    for(int i = 1; i <= totalObjects; i++){
+      var key = keyRoot + "/file" + i;
+      keys.add(key);
+    }
+    keys.parallelStream().forEach(key -> amazonS3.putObject(bucket, key, content));
+
+    List<String> result = s3Client.deleteObjects(bucket, keys);
+    int numberOfObjectsLeft = amazonS3.listObjects(bucket, keyRoot).getObjectSummaries().size();
 
     assertThat(result.size()).isEqualTo(totalObjects);
     assertThat(numberOfObjectsLeft).isEqualTo(0);
