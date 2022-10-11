@@ -222,6 +222,8 @@ class S3ClientTest {
 
     int numberOfObjectsLeft = amazonS3.listObjects(bucket, keyRoot).getObjectSummaries().size();
     assertThat(numberOfObjectsLeft).isEqualTo(0);
+
+    assertThat(keys).isEqualTo(result);
   }
 
   @Test
@@ -235,10 +237,12 @@ class S3ClientTest {
     keys.parallelStream().forEach(key -> amazonS3.putObject(bucket, key, content));
 
     List<String> result = s3Client.deleteObjects(bucket, keys);
-    int numberOfObjectsLeft = amazonS3.listObjects(bucket, keyRoot).getObjectSummaries().size();
-
     assertThat(result.size()).isEqualTo(totalObjects);
+
+    int numberOfObjectsLeft = amazonS3.listObjects(bucket, keyRoot).getObjectSummaries().size();
     assertThat(numberOfObjectsLeft).isEqualTo(0);
+
+    assertThat(keys).isEqualTo(result);
   }
 
   @Test
