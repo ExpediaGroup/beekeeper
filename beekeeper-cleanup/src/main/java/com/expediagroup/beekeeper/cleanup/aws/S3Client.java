@@ -74,18 +74,19 @@ public class S3Client {
       return Collections.emptyList();
     }
     if (!dryRunEnabled) {
-      log.info("Attempting to delete a total of {} objects, from [{}] to [{}]", keys.size(), keys.get(0), keys.get(keys.size() - 1));
+      log.info("Attempting to delete a total of {} objects, from [{}] to [{}]", keys.size(), keys.get(0),
+          keys.get(keys.size() - 1));
       DeleteObjectsResult deleteObjectsResult = new DeleteObjectsResult(new ArrayList<>());
       DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket);
       int totalKeys = keys.size();
       int indexStart;
       int indexEnd = 0;
-      while(indexEnd < totalKeys) {
+      while (indexEnd < totalKeys) {
         indexStart = indexEnd;
         indexEnd = nextIndexEnd(indexStart, REQUEST_CHUNK_SIZE, totalKeys);
         deleteObjectsRequest.withKeys(keys.subList(indexStart, indexEnd).toArray(String[]::new));
         deleteObjectsResult.getDeletedObjects().addAll(
-                amazonS3.deleteObjects(deleteObjectsRequest).getDeletedObjects());
+            amazonS3.deleteObjects(deleteObjectsRequest).getDeletedObjects());
       }
       log.info("Successfully deleted {} objects", keys.size());
       return deleteObjectsResult.getDeletedObjects()
