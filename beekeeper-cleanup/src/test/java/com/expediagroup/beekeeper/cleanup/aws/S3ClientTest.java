@@ -28,6 +28,8 @@ import org.apache.hadoop.fs.s3a.BasicAWSCredentialsProvider;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -205,6 +207,25 @@ class S3ClientTest {
     assertThat(result).contains(key2);
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isFalse();
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = { 500, 1000, 1500 })
+  void splitDeleteObjectsInDirectory(final int totalObjects) {
+    ArrayList<String> keys = new ArrayList<>();
+    for (int i = 1; i <= totalObjects; i++) {
+      var key = keyRoot + "/file" + i;
+      keys.add(key);
+    }
+    keys.parallelStream().forEach(key -> amazonS3.putObject(bucket, key, content));
+
+    List<String> result = s3Client.deleteObjects(bucket, keys);
+    assertThat(result.size()).isEqualTo(totalObjects);
+
+    int numberOfObjectsLeft = amazonS3.listObjects(bucket, keyRoot).getObjectSummaries().size();
+    assertThat(numberOfObjectsLeft).isEqualTo(0);
+
+    assertThat(keys).isEqualTo(result);
   }
 
   @Test

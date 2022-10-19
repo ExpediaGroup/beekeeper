@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 public class S3Client {
 
+  private static final int REQUEST_CHUNK_SIZE = 1000;
   private static final Logger log = LoggerFactory.getLogger(S3Client.class);
   private final AmazonS3 amazonS3;
   private final boolean dryRunEnabled;
@@ -73,10 +74,21 @@ public class S3Client {
       return Collections.emptyList();
     }
     if (!dryRunEnabled) {
-      keys.forEach(key -> log.info("Deleting: \"{}/{}\"", bucket, key));
-      DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket)
-          .withKeys(keys.toArray(new String[] {}));
-      DeleteObjectsResult deleteObjectsResult = amazonS3.deleteObjects(deleteObjectsRequest);
+      log.info("Attempting to delete a total of {} objects, from [{}] to [{}]", keys.size(), keys.get(0),
+          keys.get(keys.size() - 1));
+      DeleteObjectsResult deleteObjectsResult = new DeleteObjectsResult(new ArrayList<>());
+      DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket);
+      int totalKeys = keys.size();
+      int indexStart;
+      int indexEnd = 0;
+      while (indexEnd < totalKeys) {
+        indexStart = indexEnd;
+        indexEnd = nextIndexEnd(indexStart, REQUEST_CHUNK_SIZE, totalKeys);
+        deleteObjectsRequest.withKeys(keys.subList(indexStart, indexEnd).toArray(String[]::new));
+        deleteObjectsResult.getDeletedObjects().addAll(
+            amazonS3.deleteObjects(deleteObjectsRequest).getDeletedObjects());
+      }
+      log.info("Successfully deleted {} objects", keys.size());
       return deleteObjectsResult.getDeletedObjects()
           .stream()
           .map(DeleteObjectsResult.DeletedObject::getKey)
@@ -111,5 +123,10 @@ public class S3Client {
       }
       return true;
     }
+  }
+
+  private int nextIndexEnd(final int indexStart, final int chunkSize, final int totalKeys) {
+    int calculatedNextIndexEnd = indexStart + chunkSize;
+    return Math.min(calculatedNextIndexEnd, totalKeys);
   }
 }
