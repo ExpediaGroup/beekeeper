@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upgraded `log4j2` to `2.16.0` (was `2.15.0`).
 
-## [3.4.7] - 2021-12-15
+## [3.4.7] - 2021-12-15~~~~
 
 ### Fixed
 
