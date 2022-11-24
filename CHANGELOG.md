@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.4.14] - 2022-11-24
 ### Fixed
-- Return slice instead of page in queries.
+- Return Slice instead of Page in queries to avoid scanning the whole table for the total number of pages. Details [here](https://www.baeldung.com/spring-data-jpa-pagination-sorting#paginate).
 
 ## [3.4.13] - 2022-11-23
 ### Fixed
