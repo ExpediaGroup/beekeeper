@@ -41,8 +41,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -165,7 +165,7 @@ public class HousekeepingMetadataRepositoryTest {
     HousekeepingMetadata table = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(table);
 
-    Page<HousekeepingMetadata> result = housekeepingMetadataRepository
+    Slice<HousekeepingMetadata> result = housekeepingMetadataRepository
         .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().get(0).getDatabaseName()).isEqualTo(DATABASE_NAME);
     assertThat(result.getContent().get(0).getTableName()).isEqualTo(TABLE_NAME);
@@ -177,7 +177,7 @@ public class HousekeepingMetadataRepositoryTest {
     table.setHousekeepingStatus(DELETED);
     housekeepingMetadataRepository.save(table);
 
-    Page<HousekeepingMetadata> result = housekeepingMetadataRepository
+    Slice<HousekeepingMetadata> result = housekeepingMetadataRepository
         .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(), PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().size()).isEqualTo(0);
   }
@@ -193,7 +193,7 @@ public class HousekeepingMetadataRepositoryTest {
     HousekeepingMetadata housekeepingTable3 = createPartitionedEntityHousekeepingTable(DELETED);
     housekeepingMetadataRepository.save(housekeepingTable3);
 
-    Page<HousekeepingMetadata> result = housekeepingMetadataRepository
+    Slice<HousekeepingMetadata> result = housekeepingMetadataRepository
         .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().size()).isEqualTo(2);
   }

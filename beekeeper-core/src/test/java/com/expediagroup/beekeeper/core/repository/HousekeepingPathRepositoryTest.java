@@ -38,8 +38,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -152,7 +152,7 @@ public class HousekeepingPathRepositoryTest {
     HousekeepingPath path = createEntityHousekeepingPath();
     housekeepingPathRepository.save(path);
 
-    Page<HousekeepingPath> result = housekeepingPathRepository
+    Slice<HousekeepingPath> result = housekeepingPathRepository
         .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().get(0).getPath()).isEqualTo("path");
   }
@@ -163,7 +163,7 @@ public class HousekeepingPathRepositoryTest {
     path.setHousekeepingStatus(DELETED);
     housekeepingPathRepository.save(path);
 
-    Page<HousekeepingPath> result = housekeepingPathRepository
+    Slice<HousekeepingPath> result = housekeepingPathRepository
         .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(), PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().size()).isEqualTo(0);
   }
@@ -183,7 +183,7 @@ public class HousekeepingPathRepositoryTest {
     housekeepingPath3.setPath("path3");
     housekeepingPathRepository.save(housekeepingPath3);
 
-    Page<HousekeepingPath> result = housekeepingPathRepository
+    Slice<HousekeepingPath> result = housekeepingPathRepository
         .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().size()).isEqualTo(2);
   }

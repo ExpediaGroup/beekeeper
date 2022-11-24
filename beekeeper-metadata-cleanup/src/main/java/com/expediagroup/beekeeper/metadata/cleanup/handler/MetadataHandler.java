@@ -17,14 +17,14 @@ package com.expediagroup.beekeeper.metadata.cleanup.handler;
 
 import java.time.LocalDateTime;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import org.springframework.data.domain.Slice;
 
 public interface MetadataHandler {
 
-  Page<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable);
+  Slice<HousekeepingMetadata> findRecordsToClean(LocalDateTime instant, Pageable pageable);
 
   void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled);
 }

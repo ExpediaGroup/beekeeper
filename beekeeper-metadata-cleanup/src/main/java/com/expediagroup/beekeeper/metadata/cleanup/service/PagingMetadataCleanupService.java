@@ -22,9 +22,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.micrometer.core.annotation.Timed;
@@ -69,7 +69,7 @@ public class PagingMetadataCleanupService implements CleanupService {
     Pageable pageable = PageRequest.of(0, pageSize).first();
 
     LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);
-    Page<HousekeepingMetadata> page = handler.findRecordsToClean(instant, pageable);
+    Slice<HousekeepingMetadata> page = handler.findRecordsToClean(instant, pageable);
 
     while (!page.getContent().isEmpty()) {
       pageable = processPage(handler, pageable, instant, page);
@@ -78,7 +78,7 @@ public class PagingMetadataCleanupService implements CleanupService {
   }
 
   private Pageable processPage(MetadataHandler handler, Pageable pageable, LocalDateTime instant,
-      Page<HousekeepingMetadata> page) {
+      Slice<HousekeepingMetadata> page) {
     page.getContent().forEach(metadata -> handler.cleanupMetadata(metadata, instant, dryRunEnabled));
     if (dryRunEnabled) {
       return pageable.next();

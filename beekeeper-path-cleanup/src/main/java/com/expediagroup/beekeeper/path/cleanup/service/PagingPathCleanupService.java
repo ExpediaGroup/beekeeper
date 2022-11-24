@@ -24,9 +24,9 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.micrometer.core.annotation.Timed;
@@ -65,7 +65,7 @@ public class PagingPathCleanupService implements CleanupService {
     Pageable pageable = PageRequest.of(0, pageSize).first();
 
     LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);
-    Page<HousekeepingPath> page = handler.findRecordsToClean(instant, pageable);
+    Slice<HousekeepingPath> page = handler.findRecordsToClean(instant, pageable);
 
     int i = 1;
     while (!page.getContent().isEmpty()) {
