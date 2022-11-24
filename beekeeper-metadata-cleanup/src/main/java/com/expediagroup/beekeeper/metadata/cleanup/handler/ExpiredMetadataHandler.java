@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClient;
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
@@ -33,7 +34,6 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
-import org.springframework.data.domain.Slice;
 
 public class ExpiredMetadataHandler implements MetadataHandler {
 

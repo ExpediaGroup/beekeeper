@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package com.expediagroup.beekeeper.metadata.cleanup.handler;
 import java.time.LocalDateTime;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
-import org.springframework.data.domain.Slice;
 
 public interface MetadataHandler {
 
