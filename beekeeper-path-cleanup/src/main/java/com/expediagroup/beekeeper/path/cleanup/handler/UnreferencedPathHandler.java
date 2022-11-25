@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
 
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
@@ -44,7 +44,7 @@ public class UnreferencedPathHandler extends GenericPathHandler {
   }
 
   @Override
-  public Page<HousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable) {
+  public Slice<HousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable) {
     return housekeepingPathRepository.findRecordsForCleanupByModifiedTimestamp(instant, pageable);
   }
 }

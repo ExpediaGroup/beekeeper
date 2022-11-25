@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
@@ -33,17 +33,15 @@ public abstract class GenericPathHandler {
 
   private final Logger log = LoggerFactory.getLogger(GenericPathHandler.class);
 
-  private HousekeepingPathRepository housekeepingPathRepository;
-  private PathCleaner pathCleaner;
-  private LifecycleEventType lifecycleEventType;
+  private final HousekeepingPathRepository housekeepingPathRepository;
+  private final PathCleaner pathCleaner;
 
   public GenericPathHandler(HousekeepingPathRepository housekeepingPathRepository, PathCleaner pathCleaner, LifecycleEventType lifecycleEventType){
     this.housekeepingPathRepository = housekeepingPathRepository;
     this.pathCleaner = pathCleaner;
-    this.lifecycleEventType = lifecycleEventType;
   }
 
-  public abstract Page<HousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable);
+  public abstract Slice<HousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable);
 
   /**
    * Processes a pageable entityHouseKeepingPath page.
@@ -56,7 +54,7 @@ public abstract class GenericPathHandler {
    * @implNote Note that we only expect pageable.next to be called during a dry run.
    * @return Pageable to pass to query. In the case of dry runs, this is the next page.
    */
-  public Pageable processPage(Pageable pageable, Page<HousekeepingPath> page, boolean dryRunEnabled) {
+  public Pageable processPage(Pageable pageable, Slice<HousekeepingPath> page, boolean dryRunEnabled) {
     List<HousekeepingPath> pageContent = page.getContent();
     if (dryRunEnabled) {
       pageContent.forEach(this::cleanUpPath);

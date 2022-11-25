@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.micrometer.core.annotation.Timed;
@@ -65,13 +65,13 @@ public class PagingPathCleanupService implements CleanupService {
     Pageable pageable = PageRequest.of(0, pageSize).first();
 
     LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);
-    Page<HousekeepingPath> page = handler.findRecordsToClean(instant, pageable);
+    Slice<HousekeepingPath> batch = handler.findRecordsToClean(instant, pageable);
 
     int i = 1;
-    while (!page.getContent().isEmpty()) {
+    while (!batch.getContent().isEmpty()) {
       log.info("Processing page {}", i++);
-      pageable = handler.processPage(pageable, page, dryRunEnabled);
-      page = handler.findRecordsToClean(instant, pageable);
+      pageable = handler.processPage(pageable, batch, dryRunEnabled);
+      batch = handler.findRecordsToClean(instant, pageable);
     }
   }
 }

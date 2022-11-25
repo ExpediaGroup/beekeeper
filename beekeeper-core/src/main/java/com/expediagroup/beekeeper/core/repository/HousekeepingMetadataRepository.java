@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -35,7 +35,7 @@ public interface HousekeepingMetadataRepository extends PagingAndSortingReposito
   @Query(value = "from HousekeepingMetadata t where t.cleanupTimestamp <= :instant "
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED') "
       + "and t.modifiedTimestamp <= :instant order by t.modifiedTimestamp")
-  Page<HousekeepingMetadata> findRecordsForCleanupByModifiedTimestamp(
+  Slice<HousekeepingMetadata> findRecordsForCleanupByModifiedTimestamp(
       @Param("instant") LocalDateTime instant,
       Pageable pageable);
 

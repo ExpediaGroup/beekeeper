@@ -17,8 +17,8 @@ package com.expediagroup.beekeeper.core.repository;
 
 import java.time.LocalDateTime;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -35,7 +35,7 @@ public interface HousekeepingPathRepository
   @Query(value = "from HousekeepingPath p where p.cleanupTimestamp <= :instant "
       + "and (p.housekeepingStatus = 'SCHEDULED' or p.housekeepingStatus = 'FAILED') "
       + "and p.modifiedTimestamp <= :instant")
-  Page<HousekeepingPath> findRecordsForCleanupByModifiedTimestamp(
+  Slice<HousekeepingPath> findRecordsForCleanupByModifiedTimestamp(
       @Param("instant") LocalDateTime instant,
       Pageable pageable);
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.micrometer.core.annotation.Timed;
@@ -69,17 +69,17 @@ public class PagingMetadataCleanupService implements CleanupService {
     Pageable pageable = PageRequest.of(0, pageSize).first();
 
     LocalDateTime instant = LocalDateTime.ofInstant(referenceTime, ZoneOffset.UTC);
-    Page<HousekeepingMetadata> page = handler.findRecordsToClean(instant, pageable);
+    Slice<HousekeepingMetadata> batch = handler.findRecordsToClean(instant, pageable);
 
-    while (!page.getContent().isEmpty()) {
-      pageable = processPage(handler, pageable, instant, page);
-      page = handler.findRecordsToClean(instant, pageable);
+    while (!batch.getContent().isEmpty()) {
+      pageable = processPage(handler, pageable, instant, batch);
+      batch = handler.findRecordsToClean(instant, pageable);
     }
   }
 
   private Pageable processPage(MetadataHandler handler, Pageable pageable, LocalDateTime instant,
-      Page<HousekeepingMetadata> page) {
-    page.getContent().forEach(metadata -> handler.cleanupMetadata(metadata, instant, dryRunEnabled));
+      Slice<HousekeepingMetadata> batch) {
+    batch.getContent().forEach(metadata -> handler.cleanupMetadata(metadata, instant, dryRunEnabled));
     if (dryRunEnabled) {
       return pageable.next();
     }
