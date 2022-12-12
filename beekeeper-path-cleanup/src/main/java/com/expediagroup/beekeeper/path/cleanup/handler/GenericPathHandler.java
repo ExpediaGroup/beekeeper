@@ -28,6 +28,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
+import com.expediagroup.beekeeper.core.validation.S3PathValidator;
 
 public abstract class GenericPathHandler {
 
@@ -65,15 +66,21 @@ public abstract class GenericPathHandler {
     }
   }
 
-  private void cleanUpPath(HousekeepingPath housekeepingPath) {
-    pathCleaner.cleanupPath(housekeepingPath);
+  private boolean cleanUpPath(HousekeepingPath housekeepingPath) {
+    if (S3PathValidator.validTablePath(housekeepingPath.getPath())) {
+      pathCleaner.cleanupPath(housekeepingPath);
+      return true;
+    }
+    log.warn("Will not clean up path \"{}\" because it is not valid.", housekeepingPath.getPath());
+    return false;
   }
 
   private void cleanupContent(HousekeepingPath housekeepingPath) {
     try {
       log.info("Cleaning up path \"{}\"", housekeepingPath.getPath());
-      cleanUpPath(housekeepingPath);
-      updateAttemptsAndStatus(housekeepingPath, HousekeepingStatus.DELETED);
+      if (cleanUpPath(housekeepingPath)) {
+        updateAttemptsAndStatus(housekeepingPath, HousekeepingStatus.DELETED);
+      }
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingPath, HousekeepingStatus.FAILED);
       log.warn("Unexpected exception deleting \"{}\"", housekeepingPath.getPath(), e);

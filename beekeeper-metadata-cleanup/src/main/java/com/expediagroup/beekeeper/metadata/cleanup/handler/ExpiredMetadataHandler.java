@@ -34,6 +34,7 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
+import com.expediagroup.beekeeper.core.validation.S3PathValidator;
 
 public class ExpiredMetadataHandler implements MetadataHandler {
 
@@ -85,21 +86,23 @@ public class ExpiredMetadataHandler implements MetadataHandler {
       boolean dryRunEnabled) {
     String partitionName = housekeepingMetadata.getPartitionName();
     if (partitionName != null) {
-      cleanupPartition(client, housekeepingMetadata);
-      return true;
+      return cleanupPartition(client, housekeepingMetadata);
     } else {
       Long partitionCount = countPartitionsForDatabaseAndTable(instant, housekeepingMetadata.getDatabaseName(),
           housekeepingMetadata.getTableName(), dryRunEnabled);
       if (partitionCount.equals(LONG_ZERO)) {
-        cleanUpTable(client, housekeepingMetadata);
-        return true;
+        return cleanUpTable(client, housekeepingMetadata);
       }
     }
     return false;
   }
 
 
-  private void cleanUpTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
+  private boolean cleanUpTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
+    if (!S3PathValidator.validTablePath(housekeepingMetadata.getPath())) {
+      log.warn("Will not clean up table path \"{}\" because it is not valid.", housekeepingMetadata.getPath());
+      return false;
+    }
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
     log.info("Cleaning up metadata for \"{}.{}\"", databaseName, tableName);
@@ -109,9 +112,14 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     } else {
       log.info("Cannot drop table \"{}.{}\". Table does not exist.", databaseName, tableName);
     }
+    return true;
   }
 
-  private void cleanupPartition(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
+  private boolean cleanupPartition(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
+    if (!S3PathValidator.validPartitionPath(housekeepingMetadata.getPath())) {
+      log.warn("Will not clean up partition path \"{}\" because it is not valid.", housekeepingMetadata.getPath());
+      return false;
+    }
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
     log.info("Cleaning up metadata for \"{}.{}\"", databaseName, tableName);
@@ -124,6 +132,7 @@ public class ExpiredMetadataHandler implements MetadataHandler {
       log.info("Cannot drop partition \"{}\" from table \"{}.{}\". Table does not exist.",
           housekeepingMetadata.getPartitionName(), databaseName, tableName);
     }
+    return true;
   }
 
   private void updateAttemptsAndStatus(HousekeepingMetadata housekeepingMetadata, HousekeepingStatus status) {

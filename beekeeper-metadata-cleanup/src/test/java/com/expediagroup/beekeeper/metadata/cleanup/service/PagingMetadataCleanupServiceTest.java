@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,8 @@ import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class PagingMetadataCleanupServiceTest {
 
+  public static final List<String> TABLE_PATHS = List.of("s3://bucket/some_foo", "s3://bucket/some_bar", "s3://bucket/some_foobar");
+  public static final List<String> PARTITION_PATHS = List.of("s3://bucket/some_foo/1", "s3://bucket/some_bar/2", "s3://bucket/some_foobar/3");
   private final LocalDateTime localNow = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
   private PagingMetadataCleanupService pagingCleanupService;
   private @Captor ArgumentCaptor<HousekeepingMetadata> metadataCaptor;
@@ -104,13 +106,12 @@ public class PagingMetadataCleanupServiceTest {
 
   @Test
   public void typicalUnpartitioned() {
-    List<String> paths = List.of("s3://some_foo", "s3://some_bar", "s3://some_foobar");
     List<String> tables = List.of("table1", "table2", "table3");
 
     IntStream
         .range(0, tables.size())
         .forEach(
-            i -> metadataRepository.save(createHousekeepingMetadata(tables.get(i), paths.get(i), null, SCHEDULED)));
+            i -> metadataRepository.save(createHousekeepingMetadata(tables.get(i), TABLE_PATHS.get(i), null, SCHEDULED)));
 
     pagingCleanupService.cleanUp(Instant.now());
 
@@ -119,7 +120,7 @@ public class PagingMetadataCleanupServiceTest {
         .extracting("tableName")
         .containsExactly(tables.get(0), tables.get(1), tables.get(2));
     verify(pathCleaner, times(3)).cleanupPath(pathCaptor.capture());
-    assertThat(pathCaptor.getAllValues()).extracting("path").containsExactly(paths.get(0), paths.get(1), paths.get(2));
+    assertThat(pathCaptor.getAllValues()).extracting("path").containsExactly(TABLE_PATHS.get(0), TABLE_PATHS.get(1), TABLE_PATHS.get(2));
 
     metadataRepository.findAll().forEach(housekeepingMetadata -> {
       assertThat(housekeepingMetadata.getCleanupAttempts()).isEqualTo(1);
@@ -134,13 +135,12 @@ public class PagingMetadataCleanupServiceTest {
   public void typicalDryRunEnabled() {
     pagingCleanupService = new PagingMetadataCleanupService(handlers, 2, true);
 
-    List<String> paths = List.of("s3://some_foo", "s3://some_bar", "s3://some_foobar");
     List<String> tables = List.of("table1", "table2", "table3");
 
     IntStream
         .range(0, tables.size())
         .forEach(
-            i -> metadataRepository.save(createHousekeepingMetadata(tables.get(i), paths.get(i), null, SCHEDULED)));
+            i -> metadataRepository.save(createHousekeepingMetadata(tables.get(i), TABLE_PATHS.get(i), null, SCHEDULED)));
 
     pagingCleanupService.cleanUp(Instant.now());
 
@@ -149,7 +149,7 @@ public class PagingMetadataCleanupServiceTest {
         .extracting("tableName")
         .containsExactly(tables.get(0), tables.get(1), tables.get(2));
     verify(pathCleaner, times(3)).cleanupPath(pathCaptor.capture());
-    assertThat(pathCaptor.getAllValues()).extracting("path").containsExactly(paths.get(0), paths.get(1), paths.get(2));
+    assertThat(pathCaptor.getAllValues()).extracting("path").containsExactly(TABLE_PATHS.get(0), TABLE_PATHS.get(1), TABLE_PATHS.get(2));
 
     metadataRepository.findAll().forEach(housekeepingMetadata -> {
       assertThat(housekeepingMetadata.getCleanupAttempts()).isEqualTo(0);
@@ -159,13 +159,12 @@ public class PagingMetadataCleanupServiceTest {
 
   @Test
   public void typicalPartitioned() {
-    List<String> paths = List.of("s3://some_foo", "s3://some_bar", "s3://some_foobar");
     List<String> tables = List.of("table1", "table2", "table3");
 
     IntStream
         .range(0, tables.size())
         .forEach(i -> metadataRepository
-            .save(createHousekeepingMetadata(tables.get(i), paths.get(i), PARTITION_NAME, SCHEDULED)));
+            .save(createHousekeepingMetadata(tables.get(i), PARTITION_PATHS.get(i), PARTITION_NAME, SCHEDULED)));
 
     pagingCleanupService.cleanUp(Instant.now());
 
@@ -174,7 +173,7 @@ public class PagingMetadataCleanupServiceTest {
         .extracting("tableName")
         .containsExactly(tables.get(0), tables.get(1), tables.get(2));
     verify(pathCleaner, times(3)).cleanupPath(pathCaptor.capture());
-    assertThat(pathCaptor.getAllValues()).extracting("path").containsExactly(paths.get(0), paths.get(1), paths.get(2));
+    assertThat(pathCaptor.getAllValues()).extracting("path").containsExactly(PARTITION_PATHS.get(0), PARTITION_PATHS.get(1), PARTITION_PATHS.get(2));
 
     metadataRepository.findAll().forEach(housekeepingMetadata -> {
       assertThat(housekeepingMetadata.getCleanupAttempts()).isEqualTo(1);
@@ -188,8 +187,8 @@ public class PagingMetadataCleanupServiceTest {
   @Test
   public void mixOfScheduledAndFailedPaths() {
     List<HousekeepingMetadata> tables = List
-        .of(createHousekeepingMetadata("table1", "s3://some_foo", null, SCHEDULED),
-            createHousekeepingMetadata("table2", "s3://some_bar", null, FAILED));
+        .of(createHousekeepingMetadata("table1", "s3://bucket/some_foo", null, SCHEDULED),
+            createHousekeepingMetadata("table2", "s3://bucket/some_bar", null, FAILED));
     tables.forEach(table -> metadataRepository.save(table));
 
     pagingCleanupService.cleanUp(Instant.now());
@@ -206,9 +205,9 @@ public class PagingMetadataCleanupServiceTest {
   @Test
   public void mixOfAllPaths() {
     List<HousekeepingMetadata> tables = List
-        .of(createHousekeepingMetadata("table1", "s3://some_foo", null, SCHEDULED),
-            createHousekeepingMetadata("table2", "s3://some_bar", null, FAILED),
-            createHousekeepingMetadata("table3", "s3://some_foobar", null, DELETED));
+        .of(createHousekeepingMetadata("table1", "s3://bucket/some_foo", null, SCHEDULED),
+            createHousekeepingMetadata("table2", "s3://bucket/some_bar", null, FAILED),
+            createHousekeepingMetadata("table3", "s3://bucket/some_foobar", null, DELETED));
 
     tables.forEach(path -> metadataRepository.save(path));
     pagingCleanupService.cleanUp(Instant.now());
@@ -235,8 +234,8 @@ public class PagingMetadataCleanupServiceTest {
         );
 
     List<HousekeepingMetadata> tables = List
-        .of(createHousekeepingMetadata("table1", "s3://some_foo", null, SCHEDULED),
-            createHousekeepingMetadata("table2", "s3://some_bar", null, SCHEDULED));
+        .of(createHousekeepingMetadata("table1", "s3://bucket/some_foo", null, SCHEDULED),
+            createHousekeepingMetadata("table2", "s3://bucket/some_bar", null, SCHEDULED));
     tables.forEach(table -> metadataRepository.save(table));
 
     pagingCleanupService.cleanUp(Instant.now());
@@ -265,9 +264,9 @@ public class PagingMetadataCleanupServiceTest {
   @Timeout(value = 10)
   void doNotInfiniteLoopOnRepeatedFailures() {
     List<HousekeepingMetadata> tables = List
-        .of(createHousekeepingMetadata("table1", "s3://some_foo", null, FAILED),
-            createHousekeepingMetadata("table2", "s3://some_bar", null, FAILED),
-            createHousekeepingMetadata("table3", "s3://some_foobar", null, FAILED));
+        .of(createHousekeepingMetadata("table1", "s3://bucket/some_foo", null, FAILED),
+            createHousekeepingMetadata("table2", "s3://bucket/some_bar", null, FAILED),
+            createHousekeepingMetadata("table3", "s3://bucket/some_foobar", null, FAILED));
 
     doThrow(new RuntimeException("Error")).when(metadataCleaner).dropTable(Mockito.any(), Mockito.any());
     for (int i = 0; i < 5; i++) {

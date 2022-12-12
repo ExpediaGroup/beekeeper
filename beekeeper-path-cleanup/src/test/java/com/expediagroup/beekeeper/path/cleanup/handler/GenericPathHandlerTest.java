@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,12 +47,14 @@ public class GenericPathHandlerTest {
   @Mock private Pageable mockPageable;
   @Mock private Pageable nextPage;
   @Mock private PageImpl<HousekeepingPath> mockPage;
+  private static final String VALID_TABLE_PATH = "s3://bucket/table";
 
   private UnreferencedPathHandler handler;
 
   @BeforeEach
   public void initTest() {
     handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
+    when(mockPath.getPath()).thenReturn(VALID_TABLE_PATH);
   }
 
   @Test
@@ -87,6 +89,19 @@ public class GenericPathHandlerTest {
     verify(mockPath).setCleanupAttempts(1);
     verify(mockPath).setHousekeepingStatus(FAILED);
     verify(housekeepingPathRepository).save(mockPath);
+    assertThat(pageable).isEqualTo(pageable);
+  }
+
+  @Test
+  public void processPageInvalidPath() {
+    when(mockPath.getPath()).thenReturn("invalid");
+    when(mockPage.getContent()).thenReturn(List.of(mockPath));
+    Pageable pageable = handler.processPage(mockPageable, mockPage, false);
+    verify(pathCleaner, never()).cleanupPath(mockPath);
+    verify(mockPageable, never()).next();
+    verify(mockPath, never()).setCleanupAttempts(1);
+    verify(mockPath, never()).setHousekeepingStatus(DELETED);
+    verify(housekeepingPathRepository, never()).save(mockPath);
     assertThat(pageable).isEqualTo(pageable);
   }
 }
