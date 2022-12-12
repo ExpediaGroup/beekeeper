@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.generator;
 
-import static com.expediagroup.beekeeper.core.validation.S3PathValidator.validPartitionPath;
-import static com.expediagroup.beekeeper.core.validation.S3PathValidator.validTablePath;
 import static java.lang.String.format;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.validation.S3PathValidator.validPartitionPath;
+import static com.expediagroup.beekeeper.core.validation.S3PathValidator.validTablePath;
 
 import java.time.Clock;
 import java.time.Duration;

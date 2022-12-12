@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class PagingCleanupServiceTest {
     UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 2, false);
 
-    List<String> paths = List.of("s3://some_foo", "s3://some_bar", "s3://some_foobar");
+    List<String> paths = List.of("s3://bucket/some_foo", "s3://bucket/some_bar", "s3://bucket/some_foobar");
     paths.forEach(path -> housekeepingPathRepository.save(createEntityHousekeepingPath(path, SCHEDULED)));
     pagingCleanupService.cleanUp(Instant.now());
 
@@ -102,8 +102,8 @@ public class PagingCleanupServiceTest {
     UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 2, false);
     List<HousekeepingPath> paths = List.of(
-        createEntityHousekeepingPath("s3://some_foo", SCHEDULED),
-        createEntityHousekeepingPath("s3://some_bar", FAILED)
+        createEntityHousekeepingPath("s3://bucket/some_foo", SCHEDULED),
+        createEntityHousekeepingPath("s3://bucket/some_bar", FAILED)
     );
     paths.forEach(path -> housekeepingPathRepository.save(path));
     pagingCleanupService.cleanUp(Instant.now());
@@ -119,9 +119,9 @@ public class PagingCleanupServiceTest {
     UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 2, false);
     List<HousekeepingPath> paths = List.of(
-        createEntityHousekeepingPath("s3://some_foo", SCHEDULED),
-        createEntityHousekeepingPath("s3://some_bar", FAILED),
-        createEntityHousekeepingPath("s3://some_foobar", DELETED)
+        createEntityHousekeepingPath("s3://bucket/some_foo", SCHEDULED),
+        createEntityHousekeepingPath("s3://bucket/some_bar", FAILED),
+        createEntityHousekeepingPath("s3://bucket/some_foobar", DELETED)
     );
     paths.forEach(path -> housekeepingPathRepository.save(path));
     pagingCleanupService.cleanUp(Instant.now());
@@ -142,7 +142,7 @@ public class PagingCleanupServiceTest {
         .when(pathCleaner)
         .cleanupPath(any(HousekeepingPath.class));
 
-    List<String> paths = List.of("s3://some_foo", "s3://some_bar");
+    List<String> paths = List.of("s3://bucket/some_foo", "s3://bucket/some_bar");
     paths.forEach(path -> housekeepingPathRepository.save(createEntityHousekeepingPath(path, SCHEDULED)));
     pagingCleanupService.cleanUp(Instant.now());
 
@@ -170,9 +170,9 @@ public class PagingCleanupServiceTest {
     UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 1, false);
     List<HousekeepingPath> paths = List.of(
-        createEntityHousekeepingPath("s3://some_foo", FAILED),
-        createEntityHousekeepingPath("s3://some_bar", FAILED),
-        createEntityHousekeepingPath("s3://some_foobar", FAILED)
+        createEntityHousekeepingPath("s3://bucket/some_foo", FAILED),
+        createEntityHousekeepingPath("s3://bucket/some_bar", FAILED),
+        createEntityHousekeepingPath("s3://bucket/some_foobar", FAILED)
     );
 
     for (int i = 0; i < 5; i++) {
@@ -201,9 +201,9 @@ public class PagingCleanupServiceTest {
     UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 1, true);
     List<HousekeepingPath> paths = List.of(
-        createEntityHousekeepingPath("s3://some_foo", SCHEDULED),
-        createEntityHousekeepingPath("s3://some_bar", SCHEDULED),
-        createEntityHousekeepingPath("s3://some_foobar", SCHEDULED)
+        createEntityHousekeepingPath("s3://bucket/some_foo", SCHEDULED),
+        createEntityHousekeepingPath("s3://bucket/some_bar", SCHEDULED),
+        createEntityHousekeepingPath("s3://bucket/some_foobar", SCHEDULED)
     );
     housekeepingPathRepository.saveAll(paths);
 
