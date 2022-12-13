@@ -69,7 +69,6 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
     this.clock = clock;
   }
 
-  // todo check what we do with the event list..if it's empty
   @Override
   public List<HousekeepingEntity> generate(ListenerEvent listenerEvent, String clientId) {
     List<HousekeepingEntity> housekeepingEntities = new ArrayList<>();
