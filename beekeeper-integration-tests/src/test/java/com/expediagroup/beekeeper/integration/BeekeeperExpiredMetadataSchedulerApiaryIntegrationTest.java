@@ -81,8 +81,8 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   private static final String PARTITION_B_VALUES = "[ \"2020-01-01\", \"1\" ]";
   private static final String PARTITION_A_NAME = "event_date=2020-01-01/event_hour=0";
   private static final String PARTITION_B_NAME = "event_date=2020-01-01/event_hour=1";
-  private static final String LOCATION_A = "s3://location-a";
-  private static final String LOCATION_B = "s3://location-b";
+  private static final String LOCATION_A = "s3://bucket/table1/partition";
+  private static final String LOCATION_B = "s3://bucket/table2/partition";
 
   @Container
   private static final LocalStackContainer SQS_CONTAINER = ContainerTestUtils.awsContainer(SQS);

@@ -111,86 +111,86 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
 
   @Test
   public void unreferencedAlterTableEvent() throws SQLException, IOException, URISyntaxException {
-    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://tableLocation", "s3://oldTableLocation",
+    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://bucket/tableLocation", "s3://bucket/oldTableLocation",
         true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 1);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://oldTableLocation");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/oldTableLocation");
   }
 
   @Test
   public void unreferencedMultipleAlterTableEvents() throws SQLException, IOException, URISyntaxException {
-    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://tableLocation", "s3://oldTableLocation",
+    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://bucket/tableLocation", "s3://bucket/oldTableLocation",
         true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
-    alterTableSqsMessage.setTableLocation("s3://tableLocation2");
-    alterTableSqsMessage.setOldTableLocation("s3://tableLocation");
+    alterTableSqsMessage.setTableLocation("s3://bucket/tableLocation2");
+    alterTableSqsMessage.setOldTableLocation("s3://bucket/tableLocation");
     amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://oldTableLocation");
-    assertUnreferencedPath(unreferencedPaths.get(1), "s3://tableLocation");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/oldTableLocation");
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/tableLocation");
   }
 
   @Test
   public void unreferencedAlterPartitionEvent() throws SQLException, IOException, URISyntaxException {
-    AlterPartitionSqsMessage alterPartitionSqsMessage = new AlterPartitionSqsMessage("s3://expiredTableLocation",
-        "s3://partitionLocation", "s3://unreferencedPartitionLocation", true, true);
+    AlterPartitionSqsMessage alterPartitionSqsMessage = new AlterPartitionSqsMessage("s3://bucket/table/expiredTableLocation",
+        "s3://bucket/table/partitionLocation", "s3://bucket/table/unreferencedPartitionLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterPartitionSqsMessage.getFormattedString()));
-    alterPartitionSqsMessage.setTableLocation("s3://expiredTableLocation2");
-    alterPartitionSqsMessage.setPartitionLocation("s3://partitionLocation2");
-    alterPartitionSqsMessage.setOldPartitionLocation("s3://partitionLocation");
+    alterPartitionSqsMessage.setTableLocation("s3://bucket/table/expiredTableLocation2");
+    alterPartitionSqsMessage.setPartitionLocation("s3://bucket/table/partitionLocation2");
+    alterPartitionSqsMessage.setOldPartitionLocation("s3://bucket/table/partitionLocation");
     amazonSQS.sendMessage(sendMessageRequest(alterPartitionSqsMessage.getFormattedString()));
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://partitionLocation");
-    assertUnreferencedPath(unreferencedPaths.get(1), "s3://unreferencedPartitionLocation");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/table/partitionLocation");
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/table/unreferencedPartitionLocation");
   }
 
   @Test
   public void unreferencedMultipleAlterPartitionEvent() throws IOException, SQLException, URISyntaxException {
     List.of(
-        new AlterPartitionSqsMessage("s3://expiredTableLocation", "s3://partitionLocation",
-            "s3://unreferencedPartitionLocation", true, true),
-        new AlterPartitionSqsMessage("s3://expiredTableLocation2", "s3://partitionLocation2",
-            "s3://partitionLocation", true, true)
+        new AlterPartitionSqsMessage("s3://bucket/table/expiredTableLocation", "s3://bucket/table/partitionLocation",
+            "s3://bucket/table/unreferencedPartitionLocation", true, true),
+        new AlterPartitionSqsMessage("s3://bucket/table/expiredTableLocation2", "s3://bucket/table/partitionLocation2",
+            "s3://bucket/table/partitionLocation", true, true)
     ).forEach(msg -> amazonSQS.sendMessage(sendMessageRequest(msg.getFormattedString())));
 
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://partitionLocation");
-    assertUnreferencedPath(unreferencedPaths.get(1), "s3://unreferencedPartitionLocation");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/table/partitionLocation");
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/table/unreferencedPartitionLocation");
   }
 
   @Test
   public void unreferencedDropPartitionEvent() throws SQLException, IOException, URISyntaxException {
-    DropPartitionSqsMessage dropPartitionSqsMessage = new DropPartitionSqsMessage("s3://partitionLocation", true, true);
+    DropPartitionSqsMessage dropPartitionSqsMessage = new DropPartitionSqsMessage("s3://bucket/table/partitionLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(dropPartitionSqsMessage.getFormattedString()));
-    dropPartitionSqsMessage.setPartitionLocation("s3://partitionLocation2");
+    dropPartitionSqsMessage.setPartitionLocation("s3://bucket/table/partitionLocation2");
     amazonSQS.sendMessage(sendMessageRequest(dropPartitionSqsMessage.getFormattedString()));
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://partitionLocation");
-    assertUnreferencedPath(unreferencedPaths.get(1), "s3://partitionLocation2");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/table/partitionLocation");
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/table/partitionLocation2");
   }
 
   @Test
   public void unreferencedDropTableEvent() throws SQLException, IOException, URISyntaxException {
-    DropTableSqsMessage dropTableSqsMessage = new DropTableSqsMessage("s3://tableLocation", true, true);
+    DropTableSqsMessage dropTableSqsMessage = new DropTableSqsMessage("s3://bucket/tableLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(dropTableSqsMessage.getFormattedString()));
-    dropTableSqsMessage.setTableLocation("s3://tableLocation2");
+    dropTableSqsMessage.setTableLocation("s3://bucket/tableLocation2");
     amazonSQS.sendMessage(sendMessageRequest(dropTableSqsMessage.getFormattedString()));
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://tableLocation");
-    assertUnreferencedPath(unreferencedPaths.get(1), "s3://tableLocation2");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/tableLocation");
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/tableLocation2");
   }
 
   @Test
