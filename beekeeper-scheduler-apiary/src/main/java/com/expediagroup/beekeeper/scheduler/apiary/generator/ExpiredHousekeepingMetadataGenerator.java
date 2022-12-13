@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.generator;
 
+import static com.expediagroup.beekeeper.core.validation.S3PathValidator.validPartitionPath;
+import static com.expediagroup.beekeeper.core.validation.S3PathValidator.validTablePath;
 import static java.lang.String.format;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
@@ -67,22 +69,35 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
     this.clock = clock;
   }
 
+  // todo check what we do with the event list..if it's empty
   @Override
   public List<HousekeepingEntity> generate(ListenerEvent listenerEvent, String clientId) {
     List<HousekeepingEntity> housekeepingEntities = new ArrayList<>();
 
     switch (listenerEvent.getEventType()) {
     case CREATE_TABLE:
-      housekeepingEntities.add(generateHousekeepingEntity((CreateTableEvent) listenerEvent, clientId));
+      CreateTableEvent createTableEvent = (CreateTableEvent) listenerEvent;
+      if (validTablePath(createTableEvent.getTableLocation())) {
+        housekeepingEntities.add(generateHousekeepingEntity((CreateTableEvent) listenerEvent, clientId));
+      }
       break;
     case ALTER_TABLE:
-      housekeepingEntities.add(generateHousekeepingEntity((AlterTableEvent) listenerEvent, clientId));
+      AlterTableEvent alterTableEvent = (AlterTableEvent) listenerEvent;
+      if (validTablePath(alterTableEvent.getTableLocation())) {
+        housekeepingEntities.add(generateHousekeepingEntity((AlterTableEvent) listenerEvent, clientId));
+      }
       break;
     case ADD_PARTITION:
-      housekeepingEntities.add(generateHousekeepingEntity((AddPartitionEvent) listenerEvent, clientId));
+      AddPartitionEvent addPartitionEvent = (AddPartitionEvent) listenerEvent;
+      if (validPartitionPath(addPartitionEvent.getPartitionLocation())) {
+        housekeepingEntities.add(generateHousekeepingEntity((AddPartitionEvent) listenerEvent, clientId));
+      }
       break;
     case ALTER_PARTITION:
-      housekeepingEntities.add(generateHousekeepingEntity((AlterPartitionEvent) listenerEvent, clientId));
+      AlterPartitionEvent alterPartitionEvent = (AlterPartitionEvent) listenerEvent;
+      if (validPartitionPath(alterPartitionEvent.getPartitionLocation())) {
+        housekeepingEntities.add(generateHousekeepingEntity((AlterPartitionEvent) listenerEvent, clientId));
+      }
       break;
     default:
       throw new BeekeeperException(format("No handler case for %s event type", listenerEvent.getEventType()));
@@ -116,10 +131,14 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
     return generateHousekeepingEntity(listenerEvent, clientId, listenerEvent.getPartitionLocation(), partitionName);
   }
 
-  private HousekeepingEntity generateHousekeepingEntity(ListenerEvent listenerEvent, String clientId, String path,
+  private HousekeepingEntity generateHousekeepingEntity(
+      ListenerEvent listenerEvent,
+      String clientId,
+      String path,
       String partitionName) {
     Duration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
-    return HousekeepingMetadata.builder()
+    return HousekeepingMetadata
+        .builder()
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(LocalDateTime.now(clock))
         .cleanupDelay(cleanupDelay)
@@ -140,7 +159,8 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
    * @return Partition name e.g. event_date=2020-01-01/event_hour=0
    */
   private String generatePartitionName(List<String> keys, List<String> values) {
-    return IntStream.range(0, keys.size())
+    return IntStream
+        .range(0, keys.size())
         .mapToObj(i -> keys.get(i) + "=" + values.get(i))
         .collect(Collectors.joining("/"));
   }

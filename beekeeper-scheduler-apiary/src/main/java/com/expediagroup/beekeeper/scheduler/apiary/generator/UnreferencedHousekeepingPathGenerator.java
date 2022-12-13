@@ -76,22 +76,12 @@ public class UnreferencedHousekeepingPathGenerator implements HousekeepingEntity
       if (validPartitionPath(alterPartitionEvent.getOldPartitionLocation()))
         housekeepingEntities
             .add(generateHousekeepingEntity(listenerEvent, clientId, alterPartitionEvent.getOldPartitionLocation()));
-      else
-        log
-            .warn(
-                "Partition {} doesn't have the correct number of levels in the path, it will not be scheduled for deletion.",
-                alterPartitionEvent.getOldPartitionLocation());
       break;
     case ALTER_TABLE:
       AlterTableEvent alterTableEvent = (AlterTableEvent) listenerEvent;
       if (validTablePath(alterTableEvent.getOldTableLocation()))
         housekeepingEntities
             .add(generateHousekeepingEntity(listenerEvent, clientId, alterTableEvent.getOldTableLocation()));
-      else
-        log
-            .warn(
-                "Table {} doesn't have the correct number of levels in the path, it will not be scheduled for deletion.",
-                alterTableEvent.getOldTableLocation());
       break;
     case DROP_TABLE:
       DropTableEvent dropTableEvent = (DropTableEvent) listenerEvent;

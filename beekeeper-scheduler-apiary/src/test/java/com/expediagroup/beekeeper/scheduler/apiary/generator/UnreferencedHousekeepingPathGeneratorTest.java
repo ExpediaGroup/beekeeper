@@ -107,6 +107,15 @@ public class UnreferencedHousekeepingPathGeneratorTest extends HousekeepingEntit
   }
 
   @Test
+  public void handleDropTableEventInvalidPath() {
+    when(dropTableEvent.getEventType()).thenReturn(DROP_TABLE);
+    when(dropTableEvent.getTableLocation()).thenReturn("invalid");
+
+    List<HousekeepingEntity> housekeepingEntities = generator.generate(dropTableEvent, CLIENT_ID);
+    assertThat(housekeepingEntities.size()).isEqualTo(0);
+  }
+
+  @Test
   public void exceptionThrownOnUnhandledEvent() {
     CreateTableEvent createTableEvent = mock(CreateTableEvent.class);
     when(createTableEvent.getEventType()).thenReturn(CREATE_TABLE);

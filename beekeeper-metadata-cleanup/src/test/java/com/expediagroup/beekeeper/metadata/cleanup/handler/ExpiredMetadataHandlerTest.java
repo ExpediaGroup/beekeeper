@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.metadata.cleanup.handler;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SKIPPED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -155,8 +156,8 @@ public class ExpiredMetadataHandlerTest {
     verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
     verify(hiveMetadataCleaner, never()).dropPartition(housekeepingMetadata, hiveClient);
     verify(housekeepingMetadata, never()).setCleanupAttempts(1);
-    verify(housekeepingMetadata, never()).setHousekeepingStatus(DELETED);
-    verify(housekeepingMetadataRepository, never()).save(housekeepingMetadata);
+    verify(housekeepingMetadata).setHousekeepingStatus(SKIPPED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
   }
 
   @Test
@@ -212,8 +213,8 @@ public class ExpiredMetadataHandlerTest {
     verify(s3PathCleaner, never()).cleanupPath(housekeepingMetadata);
     verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata, hiveClient);
     verify(housekeepingMetadata, never()).setCleanupAttempts(1);
-    verify(housekeepingMetadata, never()).setHousekeepingStatus(DELETED);
-    verify(housekeepingMetadataRepository, never()).save(housekeepingMetadata);
+    verify(housekeepingMetadata).setHousekeepingStatus(SKIPPED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
   }
 
   @Test

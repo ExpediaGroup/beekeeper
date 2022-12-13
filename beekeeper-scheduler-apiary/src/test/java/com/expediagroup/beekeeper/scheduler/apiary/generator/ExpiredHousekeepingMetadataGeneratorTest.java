@@ -98,7 +98,7 @@ public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntity
   public void typicalHandleAddPartitionEvent() {
     setupClockAndExtractor(addPartitionEvent);
     setupListenerEvent(addPartitionEvent, ADD_PARTITION);
-    when(addPartitionEvent.getPartitionLocation()).thenReturn(TABLE_PATH);
+    when(addPartitionEvent.getPartitionLocation()).thenReturn(PARTITION_PATH);
     when(addPartitionEvent.getPartitionKeys()).thenReturn(PARTITION_KEYS);
     when(addPartitionEvent.getPartitionValues()).thenReturn(PARTITION_VALUES);
 
@@ -111,13 +111,22 @@ public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntity
   public void typicalHandleAlterPartitionEvent() {
     setupClockAndExtractor(alterPartitionEvent);
     setupListenerEvent(alterPartitionEvent, ALTER_PARTITION);
-    when(alterPartitionEvent.getPartitionLocation()).thenReturn(TABLE_PATH);
+    when(alterPartitionEvent.getPartitionLocation()).thenReturn(PARTITION_PATH);
     when(alterPartitionEvent.getPartitionKeys()).thenReturn(PARTITION_KEYS);
     when(alterPartitionEvent.getPartitionValues()).thenReturn(PARTITION_VALUES);
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(alterPartitionEvent, CLIENT_ID);
     assertThat(housekeepingEntities.size()).isEqualTo(1);
     assertExpiredHousekeepingMetadataEntity(housekeepingEntities.get(0), PARTITION_NAME);
+  }
+
+  @Test
+  public void handleAlterPartitionEventInvalidPath() {
+    when(alterPartitionEvent.getEventType()).thenReturn(ALTER_PARTITION);
+    when(alterPartitionEvent.getPartitionLocation()).thenReturn("s3://bucket/invalid");
+
+    List<HousekeepingEntity> housekeepingEntities = generator.generate(alterPartitionEvent, CLIENT_ID);
+    assertThat(housekeepingEntities.size()).isEqualTo(0);
   }
 
   @Test

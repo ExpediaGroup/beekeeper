@@ -19,6 +19,7 @@ import static org.apache.commons.lang.math.NumberUtils.LONG_ZERO;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SKIPPED;
 
 import java.time.LocalDateTime;
 
@@ -45,9 +46,11 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   private final MetadataCleaner metadataCleaner;
   private final PathCleaner pathCleaner;
 
-  public ExpiredMetadataHandler(CleanerClientFactory cleanerClientFactory,
+  public ExpiredMetadataHandler(
+      CleanerClientFactory cleanerClientFactory,
       HousekeepingMetadataRepository housekeepingMetadataRepository,
-      MetadataCleaner metadataCleaner, PathCleaner pathCleaner) {
+      MetadataCleaner metadataCleaner,
+      PathCleaner pathCleaner) {
     this.cleanerClientFactory = cleanerClientFactory;
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
     this.metadataCleaner = metadataCleaner;
@@ -76,31 +79,34 @@ public class ExpiredMetadataHandler implements MetadataHandler {
       }
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingMetadata, FAILED);
-      log.warn("Unexpected exception when deleting metadata for table \"{}.{}\"",
-          housekeepingMetadata.getDatabaseName(),
-          housekeepingMetadata.getTableName(), e);
+      log
+          .warn("Unexpected exception when deleting metadata for table \"{}.{}\"",
+              housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(), e);
     }
   }
 
-  private boolean cleanup(CleanerClient client, HousekeepingMetadata housekeepingMetadata, LocalDateTime instant,
+  private boolean cleanup(
+      CleanerClient client,
+      HousekeepingMetadata housekeepingMetadata,
+      LocalDateTime instant,
       boolean dryRunEnabled) {
     String partitionName = housekeepingMetadata.getPartitionName();
     if (partitionName != null) {
-      return cleanupPartition(client, housekeepingMetadata);
+      return cleanupPartition(client, housekeepingMetadata, dryRunEnabled);
     } else {
       Long partitionCount = countPartitionsForDatabaseAndTable(instant, housekeepingMetadata.getDatabaseName(),
           housekeepingMetadata.getTableName(), dryRunEnabled);
       if (partitionCount.equals(LONG_ZERO)) {
-        return cleanUpTable(client, housekeepingMetadata);
+        return cleanUpTable(client, housekeepingMetadata, dryRunEnabled);
       }
     }
     return false;
   }
 
-
-  private boolean cleanUpTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
+  private boolean cleanUpTable(CleanerClient client, HousekeepingMetadata housekeepingMetadata, boolean dryRunEnabled) {
     if (!S3PathValidator.validTablePath(housekeepingMetadata.getPath())) {
       log.warn("Will not clean up table path \"{}\" because it is not valid.", housekeepingMetadata.getPath());
+      updateStatus(housekeepingMetadata, SKIPPED, dryRunEnabled);
       return false;
     }
     String databaseName = housekeepingMetadata.getDatabaseName();
@@ -115,9 +121,13 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     return true;
   }
 
-  private boolean cleanupPartition(CleanerClient client, HousekeepingMetadata housekeepingMetadata) {
+  private boolean cleanupPartition(
+      CleanerClient client,
+      HousekeepingMetadata housekeepingMetadata,
+      boolean dryRunEnabled) {
     if (!S3PathValidator.validPartitionPath(housekeepingMetadata.getPath())) {
       log.warn("Will not clean up partition path \"{}\" because it is not valid.", housekeepingMetadata.getPath());
+      updateStatus(housekeepingMetadata, SKIPPED, dryRunEnabled);
       return false;
     }
     String databaseName = housekeepingMetadata.getDatabaseName();
@@ -129,8 +139,9 @@ public class ExpiredMetadataHandler implements MetadataHandler {
         pathCleaner.cleanupPath(housekeepingMetadata);
       }
     } else {
-      log.info("Cannot drop partition \"{}\" from table \"{}.{}\". Table does not exist.",
-          housekeepingMetadata.getPartitionName(), databaseName, tableName);
+      log
+          .info("Cannot drop partition \"{}\" from table \"{}.{}\". Table does not exist.",
+              housekeepingMetadata.getPartitionName(), databaseName, tableName);
     }
     return true;
   }
@@ -141,13 +152,27 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     housekeepingMetadataRepository.save(housekeepingMetadata);
   }
 
-  private Long countPartitionsForDatabaseAndTable(LocalDateTime instant, String databaseName, String tableName,
+  private void updateStatus(
+      HousekeepingMetadata housekeepingMetadata,
+      HousekeepingStatus status,
       boolean dryRunEnabled) {
     if (dryRunEnabled) {
-      return housekeepingMetadataRepository.countRecordsForDryRunWherePartitionIsNotNullOrExpired(instant, databaseName,
-          tableName);
+      return;
     }
-    return housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(databaseName,
-        tableName);
+    housekeepingMetadata.setHousekeepingStatus(status);
+    housekeepingMetadataRepository.save(housekeepingMetadata);
+  }
+
+  private Long countPartitionsForDatabaseAndTable(
+      LocalDateTime instant,
+      String databaseName,
+      String tableName,
+      boolean dryRunEnabled) {
+    if (dryRunEnabled) {
+      return housekeepingMetadataRepository
+          .countRecordsForDryRunWherePartitionIsNotNullOrExpired(instant, databaseName, tableName);
+    }
+    return housekeepingMetadataRepository
+        .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(databaseName, tableName);
   }
 }

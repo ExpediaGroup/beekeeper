@@ -16,17 +16,29 @@
 package com.expediagroup.beekeeper.core.validation;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class S3PathValidator {
+
+  private static final Logger log = LoggerFactory.getLogger(S3PathValidator.class);
+
   // The minimum number of "/" chars for partition location: s3://basePath/table/partition = 4
   public static boolean validPartitionPath(String location) {
-    return getNumSlashes(location) >= 4;
+    boolean valid = getNumSlashes(location) >= 4;
+    if (!valid) {
+      log.warn("Partition \"{}\" doesn't have the correct number of levels in the path", location);
+    }
+    return valid;
   }
 
   // The minimum number of "/" chars for table location: s3://basePath/table = 3
   public static boolean validTablePath(String location) {
-    return getNumSlashes(location) >= 3;
-  }
+    boolean valid = getNumSlashes(location) >= 3;
+    if (!valid) {
+      log.warn("Table \"{}\" doesn't have the correct number of levels in the path", location);
+    }
+    return valid;  }
 
   private static int getNumSlashes(String location) {
     return StringUtils.countMatches(location, "/");
