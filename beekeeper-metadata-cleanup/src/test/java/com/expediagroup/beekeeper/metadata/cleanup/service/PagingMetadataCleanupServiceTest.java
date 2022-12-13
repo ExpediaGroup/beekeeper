@@ -75,9 +75,9 @@ import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class PagingMetadataCleanupServiceTest {
 
-  public static final List<String> TABLE_PATHS = List.of("s3://bucket/foo", "s3://bucket/bar", "s3://bucket/foobar");
+  public static final List<String> TABLE_PATHS = List.of("s3://bucket/table", "s3://bucket/table", "s3://bucket/table");
   public static final List<String> PARTITION_PATHS = List
-      .of("s3://bucket/foo/1", "s3://bucket/bar/2", "s3://bucket/foobar/3");
+      .of("s3://bucket/table/1", "s3://bucket/table/2", "s3://bucket/table/3");
   private final LocalDateTime localNow = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
   private PagingMetadataCleanupService pagingCleanupService;
   private @Captor ArgumentCaptor<HousekeepingMetadata> metadataCaptor;
