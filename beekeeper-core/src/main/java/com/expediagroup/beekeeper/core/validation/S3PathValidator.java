@@ -23,7 +23,9 @@ public class S3PathValidator {
 
   private static final Logger log = LoggerFactory.getLogger(S3PathValidator.class);
 
-  // The minimum number of "/" chars for partition location: s3://basePath/table/partition = 4
+  /**
+   * The minimum number of "/" chars for partition location: s3://basePath/table/partition = 4
+   */
   public static boolean validPartitionPath(String location) {
     boolean valid = getNumSlashes(location) >= 4;
     if (!valid) {
@@ -32,13 +34,16 @@ public class S3PathValidator {
     return valid;
   }
 
-  // The minimum number of "/" chars for table location: s3://basePath/table = 3
+  /**
+   * The minimum number of "/" chars for table location: s3://basePath/table = 3
+   */
   public static boolean validTablePath(String location) {
     boolean valid = getNumSlashes(location) >= 3;
     if (!valid) {
       log.warn("Table \"{}\" doesn't have the correct number of levels in the path", location);
     }
-    return valid;  }
+    return valid;
+  }
 
   private static int getNumSlashes(String location) {
     return StringUtils.countMatches(location, "/");
