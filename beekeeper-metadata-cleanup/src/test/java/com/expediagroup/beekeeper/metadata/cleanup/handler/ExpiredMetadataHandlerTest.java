@@ -203,7 +203,7 @@ public class ExpiredMetadataHandlerTest {
   }
 
   @Test
-  public void dontDropPartitionWhenInvalidPartitionPath() {
+  public void dontDropPartitionWithInvalidPartitionPath() {
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
     when(housekeepingMetadata.getPath()).thenReturn(INVALID_PATH);
