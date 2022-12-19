@@ -148,7 +148,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage.getFormattedString()));
 
     // creating entry for table
-    insertExpiredMetadata("s3://location", null);
+    insertExpiredMetadata("s3://bucket/table1", null);
 
     await().atMost(60, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 2);
 
@@ -168,7 +168,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage2.getFormattedString()));
 
     // creating entry for table
-    insertExpiredMetadata("s3://location", null);
+    insertExpiredMetadata("s3://bucket/table1", null);
 
     await().atMost(60, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 3);
 
@@ -216,7 +216,8 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   public void healthCheck() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
-    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
@@ -224,8 +225,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   public void prometheus() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(PROMETHEUS_URI);
-    await().atMost(30, TimeUnit.SECONDS)
-        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
+    await().atMost(30, TimeUnit.SECONDS).until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
   private SendMessageRequest sendMessageRequest(String payload) {
@@ -237,7 +237,9 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     assertMetrics();
   }
 
-  public void assertHousekeepingMetadata(HousekeepingMetadata actual, String expectedPath,
+  public void assertHousekeepingMetadata(
+      HousekeepingMetadata actual,
+      String expectedPath,
       String expectedPartitionName) {
     assertThat(actual.getPath()).isEqualTo(expectedPath);
     assertThat(actual.getDatabaseName()).isEqualTo(DATABASE_NAME_VALUE);
