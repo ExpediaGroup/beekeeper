@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.5.0] - TBD
 ### Changed
-- Added additional checks for the number of levels in table and partition paths so that invalid paths don't get scheduled for deletion.
+- Added additional checks for the number of levels in table and partition paths so that invalid paths are not scheduled for deletion.
 
 ## [3.4.14] - 2022-11-25
 ### Fixed
