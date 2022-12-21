@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 import java.util.List;
+import java.util.zip.DataFormatException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 
+import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
@@ -45,11 +47,16 @@ public class MessageEventHandlerTest {
   private static final LifecycleEventType LIFECYCLE_EVENT_TYPE = UNREFERENCED;
   private static final String CLIENT_ID = "apiary-metastore-event";
 
-  @Mock private MessageEvent messageEvent;
-  @Mock private AlterPartitionEvent listenerEvent;
-  @Mock private UnreferencedHousekeepingPathGenerator generator;
-  @Mock private WhitelistedListenerEventFilter whiteListFilter;
-  @Mock private TableParameterListenerEventFilter tableFilter;
+  @Mock
+  private MessageEvent messageEvent;
+  @Mock
+  private AlterPartitionEvent listenerEvent;
+  @Mock
+  private UnreferencedHousekeepingPathGenerator generator;
+  @Mock
+  private WhitelistedListenerEventFilter whiteListFilter;
+  @Mock
+  private TableParameterListenerEventFilter tableFilter;
   private MessageEventHandler handler;
 
   @BeforeEach
@@ -67,6 +74,16 @@ public class MessageEventHandlerTest {
 
     List<HousekeepingEntity> housekeepingEntities = handler.handleMessage(messageEvent);
     assertThat(housekeepingEntities.size()).isEqualTo(1);
+  }
+
+  @Test
+  public void handleMessageException() {
+    setupFilterMocks(false, false);
+    when(generator.generate(listenerEvent, CLIENT_ID))
+        .thenThrow(new BeekeeperException("BK message", new DataFormatException("cause")));
+
+    List<HousekeepingEntity> housekeepingEntities = handler.handleMessage(messageEvent);
+    assertThat(housekeepingEntities.size()).isEqualTo(0);
   }
 
   @Test

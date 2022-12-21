@@ -19,6 +19,7 @@ import static java.lang.String.format;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
@@ -39,8 +40,9 @@ public class CleanupDelayExtractorTest {
   private static final String EXTRACTOR_KEY = "beekeeper.expired.data.retention.period";
   private static final String EXTRACTOR_DEFAULT_VALUE = "P7D";
 
-  @Mock private AlterTableEvent listenerEvent;
-  private CleanupDelayExtractor cleanupDelayExtractor = new CleanupDelayExtractor(EXTRACTOR_KEY,
+  @Mock
+  private AlterTableEvent listenerEvent;
+  private final CleanupDelayExtractor cleanupDelayExtractor = new CleanupDelayExtractor(EXTRACTOR_KEY,
       EXTRACTOR_DEFAULT_VALUE);
 
   @Test
@@ -61,8 +63,9 @@ public class CleanupDelayExtractorTest {
   @Test
   public void parseErrorExtractCleanUpDelay() {
     when(listenerEvent.getTableParameters()).thenReturn(Map.of(EXTRACTOR_KEY, "1"));
-    Duration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
-    assertThat(cleanupDelay).isEqualTo(Duration.parse(EXTRACTOR_DEFAULT_VALUE));
+    assertThrows(BeekeeperException.class, () -> {
+      cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
+    });
   }
 
   @Test
