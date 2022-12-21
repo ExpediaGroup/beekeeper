@@ -60,7 +60,7 @@ public class MessageReaderAdapter implements BeekeeperEventReader {
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
 
-    if (housekeepingEntities.size() <= 0) {
+    if (housekeepingEntities.size() == 0) {
       delete(new BeekeeperEvent(Collections.emptyList(), message));
       return Optional.empty();
     }

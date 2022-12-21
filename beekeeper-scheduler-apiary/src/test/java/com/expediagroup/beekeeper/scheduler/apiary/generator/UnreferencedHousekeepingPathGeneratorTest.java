@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class UnreferencedHousekeepingPathGeneratorTest extends HousekeepingEntit
   public void typicalHandleAlterPartitionEvent() {
     setupClockAndExtractor(alterPartitionEvent);
     setupListenerEvent(alterPartitionEvent, ALTER_PARTITION);
-    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(PATH);
+    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(PARTITION_PATH);
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(alterPartitionEvent, CLIENT_ID);
     assertThat(housekeepingEntities.size()).isEqualTo(1);
@@ -77,7 +77,7 @@ public class UnreferencedHousekeepingPathGeneratorTest extends HousekeepingEntit
   public void typicalHandleAlterTableEvent() {
     setupClockAndExtractor(alterTableEvent);
     setupListenerEvent(alterTableEvent, ALTER_TABLE);
-    when(alterTableEvent.getOldTableLocation()).thenReturn(PATH);
+    when(alterTableEvent.getOldTableLocation()).thenReturn(TABLE_PATH);
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(alterTableEvent, CLIENT_ID);
     assertThat(housekeepingEntities.size()).isEqualTo(1);
@@ -88,7 +88,7 @@ public class UnreferencedHousekeepingPathGeneratorTest extends HousekeepingEntit
   public void typicalHandleDropPartitionEvent() {
     setupClockAndExtractor(dropPartitionEvent);
     setupListenerEvent(dropPartitionEvent, DROP_PARTITION);
-    when(dropPartitionEvent.getPartitionLocation()).thenReturn(PATH);
+    when(dropPartitionEvent.getPartitionLocation()).thenReturn(PARTITION_PATH);
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(dropPartitionEvent, CLIENT_ID);
     assertThat(housekeepingEntities.size()).isEqualTo(1);
@@ -99,11 +99,20 @@ public class UnreferencedHousekeepingPathGeneratorTest extends HousekeepingEntit
   public void typicalHandleDropTableEvent() {
     setupClockAndExtractor(dropTableEvent);
     setupListenerEvent(dropTableEvent, DROP_TABLE);
-    when(dropTableEvent.getTableLocation()).thenReturn(PATH);
+    when(dropTableEvent.getTableLocation()).thenReturn(TABLE_PATH);
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(dropTableEvent, CLIENT_ID);
     assertThat(housekeepingEntities.size()).isEqualTo(1);
     assertUnreferencedHousekeepingPathEntity(housekeepingEntities.get(0));
+  }
+
+  @Test
+  public void handleDropTableEventInvalidPath() {
+    when(dropTableEvent.getEventType()).thenReturn(DROP_TABLE);
+    when(dropTableEvent.getTableLocation()).thenReturn("invalid");
+
+    List<HousekeepingEntity> housekeepingEntities = generator.generate(dropTableEvent, CLIENT_ID);
+    assertThat(housekeepingEntities.size()).isEqualTo(0);
   }
 
   @Test

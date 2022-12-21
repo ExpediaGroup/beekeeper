@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SKIPPED;
 
 import java.util.List;
 
@@ -41,18 +42,26 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 @ExtendWith(MockitoExtension.class)
 public class GenericPathHandlerTest {
 
-  @Mock private HousekeepingPathRepository housekeepingPathRepository;
-  @Mock private S3PathCleaner pathCleaner;
-  @Mock private HousekeepingPath mockPath;
-  @Mock private Pageable mockPageable;
-  @Mock private Pageable nextPage;
-  @Mock private PageImpl<HousekeepingPath> mockPage;
+  @Mock
+  private HousekeepingPathRepository housekeepingPathRepository;
+  @Mock
+  private S3PathCleaner pathCleaner;
+  @Mock
+  private HousekeepingPath mockPath;
+  @Mock
+  private Pageable mockPageable;
+  @Mock
+  private Pageable nextPage;
+  @Mock
+  private PageImpl<HousekeepingPath> mockPage;
+  private static final String VALID_TABLE_PATH = "s3://bucket/table";
 
   private UnreferencedPathHandler handler;
 
   @BeforeEach
   public void initTest() {
     handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
+    when(mockPath.getPath()).thenReturn(VALID_TABLE_PATH);
   }
 
   @Test
@@ -86,6 +95,19 @@ public class GenericPathHandlerTest {
     verify(mockPageable, never()).next();
     verify(mockPath).setCleanupAttempts(1);
     verify(mockPath).setHousekeepingStatus(FAILED);
+    verify(housekeepingPathRepository).save(mockPath);
+    assertThat(pageable).isEqualTo(pageable);
+  }
+
+  @Test
+  public void processPageInvalidPath() {
+    when(mockPath.getPath()).thenReturn("invalid");
+    when(mockPage.getContent()).thenReturn(List.of(mockPath));
+    Pageable pageable = handler.processPage(mockPageable, mockPage, false);
+    verify(pathCleaner, never()).cleanupPath(mockPath);
+    verify(mockPageable, never()).next();
+    verify(mockPath, never()).setCleanupAttempts(1);
+    verify(mockPath).setHousekeepingStatus(SKIPPED);
     verify(housekeepingPathRepository).save(mockPath);
     assertThat(pageable).isEqualTo(pageable);
   }
