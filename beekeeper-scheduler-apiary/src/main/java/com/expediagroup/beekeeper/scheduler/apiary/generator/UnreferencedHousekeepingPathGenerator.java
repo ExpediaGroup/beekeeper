@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import static java.lang.String.format;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.validation.S3PathValidator.validPartitionPath;
+import static com.expediagroup.beekeeper.core.validation.S3PathValidator.validTablePath;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -70,20 +72,30 @@ public class UnreferencedHousekeepingPathGenerator implements HousekeepingEntity
 
     switch (listenerEvent.getEventType()) {
     case ALTER_PARTITION:
-      housekeepingEntities.add(generateHousekeepingEntity(listenerEvent, clientId,
-          ((AlterPartitionEvent) listenerEvent).getOldPartitionLocation()));
+      AlterPartitionEvent alterPartitionEvent = (AlterPartitionEvent) listenerEvent;
+      if (validPartitionPath(alterPartitionEvent.getOldPartitionLocation()))
+        housekeepingEntities
+            .add(generateHousekeepingEntity(listenerEvent, clientId, alterPartitionEvent.getOldPartitionLocation()));
       break;
     case ALTER_TABLE:
-      housekeepingEntities.add(generateHousekeepingEntity(listenerEvent, clientId,
-          ((AlterTableEvent) listenerEvent).getOldTableLocation()));
+      AlterTableEvent alterTableEvent = (AlterTableEvent) listenerEvent;
+      if (validTablePath(alterTableEvent.getOldTableLocation()))
+        housekeepingEntities
+            .add(generateHousekeepingEntity(listenerEvent, clientId, alterTableEvent.getOldTableLocation()));
       break;
     case DROP_TABLE:
-      housekeepingEntities.add(generateHousekeepingEntity(listenerEvent, clientId,
-          ((DropTableEvent) listenerEvent).getTableLocation()));
+      DropTableEvent dropTableEvent = (DropTableEvent) listenerEvent;
+      if (validTablePath(dropTableEvent.getTableLocation())) {
+        housekeepingEntities
+            .add(generateHousekeepingEntity(listenerEvent, clientId, dropTableEvent.getTableLocation()));
+      }
       break;
     case DROP_PARTITION:
-      housekeepingEntities.add(generateHousekeepingEntity(listenerEvent, clientId,
-          ((DropPartitionEvent) listenerEvent).getPartitionLocation()));
+      DropPartitionEvent dropPartitionEvent = (DropPartitionEvent) listenerEvent;
+      if (validPartitionPath(dropPartitionEvent.getPartitionLocation())) {
+        housekeepingEntities
+            .add(generateHousekeepingEntity(listenerEvent, clientId, dropPartitionEvent.getPartitionLocation()));
+      }
       break;
     default:
       throw new BeekeeperException(format("No handler case for %s event type", listenerEvent.getEventType()));
@@ -97,10 +109,13 @@ public class UnreferencedHousekeepingPathGenerator implements HousekeepingEntity
     return LIFECYCLE_EVENT_TYPE;
   }
 
-  public HousekeepingEntity generateHousekeepingEntity(ListenerEvent listenerEvent, String clientId,
+  public HousekeepingEntity generateHousekeepingEntity(
+      ListenerEvent listenerEvent,
+      String clientId,
       String cleanupPath) {
     Duration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
-    return HousekeepingPath.builder()
+    return HousekeepingPath
+        .builder()
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(LocalDateTime.now(clock))
         .cleanupDelay(cleanupDelay)

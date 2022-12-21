@@ -15,8 +15,6 @@
  */
 package com.expediagroup.beekeeper.path.cleanup.handler;
 
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
-
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +36,7 @@ public class UnreferencedPathHandler extends GenericPathHandler {
   public UnreferencedPathHandler(
       HousekeepingPathRepository housekeepingPathRepository,
       @Qualifier("s3PathCleaner") PathCleaner pathCleaner) {
-    super(housekeepingPathRepository, pathCleaner, UNREFERENCED);
+    super(housekeepingPathRepository, pathCleaner);
     this.housekeepingPathRepository = housekeepingPathRepository;
   }
 

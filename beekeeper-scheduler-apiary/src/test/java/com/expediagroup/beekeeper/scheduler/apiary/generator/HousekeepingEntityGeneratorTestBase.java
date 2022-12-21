@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2022 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,8 @@ import com.expediagroup.beekeeper.scheduler.apiary.generator.utils.CleanupDelayE
 public abstract class HousekeepingEntityGeneratorTestBase {
 
   protected static final String CLIENT_ID = "client-id";
-  protected static final String PATH = "path";
+  protected static final String TABLE_PATH = "s3://bucket/table";
+  protected static final String PARTITION_PATH = "s3://bucket/table/partition";
   protected static final String DATABASE = "database";
   protected static final String TABLE = "table";
   protected static final Integer CLEANUP_ATTEMPTS = 0;
@@ -64,7 +65,6 @@ public abstract class HousekeepingEntityGeneratorTestBase {
       LifecycleEventType lifecycleEventType) {
     LocalDateTime creationTimestamp = LocalDateTime.now(FIXED_CLOCK);
     assertThat(LifecycleEventType.valueOf(housekeepingEntity.getLifecycleType())).isEqualTo(lifecycleEventType);
-    assertThat(housekeepingEntity.getPath()).isEqualTo(PATH);
     assertThat(housekeepingEntity.getTableName()).isEqualTo(TABLE);
     assertThat(housekeepingEntity.getDatabaseName()).isEqualTo(DATABASE);
     assertThat(housekeepingEntity.getHousekeepingStatus()).isEqualTo(SCHEDULED);
