@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.5.0] - TBD
 ### Fixed
-- Throw exception if cleanupDelay can't be parsed instead of returning the default value.
+- Throw exception if `cleanupDelay` can't be parsed instead of returning the default value.
 ### Changed
 - Don't return records for cleanup after 10 attempts have been reached. 
 
