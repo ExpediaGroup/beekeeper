@@ -53,7 +53,7 @@ public class CleanupDelayExtractor {
       return value;
     } catch (DateTimeParseException e) {
       throw new BeekeeperException(String
-          .format("Overridden delay value '%s' for key '%s' cannot be parsed to a Duration for table '%s.%s'.",
+          .format("Cleanup delay value '%s' for key '%s' cannot be parsed to a Duration for table '%s.%s'.",
               tableCleanupDelay, propertyKey, listenerEvent.getDbName(), listenerEvent.getTableName()),
           e);
     }
