@@ -29,12 +29,12 @@ import org.springframework.data.repository.query.Param;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
-public interface HousekeepingMetadataRepository extends PagingAndSortingRepository<HousekeepingMetadata, Long>,
-    JpaSpecificationExecutor<HousekeepingMetadata> {
+public interface HousekeepingMetadataRepository
+    extends PagingAndSortingRepository<HousekeepingMetadata, Long>, JpaSpecificationExecutor<HousekeepingMetadata> {
 
   @Query(value = "from HousekeepingMetadata t where t.cleanupTimestamp <= :instant "
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED') "
-      + "and t.modifiedTimestamp <= :instant order by t.modifiedTimestamp")
+      + "and t.modifiedTimestamp <= :instant and t.cleanupAttempts < 10 order by t.modifiedTimestamp")
   Slice<HousekeepingMetadata> findRecordsForCleanupByModifiedTimestamp(
       @Param("instant") LocalDateTime instant,
       Pageable pageable);
@@ -42,9 +42,8 @@ public interface HousekeepingMetadataRepository extends PagingAndSortingReposito
   /**
    * Returns the record that matches the inputs given, if there is one.
    *
-   * @implNote To get the record for a partitioned table both the input value and the value of the partitionName of the current
-   * record must be NULL.
-   *
+   * @implNote To get the record for a partitioned table both the input value and the value of the partitionName of the
+   *           current record must be NULL.
    * @param databaseName
    * @param tableName
    * @param partitionName
@@ -58,7 +57,8 @@ public interface HousekeepingMetadataRepository extends PagingAndSortingReposito
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   Optional<HousekeepingMetadata> findRecordForCleanupByDbTableAndPartitionName(
       @Param("databaseName") String databaseName,
-      @Param("tableName") String tableName, @Param("partitionName") String partitionName);
+      @Param("tableName") String tableName,
+      @Param("partitionName") String partitionName);
 
   /**
    * Returns the maximum value for the cleanupTimestamp for a database and table name pair.
@@ -76,7 +76,8 @@ public interface HousekeepingMetadataRepository extends PagingAndSortingReposito
       @Param("tableName") String tableName);
 
   /**
-   * This method returns the count of all records for a database and table name pair where the partitionName is not null.
+   * This method returns the count of all records for a database and table name pair where the partitionName is not
+   * null.
    *
    * @param databaseName
    * @param tableName
@@ -122,7 +123,8 @@ public interface HousekeepingMetadataRepository extends PagingAndSortingReposito
       + "and t.tableName = :tableName "
       + "and t.partitionName is not NULL "
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
-  void deleteScheduledOrFailedPartitionRecordsForTable(@Param("databaseName") String databaseName,
+  void deleteScheduledOrFailedPartitionRecordsForTable(
+      @Param("databaseName") String databaseName,
       @Param("tableName") String tableName);
 
   /**
@@ -134,7 +136,8 @@ public interface HousekeepingMetadataRepository extends PagingAndSortingReposito
   List<HousekeepingMetadata> findActiveTables();
 
   /**
-   * This method deletes the rows which have "DELETED" or "DISABLED" status and are older than the specified {@code instant}.
+   * This method deletes the rows which have "DELETED" or "DISABLED" status and are older than the specified
+   * {@code instant}.
    *
    * @param instant
    */

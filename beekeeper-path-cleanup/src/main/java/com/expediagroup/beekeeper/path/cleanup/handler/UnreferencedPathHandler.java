@@ -37,14 +37,13 @@ public class UnreferencedPathHandler extends GenericPathHandler {
   @Autowired
   public UnreferencedPathHandler(
       HousekeepingPathRepository housekeepingPathRepository,
-      @Qualifier("s3PathCleaner") PathCleaner pathCleaner
-  ) {
+      @Qualifier("s3PathCleaner") PathCleaner pathCleaner) {
     super(housekeepingPathRepository, pathCleaner, UNREFERENCED);
     this.housekeepingPathRepository = housekeepingPathRepository;
   }
 
   @Override
   public Slice<HousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable) {
-    return housekeepingPathRepository.findRecordsForCleanupByModifiedTimestamp(instant, pageable);
+    return housekeepingPathRepository.findRecordsForCleanup(instant, pageable);
   }
 }

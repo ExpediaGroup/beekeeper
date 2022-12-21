@@ -161,6 +161,17 @@ public class HousekeepingMetadataRepositoryTest {
   }
 
   @Test
+  public void findRecordsForCleanupByModifiedTimestampMaxCleanupAttemptsReached() {
+    HousekeepingMetadata table = createPartitionedEntityHousekeepingTable();
+    table.setCleanupAttempts(10);
+    housekeepingMetadataRepository.save(table);
+
+    Slice<HousekeepingMetadata> result = housekeepingMetadataRepository
+        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
+    assertThat(result.getContent().size()).isEqualTo(0);
+  }
+
+  @Test
   public void findRecordsForCleanupByModifiedTimestamp() {
     HousekeepingMetadata table = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(table);
@@ -225,8 +236,8 @@ public class HousekeepingMetadataRepositoryTest {
     HousekeepingMetadata table = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(table);
 
-    Optional<HousekeepingMetadata> result = housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(
-        DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
+    Optional<HousekeepingMetadata> result = housekeepingMetadataRepository
+        .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
 
     assertTrue(result.isPresent());
     compare(result.get(), table);
@@ -238,8 +249,8 @@ public class HousekeepingMetadataRepositoryTest {
     table.setPartitionName(null);
     housekeepingMetadataRepository.save(table);
 
-    Optional<HousekeepingMetadata> result = housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(
-        DATABASE_NAME, TABLE_NAME, null);
+    Optional<HousekeepingMetadata> result = housekeepingMetadataRepository
+        .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, null);
 
     assertTrue(result.isPresent());
     compare(result.get(), table);
@@ -250,8 +261,8 @@ public class HousekeepingMetadataRepositoryTest {
     HousekeepingMetadata table = createPartitionedEntityHousekeepingTable(DELETED);
     housekeepingMetadataRepository.save(table);
 
-    Optional<HousekeepingMetadata> result = housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(
-        DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
+    Optional<HousekeepingMetadata> result = housekeepingMetadataRepository
+        .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
 
     assertTrue(result.isEmpty());
   }
@@ -329,8 +340,8 @@ public class HousekeepingMetadataRepositoryTest {
     HousekeepingMetadata housekeepingTable = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(housekeepingTable);
 
-    long result = housekeepingMetadataRepository.countRecordsForDryRunWherePartitionIsNotNullOrExpired(
-        CLEANUP_TIMESTAMP, DATABASE_NAME, TABLE_NAME);
+    long result = housekeepingMetadataRepository
+        .countRecordsForDryRunWherePartitionIsNotNullOrExpired(CLEANUP_TIMESTAMP, DATABASE_NAME, TABLE_NAME);
 
     assertEquals(1L, result);
   }
@@ -340,8 +351,8 @@ public class HousekeepingMetadataRepositoryTest {
     HousekeepingMetadata housekeepingTable = createPartitionedEntityHousekeepingTable(DELETED);
     housekeepingMetadataRepository.save(housekeepingTable);
 
-    long result = housekeepingMetadataRepository.countRecordsForDryRunWherePartitionIsNotNullOrExpired(
-        CLEANUP_TIMESTAMP, DATABASE_NAME, TABLE_NAME);
+    long result = housekeepingMetadataRepository
+        .countRecordsForDryRunWherePartitionIsNotNullOrExpired(CLEANUP_TIMESTAMP, DATABASE_NAME, TABLE_NAME);
 
     assertEquals(0L, result);
   }
@@ -351,8 +362,8 @@ public class HousekeepingMetadataRepositoryTest {
     HousekeepingMetadata housekeepingTable = createUnpartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(housekeepingTable);
 
-    long result = housekeepingMetadataRepository.countRecordsForDryRunWherePartitionIsNotNullOrExpired(
-        CLEANUP_TIMESTAMP, DATABASE_NAME, TABLE_NAME);
+    long result = housekeepingMetadataRepository
+        .countRecordsForDryRunWherePartitionIsNotNullOrExpired(CLEANUP_TIMESTAMP, DATABASE_NAME, TABLE_NAME);
 
     assertEquals(0L, result);
   }
@@ -407,7 +418,7 @@ public class HousekeepingMetadataRepositoryTest {
     housekeepingMetadataRepository.save(table3);
     HousekeepingMetadata partition = createPartitionedEntityHousekeepingTable();
     housekeepingMetadataRepository.save(partition);
-    
+
     List<HousekeepingMetadata> result = housekeepingMetadataRepository.findActiveTables();
     assertThat(result.size()).isEqualTo(3);
     assertThat(result.get(0).getTableName()).isEqualTo("tbl1");
@@ -484,8 +495,7 @@ public class HousekeepingMetadataRepositoryTest {
     return createEntityHouseKeepingTable(databaseName, tableName, partitionName, CREATION_TIMESTAMP, SCHEDULED);
   }
 
-  private HousekeepingMetadata createPartitionedEntityHousekeepingTable(
-      HousekeepingStatus status) {
+  private HousekeepingMetadata createPartitionedEntityHousekeepingTable(HousekeepingStatus status) {
     return createEntityHouseKeepingTable(DATABASE_NAME, TABLE_NAME, PARTITION_NAME, CREATION_TIMESTAMP, status);
   }
 
@@ -501,7 +511,8 @@ public class HousekeepingMetadataRepositoryTest {
       String partitionName,
       LocalDateTime creationDate,
       HousekeepingStatus status) {
-    return HousekeepingMetadata.builder()
+    return HousekeepingMetadata
+        .builder()
         .path(PATH)
         .databaseName(databaseName)
         .tableName(tableName)
