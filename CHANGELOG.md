@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.0] - TBD
+### Fixed
+- Throw exception if cleanupDelay can't be parsed instead of returning the default value.
+### Changed
+- Don't return records for cleanup after 10 attempts have been reached. 
+
 ## [3.4.14] - 2022-11-25
 ### Fixed
 - Return Slice instead of Page in queries to avoid scanning the whole table for the total number of pages. Details [here](https://www.baeldung.com/spring-data-jpa-pagination-sorting#paginate).
