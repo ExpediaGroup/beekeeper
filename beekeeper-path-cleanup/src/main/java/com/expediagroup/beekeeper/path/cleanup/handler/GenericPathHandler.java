@@ -26,7 +26,6 @@ import org.springframework.data.domain.Slice;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
-import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.core.validation.S3PathValidator;
 
@@ -37,7 +36,7 @@ public abstract class GenericPathHandler {
   private final HousekeepingPathRepository housekeepingPathRepository;
   private final PathCleaner pathCleaner;
 
-  public GenericPathHandler(HousekeepingPathRepository housekeepingPathRepository, PathCleaner pathCleaner, LifecycleEventType lifecycleEventType){
+  public GenericPathHandler(HousekeepingPathRepository housekeepingPathRepository, PathCleaner pathCleaner) {
     this.housekeepingPathRepository = housekeepingPathRepository;
     this.pathCleaner = pathCleaner;
   }
@@ -50,8 +49,9 @@ public abstract class GenericPathHandler {
    * @param pageable Pageable to iterate through for dryRun
    * @param page Page to get content from
    * @param dryRunEnabled Dry Run boolean flag
-   * @implNote This parent handler expects the child's cleanupPath call to update & remove the record from this call such
-   * that subsequent DB queries will not return the record. Hence why we only call next during dryRuns where no updates occur.
+   * @implNote This parent handler expects the child's cleanupPath call to update & remove the record from this call
+   *           such that subsequent DB queries will not return the record. Hence why we only call next during dryRuns
+   *           where no updates occur.
    * @implNote Note that we only expect pageable.next to be called during a dry run.
    * @return Pageable to pass to query. In the case of dry runs, this is the next page.
    */
@@ -80,6 +80,8 @@ public abstract class GenericPathHandler {
       log.info("Cleaning up path \"{}\"", housekeepingPath.getPath());
       if (cleanUpPath(housekeepingPath)) {
         updateAttemptsAndStatus(housekeepingPath, HousekeepingStatus.DELETED);
+      } else {
+        updateStatus(housekeepingPath, HousekeepingStatus.SKIPPED);
       }
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingPath, HousekeepingStatus.FAILED);
@@ -89,6 +91,11 @@ public abstract class GenericPathHandler {
 
   private void updateAttemptsAndStatus(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
     housekeepingPath.setCleanupAttempts(housekeepingPath.getCleanupAttempts() + 1);
+    housekeepingPath.setHousekeepingStatus(status);
+    housekeepingPathRepository.save(housekeepingPath);
+  }
+
+  private void updateStatus(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
     housekeepingPath.setHousekeepingStatus(status);
     housekeepingPathRepository.save(housekeepingPath);
   }
