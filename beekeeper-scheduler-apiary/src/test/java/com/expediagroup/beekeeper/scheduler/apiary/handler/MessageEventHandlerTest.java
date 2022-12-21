@@ -45,16 +45,11 @@ public class MessageEventHandlerTest {
   private static final LifecycleEventType LIFECYCLE_EVENT_TYPE = UNREFERENCED;
   private static final String CLIENT_ID = "apiary-metastore-event";
 
-  @Mock
-  private MessageEvent messageEvent;
-  @Mock
-  private AlterPartitionEvent listenerEvent;
-  @Mock
-  private UnreferencedHousekeepingPathGenerator generator;
-  @Mock
-  private WhitelistedListenerEventFilter whiteListFilter;
-  @Mock
-  private TableParameterListenerEventFilter tableFilter;
+  @Mock private MessageEvent messageEvent;
+  @Mock private AlterPartitionEvent listenerEvent;
+  @Mock private UnreferencedHousekeepingPathGenerator generator;
+  @Mock private WhitelistedListenerEventFilter whiteListFilter;
+  @Mock private TableParameterListenerEventFilter tableFilter;
   private MessageEventHandler handler;
 
   @BeforeEach
