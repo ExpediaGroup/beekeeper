@@ -44,16 +44,11 @@ public class MessageEventHandler {
   }
 
   public List<HousekeepingEntity> handleMessage(MessageEvent event) {
-    try {
-      ListenerEvent listenerEvent = event.getEvent();
-      if (shouldFilterMessage(listenerEvent)) {
-        return Collections.emptyList();
-      }
-      return generateHousekeepingEntities(listenerEvent);
-    } catch (Exception e) {
-      log.error("Encountered exception, message will be skipped.", e);
+    ListenerEvent listenerEvent = event.getEvent();
+    if (shouldFilterMessage(listenerEvent)) {
       return Collections.emptyList();
     }
+    return generateHousekeepingEntities(listenerEvent);
   }
 
   private boolean shouldFilterMessage(ListenerEvent listenerEvent) {
