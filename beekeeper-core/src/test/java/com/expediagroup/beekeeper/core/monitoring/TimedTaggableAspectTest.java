@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,11 +38,13 @@ import io.micrometer.core.instrument.search.RequiredSearch;
 
 import com.expediagroup.beekeeper.core.TestApplication;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = { TestApplication.class, MonitoredClass.class },
-  loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = {
+    TestApplication.class,
+    MonitoredClass.class }, loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class TimedTaggableAspectTest {
 
@@ -52,7 +54,7 @@ public class TimedTaggableAspectTest {
   private static final String TABLE_2 = "table2";
 
   private HousekeepingPath housekeepingPath;
-  
+
   @Autowired
   private MeterRegistry meterRegistry;
 
@@ -61,27 +63,30 @@ public class TimedTaggableAspectTest {
 
   @BeforeEach
   public void init() {
-    housekeepingPath = HousekeepingPath.builder()
-      .databaseName(DATABASE)
-      .tableName(TABLE)
-      .creationTimestamp(LocalDateTime.now())
-      .cleanupDelay(Duration.ofDays(1))
-      .build();
+    housekeepingPath = HousekeepingPath
+        .builder()
+        .databaseName(DATABASE)
+        .tableName(TABLE)
+        .creationTimestamp(LocalDateTime.now())
+        .cleanupDelay(PeriodDuration.of(Duration.ofDays(1)))
+        .build();
   }
-  
+
   @Test
   public void typicalTime() {
     monitoredClass.doSomething(housekeepingPath);
     housekeepingPath.setTableName(TABLE_2);
     monitoredClass.doSomething(housekeepingPath);
-    Timer timer1 = RequiredSearch.in(meterRegistry)
-      .name(TIMER_NAME)
-      .tags("table", String.join(".", DATABASE, TABLE))
-      .timer();
-    Timer timer2 = RequiredSearch.in(meterRegistry)
-      .name(TIMER_NAME)
-      .tags("table", String.join(".", DATABASE, TABLE_2))
-      .timer();
+    Timer timer1 = RequiredSearch
+        .in(meterRegistry)
+        .name(TIMER_NAME)
+        .tags("table", String.join(".", DATABASE, TABLE))
+        .timer();
+    Timer timer2 = RequiredSearch
+        .in(meterRegistry)
+        .name(TIMER_NAME)
+        .tags("table", String.join(".", DATABASE, TABLE_2))
+        .timer();
     assertThat(timer1).isNotNull();
     assertThat(timer2).isNotNull();
   }
@@ -89,20 +94,22 @@ public class TimedTaggableAspectTest {
   @Test
   public void timeSucceedsWithMultipleArguments() {
     monitoredClass.multipleArguments(housekeepingPath, 1, "test-string");
-    Timer timer = RequiredSearch.in(meterRegistry)
-      .name(TIMER_NAME)
-      .tags("table", String.join(".", DATABASE, TABLE))
-      .timer();
+    Timer timer = RequiredSearch
+        .in(meterRegistry)
+        .name(TIMER_NAME)
+        .tags("table", String.join(".", DATABASE, TABLE))
+        .timer();
     assertThat(timer).isNotNull();
   }
 
   @Test
   public void timeFailsIfPathIsNotFirstArgument() {
     monitoredClass.pathIsNotTheFirstArg(1, "test-string", housekeepingPath);
-    assertThatThrownBy(() -> RequiredSearch.in(meterRegistry)
-      .name(TIMER_NAME)
-      .tags("table", String.join(".", DATABASE, TABLE))
-      .timer()).isInstanceOf(MeterNotFoundException.class);
+    assertThatThrownBy(() -> RequiredSearch
+        .in(meterRegistry)
+        .name(TIMER_NAME)
+        .tags("table", String.join(".", DATABASE, TABLE))
+        .timer()).isInstanceOf(MeterNotFoundException.class);
   }
 
 }

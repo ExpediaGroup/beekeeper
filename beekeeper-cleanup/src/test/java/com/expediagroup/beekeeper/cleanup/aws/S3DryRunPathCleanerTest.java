@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2022 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 
 @ExtendWith(MockitoExtension.class)
 @Testcontainers
@@ -74,21 +75,22 @@ class S3DryRunPathCleanerTest {
     amazonS3 = AmazonS3ClientBuilder
         .standard()
         .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
-        .withEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region"))
+        .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region"))
         .build();
     amazonS3.createBucket(bucket);
-    amazonS3.listObjectsV2(bucket)
+    amazonS3
+        .listObjectsV2(bucket)
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     S3Client s3Client = new S3Client(amazonS3, dryRunEnabled);
     s3DryRunPathCleaner = new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
-    housekeepingPath = HousekeepingPath.builder()
+    housekeepingPath = HousekeepingPath
+        .builder()
         .path(absolutePath)
         .tableName(tableName)
         .databaseName(databaseName)
         .creationTimestamp(LocalDateTime.now())
-        .cleanupDelay(Duration.ofDays(1))
+        .cleanupDelay(PeriodDuration.of(Duration.ofDays(1)))
         .build();
   }
 

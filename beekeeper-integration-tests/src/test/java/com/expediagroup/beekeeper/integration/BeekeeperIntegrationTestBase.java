@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.MySqlTestUtils;
 
@@ -249,7 +250,7 @@ public abstract class BeekeeperIntegrationTestBase {
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(CREATION_TIMESTAMP_VALUE)
         .modifiedTimestamp(CREATION_TIMESTAMP_VALUE)
-        .cleanupDelay(Duration.parse(SHORT_CLEANUP_DELAY_VALUE))
+        .cleanupDelay(PeriodDuration.parse(SHORT_CLEANUP_DELAY_VALUE))
         .cleanupAttempts(CLEANUP_ATTEMPTS_VALUE)
         .lifecycleType(lifecycleEventType.toString())
         .clientId(CLIENT_ID_FIELD)
@@ -272,7 +273,7 @@ public abstract class BeekeeperIntegrationTestBase {
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(CREATION_TIMESTAMP_VALUE)
         .modifiedTimestamp(CREATION_TIMESTAMP_VALUE)
-        .cleanupDelay(Duration.parse(cleanupDelay))
+        .cleanupDelay(PeriodDuration.parse(cleanupDelay))
         .cleanupAttempts(CLEANUP_ATTEMPTS_VALUE)
         .lifecycleType(lifecycleEventType.toString())
         .clientId(CLIENT_ID_FIELD)

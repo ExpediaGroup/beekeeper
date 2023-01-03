@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,16 +31,17 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_N
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.Duration;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 
 public class ResultSetToHousekeepingEntityMapper {
 
   public static HousekeepingPath mapToHousekeepingPath(ResultSet resultSet) throws SQLException {
-    return HousekeepingPath.builder()
+    return HousekeepingPath
+        .builder()
         .id(resultSet.getLong(ID_FIELD))
         .path(resultSet.getString(PATH_FIELD))
         .databaseName(resultSet.getString(DATABASE_NAME_FIELD))
@@ -48,7 +49,7 @@ public class ResultSetToHousekeepingEntityMapper {
         .housekeepingStatus(HousekeepingStatus.valueOf(resultSet.getString(HOUSEKEEPING_STATUS_FIELD)))
         .creationTimestamp(Timestamp.valueOf(resultSet.getString(CREATION_TIMESTAMP_FIELD)).toLocalDateTime())
         .modifiedTimestamp(Timestamp.valueOf(resultSet.getString(MODIFIED_TIMESTAMP_FIELD)).toLocalDateTime())
-        .cleanupDelay(Duration.parse(resultSet.getString(CLEANUP_DELAY_FIELD)))
+        .cleanupDelay(PeriodDuration.parse(resultSet.getString(CLEANUP_DELAY_FIELD)))
         .cleanupAttempts(resultSet.getInt(CLEANUP_ATTEMPTS_FIELD))
         .clientId(resultSet.getString(CLIENT_ID_FIELD))
         .lifecycleType(resultSet.getString(LIFECYCLE_TYPE_FIELD))
@@ -56,7 +57,8 @@ public class ResultSetToHousekeepingEntityMapper {
   }
 
   public static HousekeepingMetadata mapToHousekeepingMetadata(ResultSet resultSet) throws SQLException {
-    return HousekeepingMetadata.builder()
+    return HousekeepingMetadata
+        .builder()
         .id(resultSet.getLong(ID_FIELD))
         .path(resultSet.getString(PATH_FIELD))
         .databaseName(resultSet.getString(DATABASE_NAME_FIELD))
@@ -65,7 +67,7 @@ public class ResultSetToHousekeepingEntityMapper {
         .housekeepingStatus(HousekeepingStatus.valueOf(resultSet.getString(HOUSEKEEPING_STATUS_FIELD)))
         .creationTimestamp(Timestamp.valueOf(resultSet.getString(CREATION_TIMESTAMP_FIELD)).toLocalDateTime())
         .modifiedTimestamp(Timestamp.valueOf(resultSet.getString(MODIFIED_TIMESTAMP_FIELD)).toLocalDateTime())
-        .cleanupDelay(Duration.parse(resultSet.getString(CLEANUP_DELAY_FIELD)))
+        .cleanupDelay(PeriodDuration.parse(resultSet.getString(CLEANUP_DELAY_FIELD)))
         .cleanupAttempts(resultSet.getInt(CLEANUP_ATTEMPTS_FIELD))
         .clientId(resultSet.getString(CLIENT_ID_FIELD))
         .lifecycleType(resultSet.getString(LIFECYCLE_TYPE_FIELD))

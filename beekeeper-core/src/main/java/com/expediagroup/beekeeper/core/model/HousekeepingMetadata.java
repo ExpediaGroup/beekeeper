@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.expediagroup.beekeeper.core.model;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 import javax.persistence.Column;
@@ -77,8 +76,8 @@ public class HousekeepingMetadata implements HousekeepingEntity {
   private LocalDateTime cleanupTimestamp;
 
   @Column(name = "cleanup_delay", nullable = false)
-  @Convert(converter = DurationConverter.class)
-  private Duration cleanupDelay;
+  @Convert(converter = PeriodDurationConverter.class)
+  private PeriodDuration cleanupDelay;
 
   @Column(name = "cleanup_attempts", nullable = false)
   private int cleanupAttempts;
@@ -90,10 +89,19 @@ public class HousekeepingMetadata implements HousekeepingEntity {
   private String lifecycleType;
 
   @Builder
-  public HousekeepingMetadata(Long id, String path, String databaseName, String tableName,
-      String partitionName, HousekeepingStatus housekeepingStatus, LocalDateTime creationTimestamp,
-      LocalDateTime modifiedTimestamp, Duration cleanupDelay, int cleanupAttempts,
-      String lifecycleType, String clientId) {
+  public HousekeepingMetadata(
+      Long id,
+      String path,
+      String databaseName,
+      String tableName,
+      String partitionName,
+      HousekeepingStatus housekeepingStatus,
+      LocalDateTime creationTimestamp,
+      LocalDateTime modifiedTimestamp,
+      PeriodDuration cleanupDelay,
+      int cleanupAttempts,
+      String lifecycleType,
+      String clientId) {
     this.id = id;
     this.path = path;
     this.databaseName = databaseName;
@@ -119,7 +127,7 @@ public class HousekeepingMetadata implements HousekeepingEntity {
     return creationTimestamp.plus(cleanupDelay);
   }
 
-  public void setCleanupDelay(Duration cleanupDelay) {
+  public void setCleanupDelay(PeriodDuration cleanupDelay) {
     this.cleanupDelay = cleanupDelay;
     cleanupTimestamp = creationTimestamp.plus(cleanupDelay);
   }

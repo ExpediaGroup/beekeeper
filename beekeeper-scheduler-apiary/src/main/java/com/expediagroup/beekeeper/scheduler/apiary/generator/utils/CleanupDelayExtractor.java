@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.expediagroup.beekeeper.scheduler.apiary.generator.utils;
 
 import static java.lang.String.format;
 
-import java.time.Duration;
 import java.time.format.DateTimeParseException;
 
 import org.slf4j.Logger;
@@ -26,27 +25,28 @@ import org.slf4j.LoggerFactory;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 
 public class CleanupDelayExtractor {
 
   private static final Logger log = LoggerFactory.getLogger(CleanupDelayExtractor.class);
   private final String propertyKey;
-  private final Duration defaultValue;
+  private final PeriodDuration defaultValue;
 
   public CleanupDelayExtractor(String propertyKey, String defaultValue) {
     this.propertyKey = propertyKey;
     try {
-      this.defaultValue = Duration.parse(defaultValue);
+      this.defaultValue = PeriodDuration.parse(defaultValue);
     } catch (DateTimeParseException e) {
       throw new BeekeeperException(
           format("Default delay value '%s' for key '%s' cannot be parsed to a Duration", defaultValue, propertyKey), e);
     }
   }
 
-  public Duration extractCleanupDelay(ListenerEvent listenerEvent) {
+  public PeriodDuration extractCleanupDelay(ListenerEvent listenerEvent) {
     String tableCleanupDelay = listenerEvent.getTableParameters().get(propertyKey);
     try {
-      Duration value = tableCleanupDelay == null ? defaultValue : Duration.parse(tableCleanupDelay);
+      PeriodDuration value = tableCleanupDelay == null ? defaultValue : PeriodDuration.parse(tableCleanupDelay);
       log
           .info("Using value '{}' for key {} for table {}.{}.", value, propertyKey, listenerEvent.getDbName(),
               listenerEvent.getTableName());

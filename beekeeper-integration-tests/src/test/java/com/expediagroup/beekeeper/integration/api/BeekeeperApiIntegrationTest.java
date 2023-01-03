@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.integration.BeekeeperIntegrationTestBase;
 import com.expediagroup.beekeeper.integration.utils.BeekeeperApiTestClient;
 import com.expediagroup.beekeeper.integration.utils.RestResponsePage;
@@ -95,7 +96,8 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   }
 
   @Test
-  public void testGetMetadataWhenTableNotFoundReturnsEmptyList() throws SQLException, InterruptedException, IOException {
+  public void testGetMetadataWhenTableNotFoundReturnsEmptyList()
+    throws SQLException, InterruptedException, IOException {
     HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table",
         "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A",
         "event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED,
@@ -244,8 +246,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     assertThat(housekeepingPath.getDatabaseName()).isEqualTo(housekeepingPathResponse.getDatabaseName());
     assertThat(housekeepingPath.getTableName()).isEqualTo(housekeepingPathResponse.getTableName());
     assertThat(housekeepingPath.getPath()).isEqualTo(housekeepingPathResponse.getPath());
-    assertThat(housekeepingPath.getHousekeepingStatus())
-        .isEqualTo(housekeepingPathResponse.getHousekeepingStatus());
+    assertThat(housekeepingPath.getHousekeepingStatus()).isEqualTo(housekeepingPathResponse.getHousekeepingStatus());
     assertThat(housekeepingPath.getCleanupDelay()).isEqualTo(housekeepingPathResponse.getCleanupDelay());
     assertThat(housekeepingPath.getCleanupAttempts()).isEqualTo(housekeepingPathResponse.getCleanupAttempts());
     assertThat(housekeepingPath.getLifecycleType()).isEqualTo(housekeepingPathResponse.getLifecycleType());
@@ -267,7 +268,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(CREATION_TIMESTAMP_VALUE)
         .modifiedTimestamp(CREATION_TIMESTAMP_VALUE)
-        .cleanupDelay(Duration.parse(cleanupDelay))
+        .cleanupDelay(PeriodDuration.parse(cleanupDelay))
         .cleanupAttempts(CLEANUP_ATTEMPTS_VALUE)
         .lifecycleType(lifecycleEventType.toString())
         .clientId(CLIENT_ID_FIELD)
@@ -288,7 +289,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(CREATION_TIMESTAMP_VALUE)
         .modifiedTimestamp(CREATION_TIMESTAMP_VALUE)
-        .cleanupDelay(Duration.parse(cleanupDelay))
+        .cleanupDelay(PeriodDuration.parse(cleanupDelay))
         .cleanupAttempts(CLEANUP_ATTEMPTS_VALUE)
         .lifecycleType(lifecycleEventType.toString())
         .clientId(CLIENT_ID_FIELD)

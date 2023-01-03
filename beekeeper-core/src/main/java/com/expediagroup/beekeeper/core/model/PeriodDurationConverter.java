@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,25 @@
  */
 package com.expediagroup.beekeeper.core.model;
 
-import java.time.Duration;
-
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter(autoApply = true)
-public class DurationConverter implements AttributeConverter<Duration, String> {
+public class PeriodDurationConverter implements AttributeConverter<PeriodDuration, String> {
 
   @Override
-  public String convertToDatabaseColumn(Duration duration) {
-    if (duration != null) {
-      return duration.toString();
+  public String convertToDatabaseColumn(PeriodDuration period) {
+    if (period != null) {
+      return period.toString();
     } else {
       return null;
     }
   }
 
   @Override
-  public Duration convertToEntityAttribute(String durationString) {
+  public PeriodDuration convertToEntityAttribute(String durationString) {
     if (durationString != null) {
-      return Duration.parse(durationString);
+      return PeriodDuration.parse(durationString);
     } else {
       return null;
     }

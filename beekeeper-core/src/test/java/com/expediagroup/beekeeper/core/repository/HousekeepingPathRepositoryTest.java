@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2022 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -52,6 +51,7 @@ import com.google.common.collect.Lists;
 import com.expediagroup.beekeeper.core.TestApplication;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(properties = {
@@ -65,7 +65,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 public class HousekeepingPathRepositoryTest {
 
   private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
-  private static final Duration CLEANUP_DELAY = Duration.parse("PT1H");
+  private static final PeriodDuration CLEANUP_DELAY = PeriodDuration.parse("PT1H");
   private static final LocalDateTime CLEANUP_TIMESTAMP = CREATION_TIMESTAMP.plus(CLEANUP_DELAY);
 
   private static final int PAGE = 0;
@@ -92,7 +92,7 @@ public class HousekeepingPathRepositoryTest {
     assertThat(savedPath.getDatabaseName()).isEqualTo("database");
     assertThat(savedPath.getTableName()).isEqualTo("table");
     assertThat(savedPath.getHousekeepingStatus()).isEqualTo(SCHEDULED);
-    assertThat(savedPath.getCleanupDelay()).isEqualTo(Duration.parse("PT1H"));
+    assertThat(savedPath.getCleanupDelay()).isEqualTo(PeriodDuration.parse("PT1H"));
     assertThat(savedPath.getCreationTimestamp()).isNotNull();
     assertThat(savedPath.getModifiedTimestamp()).isNotNull();
     assertThat(savedPath.getModifiedTimestamp()).isNotEqualTo(savedPath.getCreationTimestamp());

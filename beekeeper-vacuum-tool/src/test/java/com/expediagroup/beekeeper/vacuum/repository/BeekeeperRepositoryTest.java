@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -39,6 +38,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.vacuum.TestApplication;
 
 @ExtendWith(SpringExtension.class)
@@ -74,7 +74,7 @@ class BeekeeperRepositoryTest {
     assertThat(savedPath.getDatabaseName()).isEqualTo("database");
     assertThat(savedPath.getTableName()).isEqualTo("table");
     assertThat(savedPath.getHousekeepingStatus()).isEqualTo(SCHEDULED);
-    assertThat(savedPath.getCleanupDelay()).isEqualTo(Duration.parse("P3D"));
+    assertThat(savedPath.getCleanupDelay()).isEqualTo(PeriodDuration.parse("P3D"));
     assertThat(savedPath.getCreationTimestamp()).isNotNull();
     assertThat(savedPath.getModifiedTimestamp()).isNotNull();
     assertThat(savedPath.getModifiedTimestamp()).isNotEqualTo(savedPath.getCreationTimestamp());
@@ -110,14 +110,15 @@ class BeekeeperRepositoryTest {
 
   private HousekeepingPath createEntityHousekeepingPath() {
     LocalDateTime creationTimestamp = LocalDateTime.now(ZoneId.of("UTC"));
-    return HousekeepingPath.builder()
+    return HousekeepingPath
+        .builder()
         .path("path")
         .databaseName("database")
         .tableName("table")
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(creationTimestamp)
         .modifiedTimestamp(creationTimestamp)
-        .cleanupDelay(Duration.parse("P3D"))
+        .cleanupDelay(PeriodDuration.parse("P3D"))
         .cleanupAttempts(0)
         .lifecycleType(UNREFERENCED.toString())
         .build();
