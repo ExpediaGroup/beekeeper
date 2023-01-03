@@ -95,7 +95,6 @@ public class HousekeepingPath implements HousekeepingEntity {
       HousekeepingStatus housekeepingStatus,
       LocalDateTime creationTimestamp,
       LocalDateTime modifiedTimestamp,
-      LocalDateTime cleanupTimestamp,
       PeriodDuration cleanupDelay,
       int cleanupAttempts,
       String lifecycleType,
