@@ -148,28 +148,39 @@ public class HousekeepingPathRepositoryTest {
   }
 
   @Test
-  void findRecordsForCleanupByModifiedTimestamp() {
+  void findRecordsForCleanup() {
     HousekeepingPath path = createEntityHousekeepingPath();
     housekeepingPathRepository.save(path);
 
     Slice<HousekeepingPath> result = housekeepingPathRepository
-        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
+        .findRecordsForCleanup(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().get(0).getPath()).isEqualTo("path");
   }
 
   @Test
-  void findRecordsForCleanupByModifiedTimestampZeroResults() {
+  public void findRecordsForCleanupMaxCleanupAttemptsReached() {
+    HousekeepingPath path = createEntityHousekeepingPath();
+    path.setCleanupAttempts(10);
+    housekeepingPathRepository.save(path);
+
+    Slice<HousekeepingPath> result = housekeepingPathRepository
+        .findRecordsForCleanup(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
+    assertThat(result.getContent().size()).isEqualTo(0);
+  }
+
+  @Test
+  void findRecordsForCleanupZeroResults() {
     HousekeepingPath path = createEntityHousekeepingPath();
     path.setHousekeepingStatus(DELETED);
     housekeepingPathRepository.save(path);
 
     Slice<HousekeepingPath> result = housekeepingPathRepository
-        .findRecordsForCleanupByModifiedTimestamp(LocalDateTime.now(), PageRequest.of(PAGE, PAGE_SIZE));
+        .findRecordsForCleanup(LocalDateTime.now(), PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().size()).isEqualTo(0);
   }
 
   @Test
-  void findRecordsForCleanupByModifiedTimestampMixedPathStatus() {
+  void findRecordsForCleanupMixedPathStatus() {
     HousekeepingPath housekeepingPath1 = createEntityHousekeepingPath();
     housekeepingPathRepository.save(housekeepingPath1);
 
@@ -184,12 +195,12 @@ public class HousekeepingPathRepositoryTest {
     housekeepingPathRepository.save(housekeepingPath3);
 
     Slice<HousekeepingPath> result = housekeepingPathRepository
-        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
+        .findRecordsForCleanup(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
     assertThat(result.getContent().size()).isEqualTo(2);
   }
 
   @Test
-  void findRecordsForCleanupByModifiedTimestampRespectsOrder() {
+  void findRecordsForCleanupRespectsOrder() {
     String path1 = "path1";
     String path2 = "path2";
 
@@ -202,7 +213,7 @@ public class HousekeepingPathRepositoryTest {
     housekeepingPathRepository.save(housekeepingPath2);
 
     List<HousekeepingPath> result = housekeepingPathRepository
-        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE))
+        .findRecordsForCleanup(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE))
         .getContent();
     assertThat(result.get(0).getPath()).isEqualTo(path1);
     assertThat(result.get(1).getPath()).isEqualTo(path2);
@@ -259,9 +270,12 @@ public class HousekeepingPathRepositoryTest {
     return createEntityHousekeepingPath("path", CREATION_TIMESTAMP, SCHEDULED);
   }
 
-  private HousekeepingPath createEntityHousekeepingPath(String path, LocalDateTime creationDate,
+  private HousekeepingPath createEntityHousekeepingPath(
+      String path,
+      LocalDateTime creationDate,
       HousekeepingStatus status) {
-    return HousekeepingPath.builder()
+    return HousekeepingPath
+        .builder()
         .path(path)
         .databaseName("database")
         .tableName("table")

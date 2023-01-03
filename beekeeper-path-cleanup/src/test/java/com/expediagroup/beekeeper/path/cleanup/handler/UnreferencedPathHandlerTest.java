@@ -37,8 +37,10 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 @ExtendWith(MockitoExtension.class)
 public class UnreferencedPathHandlerTest {
 
-  @Mock private HousekeepingPathRepository housekeepingPathRepository;
-  @Mock private S3PathCleaner s3PathCleaner;
+  @Mock
+  private HousekeepingPathRepository housekeepingPathRepository;
+  @Mock
+  private S3PathCleaner s3PathCleaner;
   private LifecycleEventType lifecycleEventType = UNREFERENCED;
 
   private UnreferencedPathHandler handler;
@@ -63,6 +65,6 @@ public class UnreferencedPathHandlerTest {
     LocalDateTime now = LocalDateTime.now();
     Pageable emptyPageable = PageRequest.of(0, 1);
     handler.findRecordsToClean(now, emptyPageable);
-    verify(housekeepingPathRepository).findRecordsForCleanupByModifiedTimestamp(now, emptyPageable);
+    verify(housekeepingPathRepository).findRecordsForCleanup(now, emptyPageable);
   }
 }

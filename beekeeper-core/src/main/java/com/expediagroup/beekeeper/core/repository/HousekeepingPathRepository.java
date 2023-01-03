@@ -34,10 +34,8 @@ public interface HousekeepingPathRepository
 
   @Query(value = "from HousekeepingPath p where p.cleanupTimestamp <= :instant "
       + "and (p.housekeepingStatus = 'SCHEDULED' or p.housekeepingStatus = 'FAILED') "
-      + "and p.modifiedTimestamp <= :instant")
-  Slice<HousekeepingPath> findRecordsForCleanupByModifiedTimestamp(
-      @Param("instant") LocalDateTime instant,
-      Pageable pageable);
+      + "and p.modifiedTimestamp <= :instant and p.cleanupAttempts < 10")
+  Slice<HousekeepingPath> findRecordsForCleanup(@Param("instant") LocalDateTime instant, Pageable pageable);
 
   @Modifying
   @Query(value = "delete from HousekeepingPath p where p.cleanupTimestamp < :instant "

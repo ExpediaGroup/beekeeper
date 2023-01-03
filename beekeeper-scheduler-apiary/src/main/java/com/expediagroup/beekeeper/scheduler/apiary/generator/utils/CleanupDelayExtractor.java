@@ -47,14 +47,15 @@ public class CleanupDelayExtractor {
     String tableCleanupDelay = listenerEvent.getTableParameters().get(propertyKey);
     try {
       Duration value = tableCleanupDelay == null ? defaultValue : Duration.parse(tableCleanupDelay);
-      log.info("Using value '{}' for key {} for table {}.{}.", value, propertyKey, listenerEvent.getDbName(),
+      log
+          .info("Using value '{}' for key {} for table {}.{}.", value, propertyKey, listenerEvent.getDbName(),
               listenerEvent.getTableName());
       return value;
-    } catch (DateTimeParseException | NullPointerException e) {
-      log.warn(
-              "Overridden delay value '{}' for key '{}' cannot be parsed to a Duration for table '{}.{}'. Using default setting {}.",
-              tableCleanupDelay, propertyKey, listenerEvent.getDbName(), listenerEvent.getTableName(), defaultValue);
-      return defaultValue;
+    } catch (DateTimeParseException e) {
+      throw new BeekeeperException(String
+          .format("Cleanup delay value '%s' for key '%s' cannot be parsed to a Duration for table '%s.%s'.",
+              tableCleanupDelay, propertyKey, listenerEvent.getDbName(), listenerEvent.getTableName()),
+          e);
     }
   }
 }

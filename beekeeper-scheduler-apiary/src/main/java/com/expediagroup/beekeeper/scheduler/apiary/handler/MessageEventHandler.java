@@ -37,10 +37,7 @@ public class MessageEventHandler {
   private final HousekeepingEntityGenerator generator;
   private final List<ListenerEventFilter> filters;
 
-  public MessageEventHandler(
-      HousekeepingEntityGenerator generator,
-      List<ListenerEventFilter> filters
-  ) {
+  public MessageEventHandler(HousekeepingEntityGenerator generator, List<ListenerEventFilter> filters) {
     this.generator = generator;
     this.filters = filters;
     this.lifecycleEventType = generator.getLifecycleEventType();
@@ -48,17 +45,14 @@ public class MessageEventHandler {
 
   public List<HousekeepingEntity> handleMessage(MessageEvent event) {
     ListenerEvent listenerEvent = event.getEvent();
-
     if (shouldFilterMessage(listenerEvent)) {
       return Collections.emptyList();
     }
-
     return generateHousekeepingEntities(listenerEvent);
   }
 
   private boolean shouldFilterMessage(ListenerEvent listenerEvent) {
-    return filters.stream()
-        .anyMatch(filter -> filter.isFiltered(listenerEvent, lifecycleEventType));
+    return filters.stream().anyMatch(filter -> filter.isFiltered(listenerEvent, lifecycleEventType));
   }
 
   private List<HousekeepingEntity> generateHousekeepingEntities(ListenerEvent listenerEvent) {

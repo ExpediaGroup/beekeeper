@@ -42,6 +42,6 @@ public class UnreferencedPathHandler extends GenericPathHandler {
 
   @Override
   public Slice<HousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable) {
-    return housekeepingPathRepository.findRecordsForCleanupByModifiedTimestamp(instant, pageable);
+    return housekeepingPathRepository.findRecordsForCleanup(instant, pageable);
   }
 }
