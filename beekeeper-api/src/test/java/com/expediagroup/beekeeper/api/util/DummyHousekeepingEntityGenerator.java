@@ -32,6 +32,7 @@ public class DummyHousekeepingEntityGenerator {
   private static final String DEFAULT_DB_NAME = "randomDatabase";
   private static final String DEFAULT_TABLE_NAME = "randomTable";
   private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
+  private static final String CLEANUP_DELAY_STRING = "P3D";
   private static final PeriodDuration CLEANUP_DELAY = PeriodDuration.of(Duration.ofDays(3));
 
   public static HousekeepingMetadata generateDummyHousekeepingMetadata() {
@@ -66,7 +67,7 @@ public class DummyHousekeepingEntityGenerator {
         .creationTimestamp(CREATION_TIMESTAMP)
         .modifiedTimestamp(CREATION_TIMESTAMP)
         .cleanupTimestamp(housekeepingMetadata.getCleanupTimestamp())
-        .cleanupDelay(CLEANUP_DELAY)
+        .cleanupDelay(CLEANUP_DELAY_STRING)
         .cleanupAttempts(0)
         .lifecycleType(EXPIRED.toString())
         .build();

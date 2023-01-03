@@ -100,12 +100,10 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     throws SQLException, InterruptedException, IOException {
     HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table",
         "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A",
-        "event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED,
-        Duration.parse("P3D").toString());
+        "event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED, "P3D");
     HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table",
         "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B",
-        "event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.EXPIRED,
-        Duration.parse("P3D").toString());
+        "event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.EXPIRED, "P3D");
     insertExpiredMetadata(testMetadata1);
     insertExpiredMetadata(testMetadata2);
 
@@ -121,16 +119,13 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   public void testGetMetadataWhenThereIsFiltering() throws SQLException, InterruptedException, IOException {
     HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table",
         "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A",
-        "event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED,
-        Duration.parse("P3D").toString());
+        "event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED, "P3D");
     HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table",
         "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B",
-        "event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.UNREFERENCED,
-        Duration.parse("P3D").toString());
+        "event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.UNREFERENCED, "P3D");
     HousekeepingMetadata testMetadata3 = createHousekeepingMetadata("some_table",
         "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=C",
-        "event_date=2020-01-01/event_hour=0/event_type=C", LifecycleEventType.UNREFERENCED,
-        Duration.parse("P3D").toString());
+        "event_date=2020-01-01/event_hour=0/event_type=C", LifecycleEventType.UNREFERENCED, "P3D");
     testMetadata1.setHousekeepingStatus(HousekeepingStatus.FAILED);
     testMetadata1.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
     testMetadata1.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
@@ -235,7 +230,8 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     assertThat(housekeepingMetadata.getPath()).isEqualTo(housekeepingMetadataResponse.getPath());
     assertThat(housekeepingMetadata.getHousekeepingStatus())
         .isEqualTo(housekeepingMetadataResponse.getHousekeepingStatus());
-    assertThat(housekeepingMetadata.getCleanupDelay()).isEqualTo(housekeepingMetadataResponse.getCleanupDelay());
+    assertThat(housekeepingMetadata.getCleanupDelay().toString())
+        .isEqualTo(housekeepingMetadataResponse.getCleanupDelay());
     assertThat(housekeepingMetadata.getCleanupAttempts()).isEqualTo(housekeepingMetadataResponse.getCleanupAttempts());
     assertThat(housekeepingMetadata.getLifecycleType()).isEqualTo(housekeepingMetadataResponse.getLifecycleType());
   }
@@ -247,7 +243,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     assertThat(housekeepingPath.getTableName()).isEqualTo(housekeepingPathResponse.getTableName());
     assertThat(housekeepingPath.getPath()).isEqualTo(housekeepingPathResponse.getPath());
     assertThat(housekeepingPath.getHousekeepingStatus()).isEqualTo(housekeepingPathResponse.getHousekeepingStatus());
-    assertThat(housekeepingPath.getCleanupDelay()).isEqualTo(housekeepingPathResponse.getCleanupDelay());
+    assertThat(housekeepingPath.getCleanupDelay().toString()).isEqualTo(housekeepingPathResponse.getCleanupDelay());
     assertThat(housekeepingPath.getCleanupAttempts()).isEqualTo(housekeepingPathResponse.getCleanupAttempts());
     assertThat(housekeepingPath.getLifecycleType()).isEqualTo(housekeepingPathResponse.getLifecycleType());
   }

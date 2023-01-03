@@ -27,7 +27,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
-import com.expediagroup.beekeeper.core.model.PeriodDuration;
 
 @Value
 @Builder
@@ -53,7 +52,7 @@ public class HousekeepingMetadataResponse {
 
   LocalDateTime cleanupTimestamp;
 
-  PeriodDuration cleanupDelay;
+  String cleanupDelay;
 
   int cleanupAttempts;
 

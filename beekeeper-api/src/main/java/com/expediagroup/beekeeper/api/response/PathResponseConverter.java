@@ -32,8 +32,7 @@ Therefore, this is a 'manual' conversion of the HousekeepingPath object, which w
 
 public class PathResponseConverter {
 
-  private static HousekeepingPathResponse convertToHousekeepingPathResponse(
-      HousekeepingPath housekeepingPath) {
+  private static HousekeepingPathResponse convertToHousekeepingPathResponse(HousekeepingPath housekeepingPath) {
     return HousekeepingPathResponse
         .builder()
         .path(housekeepingPath.getPath())
@@ -43,7 +42,7 @@ public class PathResponseConverter {
         .creationTimestamp(housekeepingPath.getCreationTimestamp())
         .modifiedTimestamp(housekeepingPath.getModifiedTimestamp())
         .cleanupTimestamp(housekeepingPath.getCleanupTimestamp())
-        .cleanupDelay(housekeepingPath.getCleanupDelay())
+        .cleanupDelay(housekeepingPath.getCleanupDelay().toString())
         .cleanupAttempts(housekeepingPath.getCleanupAttempts())
         .lifecycleType(housekeepingPath.getLifecycleType())
         .build();
@@ -54,8 +53,7 @@ public class PathResponseConverter {
     List<HousekeepingPath> housekeepingPathList = housekeepingPathPage.getContent();
     List<HousekeepingPathResponse> housekeepingPathResponseList = new ArrayList<>();
     for (HousekeepingPath housekeepingPath : housekeepingPathList) {
-      HousekeepingPathResponse housekeepingPathResponse = convertToHousekeepingPathResponse(
-          housekeepingPath);
+      HousekeepingPathResponse housekeepingPathResponse = convertToHousekeepingPathResponse(housekeepingPath);
       housekeepingPathResponseList.add(housekeepingPathResponse);
     }
     return new PageImpl<>(housekeepingPathResponseList);

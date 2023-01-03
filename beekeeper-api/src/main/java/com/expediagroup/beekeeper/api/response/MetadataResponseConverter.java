@@ -58,7 +58,7 @@ public final class MetadataResponseConverter {
         .creationTimestamp(housekeepingMetadata.getCreationTimestamp())
         .modifiedTimestamp(housekeepingMetadata.getModifiedTimestamp())
         .cleanupTimestamp(housekeepingMetadata.getCleanupTimestamp())
-        .cleanupDelay(housekeepingMetadata.getCleanupDelay())
+        .cleanupDelay(housekeepingMetadata.getCleanupDelay().toString())
         .cleanupAttempts(housekeepingMetadata.getCleanupAttempts())
         .lifecycleType(housekeepingMetadata.getLifecycleType())
         .build();
