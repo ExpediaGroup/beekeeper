@@ -25,11 +25,17 @@ import org.junit.jupiter.api.Test;
 class PeriodDurationConverterTest {
 
   private final PeriodDurationConverter periodDurationConverter = new PeriodDurationConverter();
-  private final PeriodDuration threeDaysDuration = PeriodDuration.of(Duration.ofDays(3));
+  private final PeriodDuration monthsAndDaysDuration = PeriodDuration.of(Period.ofMonths(3), Duration.ofDays(3));
+  private final PeriodDuration threeYearsDuration = PeriodDuration.of(Period.ofYears(3));
+  private final PeriodDuration threeMonthsDuration = PeriodDuration.of(Period.ofMonths(3));
   private final PeriodDuration threeDaysPeriod = PeriodDuration.of(Period.ofDays(3));
+  private final PeriodDuration threeDaysDuration = PeriodDuration.of(Duration.ofDays(3));
   private final PeriodDuration threeHoursDuration = PeriodDuration.of(Duration.ofHours(3));
   private final PeriodDuration threeMinutesDuration = PeriodDuration.of(Duration.ofMinutes(3));
   private final PeriodDuration threeSecondsDuration = PeriodDuration.of(Duration.ofSeconds(3));
+  private final String monthsAndDaysString = "P3MT72H";
+  private final String threeMonthsString = "P3M";
+  private final String threeYearsString = "P3Y";
   private final String threeDaysString = "P3D";
   private final String threeDaysInHoursString = "PT72H";
   private final String threeHoursString = "PT3H";
@@ -38,6 +44,9 @@ class PeriodDurationConverterTest {
 
   @Test
   void convertToDatabaseColumn() {
+    assertThat(periodDurationConverter.convertToDatabaseColumn(monthsAndDaysDuration)).isEqualTo(monthsAndDaysString);
+    assertThat(periodDurationConverter.convertToDatabaseColumn(threeYearsDuration)).isEqualTo(threeYearsString);
+    assertThat(periodDurationConverter.convertToDatabaseColumn(threeMonthsDuration)).isEqualTo(threeMonthsString);
     assertThat(periodDurationConverter.convertToDatabaseColumn(threeDaysDuration)).isEqualTo(threeDaysInHoursString);
     assertThat(periodDurationConverter.convertToDatabaseColumn(threeDaysPeriod)).isEqualTo(threeDaysString);
     assertThat(periodDurationConverter.convertToDatabaseColumn(threeHoursDuration)).isEqualTo(threeHoursString);
@@ -48,6 +57,9 @@ class PeriodDurationConverterTest {
 
   @Test
   void convertToEntityAttribute() {
+    assertThat(periodDurationConverter.convertToEntityAttribute(monthsAndDaysString)).isEqualTo(monthsAndDaysDuration);
+    assertThat(periodDurationConverter.convertToEntityAttribute(threeYearsString)).isEqualTo(threeYearsDuration);
+    assertThat(periodDurationConverter.convertToEntityAttribute(threeMonthsString)).isEqualTo(threeMonthsDuration);
     assertThat(periodDurationConverter.convertToEntityAttribute(threeDaysString)).isEqualTo(threeDaysPeriod);
     assertThat(periodDurationConverter.convertToEntityAttribute(threeDaysInHoursString)).isEqualTo(threeDaysDuration);
     assertThat(periodDurationConverter.convertToEntityAttribute(threeHoursString)).isEqualTo(threeHoursDuration);
