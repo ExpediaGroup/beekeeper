@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
@@ -35,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,9 +48,10 @@ public class UnreferencedHousekeepingPathSchedulerServiceTest {
 
   @Test
   public void typicalScheduleForHousekeeping() {
-    HousekeepingPath path = HousekeepingPath.builder()
+    HousekeepingPath path = HousekeepingPath
+        .builder()
         .creationTimestamp(LocalDateTime.now())
-        .cleanupDelay(Duration.parse("P3D"))
+        .cleanupDelay(PeriodDuration.parse("P3D"))
         .build();
     unreferencedHousekeepingPathSchedulerService.scheduleForHousekeeping(path);
     verify(housekeepingPathRepository).save(path);
@@ -58,16 +59,16 @@ public class UnreferencedHousekeepingPathSchedulerServiceTest {
 
   @Test
   public void verifyLifecycleType() {
-    assertThat(unreferencedHousekeepingPathSchedulerService.getLifecycleEventType())
-        .isEqualTo(UNREFERENCED);
+    assertThat(unreferencedHousekeepingPathSchedulerService.getLifecycleEventType()).isEqualTo(UNREFERENCED);
   }
 
   @Test
   public void scheduleFails() {
-    HousekeepingPath path = HousekeepingPath.builder()
+    HousekeepingPath path = HousekeepingPath
+        .builder()
         .path("path_to_schedule")
         .creationTimestamp(LocalDateTime.now())
-        .cleanupDelay(Duration.parse("P3D"))
+        .cleanupDelay(PeriodDuration.parse("P3D"))
         .build();
 
     when(housekeepingPathRepository.save(path)).thenThrow(new RuntimeException());

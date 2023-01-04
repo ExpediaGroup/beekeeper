@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2022 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.expediagroup.beekeeper.metadata.cleanup.handler;
 
-import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SKIPPED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -24,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SKIPPED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.time.Instant;

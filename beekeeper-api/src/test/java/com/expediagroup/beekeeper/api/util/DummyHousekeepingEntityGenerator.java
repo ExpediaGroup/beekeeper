@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,15 @@ import java.time.ZoneId;
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 
 public class DummyHousekeepingEntityGenerator {
 
   private static final String DEFAULT_DB_NAME = "randomDatabase";
   private static final String DEFAULT_TABLE_NAME = "randomTable";
   private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
-  private static final Duration CLEANUP_DELAY = Duration.ofDays(3);
+  private static final String CLEANUP_DELAY_STRING = "PT72H";
+  private static final PeriodDuration CLEANUP_DELAY = PeriodDuration.of(Duration.ofDays(3));
 
   public static HousekeepingMetadata generateDummyHousekeepingMetadata() {
     return generateDummyHousekeepingMetadata(DEFAULT_DB_NAME, DEFAULT_TABLE_NAME);
@@ -53,7 +55,8 @@ public class DummyHousekeepingEntityGenerator {
         .build();
   }
 
-  public static HousekeepingMetadataResponse generateDummyHousekeepingMetadataResponse(HousekeepingMetadata housekeepingMetadata) {
+  public static HousekeepingMetadataResponse generateDummyHousekeepingMetadataResponse(
+      HousekeepingMetadata housekeepingMetadata) {
     return HousekeepingMetadataResponse
         .builder()
         .path("s3://some/path/")
@@ -64,7 +67,7 @@ public class DummyHousekeepingEntityGenerator {
         .creationTimestamp(CREATION_TIMESTAMP)
         .modifiedTimestamp(CREATION_TIMESTAMP)
         .cleanupTimestamp(housekeepingMetadata.getCleanupTimestamp())
-        .cleanupDelay(CLEANUP_DELAY)
+        .cleanupDelay(CLEANUP_DELAY_STRING)
         .cleanupAttempts(0)
         .lifecycleType(EXPIRED.toString())
         .build();

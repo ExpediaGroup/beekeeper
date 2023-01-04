@@ -20,7 +20,6 @@ import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFEREN
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -46,6 +45,7 @@ import org.springframework.stereotype.Component;
 import com.google.common.base.Supplier;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 import com.expediagroup.beekeeper.vacuum.repository.BeekeeperRepository;
 
@@ -165,8 +165,9 @@ public class BeekeeperVacuumToolApplication implements ApplicationRunner {
       removePath(toRemove, databaseName, tableName);
     }
 
-    log.info("Vacuum summary; filesystem: {}, metastore: {}, housekeeping: {}, to remove: {}, bytes: {}.",
-        listStatus.length, metaStorePathCount, housekeepingPathCount, pathsToRemove.size(), totalBytesConsumed);
+    log
+        .info("Vacuum summary; filesystem: {}, metastore: {}, housekeeping: {}, to remove: {}, bytes: {}.",
+            listStatus.length, metaStorePathCount, housekeepingPathCount, pathsToRemove.size(), totalBytesConsumed);
   }
 
   private Path removeTrailingSlash(Path path) {
@@ -176,16 +177,19 @@ public class BeekeeperVacuumToolApplication implements ApplicationRunner {
   private void removePath(Path toRemove, String databaseName, String tableName) {
     log.info("REMOVE path '{}'; it is not referenced and can be deleted.", toRemove);
     if (!isDryRun) {
-      schedulerService.scheduleForHousekeeping(HousekeepingPath.builder().databaseName(databaseName)
-          .tableName(tableName)
-          .path(toRemove.toString())
-          .housekeepingStatus(SCHEDULED)
-          .lifecycleType(UNREFERENCED.name())
-          .creationTimestamp(LocalDateTime.now())
-          .cleanupDelay(Duration.parse(cleanupDelay))
-          .clientId("beekeeper-vacuum-tool")
-          .build());
-      log.info("Scheduled path '{}' for deletion.", toRemove.toString());
+      schedulerService
+          .scheduleForHousekeeping(HousekeepingPath
+              .builder()
+              .databaseName(databaseName)
+              .tableName(tableName)
+              .path(toRemove.toString())
+              .housekeepingStatus(SCHEDULED)
+              .lifecycleType(UNREFERENCED.name())
+              .creationTimestamp(LocalDateTime.now())
+              .cleanupDelay(PeriodDuration.parse(cleanupDelay))
+              .clientId("beekeeper-vacuum-tool")
+              .build());
+      log.info("Scheduled path '{}' for deletion.", toRemove);
     } else {
       log.warn("DRY RUN ENABLED: path '{}' left as is.", toRemove);
     }

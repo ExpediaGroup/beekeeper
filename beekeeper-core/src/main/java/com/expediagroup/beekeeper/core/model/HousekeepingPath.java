@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.expediagroup.beekeeper.core.model;
 
 import static java.lang.String.format;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 import javax.persistence.Column;
@@ -76,8 +75,8 @@ public class HousekeepingPath implements HousekeepingEntity {
   private LocalDateTime cleanupTimestamp;
 
   @Column(name = "cleanup_delay", nullable = false)
-  @Convert(converter = DurationConverter.class)
-  private Duration cleanupDelay;
+  @Convert(converter = PeriodDurationConverter.class)
+  private PeriodDuration cleanupDelay;
 
   @Column(name = "cleanup_attempts", nullable = false)
   private int cleanupAttempts;
@@ -88,9 +87,17 @@ public class HousekeepingPath implements HousekeepingEntity {
   private String lifecycleType;
 
   @Builder
-  public HousekeepingPath(Long id, String path, String databaseName, String tableName,
-      HousekeepingStatus housekeepingStatus, LocalDateTime creationTimestamp, LocalDateTime modifiedTimestamp,
-      LocalDateTime cleanupTimestamp, Duration cleanupDelay, int cleanupAttempts, String lifecycleType,
+  public HousekeepingPath(
+      Long id,
+      String path,
+      String databaseName,
+      String tableName,
+      HousekeepingStatus housekeepingStatus,
+      LocalDateTime creationTimestamp,
+      LocalDateTime modifiedTimestamp,
+      PeriodDuration cleanupDelay,
+      int cleanupAttempts,
+      String lifecycleType,
       String clientId) {
     this.id = id;
     this.path = path;
@@ -106,7 +113,7 @@ public class HousekeepingPath implements HousekeepingEntity {
     this.clientId = clientId;
   }
 
-  public void setCleanupDelay(Duration cleanupDelay) {
+  public void setCleanupDelay(PeriodDuration cleanupDelay) {
     this.cleanupDelay = cleanupDelay;
     cleanupTimestamp = creationTimestamp.plus(cleanupDelay);
   }
@@ -124,14 +131,14 @@ public class HousekeepingPath implements HousekeepingEntity {
         modifiedTimestamp, cleanupTimestamp, cleanupDelay, cleanupAttempts, clientId, lifecycleType);
   }
 
-    private LocalDateTime configureCleanupTimestamp() {
-      if (creationTimestamp == null) {
-        throw new BeekeeperException("Path requires a creation timestamp");
-      }
-      if (cleanupDelay == null) {
-        throw new BeekeeperException("Path requires a cleanup delay");
-      }
-      return creationTimestamp.plus(cleanupDelay);
+  private LocalDateTime configureCleanupTimestamp() {
+    if (creationTimestamp == null) {
+      throw new BeekeeperException("Path requires a creation timestamp");
     }
+    if (cleanupDelay == null) {
+      throw new BeekeeperException("Path requires a cleanup delay");
+    }
+    return creationTimestamp.plus(cleanupDelay);
+  }
 
 }

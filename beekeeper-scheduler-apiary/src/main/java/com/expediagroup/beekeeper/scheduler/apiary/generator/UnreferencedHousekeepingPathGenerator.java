@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2022 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import static com.expediagroup.beekeeper.core.validation.S3PathValidator.validPa
 import static com.expediagroup.beekeeper.core.validation.S3PathValidator.validTablePath;
 
 import java.time.Clock;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +42,7 @@ import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.scheduler.apiary.generator.utils.CleanupDelayExtractor;
 
 public class UnreferencedHousekeepingPathGenerator implements HousekeepingEntityGenerator {
@@ -113,7 +113,7 @@ public class UnreferencedHousekeepingPathGenerator implements HousekeepingEntity
       ListenerEvent listenerEvent,
       String clientId,
       String cleanupPath) {
-    Duration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
+    PeriodDuration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
     return HousekeepingPath
         .builder()
         .housekeepingStatus(SCHEDULED)

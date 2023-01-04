@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.expediagroup.beekeeper.api.response;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.UpdateTimestamp;
@@ -47,7 +46,7 @@ public class HousekeepingPathResponse {
 
   LocalDateTime cleanupTimestamp;
 
-  Duration cleanupDelay;
+  String cleanupDelay;
 
   int cleanupAttempts;
 

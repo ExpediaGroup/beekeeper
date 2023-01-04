@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2022 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 
 @ExtendWith(MockitoExtension.class)
 @Testcontainers
@@ -93,10 +94,11 @@ class S3PathCleanerTest {
     amazonS3 = AmazonS3ClientBuilder
         .standard()
         .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
-        .withEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region")).build();
+        .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region"))
+        .build();
     amazonS3.createBucket(bucket);
-    amazonS3.listObjectsV2(bucket)
+    amazonS3
+        .listObjectsV2(bucket)
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     boolean dryRunEnabled = false;
@@ -105,12 +107,13 @@ class S3PathCleanerTest {
     s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
     String tableName = "table";
     String databaseName = "database";
-    housekeepingPath = HousekeepingPath.builder()
+    housekeepingPath = HousekeepingPath
+        .builder()
         .path(absolutePath)
         .tableName(tableName)
         .databaseName(databaseName)
         .creationTimestamp(LocalDateTime.now())
-        .cleanupDelay(Duration.ofDays(1))
+        .cleanupDelay(PeriodDuration.of(Duration.ofDays(1)))
         .build();
   }
 
@@ -352,8 +355,7 @@ class S3PathCleanerTest {
     assertThatExceptionOfType(BeekeeperException.class)
         .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath))
         .withMessage(format("Not all files could be deleted at path \"%s/%s\"; deleted 1/2 objects. "
-                + "Objects not deleted: 'table/id1/partition_1/file2'.", bucket,
-            keyRootAsDirectory));
+            + "Objects not deleted: 'table/id1/partition_1/file2'.", bucket, keyRootAsDirectory));
     verify(bytesDeletedReporter).reportTaggable(100L, housekeepingPath, FileSystemType.S3);
   }
 

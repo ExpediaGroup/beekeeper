@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2022 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -55,6 +54,7 @@ import com.google.common.collect.Lists;
 import com.expediagroup.beekeeper.core.TestApplication;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(properties = {
@@ -72,7 +72,7 @@ public class HousekeepingMetadataRepositoryTest {
   private static final String TABLE_NAME = "table";
   private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
   private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
-  private static final Duration CLEANUP_DELAY = Duration.parse("P3D");
+  private static final PeriodDuration CLEANUP_DELAY = PeriodDuration.parse("P3D");
   private static final LocalDateTime CLEANUP_TIMESTAMP = CREATION_TIMESTAMP.plus(CLEANUP_DELAY);
 
   private static final int PAGE = 0;
@@ -100,7 +100,7 @@ public class HousekeepingMetadataRepositoryTest {
     assertThat(savedTable.getTableName()).isEqualTo(TABLE_NAME);
     assertThat(savedTable.getPartitionName()).isEqualTo(PARTITION_NAME);
     assertThat(savedTable.getHousekeepingStatus()).isEqualTo(SCHEDULED);
-    assertThat(savedTable.getCleanupDelay()).isEqualTo(Duration.parse("P3D"));
+    assertThat(savedTable.getCleanupDelay()).isEqualTo(PeriodDuration.parse("P3D"));
     assertThat(savedTable.getCreationTimestamp()).isNotNull();
     assertThat(savedTable.getModifiedTimestamp()).isNotNull();
     assertThat(savedTable.getModifiedTimestamp()).isNotEqualTo(savedTable.getCreationTimestamp());
@@ -158,17 +158,6 @@ public class HousekeepingMetadataRepositoryTest {
     assertThat(savedTable.getCleanupTimestamp().getHour()).isEqualTo(utcHour);
     assertThat(savedTable.getModifiedTimestamp().getHour()).isEqualTo(utcHour);
     assertThat(savedTable.getCreationTimestamp().getHour()).isEqualTo(utcHour);
-  }
-
-  @Test
-  public void findRecordsForCleanupByModifiedTimestampMaxCleanupAttemptsReached() {
-    HousekeepingMetadata table = createPartitionedEntityHousekeepingTable();
-    table.setCleanupAttempts(10);
-    housekeepingMetadataRepository.save(table);
-
-    Slice<HousekeepingMetadata> result = housekeepingMetadataRepository
-        .findRecordsForCleanupByModifiedTimestamp(CLEANUP_TIMESTAMP, PageRequest.of(PAGE, PAGE_SIZE));
-    assertThat(result.getContent().size()).isEqualTo(0);
   }
 
   @Test

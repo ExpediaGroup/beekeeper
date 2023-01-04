@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-import java.time.Duration;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -33,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 
 @ExtendWith(MockitoExtension.class)
 public class CleanupDelayExtractorTest {
@@ -49,15 +49,15 @@ public class CleanupDelayExtractorTest {
   public void typicalExtractCleanUpDelay() {
     String cleanupDelayInput = "P30D";
     when(listenerEvent.getTableParameters()).thenReturn(Map.of(EXTRACTOR_KEY, cleanupDelayInput));
-    Duration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
-    assertThat(cleanupDelay).isEqualTo(Duration.parse(cleanupDelayInput));
+    PeriodDuration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
+    assertThat(cleanupDelay).isEqualTo(PeriodDuration.parse(cleanupDelayInput));
   }
 
   @Test
   public void noKeyExtractCleanUpDelay() {
     when(listenerEvent.getTableParameters()).thenReturn(Map.of());
-    Duration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
-    assertThat(cleanupDelay).isEqualTo(Duration.parse(EXTRACTOR_DEFAULT_VALUE));
+    PeriodDuration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
+    assertThat(cleanupDelay).isEqualTo(PeriodDuration.parse(EXTRACTOR_DEFAULT_VALUE));
   }
 
   @Test

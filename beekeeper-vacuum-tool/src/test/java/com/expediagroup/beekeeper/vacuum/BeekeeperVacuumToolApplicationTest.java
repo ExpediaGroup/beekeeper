@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -63,6 +62,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.google.common.base.Supplier;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 import com.expediagroup.beekeeper.vacuum.repository.BeekeeperRepository;
 
@@ -86,7 +86,7 @@ class BeekeeperVacuumToolApplicationTest {
   private final String tableName = "test_table";
   private final String expiryTime = "P1D";
   private final Table table = new Table();
-  private final ApplicationArguments args = new DefaultApplicationArguments(new String[0]);
+  private final ApplicationArguments args = new DefaultApplicationArguments();
   private Path snapshot0Dir = null;
   private Path snapshot1Dir;
   private Path tableDir;
@@ -134,7 +134,7 @@ class BeekeeperVacuumToolApplicationTest {
     assertThat(path.getTableName()).isEqualTo(tableName);
     assertThat(path.getPath()).isEqualTo("file:" + snapshot0Dir.toString());
     assertThat(path.getHousekeepingStatus()).isEqualTo(SCHEDULED);
-    assertThat(path.getCleanupDelay().toDays()).isEqualTo(1L);
+    assertThat(path.getCleanupDelay().getPeriod().getDays()).isEqualTo(1L);
     assertThat(path.getLifecycleType()).isEqualTo(UNREFERENCED.name());
   }
 
@@ -158,7 +158,7 @@ class BeekeeperVacuumToolApplicationTest {
       assertThat(path.getDatabaseName()).isEqualTo(databaseName);
       assertThat(path.getTableName()).isEqualTo(tableName);
       assertThat(path.getHousekeepingStatus()).isEqualTo(SCHEDULED);
-      assertThat(path.getCleanupDelay().toDays()).isEqualTo(1L);
+      assertThat(path.getCleanupDelay().getPeriod().getDays()).isEqualTo(1L);
       assertThat(path.getLifecycleType()).isEqualTo(UNREFERENCED.name());
     }
   }
@@ -175,12 +175,14 @@ class BeekeeperVacuumToolApplicationTest {
   void vacuumAfterPathWasScheduledForHousekeeping() throws IOException {
     initialiseApp();
     setUnpartitionedTable();
-    HousekeepingPath path = HousekeepingPath.builder().databaseName(databaseName)
+    HousekeepingPath path = HousekeepingPath
+        .builder()
+        .databaseName(databaseName)
         .tableName(tableName)
         .path("file:" + snapshot0Dir.toString())
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(LocalDateTime.now())
-        .cleanupDelay(Duration.parse("P3D"))
+        .cleanupDelay(PeriodDuration.parse("P3D"))
         .lifecycleType(UNREFERENCED.toString())
         .build();
     repository.save(path);
@@ -207,10 +209,9 @@ class BeekeeperVacuumToolApplicationTest {
   }
 
   /**
-   * Tests that spaces are handled correctly in three scenarios all set up in snapshot 1:
-   * (1) 'partition 1_' in snapshot 1 is kept as it is referenced in the metastore
-   * (2) 'partition 2_' in snapshot 1 is scheduled as it is not in the metastore
-   * (3) 'partition 3_' in snapshot 1 is not scheduled as it is already in the housekeeping database
+   * Tests that spaces are handled correctly in three scenarios all set up in snapshot 1: (1) 'partition 1_' in snapshot
+   * 1 is kept as it is referenced in the metastore (2) 'partition 2_' in snapshot 1 is scheduled as it is not in the
+   * metastore (3) 'partition 3_' in snapshot 1 is not scheduled as it is already in the housekeeping database
    */
   @Test
   void vacuumWithSpaceInPaths() throws IOException, TException {
@@ -224,12 +225,14 @@ class BeekeeperVacuumToolApplicationTest {
     Path partition3InSnapshot1Dir = Files.createTempDirectory(snapshot1Dir, "partition 3_");
     File file3 = File.createTempFile("000000_", null, partition3InSnapshot1Dir.toFile());
     writeContentToFiles(file3.toPath(), file3.toPath(), file3.toPath());
-    HousekeepingPath path = HousekeepingPath.builder().databaseName(databaseName)
+    HousekeepingPath path = HousekeepingPath
+        .builder()
+        .databaseName(databaseName)
         .tableName(tableName)
-        .path("file:" + partition3InSnapshot1Dir.toString())
+        .path("file:" + partition3InSnapshot1Dir)
         .housekeepingStatus(SCHEDULED)
         .creationTimestamp(LocalDateTime.now())
-        .cleanupDelay(Duration.parse("P3D"))
+        .cleanupDelay(PeriodDuration.parse("P3D"))
         .lifecycleType(UNREFERENCED.toString())
         .build();
     repository.save(path);
@@ -243,8 +246,7 @@ class BeekeeperVacuumToolApplicationTest {
     String file2Path = "file:" + partition2InSnapshot0Dir.toString();
     String file3Path = "file:" + partition2InSnapshot1Dir.toString();
     assertThat(scheduledPaths).hasSize(3);
-    assertThat(scheduledPaths).extracting("path")
-        .containsExactlyInAnyOrder(file1Path, file2Path, file3Path);
+    assertThat(scheduledPaths).extracting("path").containsExactlyInAnyOrder(file1Path, file2Path, file3Path);
     assertThat(assertBytesLogged(21)).isTrue();
   }
 
@@ -275,12 +277,12 @@ class BeekeeperVacuumToolApplicationTest {
     List<Partition> partitionAsList = Collections.singletonList(partition);
 
     when(closeableMetaStoreClient.listPartitions(databaseName, tableName, (short) 1)).thenReturn(partitionAsList);
-    when(closeableMetaStoreClient.listPartitionNames(databaseName, tableName, (short) -1)).thenReturn(
-        partitionNameAsList);
-    when(closeableMetaStoreClient.getPartitionsByNames(databaseName, tableName, partitionNameAsList)).thenReturn(
-        partitionAsList);
+    when(closeableMetaStoreClient.listPartitionNames(databaseName, tableName, (short) -1))
+        .thenReturn(partitionNameAsList);
+    when(closeableMetaStoreClient.getPartitionsByNames(databaseName, tableName, partitionNameAsList))
+        .thenReturn(partitionAsList);
 
-    //create other files at the same level as the other partition
+    // create other files at the same level as the other partition
     snapshot0Dir = Files.createTempDirectory(tableDir, "snapshot0_");
     partition1InSnapshot0Dir = Files.createTempDirectory(snapshot0Dir, "partition1_");
     partition2InSnapshot0Dir = Files.createTempDirectory(snapshot0Dir, "partition2_");
@@ -303,7 +305,7 @@ class BeekeeperVacuumToolApplicationTest {
     sd.setLocation("file:" + snapshot1Dir.toAbsolutePath().toString());
     table.setSd(sd);
     table.setPartitionKeys(Collections.emptyList());
-    //create another directory at the same level as the snapshot directory
+    // create another directory at the same level as the snapshot directory
     snapshot0Dir = Files.createTempDirectory(tableDir, "snapshot0_");
     File file = File.createTempFile("000000_", null, snapshot0Dir.toFile());
     writeContentToFiles(file.toPath(), file.toPath(), file.toPath());

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2022 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.metadata.cleanup.TestApplication;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
@@ -338,7 +339,7 @@ public class PagingMetadataCleanupServiceTest {
         .housekeepingStatus(housekeepingStatus)
         .creationTimestamp(localNow)
         .modifiedTimestamp(localNow)
-        .cleanupDelay(Duration.parse("P30D"))
+        .cleanupDelay(PeriodDuration.of(Duration.parse("P30D")))
         .cleanupAttempts(0)
         .lifecycleType(EXPIRED.toString())
         .build();

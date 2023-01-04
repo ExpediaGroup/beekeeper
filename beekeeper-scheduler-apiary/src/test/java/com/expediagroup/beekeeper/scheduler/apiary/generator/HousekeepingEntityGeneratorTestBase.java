@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2022 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.scheduler.apiary.generator.utils.CleanupDelayExtractor;
 
 public abstract class HousekeepingEntityGeneratorTestBase {
@@ -43,11 +44,13 @@ public abstract class HousekeepingEntityGeneratorTestBase {
   protected static final String DATABASE = "database";
   protected static final String TABLE = "table";
   protected static final Integer CLEANUP_ATTEMPTS = 0;
-  protected static final Duration CLEANUP_DELAY = Duration.ofDays(30L);
+  protected static final PeriodDuration CLEANUP_DELAY = PeriodDuration.of(Duration.ofDays(30L));
   protected static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2020-01-01T00:00:00.00Z"), ZoneId.of("UTC"));
 
-  @Mock protected CleanupDelayExtractor cleanupDelayExtractor;
-  @Mock protected Clock clock;
+  @Mock
+  protected CleanupDelayExtractor cleanupDelayExtractor;
+  @Mock
+  protected Clock clock;
 
   protected void setupListenerEvent(ListenerEvent listenerEvent, EventType eventType) {
     when(listenerEvent.getDbName()).thenReturn(DATABASE);
@@ -61,7 +64,8 @@ public abstract class HousekeepingEntityGeneratorTestBase {
     when(cleanupDelayExtractor.extractCleanupDelay(listenerEvent)).thenReturn(CLEANUP_DELAY);
   }
 
-  protected void assertHousekeepingEntity(HousekeepingEntity housekeepingEntity,
+  protected void assertHousekeepingEntity(
+      HousekeepingEntity housekeepingEntity,
       LifecycleEventType lifecycleEventType) {
     LocalDateTime creationTimestamp = LocalDateTime.now(FIXED_CLOCK);
     assertThat(LifecycleEventType.valueOf(housekeepingEntity.getLifecycleType())).isEqualTo(lifecycleEventType);

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
 import com.expediagroup.beekeeper.cleanup.hive.HiveClientFactory;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.metadata.cleanup.TestApplication;
 
@@ -114,8 +115,8 @@ public class MetadataDisableTablesServiceTest {
     // insert 3 table records + 3 corresponding partition records
     IntStream
         .range(0, tables.size())
-        .forEach(i -> metadataRepository
-            .save(createHousekeepingMetadata(tables.get(i), paths.get(i), null, SCHEDULED)));
+        .forEach(
+            i -> metadataRepository.save(createHousekeepingMetadata(tables.get(i), paths.get(i), null, SCHEDULED)));
     IntStream
         .range(0, tables.size())
         .forEach(i -> metadataRepository
@@ -187,7 +188,8 @@ public class MetadataDisableTablesServiceTest {
       String path,
       String partitionName,
       HousekeepingStatus housekeepingStatus) {
-    HousekeepingMetadata metadata = HousekeepingMetadata.builder()
+    HousekeepingMetadata metadata = HousekeepingMetadata
+        .builder()
         .path(path)
         .databaseName("database")
         .tableName(tableName)
@@ -195,7 +197,7 @@ public class MetadataDisableTablesServiceTest {
         .housekeepingStatus(housekeepingStatus)
         .creationTimestamp(localNow)
         .modifiedTimestamp(localNow)
-        .cleanupDelay(Duration.parse("P30D"))
+        .cleanupDelay(PeriodDuration.of(Duration.parse("P30D")))
         .cleanupAttempts(0)
         .lifecycleType(EXPIRED.toString())
         .build();

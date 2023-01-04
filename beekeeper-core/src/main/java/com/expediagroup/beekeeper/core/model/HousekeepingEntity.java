@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.expediagroup.beekeeper.core.model;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 import com.expediagroup.beekeeper.core.monitoring.Taggable;
@@ -34,7 +33,7 @@ public interface HousekeepingEntity extends Taggable {
 
   HousekeepingStatus getHousekeepingStatus();
 
-  Duration getCleanupDelay();
+  PeriodDuration getCleanupDelay();
 
   LocalDateTime getCreationTimestamp();
 
