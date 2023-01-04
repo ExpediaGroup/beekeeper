@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.5.1] - 2023-01-04
 ### Fixed
 - Allow cleanup delays to be specified in months or years as well as smaller units by combining the Period and Duration specifications.
+### Changed
+- Version of MySQL container from `8.0.15` to `8.0.26` in the integration tests.
 
-## [3.5.0] - TBD
+## [3.5.0] - 2023-01-04
 ### Fixed
 - Throw exception if `cleanupDelay` can't be parsed instead of returning the default value.
 ### Changed
