@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DISABLED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -72,7 +71,7 @@ public class MetadataDisableTablesServiceTest {
   @BeforeEach
   public void init() {
     Map<String, String> properties = new HashMap<>();
-    properties.put(UNREFERENCED.getTableParameterName(), "true");
+    properties.put(EXPIRED.getTableParameterName(), "true");
     when(hiveClient.getTableProperties(Mockito.any(), Mockito.any())).thenReturn(properties);
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     disableTablesService = new MetadataDisableTablesService(hiveClientFactory, metadataRepository, false);

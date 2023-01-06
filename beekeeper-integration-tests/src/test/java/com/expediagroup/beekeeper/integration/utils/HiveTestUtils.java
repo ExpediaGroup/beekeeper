@@ -57,14 +57,14 @@ public class HiveTestUtils {
   }
 
   public Table createTable(String path, String tableName, boolean partitioned, boolean withBeekeeperProperty)
-      throws TException {
+    throws TException {
     Table hiveTable = new Table();
     hiveTable.setDbName(DATABASE_NAME_VALUE);
     hiveTable.setTableName(tableName);
     hiveTable.setTableType(TableType.EXTERNAL_TABLE.name());
     hiveTable.putToParameters("EXTERNAL", "TRUE");
     if (withBeekeeperProperty) {
-      hiveTable.putToParameters(LifecycleEventType.UNREFERENCED.getTableParameterName(), "true");
+      hiveTable.putToParameters(LifecycleEventType.EXPIRED.getTableParameterName(), "true");
     }
     if (partitioned) {
       hiveTable.setPartitionKeys(PARTITION_COLUMNS);
@@ -88,24 +88,18 @@ public class HiveTestUtils {
    * @param hiveTable Table to add partitions to
    * @param partitionValues The list of partition values, e.g. ["2020-01-01", "0", "A"]
    * @throws Exception May be thrown if there is a problem when trying to write the data to the file, or when the client
-   *                   adds the partition to the table.
+   *           adds the partition to the table.
    */
-  public void addPartitionsToTable(
-      String path,
-      Table hiveTable,
-      List<String> partitionValues)
-      throws Exception {
+  public void addPartitionsToTable(String path, Table hiveTable, List<String> partitionValues) throws Exception {
     String eventDate = "/event_date=" + partitionValues.get(0); // 2020-01-01
     String eventHour = eventDate + "/event_hour=" + partitionValues.get(1); // 0
     String eventType = eventHour + "/event_type=" + partitionValues.get(2); // A
     URI partitionUri = URI.create(path + eventType);
 
     metastoreClient
-        .add_partitions(
-            Collections
-                .singletonList(newTablePartition(hiveTable,
-                    List.of(partitionValues.get(0), partitionValues.get(1), partitionValues.get(2)),
-                    partitionUri)));
+        .add_partitions(Collections
+            .singletonList(newTablePartition(hiveTable,
+                List.of(partitionValues.get(0), partitionValues.get(1), partitionValues.get(2)), partitionUri)));
   }
 
   private Partition newTablePartition(Table hiveTable, List<String> values, URI location) {
