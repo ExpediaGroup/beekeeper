@@ -143,6 +143,6 @@ public interface HousekeepingMetadataRepository
    */
   @Modifying
   @Query(value = "delete from HousekeepingMetadata t where t.cleanupTimestamp < :instant "
-      + "and t.housekeepingStatus = 'DELETED' or t.housekeepingStatus = 'DISABLED'")
+      + "and (t.housekeepingStatus = 'DELETED' or t.housekeepingStatus = 'DISABLED')")
   void cleanUpOldDeletedRecords(@Param("instant") LocalDateTime instant);
 }

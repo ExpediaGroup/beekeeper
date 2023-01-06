@@ -430,14 +430,18 @@ public class HousekeepingMetadataRepositoryTest {
   @Test
   @Transactional
   public void cleanUpOldDeletedRecordsNothingToDelete() {
-    HousekeepingMetadata housekeepingTable = createPartitionedEntityHousekeepingTable(CLEANUP_TIMESTAMP.plus(1, HOURS),
+    HousekeepingMetadata housekeepingTable1 = createPartitionedEntityHousekeepingTable(CLEANUP_TIMESTAMP.plus(1, HOURS),
         DELETED);
-    housekeepingMetadataRepository.save(housekeepingTable);
+    HousekeepingMetadata housekeepingTable2 = createPartitionedEntityHousekeepingTable(CLEANUP_TIMESTAMP.plus(1, HOURS),
+        DISABLED);
+    housekeepingMetadataRepository.save(housekeepingTable1);
+    housekeepingMetadataRepository.save(housekeepingTable2);
 
     housekeepingMetadataRepository.cleanUpOldDeletedRecords(CLEANUP_TIMESTAMP);
     List<HousekeepingMetadata> remainingPaths = Lists.newArrayList(housekeepingMetadataRepository.findAll());
-    assertThat(remainingPaths.size()).isEqualTo(1);
-    assertThat(remainingPaths.get(0)).isEqualTo(housekeepingTable);
+    assertThat(remainingPaths.size()).isEqualTo(2);
+    assertThat(remainingPaths.get(0)).isEqualTo(housekeepingTable1);
+    assertThat(remainingPaths.get(1)).isEqualTo(housekeepingTable2);
   }
 
   @Test
