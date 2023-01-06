@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package com.expediagroup.beekeeper.metadata.cleanup.service;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DISABLED;
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,7 +45,8 @@ public class MetadataDisableTablesService implements DisableTablesService {
 
   public MetadataDisableTablesService(
       CleanerClientFactory cleanerClientFactory,
-      HousekeepingMetadataRepository housekeepingMetadataRepository, boolean dryRunEnabled) {
+      HousekeepingMetadataRepository housekeepingMetadataRepository,
+      boolean dryRunEnabled) {
     this.cleanerClientFactory = cleanerClientFactory;
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
     this.dryRunEnabled = dryRunEnabled;
@@ -63,8 +64,8 @@ public class MetadataDisableTablesService implements DisableTablesService {
     if (!tableHasBeekeeperProperty(table)) {
       log.info("Disabling table {}.{}", table.getDatabaseName(), table.getTableName());
       if (!dryRunEnabled) {
-        housekeepingMetadataRepository.deleteScheduledOrFailedPartitionRecordsForTable(table.getDatabaseName(),
-            table.getTableName());
+        housekeepingMetadataRepository
+            .deleteScheduledOrFailedPartitionRecordsForTable(table.getDatabaseName(), table.getTableName());
         table.setHousekeepingStatus(DISABLED);
         housekeepingMetadataRepository.save(table);
       }
@@ -73,9 +74,8 @@ public class MetadataDisableTablesService implements DisableTablesService {
 
   private boolean tableHasBeekeeperProperty(HousekeepingMetadata metadata) {
     try (CleanerClient client = cleanerClientFactory.newInstance()) {
-      Map<String, String> properties = client.getTableProperties(metadata.getDatabaseName(),
-          metadata.getTableName());
-      String beekeeperProperty = properties.get(UNREFERENCED.getTableParameterName());
+      Map<String, String> properties = client.getTableProperties(metadata.getDatabaseName(), metadata.getTableName());
+      String beekeeperProperty = properties.get(EXPIRED.getTableParameterName());
       return "true".equals(beekeeperProperty);
     } catch (IOException e) {
       throw new BeekeeperException("Can't instantiate cleaner client.", e);
