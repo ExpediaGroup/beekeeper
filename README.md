@@ -85,6 +85,7 @@ To see whether a table has been configured to use the TTL feature, the `beekeepe
 **TTL Caveats**
 
 Currently with the first release of Beekeeper TTL there are the following issues:
+- If you add the TTL property to a partitioned table any existing partitions will not be scheduled for deletion. They will be deleted along with the table when the TTL delay is met.
 - If a table or partition is dropped by a user before the expiration time the related paths will become unreferenced and won’t be cleaned up. 
     - This can be avoided by also adding the "unreferenced" property to the table, see the [unreferenced paths](#unreferenced-paths) section. However, this property listens to any drop event on that table and we haven’t yet configured Beekeeper to ignore drop events made by itself. So this will mean that any path for a table/partition dropped by Beekeeper during the TTL cleanup will be scheduled for deletion again in the unreferenced cleanup table.
 - If a partitioned table with existing partitions is renamed, these partitions will not be dropped until the table has expired. 
@@ -124,7 +125,7 @@ Or alter an existing table:
 ALTER TABLE <table> SET TBLPROPERTIES("beekeeper.remove.expired.data"="true", "beekeeper.expired.data.retention.period"="PT1H");
 ```
 
-*NOTE - if you add this property to a partitioned table any existing partitions will not be scheduled for deletion. They will be deleted along with the table when the TTL delay is met.*
+**NOTE - if you add this property to a partitioned table any existing partitions will not be scheduled for deletion. They will be deleted along with the table when the TTL delay is met.**
 
 # Running Beekeeper
 
