@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,19 @@
  */
 package com.expediagroup.beekeeper.api.conf;
 
-import static springfox.documentation.spi.DocumentationType.SWAGGER_2;
 
+import org.springdoc.core.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
-
-@EnableSwagger2
 @Configuration
 public class SwaggerConfiguration {
 
   @Bean
-  public Docket api() {
-    return new Docket(SWAGGER_2)
-        .select()
-        .apis(RequestHandlerSelectors.basePackage("com.expediagroup.beekeeper.api.controller"))
-        .paths(PathSelectors.any())
+  public GroupedOpenApi api() {
+    return GroupedOpenApi.builder()
+        .group("beekeeper-api-service")
+        .packagesToScan("com.expediagroup.beekeeper.api.controller")
         .build();
   }
 }
