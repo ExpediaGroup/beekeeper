@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Upgrade `Springboot` from `2.4.4` to `2.7.9`.
 - Migrate using `springfox` to `springdoc` due to incompatibilities with `spring boot 2.6+` actuators.
-- Upgrade `micrometer` to `1.10.4` due to incompatibility issues with spring boot version.
+- Removed `micrometer` version from `beekeeper-vacuum-tool` to be the same as managed by `beekeeper/pom.xml`'s dependencies.
+- Upgrade `specification-args-resolver` version to be compatible with `springdoc`.
 
 ## [3.5.2] - 2023-01-06
 ### Fixed
