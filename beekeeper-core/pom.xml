@@ -10,10 +10,6 @@
 
   <artifactId>beekeeper-core</artifactId>
 
-  <properties>
-    <micrometer.version>1.10.4</micrometer.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>ch.qos.logback</groupId>
@@ -52,17 +48,14 @@
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-core</artifactId>
-      <version>${micrometer.version}</version>
     </dependency>
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-graphite</artifactId>
-      <version>${micrometer.version}</version>
     </dependency>
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-prometheus</artifactId>
-      <version>${micrometer.version}</version>
     </dependency>
 
     <!-- test -->
