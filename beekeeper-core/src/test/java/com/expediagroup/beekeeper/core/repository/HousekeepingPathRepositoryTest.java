@@ -132,8 +132,10 @@ public class HousekeepingPathRepositoryTest {
     assertThat(paths.size()).isEqualTo(1);
 
     HousekeepingPath savedPath = paths.get(0);
-    int utcHour = LocalDateTime.now(ZoneId.of("UTC")).getHour();
-    assertThat(savedPath.getCleanupTimestamp().getHour()).isEqualTo(utcHour + 1);
+    LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("UTC"));
+    int utcHour = localDateTime.getHour();
+    int cleanUpUTCHour = localDateTime.plusHours(1).getHour();
+    assertThat(savedPath.getCleanupTimestamp().getHour()).isEqualTo(cleanUpUTCHour);
     assertThat(savedPath.getModifiedTimestamp().getHour()).isEqualTo(utcHour);
     assertThat(savedPath.getCreationTimestamp().getHour()).isEqualTo(utcHour);
   }
