@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.3] - 2023-03-08
+### Changed
+- Upgrade `Springboot` from `2.4.4` to `2.7.9`.
+- Upgrade `Spring framework` from `5.3.5` to `5.3.25`.
+- Migrate using `springfox` to `springdoc` due to incompatibilities with `spring boot 2.6+` actuators.
+- Removed `micrometer` version from `beekeeper-vacuum-tool` to be the same as managed by `beekeeper/pom.xml`'s dependencies.
+- Upgrade `specification-arg-resolver` version from `2.6.1` to `2.18.1` to be compatible with `springdoc`.
+
 ## [3.5.2] - 2023-01-06
 ### Fixed
 - `cleanUpOldDeletedRecords` status check to not delete `DISABLED` entries immediately. 

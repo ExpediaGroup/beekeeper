@@ -10,8 +10,8 @@
   <artifactId>beekeeper-api</artifactId>
 
   <properties>
-    <specification-arg-resolver.version>2.6.1</specification-arg-resolver.version>
-    <springfox.swagger.version>2.9.2</springfox.swagger.version>
+    <specification-arg-resolver.version>2.18.1</specification-arg-resolver.version>
+    <springdoc.version>1.6.14</springdoc.version>
   </properties>
 
   <dependencies>
@@ -40,16 +40,12 @@
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
+      <version>8.0.17</version>
     </dependency>
     <dependency>
-      <groupId>io.springfox</groupId>
-      <artifactId>springfox-swagger2</artifactId>
-      <version>${springfox.swagger.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.springfox</groupId>
-      <artifactId>springfox-swagger-ui</artifactId>
-      <version>${springfox.swagger.version}</version>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-ui</artifactId>
+      <version>${springdoc.version}</version>
     </dependency>
 
     <!-- test -->

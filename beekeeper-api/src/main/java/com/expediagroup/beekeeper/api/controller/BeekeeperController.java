@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.api.controller;
 
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import net.kaczmarzyk.spring.data.jpa.domain.EqualIgnoreCase;
 import net.kaczmarzyk.spring.data.jpa.domain.GreaterThan;
 import net.kaczmarzyk.spring.data.jpa.domain.LessThan;
@@ -49,10 +52,20 @@ public class BeekeeperController {
   }
 
   @RequestMapping(value = "/database/{databaseName}/table/{tableName}/metadata", method = RequestMethod.GET)
+  @Parameter(name = "tableName", in = ParameterIn.PATH)
+  @Parameter(name = "databaseName", in = ParameterIn.PATH)
+  @Parameter(name = "path", in = ParameterIn.QUERY)
+  @Parameter(name = "partition_name", in = ParameterIn.QUERY)
+  @Parameter(name = "housekeeping_status", in = ParameterIn.QUERY)
+  @Parameter(name = "lifecycle_type", in = ParameterIn.QUERY)
+  @Parameter(name = "deleted_before", in = ParameterIn.QUERY)
+  @Parameter(name = "deleted_after", in = ParameterIn.QUERY)
+  @Parameter(name = "registered_before", in = ParameterIn.QUERY)
+  @Parameter(name = "registered_after", in = ParameterIn.QUERY)
   public ResponseEntity<Page<HousekeepingMetadataResponse>> getAllMetadata(
       @PathVariable String databaseName,
       @PathVariable String tableName,
-      @And({
+      @Parameter(hidden = true) @And(value = {
           @Spec(path = "tableName", pathVars = "tableName", spec = EqualIgnoreCase.class),
           @Spec(path = "databaseName", pathVars = "databaseName", spec = EqualIgnoreCase.class),
           @Spec(path = "path", params = "path", spec = EqualIgnoreCase.class),
@@ -63,16 +76,26 @@ public class BeekeeperController {
           @Spec(path = "cleanupTimestamp", params = "deleted_after", spec = GreaterThan.class),
           @Spec(path = "creationTimestamp", params = "registered_before", spec = LessThan.class),
           @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class) }) Specification<HousekeepingMetadata> spec,
-      Pageable pageable) {
+      @ParameterObject Pageable pageable) {
     return ResponseEntity.ok(housekeepingEntityService.getAllMetadata(spec, pageable));
   }
 
 
   @RequestMapping(value = "/database/{databaseName}/table/{tableName}/unreferenced-paths", method = RequestMethod.GET)
+  @Parameter(name = "tableName", in = ParameterIn.PATH)
+  @Parameter(name = "databaseName", in = ParameterIn.PATH)
+  @Parameter(name = "path", in = ParameterIn.QUERY)
+  @Parameter(name = "partition_name", in = ParameterIn.QUERY)
+  @Parameter(name = "housekeeping_status", in = ParameterIn.QUERY)
+  @Parameter(name = "lifecycle_type", in = ParameterIn.QUERY)
+  @Parameter(name = "deleted_before", in = ParameterIn.QUERY)
+  @Parameter(name = "deleted_after", in = ParameterIn.QUERY)
+  @Parameter(name = "registered_before", in = ParameterIn.QUERY)
+  @Parameter(name = "registered_after", in = ParameterIn.QUERY)
   public ResponseEntity<Page<HousekeepingPathResponse>> getAllPaths(
       @PathVariable String databaseName,
       @PathVariable String tableName,
-      @And({
+      @Parameter(hidden = true) @And(value ={
           @Spec(path = "tableName", pathVars = "tableName", spec = EqualIgnoreCase.class),
           @Spec(path = "databaseName", pathVars = "databaseName", spec = EqualIgnoreCase.class),
           @Spec(path = "path", params = "path", spec = EqualIgnoreCase.class),
