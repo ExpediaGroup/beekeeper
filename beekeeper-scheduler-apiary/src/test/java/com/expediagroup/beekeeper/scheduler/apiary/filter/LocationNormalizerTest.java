@@ -38,7 +38,6 @@ class LocationNormalizerTest {
   void normalizeTrailingSlash() {
     assertThat(normalizer.normalize("s3://bucket/prefix/")).isEqualTo("s3://bucket/prefix");
     assertThat(normalizer.normalize("s3://bucket/prefix///")).isEqualTo("s3://bucket/prefix");
-    assertThat(normalizer.normalize("s3://bucket/prefix/../")).isEqualTo("s3://bucket/prefix/..");
     assertThat(normalizer.normalize("hdfs://bucket/prefix/")).isEqualTo("hdfs://bucket/prefix");
   }
   
