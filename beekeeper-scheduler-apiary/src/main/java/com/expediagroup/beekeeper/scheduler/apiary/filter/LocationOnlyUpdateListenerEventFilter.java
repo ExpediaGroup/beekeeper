@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,18 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 @Component
 public class LocationOnlyUpdateListenerEventFilter implements ListenerEventFilter {
+  
+  private final LocationNormalizer locationNormalizer;
+  
+  public LocationOnlyUpdateListenerEventFilter () {
+    this.locationNormalizer = new LocationNormalizer();
+  }
 
+  public LocationOnlyUpdateListenerEventFilter (LocationNormalizer locationNormaliser) {
+    this.locationNormalizer = locationNormaliser;
+  }
+
+  
   @Override
   public boolean isFiltered(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     EventType eventType = listenerEvent.getEventType();
@@ -44,6 +55,11 @@ public class LocationOnlyUpdateListenerEventFilter implements ListenerEventFilte
   }
 
   private boolean isLocationSame(String oldLocation, String location) {
-    return location == null || oldLocation == null || oldLocation.equals(location);
+    if (location == null || oldLocation == null) {
+      return true;
+    }
+    String normalizedOldLocation = locationNormalizer.normalize(oldLocation);
+    String normalizedLocation = locationNormalizer.normalize(location);
+    return normalizedOldLocation.equals(normalizedLocation);
   }
 }

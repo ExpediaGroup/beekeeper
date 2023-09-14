@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,6 +109,43 @@ public class LocationOnlyUpdateListenerEventFilterTest {
     when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
     when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(null);
     when(alterPartitionEvent.getPartitionLocation()).thenReturn(NEW_LOCATION);
+    boolean filter = locationOnlyUpdateListenerEventFilter.isFiltered(alterPartitionEvent, UNREFERENCED);
+    assertThat(filter).isTrue();
+  }
+
+  @Test
+  public void alterTableEventMetadataLocationTrailingSlashOldShouldFilter() {
+    when(alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
+    when(alterTableEvent.getOldTableLocation()).thenReturn("/foo/bar/");
+    when(alterTableEvent.getTableLocation()).thenReturn("/foo/bar");
+    boolean filter = locationOnlyUpdateListenerEventFilter.isFiltered(alterTableEvent, UNREFERENCED);
+    assertThat(filter).isTrue();
+  }
+
+  @Test
+  public void alterPartitionEventMetadataLocationTrailingSlashOldShouldFilter() {
+    when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
+    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn("/foo/bar/");
+    when(alterPartitionEvent.getPartitionLocation()).thenReturn("/foo/bar");
+    boolean filter = locationOnlyUpdateListenerEventFilter.isFiltered(alterPartitionEvent, UNREFERENCED);
+    assertThat(filter).isTrue();
+  }
+
+  
+  @Test
+  public void alterTableEventMetadataLocationTrailingSlashNewShouldFilter() {
+    when(alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
+    when(alterTableEvent.getOldTableLocation()).thenReturn("/foo/bar");
+    when(alterTableEvent.getTableLocation()).thenReturn("/foo/bar/");
+    boolean filter = locationOnlyUpdateListenerEventFilter.isFiltered(alterTableEvent, UNREFERENCED);
+    assertThat(filter).isTrue();
+  }
+
+  @Test
+  public void alterPartitionEventMetadataLocationTrailingSlashNewShouldFilter() {
+    when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
+    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn("/foo/bar");
+    when(alterPartitionEvent.getPartitionLocation()).thenReturn("/foo/bar/");
     boolean filter = locationOnlyUpdateListenerEventFilter.isFiltered(alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
   }
