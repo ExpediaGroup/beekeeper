@@ -181,9 +181,105 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     Page<HousekeepingPathResponse> responsePage = mapper
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingPathResponse>>() {});
     List<HousekeepingPathResponse> result = responsePage.getContent();
-
+    assertThat(responsePage.getTotalElements()).isEqualTo(1L);
     assertThatPathsEqualsResponse(testPath1, result.get(0));
     assertThat(result.size()).isEqualTo(1);
+  }
+
+  @Test
+  public void testPathsPageable() throws SQLException, InterruptedException, IOException {
+    // Test the total elements on different pages by setting the page size to 1.
+    int pageSize = 1;
+
+    // Create three new HousekeepingPath objects
+    HousekeepingPath testPath1 = createHousekeepingPath("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED,
+        Duration.parse("P3D").toString());
+    HousekeepingPath testPath2 = createHousekeepingPath("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.UNREFERENCED,
+        Duration.parse("P3D").toString());
+    HousekeepingPath testPath3 = createHousekeepingPath("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=D", LifecycleEventType.UNREFERENCED,
+        Duration.parse("P3D").toString());
+
+    // Set the housekeepingStatus and cleanupTimestamp properties
+    testPath1.setHousekeepingStatus(HousekeepingStatus.FAILED);
+    testPath2.setHousekeepingStatus(HousekeepingStatus.FAILED);
+    testPath3.setHousekeepingStatus(HousekeepingStatus.FAILED);
+    testPath1.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
+    testPath2.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
+    testPath3.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
+
+    // Insert the three objects into the database
+    insertUnreferencedPath(testPath1);
+    insertUnreferencedPath(testPath2);
+    insertUnreferencedPath(testPath3);
+
+    // Call the getUnreferencedPaths() method with the relevant filters
+    String filters = "?housekeeping_status=FAILED&page=1&size=" + pageSize; // Concat the pageSize set initially
+    HttpResponse<String> response = testClient.getUnreferencedPaths("some_database", "some_table", filters);
+
+    // Assert that the response contains the entries in the database
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    Page<HousekeepingPathResponse> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingPathResponse>>() {});
+    List<HousekeepingPathResponse> result = responsePage.getContent();
+
+    // Assert that each page contains exactly one element
+    assertThat(result.size()).isEqualTo(1);
+    // Assert that there are a total of three elements
+    assertThat(responsePage.getTotalElements()).isEqualTo(3L);
+    // Assert that there are a total of three pages.
+    assertThat(responsePage.getTotalPages()).isEqualTo(3L);
+  }
+
+  @Test
+  public void testMetadataPageable() throws SQLException, InterruptedException, IOException {
+    // Test the total elements on different pages by setting the page size to 1.
+    int pageSize = 1;
+
+    // Create three new HousekeepingMetadata objects
+    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A",
+        "event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED, "P3D");
+    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B",
+        "event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.UNREFERENCED, "P3D");
+    HousekeepingMetadata testMetadata3 = createHousekeepingMetadata("some_table",
+        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=C",
+        "event_date=2020-01-01/event_hour=0/event_type=C", LifecycleEventType.UNREFERENCED, "P3D");
+
+    // Set the housekeepingStatus and cleanupTimestamp properties
+    testMetadata1.setHousekeepingStatus(HousekeepingStatus.FAILED);
+    testMetadata2.setHousekeepingStatus(HousekeepingStatus.FAILED);
+    testMetadata3.setHousekeepingStatus(HousekeepingStatus.FAILED);
+    testMetadata1.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
+    testMetadata2.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
+    testMetadata3.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
+
+    // Insert the three objects into the database
+    insertExpiredMetadata(testMetadata1);
+    insertExpiredMetadata(testMetadata2);
+    insertExpiredMetadata(testMetadata3);
+
+    // Call the getUnreferencedPaths() method with the relevant filters
+    String filters = "?housekeeping_status=FAILED&page=1&size=" + pageSize; // Concat the pageSize set initially
+    HttpResponse<String> response = testClient.getMetadata("some_database", "some_table", filters);
+
+    // Assert that the response contains the entries in the database
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    Page<HousekeepingMetadataResponse> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
+    List<HousekeepingMetadataResponse> result = responsePage.getContent();
+
+    // Assert that each page contains exactly one element
+    assertThat(result.size()).isEqualTo(1);
+    // Assert that there are a total of three elements
+    assertThat(responsePage.getTotalElements()).isEqualTo(3L);
+    // Assert that there are a total of three pages.
+    assertThat(responsePage.getTotalPages()).isEqualTo(3L);
   }
 
   // This test is to manually test the API

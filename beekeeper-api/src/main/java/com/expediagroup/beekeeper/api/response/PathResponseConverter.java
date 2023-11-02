@@ -51,12 +51,16 @@ public class PathResponseConverter {
   public static Page<HousekeepingPathResponse> convertToHousekeepingPathResponsePage(
       Page<HousekeepingPath> housekeepingPathPage) {
     List<HousekeepingPath> housekeepingPathList = housekeepingPathPage.getContent();
+    //Create a new ArrayList to store the HousekeepingPathResponse objects.
     List<HousekeepingPathResponse> housekeepingPathResponseList = new ArrayList<>();
+    //Iterate over the list of HousekeepingPath objects and convert each one to a HousekeepingPathResponse object.
     for (HousekeepingPath housekeepingPath : housekeepingPathList) {
       HousekeepingPathResponse housekeepingPathResponse = convertToHousekeepingPathResponse(housekeepingPath);
       housekeepingPathResponseList.add(housekeepingPathResponse);
     }
-    return new PageImpl<>(housekeepingPathResponseList);
+    PageImpl<HousekeepingPathResponse> HousekeepingPathResponses = new PageImpl<>(
+        housekeepingPathResponseList, housekeepingPathPage.getPageable(), housekeepingPathPage.getTotalElements());
+    return HousekeepingPathResponses;
   }
 
 }
