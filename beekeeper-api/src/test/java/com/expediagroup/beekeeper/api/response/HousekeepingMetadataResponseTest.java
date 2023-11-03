@@ -21,11 +21,13 @@ import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingEntityGenerator.generateDummyHousekeepingMetadata;
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingEntityGenerator.generateDummyHousekeepingMetadataResponse;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
@@ -51,4 +53,22 @@ public class HousekeepingMetadataResponseTest {
     assertThat(metadataResponsePage.getPageable()).isEqualTo((new PageImpl<>(housekeepingMetadataList).getPageable()));
   }
 
+  @Test
+  public void testConvertToHouseKeepingMetadataResponsePageWithMultiplePages() {
+    // Create a list of housekeeping metadata objects that is larger than the page size
+    List<HousekeepingMetadata> housekeepingMetadataList = new ArrayList<>();
+    for (int i = 0; i < 50; i++) {
+      housekeepingMetadataList.add(generateDummyHousekeepingMetadata("some_database" + i, "some_table" + i));
+    }
+
+    // Create a page of housekeeping metadata objects
+    Page<HousekeepingMetadata> metadataPage = new PageImpl<>(housekeepingMetadataList, PageRequest.of(0, 10), 50);
+
+    // Convert the page of housekeeping metadata objects to a page of housekeeping metadata response objects
+    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(metadataPage);
+
+    // Assert that the housekeeping metadata response page has the correct total elements and total pages
+    assertThat(metadataResponsePage.getTotalElements()).isEqualTo(50L);
+    assertThat(metadataResponsePage.getTotalPages()).isEqualTo(5L);
+  }
 }
