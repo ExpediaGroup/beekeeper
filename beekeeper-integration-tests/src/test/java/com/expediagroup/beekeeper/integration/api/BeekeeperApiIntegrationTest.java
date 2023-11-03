@@ -225,9 +225,9 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HousekeepingMetadata testMetadata3 = createHousekeepingMetadata(someTable, pathC, partitionC, LifecycleEventType.EXPIRED, duration.toString());
 
     // Set the housekeepingStatus and cleanupTimestamp properties
-    testMetadata1.setHousekeepingStatus(HousekeepingStatus.FAILED);
-    testMetadata2.setHousekeepingStatus(HousekeepingStatus.FAILED);
-    testMetadata3.setHousekeepingStatus(HousekeepingStatus.FAILED);
+    for (HousekeepingMetadata testPath : Arrays.asList(testMetadata1, testMetadata2, testMetadata3)) {
+      testPath.setHousekeepingStatus(HousekeepingStatus.FAILED);
+      }
 
     // Insert the three objects into the database
     for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadata1, testMetadata2, testMetadata3)) {
