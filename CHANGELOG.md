@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated 'MetadataResponseConverter' and 'PathResponseConverter' to fix the conversion of the Pageable object.
   
 ### Fixed
-- Updated existing and added new unit and integration tests 
+- Updated existing and added new unit and integration tests.
 
 ## [3.5.4] - 2023-09-14
 ### Fixed
