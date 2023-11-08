@@ -37,9 +37,7 @@ public final class MetadataResponseConverter {
   public static Page<HousekeepingMetadataResponse> convertToHousekeepingMetadataResponsePage(
       Page<HousekeepingMetadata> housekeepingMetadataPage) {
     List<HousekeepingMetadata> housekeepingMetadataList = housekeepingMetadataPage.getContent();
-    //Create a new ArrayList to store the HousekeepingMetadataResponse objects.
     List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
-    //Iterate over the list of HousekeepingMetadata objects and convert each one to a HousekeepingMetadataResponse object.
     for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
       HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHousekeepingMetadataResponse(housekeepingMetadata);
       housekeepingMetadataResponseList.add(housekeepingMetadataResponse);

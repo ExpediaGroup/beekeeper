@@ -186,32 +186,26 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   @Test
   public void testPathsPageable() throws SQLException, InterruptedException, IOException {
 
-    // Create three new HousekeepingPath objects
     HousekeepingPath testPath1 = createHousekeepingPath(someTable, pathA, LifecycleEventType.EXPIRED, duration.toString());
     HousekeepingPath testPath2 = createHousekeepingPath(someTable, pathB, LifecycleEventType.UNREFERENCED, duration.toString());
     HousekeepingPath testPath3 = createHousekeepingPath(someTable, pathC, LifecycleEventType.UNREFERENCED, duration.toString());
 
-    // Set the housekeepingStatus for all test paths as FAILED
     for (HousekeepingPath testPath : Arrays.asList(testPath1, testPath2, testPath3)) {
       testPath.setHousekeepingStatus(HousekeepingStatus.FAILED);
     }
 
-    // Insert the three objects into the database
     for (HousekeepingPath testPath : Arrays.asList(testPath1, testPath2, testPath3)) {
       insertUnreferencedPath(testPath);
     }
 
-    // Call the getUnreferencedPaths() method with the relevant filters
     String filters = "?housekeeping_status=FAILED&page=1&size=" + pageSize;
     HttpResponse<String> response = testClient.getUnreferencedPaths(someDatabase, someTable, filters);
 
-    // Assert that the response contains the entries in the database
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingPathResponse> responsePage = mapper
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingPathResponse>>() {});
     List<HousekeepingPathResponse> result = responsePage.getContent();
-
     assertThat(result).hasSize(1);
     assertThat(responsePage.getTotalElements()).isEqualTo(3L);
     assertThat(responsePage.getTotalPages()).isEqualTo(3L);
@@ -219,32 +213,26 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   @Test
   public void testMetadataPageable() throws SQLException, InterruptedException, IOException {
-    // Create three new HousekeepingMetadata objects
     HousekeepingMetadata testMetadata1 = createHousekeepingMetadata(someTable, pathA, partitionA, LifecycleEventType.EXPIRED, duration.toString());
     HousekeepingMetadata testMetadata2 = createHousekeepingMetadata(someTable, pathB, partitionB, LifecycleEventType.EXPIRED, duration.toString());
     HousekeepingMetadata testMetadata3 = createHousekeepingMetadata(someTable, pathC, partitionC, LifecycleEventType.EXPIRED, duration.toString());
 
-    // Set the housekeepingStatus and cleanupTimestamp properties
     for (HousekeepingMetadata testPath : Arrays.asList(testMetadata1, testMetadata2, testMetadata3)) {
       testPath.setHousekeepingStatus(HousekeepingStatus.FAILED);
       }
 
-    // Insert the three objects into the database
     for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadata1, testMetadata2, testMetadata3)) {
       insertExpiredMetadata(testMetadata);
     }
 
-    // Call the getUnreferencedPaths() method with the relevant filters
     String filters = "?housekeeping_status=FAILED&page=1&size=" + pageSize;
     HttpResponse<String> response = testClient.getMetadata(someDatabase, someTable, filters);
 
-    // Assert that the response contains the entries in the database
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
-
     assertThat(result).hasSize(1);
     assertThat(responsePage.getTotalElements()).isEqualTo(3L);
     assertThat(responsePage.getTotalPages()).isEqualTo(3L);

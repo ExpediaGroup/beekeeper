@@ -55,19 +55,14 @@ public class HousekeepingMetadataResponseTest {
 
   @Test
   public void testConvertToHouseKeepingMetadataResponsePageWithMultiplePages() {
-    // Create a list of housekeeping metadata objects that is larger than the page size
     List<HousekeepingMetadata> housekeepingMetadataList = new ArrayList<>();
     for (int i = 0; i < 50; i++) {
       housekeepingMetadataList.add(generateDummyHousekeepingMetadata("some_database" + i, "some_table" + i));
     }
 
-    // Create a page of housekeeping metadata objects
     Page<HousekeepingMetadata> metadataPage = new PageImpl<>(housekeepingMetadataList, PageRequest.of(0, 10), 50);
-
-    // Convert the page of housekeeping metadata objects to a page of housekeeping metadata response objects
     Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(metadataPage);
 
-    // Assert that the housekeeping metadata response page has the correct total elements and total pages
     assertThat(metadataResponsePage.getTotalElements()).isEqualTo(50L);
     assertThat(metadataResponsePage.getTotalPages()).isEqualTo(5L);
   }
