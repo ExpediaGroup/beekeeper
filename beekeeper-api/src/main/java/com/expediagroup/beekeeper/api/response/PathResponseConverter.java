@@ -56,7 +56,7 @@ public class PathResponseConverter {
       HousekeepingPathResponse housekeepingPathResponse = convertToHousekeepingPathResponse(housekeepingPath);
       housekeepingPathResponseList.add(housekeepingPathResponse);
     }
-    PageImpl<HousekeepingPathResponse> HousekeepingPathResponses = new PageImpl<>(
+    PageImpl<HousekeepingPathResponse> housekeepingPathResponses = new PageImpl<>(
         housekeepingPathResponseList, housekeepingPathPage.getPageable(), housekeepingPathPage.getTotalElements());
     return HousekeepingPathResponses;
   }
