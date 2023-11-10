@@ -133,7 +133,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HousekeepingMetadata testMetadata2 = testMetadataD;
     HousekeepingMetadata testMetadata3 = testMetadataE;
 
-//    testMetadata1.setHousekeepingStatus(HousekeepingStatus.FAILED);
+    testMetadata1.setHousekeepingStatus(HousekeepingStatus.FAILED);
     testMetadata1.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
     testMetadata1.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
 
