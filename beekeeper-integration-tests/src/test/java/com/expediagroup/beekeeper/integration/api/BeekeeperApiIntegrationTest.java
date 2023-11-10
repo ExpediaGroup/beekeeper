@@ -112,10 +112,8 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   @Test
   public void testGetMetadataWhenTableNotFoundReturnsEmptyList()
     throws SQLException, InterruptedException, IOException {
-    HousekeepingMetadata testMetadata1 = testMetadataB;
-    HousekeepingMetadata testMetadata2 = testMetadataC;
 
-    for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadata1, testMetadata2)) {
+    for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadataB, testMetadataC)) {
       insertExpiredMetadata(testMetadata);
     }
 
@@ -129,15 +127,11 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   @Test
   public void testGetMetadataWhenThereIsFiltering() throws SQLException, InterruptedException, IOException {
-    HousekeepingMetadata testMetadata1 = testMetadataA;
-    HousekeepingMetadata testMetadata2 = testMetadataD;
-    HousekeepingMetadata testMetadata3 = testMetadataE;
+    testMetadataA.setHousekeepingStatus(HousekeepingStatus.FAILED);
+    testMetadataA.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
+    testMetadataA.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
 
-    testMetadata1.setHousekeepingStatus(HousekeepingStatus.FAILED);
-    testMetadata1.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
-    testMetadata1.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
-
-    for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadata1, testMetadata2, testMetadata3)) {
+    for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadataA, testMetadataD, testMetadataE)) {
       insertExpiredMetadata(testMetadata);
     }
 
@@ -155,21 +149,17 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertThatMetadataEqualsResponse(testMetadata1, result.get(0));
+    assertThatMetadataEqualsResponse(testMetadataA, result.get(0));
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testGetPathsWhenThereIsFiltering() throws SQLException, InterruptedException, IOException {
-    HousekeepingPath testPath1 = testPathA;
-    HousekeepingPath testPath2 = testPathB;
-    HousekeepingPath testPath3 = testPathC;
+    testPathA.setHousekeepingStatus(HousekeepingStatus.FAILED);
+    testPathA.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
+    testPathA.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
 
-    testPath1.setHousekeepingStatus(HousekeepingStatus.FAILED);
-    testPath1.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
-    testPath1.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
-
-    for (HousekeepingPath testPath : Arrays.asList(testPath1, testPath2, testPath3)) {
+    for (HousekeepingPath testPath : Arrays.asList(testPathA, testPathB, testPathC)) {
       insertUnreferencedPath(testPath);
     }
     String filters = "?housekeeping_status=FAILED"
@@ -185,21 +175,18 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingPathResponse>>() {});
     List<HousekeepingPathResponse> result = responsePage.getContent();
     assertThat(responsePage.getTotalElements()).isEqualTo(1L);
-    assertThatPathsEqualsResponse(testPath1, result.get(0));
+    assertThatPathsEqualsResponse(testPathA, result.get(0));
     assertThat(result).hasSize(1);
   }
 
   @Test
   public void testPathsPageable() throws SQLException, InterruptedException, IOException {
-    HousekeepingPath testPath1 = testPathA;
-    HousekeepingPath testPath2 = testPathB;
-    HousekeepingPath testPath3 = testPathC;
 
-    for (HousekeepingPath testPath : Arrays.asList(testPath1, testPath2, testPath3)) {
+    for (HousekeepingPath testPath : Arrays.asList(testPathA, testPathB, testPathC)) {
       testPath.setHousekeepingStatus(HousekeepingStatus.FAILED);
     }
 
-    for (HousekeepingPath testPath : Arrays.asList(testPath1, testPath2, testPath3)) {
+    for (HousekeepingPath testPath : Arrays.asList(testPathA, testPathB, testPathC)) {
       insertUnreferencedPath(testPath);
     }
 
@@ -218,15 +205,12 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   @Test
   public void testMetadataPageable() throws SQLException, InterruptedException, IOException {
-    HousekeepingMetadata testMetadata1 = testMetadataA;
-    HousekeepingMetadata testMetadata2 = testMetadataB;
-    HousekeepingMetadata testMetadata3 = testMetadataC;
 
-    for (HousekeepingMetadata testPath : Arrays.asList(testMetadata1, testMetadata2, testMetadata3)) {
+    for (HousekeepingMetadata testPath : Arrays.asList(testMetadataA, testMetadataB, testMetadataC)) {
       testPath.setHousekeepingStatus(HousekeepingStatus.FAILED);
       }
 
-    for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadata1, testMetadata2, testMetadata3)) {
+    for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadataA, testMetadataB, testMetadataC)) {
       insertExpiredMetadata(testMetadata);
     }
 
@@ -247,17 +231,11 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   @Disabled
   @Test
   public void manualTest() throws SQLException, InterruptedException {
-    HousekeepingMetadata testMetadata1 = testMetadataA;
-    HousekeepingMetadata testMetadata2 = testMetadataB;
-    HousekeepingMetadata testMetadata3 = testMetadataC;
-    for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadata1, testMetadata2, testMetadata3)) {
+    for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadataA, testMetadataB, testMetadataC)) {
       insertExpiredMetadata(testMetadata);
     }
 
-    HousekeepingPath testPath1 = testPathA;
-    HousekeepingPath testPath2 = testPathB;
-    HousekeepingPath testPath3 = testPathC;
-    for (HousekeepingPath testPath : Arrays.asList(testPath1, testPath2, testPath3)) {
+    for (HousekeepingPath testPath : Arrays.asList(testPathA, testPathB, testPathC)) {
       insertUnreferencedPath(testPath);
     }
 
