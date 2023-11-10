@@ -67,14 +67,10 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   public ObjectMapper geObjectMapper() {
     return new ObjectMapper().registerModule(new ParameterNamesModule()).registerModule(new JavaTimeModule());
   }
-
   private static final Logger log = LoggerFactory.getLogger(BeekeeperApiIntegrationTest.class);
-
   protected static ConfigurableApplicationContext context;
   protected BeekeeperApiTestClient testClient;
-
   protected final ObjectMapper mapper = geObjectMapper();
-
   private Long id = 1L;
   protected static final String someTable = "some_table";
   protected static final String someDatabase = "some_database";
@@ -86,7 +82,14 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   protected static final String partitionA = "event_date=2020-01-01/event_hour=0/event_type=A";
   protected static final String partitionB = "event_date=2020-01-01/event_hour=0/event_type=B";
   protected static final String partitionC = "event_date=2020-01-01/event_hour=0/event_type=C";
-
+  protected final HousekeepingPath testPathA = createHousekeepingPath(someTable, pathA, LifecycleEventType.EXPIRED, duration.toString(), HousekeepingStatus.FAILED);
+  protected final HousekeepingPath testPathB = createHousekeepingPath(someTable, pathB, LifecycleEventType.UNREFERENCED, duration.toString(), HousekeepingStatus.FAILED);
+  protected final HousekeepingPath testPathC = createHousekeepingPath(someTable, pathC, LifecycleEventType.UNREFERENCED, duration.toString(), HousekeepingStatus.FAILED);
+  protected final HousekeepingMetadata testMetadataA = createHousekeepingMetadata(someTable, pathA, partitionA, LifecycleEventType.EXPIRED, duration.toString());
+  protected final HousekeepingMetadata testMetadataB = createHousekeepingMetadata(someTable, pathB, partitionB, LifecycleEventType.EXPIRED, duration.toString());
+  protected final HousekeepingMetadata testMetadataC = createHousekeepingMetadata(someTable, pathC, partitionC, LifecycleEventType.EXPIRED, duration.toString());
+  protected final HousekeepingMetadata testMetadataD = createHousekeepingMetadata(someTable, pathC, partitionB, LifecycleEventType.UNREFERENCED, duration.toString());
+  protected final HousekeepingMetadata testMetadataE = createHousekeepingMetadata(someTable, pathC, partitionC, LifecycleEventType.UNREFERENCED, duration.toString());
   @BeforeEach
   public void beforeEach() {
     int port = SocketUtils.findAvailableTcpPort();
@@ -109,10 +112,12 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   @Test
   public void testGetMetadataWhenTableNotFoundReturnsEmptyList()
     throws SQLException, InterruptedException, IOException {
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata(someTable, pathA, partitionA, LifecycleEventType.EXPIRED, duration.toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata(someTable, pathB, partitionB, LifecycleEventType.EXPIRED, duration.toString());
-    insertExpiredMetadata(testMetadata1);
-    insertExpiredMetadata(testMetadata2);
+    HousekeepingMetadata testMetadata1 = testMetadataB;
+    HousekeepingMetadata testMetadata2 = testMetadataC;
+
+    for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadata1, testMetadata2)) {
+      insertExpiredMetadata(testMetadata);
+    }
 
     HttpResponse<String> response = testClient.getMetadata("wrong_database", "wrong_table");
     assertThat(response.statusCode()).isEqualTo(OK.value());
@@ -124,11 +129,11 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   @Test
   public void testGetMetadataWhenThereIsFiltering() throws SQLException, InterruptedException, IOException {
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata(someTable, pathA, partitionA, LifecycleEventType.EXPIRED, duration.toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata(someTable, pathB, partitionB, LifecycleEventType.UNREFERENCED, duration.toString());
-    HousekeepingMetadata testMetadata3 = createHousekeepingMetadata(someTable, pathC, partitionC, LifecycleEventType.UNREFERENCED, duration.toString());
+    HousekeepingMetadata testMetadata1 = testMetadataA;
+    HousekeepingMetadata testMetadata2 = testMetadataD;
+    HousekeepingMetadata testMetadata3 = testMetadataE;
 
-    testMetadata1.setHousekeepingStatus(HousekeepingStatus.FAILED);
+//    testMetadata1.setHousekeepingStatus(HousekeepingStatus.FAILED);
     testMetadata1.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
     testMetadata1.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
 
@@ -156,10 +161,11 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   @Test
   public void testGetPathsWhenThereIsFiltering() throws SQLException, InterruptedException, IOException {
-    HousekeepingPath testPath1 = createHousekeepingPath(someTable, pathA, LifecycleEventType.EXPIRED, duration.toString());
-    HousekeepingPath testPath2 = createHousekeepingPath(someTable, pathB, LifecycleEventType.UNREFERENCED, duration.toString());
-    HousekeepingPath testPath3 = createHousekeepingPath(someTable, pathC, LifecycleEventType.UNREFERENCED, duration.toString());
-    testPath1.setHousekeepingStatus(HousekeepingStatus.FAILED);
+    HousekeepingPath testPath1 = testPathA;
+    HousekeepingPath testPath2 = testPathB;
+    HousekeepingPath testPath3 = testPathC;
+
+//    testPath1.setHousekeepingStatus(HousekeepingStatus.FAILED);
     testPath1.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
     testPath1.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
 
@@ -185,10 +191,10 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   @Test
   public void testPathsPageable() throws SQLException, InterruptedException, IOException {
-
-    HousekeepingPath testPath1 = createHousekeepingPath(someTable, pathA, LifecycleEventType.EXPIRED, duration.toString());
-    HousekeepingPath testPath2 = createHousekeepingPath(someTable, pathB, LifecycleEventType.UNREFERENCED, duration.toString());
-    HousekeepingPath testPath3 = createHousekeepingPath(someTable, pathC, LifecycleEventType.UNREFERENCED, duration.toString());
+    HousekeepingPath testPath1 = testPathA;
+    HousekeepingPath testPath2 = testPathB;
+    HousekeepingPath testPath3 = testPathC;
+//    HousekeepingPath testPath3 = createHousekeepingPath(someTable, pathC, LifecycleEventType.UNREFERENCED, duration.toString(), HousekeepingStatus.DISABLED);
 
     for (HousekeepingPath testPath : Arrays.asList(testPath1, testPath2, testPath3)) {
       testPath.setHousekeepingStatus(HousekeepingStatus.FAILED);
@@ -213,9 +219,9 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   @Test
   public void testMetadataPageable() throws SQLException, InterruptedException, IOException {
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata(someTable, pathA, partitionA, LifecycleEventType.EXPIRED, duration.toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata(someTable, pathB, partitionB, LifecycleEventType.EXPIRED, duration.toString());
-    HousekeepingMetadata testMetadata3 = createHousekeepingMetadata(someTable, pathC, partitionC, LifecycleEventType.EXPIRED, duration.toString());
+    HousekeepingMetadata testMetadata1 = testMetadataA;
+    HousekeepingMetadata testMetadata2 = testMetadataB;
+    HousekeepingMetadata testMetadata3 = testMetadataC;
 
     for (HousekeepingMetadata testPath : Arrays.asList(testMetadata1, testMetadata2, testMetadata3)) {
       testPath.setHousekeepingStatus(HousekeepingStatus.FAILED);
@@ -242,22 +248,16 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   @Disabled
   @Test
   public void manualTest() throws SQLException, InterruptedException {
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata(someTable, pathA, partitionA, LifecycleEventType.EXPIRED,
-        duration.toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata(someTable, pathB, partitionB, LifecycleEventType.EXPIRED,
-        duration.toString());
-    HousekeepingMetadata testMetadata3 = createHousekeepingMetadata(someTable, pathC, partitionC, LifecycleEventType.UNREFERENCED,
-        duration.toString());
+    HousekeepingMetadata testMetadata1 = testMetadataA;
+    HousekeepingMetadata testMetadata2 = testMetadataB;
+    HousekeepingMetadata testMetadata3 = testMetadataC;
     for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadata1, testMetadata2, testMetadata3)) {
       insertExpiredMetadata(testMetadata);
     }
 
-    HousekeepingPath testPath1 = createHousekeepingPath(someTable, pathA, LifecycleEventType.EXPIRED,
-        duration.toString());
-    HousekeepingPath testPath2 = createHousekeepingPath(someTable, pathB, LifecycleEventType.UNREFERENCED,
-        duration.toString());
-    HousekeepingPath testPath3 = createHousekeepingPath(someTable, pathC, LifecycleEventType.UNREFERENCED,
-        duration.toString());
+    HousekeepingPath testPath1 = testPathA;
+    HousekeepingPath testPath2 = testPathB;
+    HousekeepingPath testPath3 = testPathC;
     for (HousekeepingPath testPath : Arrays.asList(testPath1, testPath2, testPath3)) {
       insertUnreferencedPath(testPath);
     }
@@ -318,7 +318,8 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
       String tableName,
       String path,
       LifecycleEventType lifecycleEventType,
-      String cleanupDelay) {
+      String cleanupDelay,
+      HousekeepingStatus housekeepingStatus) {
     return HousekeepingPath
         .builder()
         .id(id++)
