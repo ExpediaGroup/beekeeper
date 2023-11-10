@@ -165,7 +165,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HousekeepingPath testPath2 = testPathB;
     HousekeepingPath testPath3 = testPathC;
 
-//    testPath1.setHousekeepingStatus(HousekeepingStatus.FAILED);
+    testPath1.setHousekeepingStatus(HousekeepingStatus.FAILED);
     testPath1.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
     testPath1.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
 
