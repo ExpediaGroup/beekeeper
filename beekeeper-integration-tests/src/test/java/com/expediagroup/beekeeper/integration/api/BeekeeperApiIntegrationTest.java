@@ -194,7 +194,6 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HousekeepingPath testPath1 = testPathA;
     HousekeepingPath testPath2 = testPathB;
     HousekeepingPath testPath3 = testPathC;
-//    HousekeepingPath testPath3 = createHousekeepingPath(someTable, pathC, LifecycleEventType.UNREFERENCED, duration.toString(), HousekeepingStatus.DISABLED);
 
     for (HousekeepingPath testPath : Arrays.asList(testPath1, testPath2, testPath3)) {
       testPath.setHousekeepingStatus(HousekeepingStatus.FAILED);
