@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@ import static com.expediagroup.beekeeper.api.response.MetadataResponseConverter.
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingEntityGenerator.generateDummyHousekeepingMetadata;
 import static com.expediagroup.beekeeper.api.util.DummyHousekeepingEntityGenerator.generateDummyHousekeepingMetadataResponse;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
@@ -46,7 +48,22 @@ public class HousekeepingMetadataResponseTest {
 
     assertThat(metadataResponsePageList.get(0)).isEqualTo(metadataResponse1);
     assertThat(metadataResponsePageList.get(1)).isEqualTo(metadataResponse2);
+    assertThat(metadataResponsePage.getTotalElements()).isEqualTo(2L);
+    assertThat(metadataResponsePage.getTotalPages()).isEqualTo(1L);
     assertThat(metadataResponsePage.getPageable()).isEqualTo((new PageImpl<>(housekeepingMetadataList).getPageable()));
   }
 
+  @Test
+  public void testConvertToHouseKeepingMetadataResponsePageWithMultiplePages() {
+    List<HousekeepingMetadata> housekeepingMetadataList = new ArrayList<>();
+    for (int i = 0; i < 50; i++) {
+      housekeepingMetadataList.add(generateDummyHousekeepingMetadata("some_database" + i, "some_table" + i));
+    }
+
+    Page<HousekeepingMetadata> metadataPage = new PageImpl<>(housekeepingMetadataList, PageRequest.of(0, 10), 50);
+    Page<HousekeepingMetadataResponse> metadataResponsePage = convertToHousekeepingMetadataResponsePage(metadataPage);
+
+    assertThat(metadataResponsePage.getTotalElements()).isEqualTo(50L);
+    assertThat(metadataResponsePage.getTotalPages()).isEqualTo(5L);
+  }
 }

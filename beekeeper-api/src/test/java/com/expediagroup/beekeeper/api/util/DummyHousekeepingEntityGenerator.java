@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
+import com.expediagroup.beekeeper.api.response.HousekeepingPathResponse;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
@@ -88,4 +89,19 @@ public class DummyHousekeepingEntityGenerator {
         .build();
   }
 
+  public static HousekeepingPathResponse generateDummyHousekeepingPathResponse(HousekeepingPath housekeepingPath) {
+    return HousekeepingPathResponse
+        .builder()
+        .path("s3://some/path/")
+        .databaseName(housekeepingPath.getDatabaseName())
+        .tableName(housekeepingPath.getTableName())
+        .housekeepingStatus(SCHEDULED)
+        .creationTimestamp(CREATION_TIMESTAMP)
+        .modifiedTimestamp(CREATION_TIMESTAMP)
+        .cleanupTimestamp(housekeepingPath.getCleanupTimestamp())
+        .cleanupDelay(CLEANUP_DELAY_STRING)
+        .cleanupAttempts(0)
+        .lifecycleType(EXPIRED.toString())
+        .build();
+  }
 }

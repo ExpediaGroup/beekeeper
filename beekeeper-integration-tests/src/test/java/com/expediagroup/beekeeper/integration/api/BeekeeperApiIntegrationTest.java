@@ -31,6 +31,7 @@ import java.net.http.HttpResponse;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -66,16 +67,29 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   public ObjectMapper geObjectMapper() {
     return new ObjectMapper().registerModule(new ParameterNamesModule()).registerModule(new JavaTimeModule());
   }
-
   private static final Logger log = LoggerFactory.getLogger(BeekeeperApiIntegrationTest.class);
-
   protected static ConfigurableApplicationContext context;
   protected BeekeeperApiTestClient testClient;
-
   protected final ObjectMapper mapper = geObjectMapper();
-
   private Long id = 1L;
-
+  protected static final String someTable = "some_table";
+  protected static final String someDatabase = "some_database";
+  protected static final String pathA = "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A";
+  protected static final String pathB = "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B";
+  protected static final String pathC = "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=C";
+  protected static final Duration duration = Duration.parse("P3D");
+  protected static final int pageSize = 1;
+  protected static final String partitionA = "event_date=2020-01-01/event_hour=0/event_type=A";
+  protected static final String partitionB = "event_date=2020-01-01/event_hour=0/event_type=B";
+  protected static final String partitionC = "event_date=2020-01-01/event_hour=0/event_type=C";
+  protected final HousekeepingPath testPathA = createHousekeepingPath(someTable, pathA, LifecycleEventType.EXPIRED, duration.toString(), HousekeepingStatus.FAILED);
+  protected final HousekeepingPath testPathB = createHousekeepingPath(someTable, pathB, LifecycleEventType.UNREFERENCED, duration.toString(), HousekeepingStatus.FAILED);
+  protected final HousekeepingPath testPathC = createHousekeepingPath(someTable, pathC, LifecycleEventType.UNREFERENCED, duration.toString(), HousekeepingStatus.FAILED);
+  protected final HousekeepingMetadata testMetadataA = createHousekeepingMetadata(someTable, pathA, partitionA, LifecycleEventType.EXPIRED, duration.toString(),HousekeepingStatus.FAILED);
+  protected final HousekeepingMetadata testMetadataB = createHousekeepingMetadata(someTable, pathB, partitionB, LifecycleEventType.EXPIRED, duration.toString(),HousekeepingStatus.FAILED);
+  protected final HousekeepingMetadata testMetadataC = createHousekeepingMetadata(someTable, pathC, partitionC, LifecycleEventType.EXPIRED, duration.toString(),HousekeepingStatus.FAILED);
+  protected final HousekeepingMetadata testMetadataD = createHousekeepingMetadata(someTable, pathC, partitionB, LifecycleEventType.UNREFERENCED, duration.toString(), HousekeepingStatus.SCHEDULED);
+  protected final HousekeepingMetadata testMetadataE = createHousekeepingMetadata(someTable, pathC, partitionC, LifecycleEventType.UNREFERENCED, duration.toString(),HousekeepingStatus.SCHEDULED);
   @BeforeEach
   public void beforeEach() {
     int port = SocketUtils.findAvailableTcpPort();
@@ -98,14 +112,10 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
   @Test
   public void testGetMetadataWhenTableNotFoundReturnsEmptyList()
     throws SQLException, InterruptedException, IOException {
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A",
-        "event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED, "P3D");
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B",
-        "event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.EXPIRED, "P3D");
-    insertExpiredMetadata(testMetadata1);
-    insertExpiredMetadata(testMetadata2);
+
+    for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadataB, testMetadataC)) {
+      insertExpiredMetadata(testMetadata);
+    }
 
     HttpResponse<String> response = testClient.getMetadata("wrong_database", "wrong_table");
     assertThat(response.statusCode()).isEqualTo(OK.value());
@@ -117,21 +127,12 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   @Test
   public void testGetMetadataWhenThereIsFiltering() throws SQLException, InterruptedException, IOException {
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A",
-        "event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED, "P3D");
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B",
-        "event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.UNREFERENCED, "P3D");
-    HousekeepingMetadata testMetadata3 = createHousekeepingMetadata("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=C",
-        "event_date=2020-01-01/event_hour=0/event_type=C", LifecycleEventType.UNREFERENCED, "P3D");
-    testMetadata1.setHousekeepingStatus(HousekeepingStatus.FAILED);
-    testMetadata1.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
-    testMetadata1.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
-    insertExpiredMetadata(testMetadata1);
-    insertExpiredMetadata(testMetadata2);
-    insertExpiredMetadata(testMetadata3);
+    testMetadataA.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
+    testMetadataA.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
+
+    for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadataA, testMetadataD, testMetadataE)) {
+      insertExpiredMetadata(testMetadata);
+    }
 
     String filters = "?housekeeping_status=FAILED"
         + "&lifecycle_type=EXPIRED"
@@ -140,84 +141,91 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         + "&path=s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A"
         + "&partition_name=event_date=2020-01-01/event_hour=0/event_type=A";
 
-    HttpResponse<String> response = testClient.getMetadata("some_database", "some_table", filters);
+    HttpResponse<String> response = testClient.getMetadata(someDatabase, someTable, filters);
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
-    assertThatMetadataEqualsResponse(testMetadata1, result.get(0));
-    assertThat(result.size()).isEqualTo(1);
+    assertThatMetadataEqualsResponse(testMetadataA, result.get(0));
+    assertThat(result).hasSize(1);
   }
 
   @Test
   public void testGetPathsWhenThereIsFiltering() throws SQLException, InterruptedException, IOException {
-    HousekeepingPath testPath1 = createHousekeepingPath("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED,
-        Duration.parse("P3D").toString());
-    HousekeepingPath testPath2 = createHousekeepingPath("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.UNREFERENCED,
-        Duration.parse("P3D").toString());
-    HousekeepingPath testPath3 = createHousekeepingPath("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=C", LifecycleEventType.UNREFERENCED,
-        Duration.parse("P3D").toString());
-    testPath1.setHousekeepingStatus(HousekeepingStatus.FAILED);
-    testPath1.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
-    testPath1.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
-    insertUnreferencedPath(testPath1);
-    insertUnreferencedPath(testPath2);
-    insertUnreferencedPath(testPath3);
+    testPathA.setCleanupTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
+    testPathA.setCreationTimestamp(LocalDateTime.parse("1999-05-05T10:41:20"));
 
+    for (HousekeepingPath testPath : Arrays.asList(testPathA, testPathB, testPathC)) {
+      insertUnreferencedPath(testPath);
+    }
     String filters = "?housekeeping_status=FAILED"
         + "&lifecycle_type=EXPIRED"
         + "&deleted_before=2000-05-05T10:41:20"
         + "&registered_before=2000-04-04T10:41:20"
         + "&path=s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A";
 
-    HttpResponse<String> response = testClient.getUnreferencedPaths("some_database", "some_table", filters);
+    HttpResponse<String> response = testClient.getUnreferencedPaths(someDatabase, someTable, filters);
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingPathResponse> responsePage = mapper
         .readValue(body, new TypeReference<RestResponsePage<HousekeepingPathResponse>>() {});
     List<HousekeepingPathResponse> result = responsePage.getContent();
+    assertThat(responsePage.getTotalElements()).isEqualTo(1L);
+    assertThatPathsEqualsResponse(testPathA, result.get(0));
+    assertThat(result).hasSize(1);
+  }
 
-    assertThatPathsEqualsResponse(testPath1, result.get(0));
-    assertThat(result.size()).isEqualTo(1);
+  @Test
+  public void testPathsPageable() throws SQLException, InterruptedException, IOException {
+    for (HousekeepingPath testPath : Arrays.asList(testPathA, testPathB, testPathC)) {
+      insertUnreferencedPath(testPath);
+    }
+
+    String filters = "?housekeeping_status=FAILED&page=1&size=" + pageSize;
+    HttpResponse<String> response = testClient.getUnreferencedPaths(someDatabase, someTable, filters);
+
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    Page<HousekeepingPathResponse> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingPathResponse>>() {});
+    List<HousekeepingPathResponse> result = responsePage.getContent();
+    assertThat(result).hasSize(1);
+    assertThat(responsePage.getTotalElements()).isEqualTo(3L);
+    assertThat(responsePage.getTotalPages()).isEqualTo(3L);
+  }
+
+  @Test
+  public void testMetadataPageable() throws SQLException, InterruptedException, IOException {
+    for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadataA, testMetadataB, testMetadataC)) {
+      insertExpiredMetadata(testMetadata);
+    }
+
+    String filters = "?housekeeping_status=FAILED&page=1&size=" + pageSize;
+    HttpResponse<String> response = testClient.getMetadata(someDatabase, someTable, filters);
+
+    assertThat(response.statusCode()).isEqualTo(OK.value());
+    String body = response.body();
+    Page<HousekeepingMetadataResponse> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
+    List<HousekeepingMetadataResponse> result = responsePage.getContent();
+    assertThat(result).hasSize(1);
+    assertThat(responsePage.getTotalElements()).isEqualTo(3L);
+    assertThat(responsePage.getTotalPages()).isEqualTo(3L);
   }
 
   // This test is to manually test the API
   @Disabled
   @Test
   public void manualTest() throws SQLException, InterruptedException {
-    HousekeepingMetadata testMetadata1 = createHousekeepingMetadata("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A",
-        "event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED,
-        Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata2 = createHousekeepingMetadata("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B",
-        "event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.EXPIRED,
-        Duration.parse("P3D").toString());
-    HousekeepingMetadata testMetadata3 = createHousekeepingMetadata("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=C",
-        "event_date=2020-01-01/event_hour=0/event_type=C", LifecycleEventType.UNREFERENCED,
-        Duration.parse("P4D").toString());
-    insertExpiredMetadata(testMetadata1);
-    insertExpiredMetadata(testMetadata2);
-    insertExpiredMetadata(testMetadata3);
+    for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadataA, testMetadataB, testMetadataC)) {
+      insertExpiredMetadata(testMetadata);
+    }
 
-    HousekeepingPath testPath1 = createHousekeepingPath("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=A", LifecycleEventType.EXPIRED,
-        Duration.parse("P3D").toString());
-    HousekeepingPath testPath2 = createHousekeepingPath("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=B", LifecycleEventType.UNREFERENCED,
-        Duration.parse("P3D").toString());
-    HousekeepingPath testPath3 = createHousekeepingPath("some_table",
-        "s3://some/path/event_date=2020-01-01/event_hour=0/event_type=C", LifecycleEventType.UNREFERENCED,
-        Duration.parse("P3D").toString());
-    insertUnreferencedPath(testPath1);
-    insertUnreferencedPath(testPath2);
-    insertUnreferencedPath(testPath3);
+    for (HousekeepingPath testPath : Arrays.asList(testPathA, testPathB, testPathC)) {
+      insertUnreferencedPath(testPath);
+    }
 
     Thread.sleep(10000000L);
   }
@@ -253,7 +261,8 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
       String path,
       String partitionName,
       LifecycleEventType lifecycleEventType,
-      String cleanupDelay) {
+      String cleanupDelay,
+      HousekeepingStatus housekeepingStatus) {
     return HousekeepingMetadata
         .builder()
         .id(id++)
@@ -261,7 +270,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .databaseName(DATABASE_NAME_VALUE)
         .tableName(tableName)
         .partitionName(partitionName)
-        .housekeepingStatus(SCHEDULED)
+        .housekeepingStatus(housekeepingStatus)
         .creationTimestamp(CREATION_TIMESTAMP_VALUE)
         .modifiedTimestamp(CREATION_TIMESTAMP_VALUE)
         .cleanupDelay(PeriodDuration.parse(cleanupDelay))
@@ -275,14 +284,15 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
       String tableName,
       String path,
       LifecycleEventType lifecycleEventType,
-      String cleanupDelay) {
+      String cleanupDelay,
+      HousekeepingStatus housekeepingStatus) {
     return HousekeepingPath
         .builder()
         .id(id++)
         .path(path)
         .databaseName(DATABASE_NAME_VALUE)
         .tableName(tableName)
-        .housekeepingStatus(SCHEDULED)
+        .housekeepingStatus(housekeepingStatus)
         .creationTimestamp(CREATION_TIMESTAMP_VALUE)
         .modifiedTimestamp(CREATION_TIMESTAMP_VALUE)
         .cleanupDelay(PeriodDuration.parse(cleanupDelay))

@@ -39,11 +39,12 @@ public final class MetadataResponseConverter {
     List<HousekeepingMetadata> housekeepingMetadataList = housekeepingMetadataPage.getContent();
     List<HousekeepingMetadataResponse> housekeepingMetadataResponseList = new ArrayList<>();
     for (HousekeepingMetadata housekeepingMetadata : housekeepingMetadataList) {
-      HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHousekeepingMetadataResponse(
-          housekeepingMetadata);
+      HousekeepingMetadataResponse housekeepingMetadataResponse = convertToHousekeepingMetadataResponse(housekeepingMetadata);
       housekeepingMetadataResponseList.add(housekeepingMetadataResponse);
     }
-    return new PageImpl<>(housekeepingMetadataResponseList);
+    PageImpl<HousekeepingMetadataResponse> housekeepingMetadataResponses = new PageImpl<>(
+        housekeepingMetadataResponseList, housekeepingMetadataPage.getPageable(), housekeepingMetadataPage.getTotalElements());
+    return housekeepingMetadataResponses;
   }
 
   private static HousekeepingMetadataResponse convertToHousekeepingMetadataResponse(
