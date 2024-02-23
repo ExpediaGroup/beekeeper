@@ -127,7 +127,7 @@ ALTER TABLE <table> SET TBLPROPERTIES("beekeeper.remove.expired.data"="true", "b
 
 **NOTE - if you add this property to a partitioned table any existing partitions will not be scheduled for deletion. They will be deleted along with the table when the TTL delay is met.**
 
-# Running Beekeeper
+# Running Beekeeper 
 
 All the Beekeeper modules run independently of each other:
 
