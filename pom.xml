@@ -144,11 +144,6 @@
         <artifactId>log4j-to-slf4j</artifactId>
         <version>${log4j2.version}</version>
       </dependency>
-      <dependency>
-        <groupId>com.amazonaws</groupId>
-        <artifactId>aws-java-sdk-sts</artifactId>
-        <version>${aws-java-sdk.version}</version>
-      </dependency>
     </dependencies>
   </dependencyManagement>
 
