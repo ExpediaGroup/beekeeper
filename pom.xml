@@ -35,6 +35,7 @@
   </scm>
 
   <properties>
+    <aws-java-sdk.version>1.12.276</aws-java-sdk.version>
     <apache.commons.lang3>3.0</apache.commons.lang3>
     <assertj.version>3.12.2</assertj.version>
     <awaitility.version>3.1.6</awaitility.version>
