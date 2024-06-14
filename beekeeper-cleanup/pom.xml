@@ -11,7 +11,6 @@
   <artifactId>beekeeper-cleanup</artifactId>
 
   <properties>
-    <aws.version>1.12.311</aws.version>
     <hive.version>2.3.7</hive.version>
     <hcommon-hive-metastore.version>1.4.2</hcommon-hive-metastore.version>
   </properties>
@@ -83,7 +82,7 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-s3</artifactId>
-      <version>${aws.version}</version>
+      <version>${aws-java-sdk.version}</version>
     </dependency>
 
     <!-- test -->
