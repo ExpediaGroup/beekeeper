@@ -6,6 +6,7 @@ on:
         description: "The branch to use to release from."
         required: true
         default: "main"
+        
 jobs:
   release:
     name: Release to Maven Central
@@ -19,6 +20,12 @@ jobs:
           ref: ${{ github.event.inputs.branch }}
           # We need a personal access token to be able to push to a protected branch
           token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          
+      - name: Ensure release is from the main branch
+        if: ${{ github.event.inputs.branch != 'main' }}
+        run: |
+          echo "Releases can only be made from the main branch. Exiting."
+          exit 1
 
       - name: Set up JDK
         uses: actions/setup-java@v2
