@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @ComponentScan(basePackages = {
     "com.expediagroup.beekeeper.api.conf",
     "com.expediagroup.beekeeper.api.controller",
-    "com.expediagroup.beekeeper.api.service" })
+    "com.expediagroup.beekeeper.api.service",
+    "com.expediagroup.beekeeper.api.error" })
 public class BeekeeperApiApplication {
   public static void main(String[] args) {
     new SpringApplicationBuilder(BeekeeperApiApplication.class)
