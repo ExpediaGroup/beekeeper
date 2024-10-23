@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.5.7] - 2024-10-23
 ### Changed
-- Added error handling for bad requests with incorrect sort parameters
+- Added error handling for bad requests with incorrect sort parameters.
 - Added automatic pagination handling in the `/unreferenced-paths` endpoint for improved Swagger documentation. 
 - Updated the Maven Central release workflow to run exclusively from the main branch.
 

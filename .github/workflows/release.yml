@@ -1,7 +1,7 @@
 name: Release to Maven Central
 
 on:
-  workflow_dispatch:  # Allows manual triggering of the workflow
+  workflow_dispatch:
 
 jobs:
   release:
