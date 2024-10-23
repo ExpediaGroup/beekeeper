@@ -32,7 +32,7 @@ public class BeekeeperExceptionHandler {
   /**
    * Handles invalid sort parameters.
    *
-   * @param ex  the exception is thrown when an invalid property is referenced
+   * @param exception  the exception is thrown when an invalid property is referenced
    * @param request the HTTP request
    * @return a ResponseEntity containing the error response
    */
@@ -45,7 +45,7 @@ public class BeekeeperExceptionHandler {
     errorResponse.setTimestamp(LocalDateTime.now().toString());
     errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
     errorResponse.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
-    errorResponse.setMessage("Invalid sort parameter: " + ex.getMessage());
+    errorResponse.setMessage("Invalid sort parameter: " + exception.getMessage());
     errorResponse.setPath(request.getRequestURI());
 
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
