@@ -39,7 +39,7 @@ public class BeekeeperExceptionHandler {
 
   @ExceptionHandler(PropertyReferenceException.class)
   public ResponseEntity<ErrorResponse> handlePropertyReferenceException(
-      PropertyReferenceException ex, HttpServletRequest request) {
+      PropertyReferenceException exception, HttpServletRequest request) {
 
     ErrorResponse errorResponse = new ErrorResponse();
     errorResponse.setTimestamp(LocalDateTime.now().toString());
