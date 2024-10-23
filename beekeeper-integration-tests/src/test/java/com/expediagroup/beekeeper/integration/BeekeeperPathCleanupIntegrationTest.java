@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,35 +58,35 @@ import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
 @Testcontainers
 public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
 
-  private static final int TIMEOUT = 30;
-  private static final String SPRING_PROFILES_ACTIVE_PROPERTY = "spring.profiles.active";
-  private static final String SCHEDULER_DELAY_MS_PROPERTY = "properties.scheduler-delay-ms";
-  private static final String DRY_RUN_ENABLED_PROPERTY = "properties.dry-run-enabled";
-  private static final String AWS_S3_ENDPOINT_PROPERTY = "aws.s3.endpoint";
+  protected static final int TIMEOUT = 30;
+  protected static final String SPRING_PROFILES_ACTIVE_PROPERTY = "spring.profiles.active";
+  protected static final String SCHEDULER_DELAY_MS_PROPERTY = "properties.scheduler-delay-ms";
+  protected static final String DRY_RUN_ENABLED_PROPERTY = "properties.dry-run-enabled";
+  protected static final String AWS_S3_ENDPOINT_PROPERTY = "aws.s3.endpoint";
 
-  private static final String BUCKET = "test-path-bucket";
-  private static final String DB_AND_TABLE_PREFIX = DATABASE_NAME_VALUE + "/" + TABLE_NAME_VALUE;
-  private static final String OBJECT_KEY_ROOT = DB_AND_TABLE_PREFIX + "/id1/partition1";
-  private static final String OBJECT_KEY1 = DB_AND_TABLE_PREFIX + "/id1/partition1/file1";
-  private static final String OBJECT_KEY2 = DB_AND_TABLE_PREFIX + "/id1/partition1/file2";
-  private static final String OBJECT_KEY_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition1_$folder$";
-  private static final String ABSOLUTE_PATH = "s3://" + BUCKET + "/" + OBJECT_KEY_ROOT;
+  protected static final String BUCKET = "test-path-bucket";
+  protected static final String DB_AND_TABLE_PREFIX = DATABASE_NAME_VALUE + "/" + TABLE_NAME_VALUE;
+  protected static final String OBJECT_KEY_ROOT = DB_AND_TABLE_PREFIX + "/id1/partition1";
+  protected static final String OBJECT_KEY1 = DB_AND_TABLE_PREFIX + "/id1/partition1/file1";
+  protected static final String OBJECT_KEY2 = DB_AND_TABLE_PREFIX + "/id1/partition1/file2";
+  protected static final String OBJECT_KEY_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition1_$folder$";
+  protected static final String ABSOLUTE_PATH = "s3://" + BUCKET + "/" + OBJECT_KEY_ROOT;
 
-  private static final String OBJECT_KEY_OTHER = DB_AND_TABLE_PREFIX + "/id1/partition10/file1";
-  private static final String OBJECT_KEY_OTHER_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition10_$folder$";
+  protected static final String OBJECT_KEY_OTHER = DB_AND_TABLE_PREFIX + "/id1/partition10/file1";
+  protected static final String OBJECT_KEY_OTHER_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition10_$folder$";
 
-  private static final String SPRING_PROFILES_ACTIVE = "test";
-  private static final String SCHEDULER_DELAY_MS = "5000";
-  private static final String DRY_RUN_ENABLED = "false";
-  private static final String CONTENT = "Content";
-  private static final String HEALTHCHECK_URI = "http://localhost:8008/actuator/health";
-  private static final String PROMETHEUS_URI = "http://localhost:8008/actuator/prometheus";
+  protected static final String SPRING_PROFILES_ACTIVE = "test";
+  protected static final String SCHEDULER_DELAY_MS = "5000";
+  protected static final String DRY_RUN_ENABLED = "false";
+  protected static final String CONTENT = "Content";
+  protected static final String HEALTHCHECK_URI = "http://localhost:8008/actuator/health";
+  protected static final String PROMETHEUS_URI = "http://localhost:8008/actuator/prometheus";
 
   @Container
-  private static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
-  private static AmazonS3 amazonS3;
+  protected static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
+  protected static AmazonS3 amazonS3;
 
-  private final ExecutorService executorService = Executors.newFixedThreadPool(1);
+  protected final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   @BeforeAll
   public static void init() {

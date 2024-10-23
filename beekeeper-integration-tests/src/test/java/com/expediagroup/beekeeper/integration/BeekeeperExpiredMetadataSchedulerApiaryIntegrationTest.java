@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2023 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,25 +69,25 @@ import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperSchedulerApiary;
 @Testcontainers
 public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends BeekeeperIntegrationTestBase {
 
-  private static final int TIMEOUT = 30;
-  private static final String APIARY_QUEUE_URL_PROPERTY = "properties.apiary.queue-url";
+  protected static final int TIMEOUT = 30;
+  protected static final String APIARY_QUEUE_URL_PROPERTY = "properties.apiary.queue-url";
 
-  private static final String QUEUE = "apiary-receiver-queue";
-  private static final String SCHEDULED_EXPIRED_METRIC = "metadata-scheduled";
-  private static final String HEALTHCHECK_URI = "http://localhost:8080/actuator/health";
-  private static final String PROMETHEUS_URI = "http://localhost:8080/actuator/prometheus";
+  protected static final String QUEUE = "apiary-receiver-queue";
+  protected static final String SCHEDULED_EXPIRED_METRIC = "metadata-scheduled";
+  protected static final String HEALTHCHECK_URI = "http://localhost:8080/actuator/health";
+  protected static final String PROMETHEUS_URI = "http://localhost:8080/actuator/prometheus";
 
-  private static final String PARTITION_KEYS = "{ \"event_date\": \"date\", \"event_hour\": \"smallint\"}";
-  private static final String PARTITION_A_VALUES = "[ \"2020-01-01\", \"0\" ]";
-  private static final String PARTITION_B_VALUES = "[ \"2020-01-01\", \"1\" ]";
-  private static final String PARTITION_A_NAME = "event_date=2020-01-01/event_hour=0";
-  private static final String PARTITION_B_NAME = "event_date=2020-01-01/event_hour=1";
-  private static final String LOCATION_A = "s3://bucket/table1/partition";
-  private static final String LOCATION_B = "s3://bucket/table2/partition";
+  protected static final String PARTITION_KEYS = "{ \"event_date\": \"date\", \"event_hour\": \"smallint\"}";
+  protected static final String PARTITION_A_VALUES = "[ \"2020-01-01\", \"0\" ]";
+  protected static final String PARTITION_B_VALUES = "[ \"2020-01-01\", \"1\" ]";
+  protected static final String PARTITION_A_NAME = "event_date=2020-01-01/event_hour=0";
+  protected static final String PARTITION_B_NAME = "event_date=2020-01-01/event_hour=1";
+  protected static final String LOCATION_A = "s3://bucket/table1/partition";
+  protected static final String LOCATION_B = "s3://bucket/table2/partition";
 
   @Container
-  private static final LocalStackContainer SQS_CONTAINER = ContainerTestUtils.awsContainer(SQS);
-  private static AmazonSQS amazonSQS;
+  protected static final LocalStackContainer SQS_CONTAINER = ContainerTestUtils.awsContainer(SQS);
+  protected static AmazonSQS amazonSQS;
 
   @BeforeAll
   public static void init() {
@@ -229,11 +229,11 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     await().atMost(30, TimeUnit.SECONDS).until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
-  private SendMessageRequest sendMessageRequest(String payload) {
+  protected SendMessageRequest sendMessageRequest(String payload) {
     return new SendMessageRequest(ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE), payload);
   }
 
-  private void assertExpiredMetadata(HousekeepingMetadata actual, String expectedPath, String partitionName) {
+  protected void assertExpiredMetadata(HousekeepingMetadata actual, String expectedPath, String partitionName) {
     assertHousekeepingMetadata(actual, expectedPath, partitionName);
     assertMetrics();
   }

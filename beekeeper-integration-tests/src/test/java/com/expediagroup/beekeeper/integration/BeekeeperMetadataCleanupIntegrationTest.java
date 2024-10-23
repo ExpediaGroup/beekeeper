@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2022 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,47 +76,47 @@ import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
 @Testcontainers
 public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
 
-  private static final int TIMEOUT = 15;
-  private static final String SCHEDULER_DELAY_MS = "5000";
-  private static final String HEALTHCHECK_URI = "http://localhost:9008/actuator/health";
-  private static final String PROMETHEUS_URI = "http://localhost:9008/actuator/prometheus";
+  protected static final int TIMEOUT = 15;
+  protected static final String SCHEDULER_DELAY_MS = "5000";
+  protected static final String HEALTHCHECK_URI = "http://localhost:9008/actuator/health";
+  protected static final String PROMETHEUS_URI = "http://localhost:9008/actuator/prometheus";
 
-  private static final String SPRING_PROFILES_ACTIVE_PROPERTY = "spring.profiles.active";
-  private static final String SCHEDULER_DELAY_MS_PROPERTY = "properties.scheduler-delay-ms";
-  private static final String DRY_RUN_ENABLED_PROPERTY = "properties.dry-run-enabled";
-  private static final String AWS_S3_ENDPOINT_PROPERTY = "aws.s3.endpoint";
-  private static final String METASTORE_URI_PROPERTY = "properties.metastore-uri";
-  private static final String AWS_DISABLE_GET_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disableGetObjectMD5Validation";
-  private static final String AWS_DISABLE_PUT_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disablePutObjectMD5Validation";
+  protected static final String SPRING_PROFILES_ACTIVE_PROPERTY = "spring.profiles.active";
+  protected static final String SCHEDULER_DELAY_MS_PROPERTY = "properties.scheduler-delay-ms";
+  protected static final String DRY_RUN_ENABLED_PROPERTY = "properties.dry-run-enabled";
+  protected static final String AWS_S3_ENDPOINT_PROPERTY = "aws.s3.endpoint";
+  protected static final String METASTORE_URI_PROPERTY = "properties.metastore-uri";
+  protected static final String AWS_DISABLE_GET_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disableGetObjectMD5Validation";
+  protected static final String AWS_DISABLE_PUT_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disablePutObjectMD5Validation";
 
-  private static final String S3_ACCESS_KEY = "access";
-  private static final String S3_SECRET_KEY = "secret";
+  protected static final String S3_ACCESS_KEY = "access";
+  protected static final String S3_SECRET_KEY = "secret";
 
-  private static final String BUCKET = "test-path-bucket";
-  private static final String TABLE_DATA = "1\tadam\tlondon\n2\tsusan\tglasgow\n";
-  private static final String PARTITIONED_TABLE_NAME = TABLE_NAME_VALUE + "_partitioned";
-  private static final String UNPARTITIONED_TABLE_NAME = TABLE_NAME_VALUE + "_unpartitioned";
+  protected static final String BUCKET = "test-path-bucket";
+  protected static final String TABLE_DATA = "1\tadam\tlondon\n2\tsusan\tglasgow\n";
+  protected static final String PARTITIONED_TABLE_NAME = TABLE_NAME_VALUE + "_partitioned";
+  protected static final String UNPARTITIONED_TABLE_NAME = TABLE_NAME_VALUE + "_unpartitioned";
 
-  private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
-  private static final List<String> PARTITION_VALUES = List.of("2020-01-01", "0", "A");
+  protected static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
+  protected static final List<String> PARTITION_VALUES = List.of("2020-01-01", "0", "A");
 
-  private static final String ROOT_PATH = "s3a://" + BUCKET + "/" + DATABASE_NAME_VALUE + "/";
+  protected static final String ROOT_PATH = "s3a://" + BUCKET + "/" + DATABASE_NAME_VALUE + "/";
 
-  private static final String PARTITIONED_TABLE_PATH = ROOT_PATH + PARTITIONED_TABLE_NAME + "/id1";
-  private static final String PARTITION_ROOT_PATH = ROOT_PATH + "some_location/id1";
-  private static final String PARTITION_PATH = PARTITION_ROOT_PATH + "/" + PARTITION_NAME + "/file1";
-  private static final String PARTITIONED_TABLE_OBJECT_KEY = DATABASE_NAME_VALUE
+  protected static final String PARTITIONED_TABLE_PATH = ROOT_PATH + PARTITIONED_TABLE_NAME + "/id1";
+  protected static final String PARTITION_ROOT_PATH = ROOT_PATH + "some_location/id1";
+  protected static final String PARTITION_PATH = PARTITION_ROOT_PATH + "/" + PARTITION_NAME + "/file1";
+  protected static final String PARTITIONED_TABLE_OBJECT_KEY = DATABASE_NAME_VALUE
       + "/"
       + PARTITIONED_TABLE_NAME
       + "/id1";
 
-  private static final String PARTITIONED_OBJECT_KEY = DATABASE_NAME_VALUE
+  protected static final String PARTITIONED_OBJECT_KEY = DATABASE_NAME_VALUE
       + "/some_location/id1/"
       + PARTITION_NAME
       + "/file1";
 
-  private static final String UNPARTITIONED_TABLE_PATH = ROOT_PATH + UNPARTITIONED_TABLE_NAME + "/id1";
-  private static final String UNPARTITIONED_OBJECT_KEY = DATABASE_NAME_VALUE
+  protected static final String UNPARTITIONED_TABLE_PATH = ROOT_PATH + UNPARTITIONED_TABLE_NAME + "/id1";
+  protected static final String UNPARTITIONED_OBJECT_KEY = DATABASE_NAME_VALUE
       + "/"
       + UNPARTITIONED_TABLE_NAME
       + "/id1/file1";
@@ -127,9 +127,9 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     S3_CONTAINER.start();
   }
 
-  private static AmazonS3 amazonS3;
+  protected static AmazonS3 amazonS3;
   private static final String S3_ENDPOINT = ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3);
-  private final ExecutorService executorService = Executors.newFixedThreadPool(1);
+  protected final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   private static Map<String, String> metastoreProperties = ImmutableMap
       .<String, String>builder()
@@ -142,8 +142,8 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   public ThriftHiveMetaStoreJUnitExtension thriftHiveMetaStore = new ThriftHiveMetaStoreJUnitExtension(
       DATABASE_NAME_VALUE, metastoreProperties);
 
-  private HiveTestUtils hiveTestUtils;
-  private HiveMetaStoreClient metastoreClient;
+  protected HiveTestUtils hiveTestUtils;
+  protected HiveMetaStoreClient metastoreClient;
 
   @BeforeAll
   public static void init() {
@@ -173,7 +173,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   }
 
   @BeforeEach
-  void setup() {
+  public void setup() {
     System.setProperty(METASTORE_URI_PROPERTY, thriftHiveMetaStore.getThriftConnectionUri());
     metastoreClient = thriftHiveMetaStore.client();
     hiveTestUtils = new HiveTestUtils(metastoreClient);
@@ -187,7 +187,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   }
 
   @AfterEach
-  void stop() throws InterruptedException {
+  public void stop() throws InterruptedException {
     BeekeeperMetadataCleanup.stop();
     executorService.awaitTermination(5, TimeUnit.SECONDS);
   }
@@ -388,7 +388,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     assertMetrics();
   }
 
-  private void assertMetrics() {
+  protected void assertMetrics() {
     Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperMetadataCleanup.meterRegistry()).getRegistries();
     assertThat(meterRegistry).hasSize(2);
     meterRegistry.forEach(registry -> {
