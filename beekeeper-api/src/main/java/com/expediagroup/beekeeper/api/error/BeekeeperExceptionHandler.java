@@ -32,7 +32,7 @@ public class BeekeeperExceptionHandler {
   /**
    * Handles invalid sort parameters.
    *
-   * @param ex      the exception thrown when an invalid property is referenced
+   * @param ex  the exception is thrown when an invalid property is referenced
    * @param request the HTTP request
    * @return a ResponseEntity containing the error response
    */
