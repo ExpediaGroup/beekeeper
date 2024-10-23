@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.expediagroup.beekeeper.api.error.BeekeeperExceptionHandler;
 import com.expediagroup.beekeeper.api.error.ErrorResponse;
-import com.expediagroup.beekeeper.core.model.HousekeepingPath; // Import your entity class
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 import java.util.Collections;
 import java.util.List;
