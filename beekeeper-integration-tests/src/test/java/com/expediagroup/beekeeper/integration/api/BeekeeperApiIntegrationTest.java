@@ -317,7 +317,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     ErrorResponse errorResponse = mapper.readValue(body, ErrorResponse.class);
 
     assertThat(errorResponse.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-    assertThat(errorResponse.getMessage()).contains("Invalid sort parameter");
+    assertThat(errorResponse.getMessage()).isEqualTo("No property 'nonExistentProperty' found for type 'HousekeepingMetadata'");
     assertThat(errorResponse.getError()).isEqualTo("Bad Request");
     assertThat(errorResponse.getPath()).contains("/api/v1/database/some_database/table/some_table/metadata");
     assertThat(errorResponse.getTimestamp()).isNotNull();
