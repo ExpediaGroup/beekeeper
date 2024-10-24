@@ -16,15 +16,15 @@
 
 package com.expediagroup.beekeeper.api.error;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
-@Setter
 @Getter
+@Builder
 public class ErrorResponse {
-  private String timestamp;
-  private int status;
-  private String error;
-  private String message;
-  private String path;
+  private final String timestamp;
+  private final int status;
+  private final String error;
+  private final String message;
+  private final String path;
 }

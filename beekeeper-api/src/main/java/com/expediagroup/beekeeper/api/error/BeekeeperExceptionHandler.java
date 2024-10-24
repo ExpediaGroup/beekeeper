@@ -41,12 +41,13 @@ public class BeekeeperExceptionHandler {
   public ResponseEntity<ErrorResponse> handlePropertyReferenceException(
       PropertyReferenceException exception, HttpServletRequest request) {
 
-    ErrorResponse errorResponse = new ErrorResponse();
-    errorResponse.setTimestamp(LocalDateTime.now().toString());
-    errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-    errorResponse.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
-    errorResponse.setMessage("Invalid sort parameter: " + exception.getMessage());
-    errorResponse.setPath(request.getRequestURI());
+    ErrorResponse errorResponse = ErrorResponse.builder()
+        .timestamp(LocalDateTime.now().toString())
+        .status(HttpStatus.BAD_REQUEST.value())
+        .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+        .message("Invalid sort parameter: " + exception.getMessage())
+        .path(request.getRequestURI())
+        .build();
 
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
