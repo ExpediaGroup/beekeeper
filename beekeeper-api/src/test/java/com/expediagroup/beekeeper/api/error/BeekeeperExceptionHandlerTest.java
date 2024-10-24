@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.expediagroup.beekeeper.api.test.error;
+package com.expediagroup.beekeeper.api.error;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -55,7 +55,7 @@ public class BeekeeperExceptionHandlerTest {
     assertThat(errorResponse).isNotNull();
     assertThat(errorResponse.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     assertThat(errorResponse.getError()).isEqualTo("Bad Request");
-    assertThat(errorResponse.getMessage()).contains("Invalid sort parameter");
+    assertThat(errorResponse.getMessage()).isEqualTo(exception.getMessage());
     assertThat(errorResponse.getPath()).isEqualTo("/api/v1/database/testDb/table/testTable/unreferenced-paths");
     assertThat(errorResponse.getTimestamp()).isNotNull();
   }
