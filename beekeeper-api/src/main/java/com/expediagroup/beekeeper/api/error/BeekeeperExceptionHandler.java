@@ -45,7 +45,7 @@ public class BeekeeperExceptionHandler {
         .timestamp(LocalDateTime.now().toString())
         .status(HttpStatus.BAD_REQUEST.value())
         .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-        .message("Invalid sort parameter: " + exception.getMessage())
+        .message(exception.getMessage())
         .path(request.getRequestURI())
         .build();
 
