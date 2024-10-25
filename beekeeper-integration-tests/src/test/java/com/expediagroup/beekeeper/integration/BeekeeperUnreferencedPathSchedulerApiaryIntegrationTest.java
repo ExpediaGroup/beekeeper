@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2023 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,17 +70,17 @@ import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperSchedulerApiary;
 @Testcontainers
 public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends BeekeeperIntegrationTestBase {
 
-  private static final int TIMEOUT = 5;
-  private static final String APIARY_QUEUE_URL_PROPERTY = "properties.apiary.queue-url";
+  protected static final int TIMEOUT = 5;
+  protected static final String APIARY_QUEUE_URL_PROPERTY = "properties.apiary.queue-url";
 
-  private static final String QUEUE = "apiary-receiver-queue";
-  private static final String SCHEDULED_ORPHANED_METRIC = "paths-scheduled";
-  private static final String HEALTHCHECK_URI = "http://localhost:8080/actuator/health";
-  private static final String PROMETHEUS_URI = "http://localhost:8080/actuator/prometheus";
+  protected static final String QUEUE = "apiary-receiver-queue";
+  protected static final String SCHEDULED_ORPHANED_METRIC = "paths-scheduled";
+  protected static final String HEALTHCHECK_URI = "http://localhost:8080/actuator/health";
+  protected static final String PROMETHEUS_URI = "http://localhost:8080/actuator/prometheus";
 
   @Container
-  private static final LocalStackContainer SQS_CONTAINER = ContainerTestUtils.awsContainer(SQS);
-  private static AmazonSQS amazonSQS;
+  protected static final LocalStackContainer SQS_CONTAINER = ContainerTestUtils.awsContainer(SQS);
+  protected static AmazonSQS amazonSQS;
 
   @BeforeAll
   public static void init() {
@@ -229,11 +229,11 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     await().atMost(30, TimeUnit.SECONDS).until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
-  private SendMessageRequest sendMessageRequest(String payload) {
+  protected SendMessageRequest sendMessageRequest(String payload) {
     return new SendMessageRequest(ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE), payload);
   }
 
-  private void assertUnreferencedPath(HousekeepingPath actual, String expectedPath) {
+  protected void assertUnreferencedPath(HousekeepingPath actual, String expectedPath) {
     assertHousekeepingEntity(actual, expectedPath);
     assertMetrics();
   }
