@@ -29,7 +29,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @ComponentScan(basePackages = {
     "com.expediagroup.beekeeper.api.conf",
     "com.expediagroup.beekeeper.api.controller",
-    "com.expediagroup.beekeeper.api.service" })
+    "com.expediagroup.beekeeper.api.service",
+    "com.expediagroup.beekeeper.api.error" })
 public class BeekeeperApiApplication {
   public static void main(String[] args) {
     new SpringApplicationBuilder(BeekeeperApiApplication.class)

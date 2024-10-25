@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.SocketUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -51,6 +52,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import com.expediagroup.beekeeper.api.BeekeeperApiApplication;
+import com.expediagroup.beekeeper.api.error.ErrorResponse;
 import com.expediagroup.beekeeper.api.response.HousekeepingMetadataResponse;
 import com.expediagroup.beekeeper.api.response.HousekeepingPathResponse;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
@@ -111,7 +113,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
 
   @Test
   public void testGetMetadataWhenTableNotFoundReturnsEmptyList()
-    throws SQLException, InterruptedException, IOException {
+      throws SQLException, InterruptedException, IOException {
 
     for (HousekeepingMetadata testMetadata : Arrays.asList(testMetadataB, testMetadataC)) {
       insertExpiredMetadata(testMetadata);
@@ -300,6 +302,25 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
         .lifecycleType(lifecycleEventType.toString())
         .clientId(CLIENT_ID_FIELD)
         .build();
+  }
+
+  @Test
+  public void testInvalidSortParameter() throws SQLException, IOException, InterruptedException {
+    insertExpiredMetadata(testMetadataA);
+
+    String filters = "?sort=nonExistentProperty,asc";
+    HttpResponse<String> response = testClient.getMetadata(someDatabase, someTable, filters);
+
+    assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+
+    String body = response.body();
+    ErrorResponse errorResponse = mapper.readValue(body, ErrorResponse.class);
+
+    assertThat(errorResponse.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+    assertThat(errorResponse.getMessage()).isEqualTo("No property 'nonExistentProperty' found for type 'HousekeepingMetadata'");
+    assertThat(errorResponse.getError()).isEqualTo("Bad Request");
+    assertThat(errorResponse.getPath()).contains("/api/v1/database/some_database/table/some_table/metadata");
+    assertThat(errorResponse.getTimestamp()).isNotNull();
   }
 
 }
