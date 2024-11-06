@@ -45,11 +45,6 @@ public class MessageEventHandler {
 
   public List<HousekeepingEntity> handleMessage(MessageEvent event) {
     ListenerEvent listenerEvent = event.getEvent();
-
-    System.out.println("Inside MessageEventHandler");
-    event.getEvent().getTableParameters()
-        .forEach((key, value1) -> System.out.println("Key: " + key + ", value: " + value1));
-
     if (shouldFilterMessage(listenerEvent)) {
       return Collections.emptyList();
     }

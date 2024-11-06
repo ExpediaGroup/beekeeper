@@ -73,10 +73,6 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
   public List<HousekeepingEntity> generate(ListenerEvent listenerEvent, String clientId) {
     List<HousekeepingEntity> housekeepingEntities = new ArrayList<>();
 
-    System.out.println("Inside generator. Table parameters: ");
-    listenerEvent.getTableParameters()
-        .forEach((key, value1) -> System.out.println("Key: " + key + ", value: " + value1));
-
     switch (listenerEvent.getEventType()) {
     case CREATE_TABLE:
       CreateTableEvent createTableEvent = (CreateTableEvent) listenerEvent;
@@ -86,9 +82,6 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
       break;
     case ALTER_TABLE:
       AlterTableEvent alterTableEvent = (AlterTableEvent) listenerEvent;
-      System.out.println("Inside generator. AlterTableEvent parameters: ");
-      alterTableEvent.getTableParameters()
-          .forEach((key, value1) -> System.out.println("Key: " + key + ", value: " + value1));
       if (validTablePath(alterTableEvent.getTableLocation())) {
         housekeepingEntities.add(generateHousekeepingEntity((AlterTableEvent) listenerEvent, clientId));
       }

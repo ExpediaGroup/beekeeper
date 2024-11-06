@@ -45,10 +45,6 @@ public class CleanupDelayExtractor {
 
   public PeriodDuration extractCleanupDelay(ListenerEvent listenerEvent) {
     String tableCleanupDelay = listenerEvent.getTableParameters().get(propertyKey);
-    System.out.println("Inside cleanup delay extractor. Table parameters: ");
-    listenerEvent.getTableParameters()
-        .forEach((key, value1) -> System.out.println("Key: " + key + ", value: " + value1));
-
     try {
       PeriodDuration value = tableCleanupDelay == null ? defaultValue : PeriodDuration.parse(tableCleanupDelay);
       log
