@@ -111,21 +111,6 @@ public class SchedulerApiary {
     beekeeperEventReader.delete(beekeeperEvent);
   }
 
-  /**
-   * Was thinking I can extract some of the logic into this to simplify main method, thoughts?
-   *
-   *   private LifecycleEventType getLifecycleEventType(BeekeeperEvent beekeeperEvent) {
-   *     List<HousekeepingEntity> housekeepingEntities = beekeeperEvent.getHousekeepingEntities();
-   *     if (!housekeepingEntities.isEmpty()) {
-   *       String lifecycleType = housekeepingEntities.get(0).getLifecycleType();
-   *       return LifecycleEventType.valueOf(lifecycleType);
-   *     }
-   *     // Handle the case where there are no housekeeping entities
-   *     throw new BeekeeperException("No housekeeping entities found in the event");
-   *   }
-   *
-   */
-
   public void close() throws IOException {
     beekeeperEventReader.close();
   }

@@ -99,6 +99,18 @@ public abstract class SqsMessage {
     tableParameters.add(BEEKEEPER_HIVE_EVENT_WHITELIST, new JsonPrimitive(whitelist));
   }
 
+  //enable the setting of the table_type parameter in SQS messages, to allow tests to simulate events for Iceberg/non-Iceberg tables.
+  public void setTableType(String tableType) {
+    JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
+    tableParameters.add("table_type", new JsonPrimitive(tableType));
+  }
+
+  // New method to set output_format
+  public void setOutputFormat(String outputFormat) {
+    JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
+    tableParameters.add("output_format", new JsonPrimitive(outputFormat));
+  }
+
   public final String getFormattedString() {
     apiaryEventJsonObject.add(APIARY_EVENT_MESSAGE_KEY, new JsonPrimitive(apiaryEventMessageJsonObject.toString()));
     return apiaryEventJsonObject.toString();
@@ -106,11 +118,5 @@ public abstract class SqsMessage {
 
   public JsonObject getApiaryEventMessageJsonObject() {
     return apiaryEventMessageJsonObject;
-  }
-
-  //enable the setting of the table_type parameter in SQS messages, to allow tests to simulate events for Iceberg/non-Iceberg tables.
-  public void setTableType(String tableType) {
-    JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
-    tableParameters.add("table_type", new JsonPrimitive(tableType));
   }
 }

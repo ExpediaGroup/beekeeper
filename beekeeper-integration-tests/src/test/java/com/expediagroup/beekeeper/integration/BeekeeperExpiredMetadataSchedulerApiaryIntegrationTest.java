@@ -214,11 +214,13 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     assertExpiredMetadata(expiredMetadata.get(1), LOCATION_B, PARTITION_B_NAME, true);
   }
 
+  // New test to check if expired metadata for Iceberg tables is filtered
   @Test
   public void expiredMetadataIcebergTableEventIsFiltered() throws SQLException, IOException, URISyntaxException {
     //create a message for an Iceberg table by including table_type=ICEBERG in the payload
     CreateTableSqsMessage createIcebergTableSqsMessage = new CreateTableSqsMessage(LOCATION_A, true);
     createIcebergTableSqsMessage.setTableType("ICEBERG");
+    createIcebergTableSqsMessage.setOutputFormat("org.apache.iceberg.mr.hive.HiveIcebergOutputFormat");
     amazonSQS.sendMessage(sendMessageRequest(createIcebergTableSqsMessage.getFormattedString()));
     // wait for SchedulerApiary to process message
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 0);

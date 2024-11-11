@@ -61,7 +61,6 @@ import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.integration.model.AlterPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.AlterTableSqsMessage;
-//import com.expediagroup.beekeeper.integration.model.CreateTableSqsMessage;
 import com.expediagroup.beekeeper.integration.model.DropPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.DropTableSqsMessage;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
@@ -202,6 +201,7 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   public void unreferencedIcebergTableEventIsFiltered() throws SQLException, IOException, URISyntaxException {
     DropTableSqsMessage dropIcebergTableSqsMessage = new DropTableSqsMessage("s3://bucket/icebergTableLocation", true, true);
     dropIcebergTableSqsMessage.setTableType("ICEBERG");
+    dropIcebergTableSqsMessage.setOutputFormat("org.apache.iceberg.mr.hive.HiveIcebergOutputFormat");
     amazonSQS.sendMessage(sendMessageRequest(dropIcebergTableSqsMessage.getFormattedString()));
 
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 0);

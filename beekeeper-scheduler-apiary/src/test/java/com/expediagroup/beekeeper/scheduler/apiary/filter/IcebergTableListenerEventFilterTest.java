@@ -15,11 +15,10 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,33 +50,32 @@ public class IcebergTableListenerEventFilterTest {
 
     boolean result = filter.isFiltered(listenerEvent, lifecycleEventType);
 
-    assertTrue(result, "Iceberg tables should be filtered out.");
+    assertThat(result).isTrue();
   }
 
   @Test
   void testIsFilteredNonIcebergTable() {
     Map<String, String> tableParameters = new HashMap<>();
-    tableParameters.put("table_type", "MANAGED");
+    tableParameters.put("table_type", "NICEBERG");
 
-    ListenerEvent listenerEvent = createListenerEvent("database", "hive_table", tableParameters);
+    ListenerEvent listenerEvent = createListenerEvent("database", "niceberg_table", tableParameters);
     LifecycleEventType lifecycleEventType = LifecycleEventType.EXPIRED;
 
     boolean result = filter.isFiltered(listenerEvent, lifecycleEventType);
 
-    assertFalse(result, "Non-Iceberg tables should not be filtered out.");
+    assertThat(result).isFalse();
   }
 
   @Test
   void testIsFilteredNullTableType() {
     Map<String, String> tableParameters = new HashMap<>();
-    // we don't add table_type param
 
     ListenerEvent listenerEvent = createListenerEvent("database", "table_without_type", tableParameters);
     LifecycleEventType lifecycleEventType = LifecycleEventType.EXPIRED;
 
     boolean result = filter.isFiltered(listenerEvent, lifecycleEventType);
 
-    assertFalse(result, "Tables without 'table_type' should not be filtered out.");
+    assertThat(result).isFalse();
   }
 
   @Test
@@ -87,7 +85,124 @@ public class IcebergTableListenerEventFilterTest {
 
     boolean result = filter.isFiltered(listenerEvent, lifecycleEventType);
 
-    assertFalse(result, "Tables with null parameters should not be filtered out.");
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  void testIsFilteredIcebergTableWithBothParameters() {
+    Map<String, String> tableParameters = new HashMap<>();
+    tableParameters.put("table_type", "ICEBERG");
+    tableParameters.put("output_format", "org.apache.iceberg.mr.hive.HiveIcebergOutputFormat");
+
+    ListenerEvent listenerEvent = createListenerEvent("database", "iceberg_table_both", tableParameters);
+    LifecycleEventType lifecycleEventType = LifecycleEventType.EXPIRED;
+
+    boolean result = filter.isFiltered(listenerEvent, lifecycleEventType);
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  void testIsFilteredNonIcebergTableWithDifferentOutputFormat() {
+    Map<String, String> tableParameters = new HashMap<>();
+    tableParameters.put("output_format", "org.apache.not.an.ice.berg.table");
+
+    ListenerEvent listenerEvent = createListenerEvent("database", "non_iceberg_table_output_format", tableParameters);
+    LifecycleEventType lifecycleEventType = LifecycleEventType.EXPIRED;
+
+    boolean result = filter.isFiltered(listenerEvent, lifecycleEventType);
+
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  void testIsFilteredNonIcebergTableWithDifferentTableType() {
+    Map<String, String> tableParameters = new HashMap<>();
+    tableParameters.put("table_type", "NICEBERG");
+
+    ListenerEvent listenerEvent = createListenerEvent("database", "non_iceberg_table_type", tableParameters);
+    LifecycleEventType lifecycleEventType = LifecycleEventType.EXPIRED;
+
+    boolean result = filter.isFiltered(listenerEvent, lifecycleEventType);
+
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  void testIsFilteredWithIcebergOutputFormatAndDifferentTableType() {
+    Map<String, String> tableParameters = new HashMap<>();
+    tableParameters.put("table_type", "NICEBERG");
+    tableParameters.put("output_format", "org.apache.iceberg.mr.hive.HiveIcebergOutputFormat");
+
+    ListenerEvent listenerEvent = createListenerEvent("database", "iceberg_output_non_iceberg_type", tableParameters);
+    LifecycleEventType lifecycleEventType = LifecycleEventType.EXPIRED;
+
+    boolean result = filter.isFiltered(listenerEvent, lifecycleEventType);
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  void testIsFilteredTableWithIcebergTableTypeAndDifferentOutputFormat() {
+    Map<String, String> tableParameters = new HashMap<>();
+    tableParameters.put("table_type", "ICEBERG");
+    tableParameters.put("output_format", "org.apache.not.an.ice.berg.table");
+
+    ListenerEvent listenerEvent = createListenerEvent("database", "iceberg_type_non_iceberg_output", tableParameters);
+    LifecycleEventType lifecycleEventType = LifecycleEventType.EXPIRED;
+
+    boolean result = filter.isFiltered(listenerEvent, lifecycleEventType);
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  void testIsFilteredTableWithNullOutputFormat() {
+    Map<String, String> tableParameters = new HashMap<>();
+    tableParameters.put("output_format", null); // Explicitly setting output_format to null
+
+    ListenerEvent listenerEvent = createListenerEvent("database", "table_null_output_format", tableParameters);
+    LifecycleEventType lifecycleEventType = LifecycleEventType.EXPIRED;
+
+    boolean result = filter.isFiltered(listenerEvent, lifecycleEventType);
+
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  void testIsFilteredNonIcebergTableWithOutputFormatContainingIceberg() {
+    Map<String, String> tableParameters = new HashMap<>();
+    tableParameters.put("output_format", "org.apache.iceberg.mr.hive.NonIcebergOutputFormat"); // Contains "iceberg" but not Iceberg-specific
+
+    ListenerEvent listenerEvent = createListenerEvent("database", "non_iceberg_with_iceberg_in_output_format", tableParameters);
+    LifecycleEventType lifecycleEventType = LifecycleEventType.EXPIRED;
+
+    boolean result = filter.isFiltered(listenerEvent, lifecycleEventType);
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  void testIsFilteredTableWithNoRelevantParameters() {
+    Map<String, String> tableParameters = new HashMap<>();
+    tableParameters.put("some_other_param", "some_value");
+
+    ListenerEvent listenerEvent = createListenerEvent("database", "table_no_relevant_params", tableParameters);
+    LifecycleEventType lifecycleEventType = LifecycleEventType.EXPIRED;
+
+    boolean result = filter.isFiltered(listenerEvent, lifecycleEventType);
+
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  void testIsFilteredTableWithNullParametersAndStorageDescriptor() {
+    ListenerEvent listenerEvent = createListenerEvent("database", "table_null_parameters", null);
+    LifecycleEventType lifecycleEventType = LifecycleEventType.EXPIRED;
+
+    boolean result = filter.isFiltered(listenerEvent, lifecycleEventType);
+
+    assertThat(result).isFalse();
   }
 
   // helper method to create a ListenerEvent

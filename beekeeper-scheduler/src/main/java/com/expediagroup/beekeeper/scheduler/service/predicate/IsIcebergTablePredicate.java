@@ -15,23 +15,45 @@
  */
 package com.expediagroup.beekeeper.scheduler.service.predicate;
 
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
+
 import java.util.Map;
 import java.util.function.Predicate;
 
+import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.springframework.stereotype.Component;
 
+import lombok.NonNull;
+
 // class to determine if a table is an iceberg table based on `table_type` parameter
+// based off IsIcbergTablePredicate class used in Icekeeper
 @Component
-public class IsIcebergTablePredicate implements Predicate<Map<String, String>> {
+public class IsIcebergTablePredicate implements Predicate<Table> {
 
   private static final String TABLE_TYPE_KEY = "table_type";
   private static final String TABLE_TYPE_ICEBERG_VALUE = "ICEBERG";
 
   @Override
-  public boolean test(Map<String, String> tableParameters) {
-    if (tableParameters != null) {
-      String tableType = tableParameters.get(TABLE_TYPE_KEY);
-      return TABLE_TYPE_ICEBERG_VALUE.equalsIgnoreCase(tableType);
+  public boolean test(@NonNull Table table) {
+    return (hasSdProperty(table) || hasTableParameter(table));
+  }
+// check if the table has the output format property set to iceberg
+  private boolean hasSdProperty(Table table) {
+    StorageDescriptor sd = table.getSd();
+    if (sd != null) {
+      String tableOutputFormat = sd.getOutputFormat();
+      return containsIgnoreCase(tableOutputFormat, "iceberg");
+    }
+    return false;
+  }
+//retrieve the table parameters and check if the table type is ICEBERG
+  private boolean hasTableParameter(Table table) {
+    Map<String, String> parameters = table.getParameters();
+    if (parameters != null) {
+      String tableType = table.getParameters().get(TABLE_TYPE_KEY);
+      return equalsIgnoreCase(TABLE_TYPE_ICEBERG_VALUE, tableType);
     }
     return false;
   }

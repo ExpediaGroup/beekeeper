@@ -17,6 +17,8 @@ package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
 import java.util.Map;
 
+import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,15 +42,34 @@ public class IcebergTableListenerEventFilter implements ListenerEventFilter {
     this.isIcebergTablePredicate = predicate;
     // inject and assign predicate
   }
-
+// check if the table is an iceberg table and log if it is
   @Override
   public boolean isFiltered(ListenerEvent event, LifecycleEventType type) {
-    Map<String, String> tableParameters = event.getTableParameters();
-    if (isIcebergTablePredicate.test(tableParameters)) {
+    Table table = createTableFromListenerEvent(event);
+    if (isIcebergTablePredicate.test(table)) {
       log.info("Ignoring Iceberg table '{}.{}'.", event.getDbName(), event.getTableName());
-      // Logging added as per ticket
+      // Logging when iceberg table is ignored, as per ticket
       return true;
     }
     return false;
+  }
+  // create table from listener event to be used in predicate
+  private Table createTableFromListenerEvent(ListenerEvent event) {
+    // create table from listener event
+    Table table = new Table();
+    table.setDbName(event.getDbName());
+    table.setTableName(event.getTableName());
+    table.setParameters(event.getTableParameters());
+    StorageDescriptor sd = new StorageDescriptor();
+
+    Map<String, String> tableParameters = event.getTableParameters(); // retrieve table params and assigns to map
+    String outputFormat = ""; // initialize output format
+    if (tableParameters != null) {// if table parameters are not null
+      outputFormat = tableParameters.getOrDefault("output_format", "");// get output format from table parameters
+    }
+    sd.setOutputFormat(outputFormat); // set output format in storafe descriptor
+    table.setSd(sd); // attach storage descriptor to table
+
+    return table;
   }
 }

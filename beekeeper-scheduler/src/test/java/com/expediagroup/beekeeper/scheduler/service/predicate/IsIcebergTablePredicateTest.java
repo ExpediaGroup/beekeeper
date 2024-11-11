@@ -16,11 +16,14 @@
 package com.expediagroup.beekeeper.scheduler.service.predicate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.junit.jupiter.api.Test;
 
 class IsIcebergTablePredicateTest {
@@ -29,29 +32,99 @@ class IsIcebergTablePredicateTest {
 
   @Test
   void testIsIcebergTableByTableType() {
+    Table table = new Table();
     Map<String, String> tableParameters = new HashMap<>();
     tableParameters.put("table_type", "ICEBERG");
+    table.setParameters(tableParameters);
 
-    assertThat(predicate.test(tableParameters)).isTrue();
+    assertThat(predicate.test(table)).isTrue();
   }
 
   @Test
-  void testIsNotIcebergTable() {
+  void testIsIcebergTableByOutputFormat() {
+    Table table = new Table();
+    StorageDescriptor sd = new StorageDescriptor();
+    sd.setOutputFormat("org.apache.iceberg.mr.hive.HiveIcebergOutputFormat");
+    table.setSd(sd);
+
+    assertThat(predicate.test(table)).isTrue();
+  }
+
+  @Test
+  void testIsIcebergTableByBoth() {
+    Table table = new Table();
     Map<String, String> tableParameters = new HashMap<>();
-    tableParameters.put("table_type", "EXTERNAL");
+    tableParameters.put("table_type", "ICEBERG");
+    table.setParameters(tableParameters);
+    StorageDescriptor sd = new StorageDescriptor();
+    sd.setOutputFormat("org.apache.iceberg.mr.hive.HiveIcebergOutputFormat");
+    table.setSd(sd);
 
-    assertThat(predicate.test(tableParameters)).isFalse();
+    assertThat(predicate.test(table)).isTrue();
   }
 
   @Test
-  void testNullParameters() {
-    assertThat(predicate.test(null)).isFalse();
+  void testIsNotIcebergTableWithDifferentTableTypeAndOutputFormat() {
+    Table table = new Table();
+    Map<String, String> tableParameters = new HashMap<>();
+    tableParameters.put("table_type", "NICEBERG");
+    table.setParameters(tableParameters);
+    StorageDescriptor sd = new StorageDescriptor();
+    sd.setOutputFormat("org.apache.not.an.ice.berg.table");
+    table.setSd(sd);
+
+    assertThat(predicate.test(table)).isFalse();
   }
 
   @Test
-  void testEmptyParameters() {
-    Map<String, String> tableParameters = Collections.emptyMap();
+  void testIsNotIcebergTableWithWrongParameter() {
+    Table table = new Table();
+    table.setParameters(Collections.singletonMap("table_type", "NICEBERG"));
 
-    assertThat(predicate.test(tableParameters)).isFalse();
+    assertThat(predicate.test(table)).isFalse();
+  }
+
+  @Test
+  void testIsNotIcebergTableWithWrongStorageDescriptor() {
+    Table table = new Table();
+    StorageDescriptor sd = new StorageDescriptor();
+    sd.setOutputFormat("org.apache.not.an.ice.berg.table");
+    table.setSd(sd);
+
+    assertThat(predicate.test(table)).isFalse();
+  }
+
+  @Test
+  void testIsNotIcebergTableWithNoParametersOrSd() {
+    Table table = new Table();
+
+    assertThat(predicate.test(table)).isFalse();
+  }
+
+  @Test
+  void testIsIcebergTableWithStorageDescriptorButDifferentTableType() {
+    Table table = new Table();
+    StorageDescriptor sd = new StorageDescriptor();
+    sd.setOutputFormat("org.apache.iceberg.mr.hive.HiveIcebergOutputFormat");
+    table.setSd(sd);
+    table.setParameters(Collections.singletonMap("table_type", "NICEBERG"));
+
+    assertThat(predicate.test(table)).isTrue();
+  }
+
+  @Test
+  void testIsIcebergTableWithTableTypeButDifferentSd() {
+    Table table = new Table();
+    StorageDescriptor sd = new StorageDescriptor();
+    sd.setOutputFormat("org.apache.not.an.ice.berg.table");
+    table.setSd(sd);
+    table.setParameters(Collections.singletonMap("table_type", "ICEBERG"));
+
+    assertThat(predicate.test(table)).isTrue();
+  }
+
+  @Test
+  void testNullTableThrowsException() {
+    assertThrows(NullPointerException.class, () -> predicate.test(null));
   }
 }
