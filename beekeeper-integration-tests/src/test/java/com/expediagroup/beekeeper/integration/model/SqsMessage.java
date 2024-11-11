@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2024 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,18 +97,6 @@ public abstract class SqsMessage {
     String whitelist = isWhitelisted ? eventType.toString() : "";
     JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
     tableParameters.add(BEEKEEPER_HIVE_EVENT_WHITELIST, new JsonPrimitive(whitelist));
-  }
-
-  //enable the setting of the table_type parameter in SQS messages, to allow tests to simulate events for Iceberg/non-Iceberg tables.
-  public void setTableType(String tableType) {
-    JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
-    tableParameters.add("table_type", new JsonPrimitive(tableType));
-  }
-
-  // New method to set output_format
-  public void setOutputFormat(String outputFormat) {
-    JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
-    tableParameters.add("output_format", new JsonPrimitive(outputFormat));
   }
 
   public final String getFormattedString() {
