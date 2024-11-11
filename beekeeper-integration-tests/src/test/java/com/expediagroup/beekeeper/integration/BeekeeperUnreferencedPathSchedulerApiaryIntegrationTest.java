@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2023 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.integration.model.AlterPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.AlterTableSqsMessage;
+//import com.expediagroup.beekeeper.integration.model.CreateTableSqsMessage;
 import com.expediagroup.beekeeper.integration.model.DropPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.DropTableSqsMessage;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
@@ -68,8 +69,9 @@ import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperSchedulerApiary;
 
 @Testcontainers
 public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends BeekeeperIntegrationTestBase {
-
-  private static final int TIMEOUT = 5;
+  // changes similar to BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest
+  private static final int TIMEOUT = 30;
+  // updated to match BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest, asynchronous operations so 5 seconds might not be enough
   private static final String APIARY_QUEUE_URL_PROPERTY = "properties.apiary.queue-url";
 
   private static final String QUEUE = "apiary-receiver-queue";
@@ -118,7 +120,7 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 1);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/oldTableLocation");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/oldTableLocation", true);
   }
 
   @Test
@@ -132,8 +134,8 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/oldTableLocation");
-    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/tableLocation");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/oldTableLocation", true);
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/tableLocation", true);
   }
 
   @Test
@@ -149,8 +151,8 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/table/partitionLocation");
-    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/table/unreferencedPartitionLocation");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/table/partitionLocation", true);
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/table/unreferencedPartitionLocation", true);
   }
 
   @Test
@@ -165,8 +167,8 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/table/partitionLocation");
-    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/table/unreferencedPartitionLocation");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/table/partitionLocation", true);
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/table/unreferencedPartitionLocation", true);
   }
 
   @Test
@@ -179,8 +181,8 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/table/partitionLocation");
-    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/table/partitionLocation2");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/table/partitionLocation", true);
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/table/partitionLocation2", true);
   }
 
   @Test
@@ -192,8 +194,24 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
-    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/tableLocation");
-    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/tableLocation2");
+    assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/tableLocation", true);
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/tableLocation2", true);
+  }
+
+  @Test
+  public void unreferencedIcebergTableEventIsFiltered() throws SQLException, IOException, URISyntaxException {
+    DropTableSqsMessage dropIcebergTableSqsMessage = new DropTableSqsMessage("s3://bucket/icebergTableLocation", true, true);
+    dropIcebergTableSqsMessage.setTableType("ICEBERG");
+    amazonSQS.sendMessage(sendMessageRequest(dropIcebergTableSqsMessage.getFormattedString()));
+
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 0);
+
+    List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
+    assertThat(unreferencedPaths).isEmpty();
+    assertMetrics(false);
+
+    int queueSize = getSqsQueueSize();
+    assertThat(queueSize).isEqualTo(0);
   }
 
   @Test
@@ -216,9 +234,9 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     return new SendMessageRequest(ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE), payload);
   }
 
-  private void assertUnreferencedPath(HousekeepingPath actual, String expectedPath) {
+  private void assertUnreferencedPath(HousekeepingPath actual, String expectedPath, boolean expectScheduledUnreferencedMetric) {
     assertHousekeepingEntity(actual, expectedPath);
-    assertMetrics();
+    assertMetrics(expectScheduledUnreferencedMetric);
   }
 
   public void assertHousekeepingEntity(HousekeepingPath actual, String expectedPath) {
@@ -235,13 +253,32 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     assertThat(actual.getLifecycleType()).isEqualTo(UNREFERENCED.toString());
   }
 
-  public void assertMetrics() {
+  public void assertMetrics(boolean expectScheduledUnreferencedMetric) {
     Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperSchedulerApiary.meterRegistry())
         .getRegistries();
     assertThat(meterRegistry).hasSize(2);
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();
-      assertThat(meters).extracting("id", Meter.Id.class).extracting("name").contains(SCHEDULED_ORPHANED_METRIC);
+      if (expectScheduledUnreferencedMetric) {
+        assertThat(meters).extracting("id", Meter.Id.class)
+            .extracting("name")
+            .contains(SCHEDULED_ORPHANED_METRIC);
+      } else {
+        assertThat(meters).extracting("id", Meter.Id.class)
+            .extracting("name")
+            .doesNotContain(SCHEDULED_ORPHANED_METRIC);
+      }
     });
+  }
+
+  private int getSqsQueueSize() {
+    String queueUrl = ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE);
+    String approximateNumberOfMessages = amazonSQS.getQueueAttributes(queueUrl, List.of("ApproximateNumberOfMessages"))
+        .getAttributes()
+        .get("ApproximateNumberOfMessages");
+
+    return approximateNumberOfMessages != null && !approximateNumberOfMessages.isEmpty()
+        ? Integer.parseInt(approximateNumberOfMessages)
+        : 0;
   }
 }

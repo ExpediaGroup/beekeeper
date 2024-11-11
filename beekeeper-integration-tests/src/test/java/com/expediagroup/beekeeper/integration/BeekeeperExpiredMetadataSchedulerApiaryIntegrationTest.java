@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2023 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,7 +126,8 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 1);
 
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
-    assertExpiredMetadata(expiredMetadata.get(0), LOCATION_A, null);
+    assertExpiredMetadata(expiredMetadata.get(0), LOCATION_A, null, true);
+    // assertMetrics() accepts a boolean value now so we can verify if metadata-scheduled is not present
   }
 
   @Test
@@ -139,7 +140,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUpdatedExpiredMetadataRowCount() == 1);
 
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
-    assertExpiredMetadata(expiredMetadata.get(0), LOCATION_A, null);
+    assertExpiredMetadata(expiredMetadata.get(0), LOCATION_A, null, true);
   }
 
   @Test
@@ -156,7 +157,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
     // check first entry is for the table
     assertThat(expiredMetadata.get(0).getPartitionName()).isEqualTo(null);
-    assertExpiredMetadata(expiredMetadata.get(1), LOCATION_A, PARTITION_A_NAME);
+    assertExpiredMetadata(expiredMetadata.get(1), LOCATION_A, PARTITION_A_NAME, true);
   }
 
   @Test
@@ -176,8 +177,8 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
     // check first entry is for the table
     assertThat(expiredMetadata.get(0).getPartitionName()).isEqualTo(null);
-    assertExpiredMetadata(expiredMetadata.get(1), LOCATION_A, PARTITION_A_NAME);
-    assertExpiredMetadata(expiredMetadata.get(2), LOCATION_B, PARTITION_B_NAME);
+    assertExpiredMetadata(expiredMetadata.get(1), LOCATION_A, PARTITION_A_NAME, true);
+    assertExpiredMetadata(expiredMetadata.get(2), LOCATION_B, PARTITION_B_NAME, true);
   }
 
   @Test
@@ -191,7 +192,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUpdatedExpiredMetadataRowCount() == 1);
 
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
-    assertExpiredMetadata(expiredMetadata.get(0), LOCATION_A, PARTITION_A_NAME);
+    assertExpiredMetadata(expiredMetadata.get(0), LOCATION_A, PARTITION_A_NAME, true);
   }
 
   @Test
@@ -209,8 +210,26 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUpdatedExpiredMetadataRowCount() == 2);
 
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
-    assertExpiredMetadata(expiredMetadata.get(0), LOCATION_A, PARTITION_A_NAME);
-    assertExpiredMetadata(expiredMetadata.get(1), LOCATION_B, PARTITION_B_NAME);
+    assertExpiredMetadata(expiredMetadata.get(0), LOCATION_A, PARTITION_A_NAME, true);
+    assertExpiredMetadata(expiredMetadata.get(1), LOCATION_B, PARTITION_B_NAME, true);
+  }
+
+  @Test
+  public void expiredMetadataIcebergTableEventIsFiltered() throws SQLException, IOException, URISyntaxException {
+    //create a message for an Iceberg table by including table_type=ICEBERG in the payload
+    CreateTableSqsMessage createIcebergTableSqsMessage = new CreateTableSqsMessage(LOCATION_A, true);
+    createIcebergTableSqsMessage.setTableType("ICEBERG");
+    amazonSQS.sendMessage(sendMessageRequest(createIcebergTableSqsMessage.getFormattedString()));
+    // wait for SchedulerApiary to process message
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 0);
+    // asserts that no expired metadata was scheduled
+    List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
+    assertThat(expiredMetadata).isEmpty();
+    // verify metrics (updated assertMetrics) below
+    assertMetrics(false);
+    // assert the event was deleted from the queue
+    int queueSize = getSqsQueueSize();
+    assertThat(queueSize).isEqualTo(0);
   }
 
   @Test
@@ -233,9 +252,9 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     return new SendMessageRequest(ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE), payload);
   }
 
-  private void assertExpiredMetadata(HousekeepingMetadata actual, String expectedPath, String partitionName) {
+  private void assertExpiredMetadata(HousekeepingMetadata actual, String expectedPath, String partitionName, boolean expectScheduledExpiredMetric) {
     assertHousekeepingMetadata(actual, expectedPath, partitionName);
-    assertMetrics();
+    assertMetrics(expectScheduledExpiredMetric);
   }
 
   public void assertHousekeepingMetadata(
@@ -256,13 +275,40 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     assertThat(actual.getLifecycleType()).isEqualTo(EXPIRED.toString());
   }
 
-  public void assertMetrics() {
+  /**
+   * Previously, assertExpiredMetadata didn't differentiate between whether specific metrics (e.g., metadata-scheduled) were expected to be present or not
+   * Adding boolean param allows us to check if SCHEDULED_EXPIRED_METRIC exists
+   * This allows me to check if the metadata-scheduled is present in expiredMetadataIcebergTableEventIsFiltered test.
+   */
+  public void assertMetrics(boolean expectScheduledExpiredMetric) {
     Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperSchedulerApiary.meterRegistry())
         .getRegistries();
     assertThat(meterRegistry).hasSize(2);
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();
-      assertThat(meters).extracting("id", Meter.Id.class).extracting("name").contains(SCHEDULED_EXPIRED_METRIC);
+      if (expectScheduledExpiredMetric) {
+        assertThat(meters).extracting("id", Meter.Id.class)
+            .extracting("name")
+            .contains(SCHEDULED_EXPIRED_METRIC);
+      } else {
+        assertThat(meters).extracting("id", Meter.Id.class)
+            .extracting("name")
+            .doesNotContain(SCHEDULED_EXPIRED_METRIC);
+      }
     });
+  }
+
+  // retrieves the current number of messages to check if the event has been added to the SQS queue or successfully ignored
+  private int getSqsQueueSize() {
+    String queueUrl = ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE);
+    // fetch the number of messages
+    String approximateNumberOfMessages = amazonSQS.getQueueAttributes(queueUrl, List.of("ApproximateNumberOfMessages"))
+        .getAttributes()
+        .get("ApproximateNumberOfMessages");
+
+    //return the count as an integer
+    return approximateNumberOfMessages != null && !approximateNumberOfMessages.isEmpty()
+        ? Integer.parseInt(approximateNumberOfMessages)
+        : 0;
   }
 }

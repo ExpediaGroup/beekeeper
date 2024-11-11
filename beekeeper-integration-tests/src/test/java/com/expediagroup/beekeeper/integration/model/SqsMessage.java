@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,5 +106,11 @@ public abstract class SqsMessage {
 
   public JsonObject getApiaryEventMessageJsonObject() {
     return apiaryEventMessageJsonObject;
+  }
+
+  //enable the setting of the table_type parameter in SQS messages, to allow tests to simulate events for Iceberg/non-Iceberg tables.
+  public void setTableType(String tableType) {
+    JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
+    tableParameters.add("table_type", new JsonPrimitive(tableType));
   }
 }

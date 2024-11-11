@@ -107,4 +107,16 @@ public class SqsMessageTest {
     assertThat(object.get("eventType").getAsString()).isEqualTo(eventType);
     assertThat(object.keySet()).isEqualTo(mergedSet);
   }
+
+  @Test
+  public void testSetTableType() throws IOException, URISyntaxException {
+    CreateTableSqsMessage message = new CreateTableSqsMessage(DUMMY_LOCATION, true);
+
+    message.setTableType("ICEBERG");
+
+    JsonObject object = message.getApiaryEventMessageJsonObject();
+    JsonObject tableParameters = object.getAsJsonObject("tableParameters");
+
+    assertThat(tableParameters.get("table_type").getAsString()).isEqualTo("ICEBERG");
+  }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.IcebergTableListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 import com.expediagroup.beekeeper.scheduler.service.ExpiredHousekeepingMetadataSchedulerService;
@@ -61,6 +62,7 @@ public class SchedulerApiaryTest {
   @Mock private BeekeeperEventReader beekeeperEventReader;
   @Mock private HousekeepingPath path;
   @Mock private HousekeepingMetadata table;
+  @Mock private IcebergTableListenerEventFilter icebergTableListenerEventFilter;
 
   private SchedulerApiary scheduler;
 
@@ -69,14 +71,17 @@ public class SchedulerApiaryTest {
     EnumMap<LifecycleEventType, SchedulerService> schedulerMap = new EnumMap<>(LifecycleEventType.class);
     schedulerMap.put(UNREFERENCED, pathSchedulerService);
     schedulerMap.put(EXPIRED, tableSchedulerService);
-    scheduler = new SchedulerApiary(beekeeperEventReader, schedulerMap);
+    scheduler = new SchedulerApiary(beekeeperEventReader, schedulerMap, icebergTableListenerEventFilter);
   }
 
   @Test
   public void typicalPathSchedule() {
     Optional<BeekeeperEvent> event = Optional.of(newHousekeepingEvent(path, UNREFERENCED));
     when(beekeeperEventReader.read()).thenReturn(event);
+    when(icebergTableListenerEventFilter.isFiltered(any(), any())).thenReturn(false);
+
     scheduler.scheduleBeekeeperEvent();
+
     verify(pathSchedulerService).scheduleForHousekeeping(path);
     verifyNoInteractions(tableSchedulerService);
     verify(beekeeperEventReader).delete(event.get());
@@ -86,9 +91,26 @@ public class SchedulerApiaryTest {
   public void typicalTableSchedule() {
     Optional<BeekeeperEvent> event = Optional.of(newHousekeepingEvent(table, EXPIRED));
     when(beekeeperEventReader.read()).thenReturn(event);
+    when(icebergTableListenerEventFilter.isFiltered(any(), any())).thenReturn(false);
+
     scheduler.scheduleBeekeeperEvent();
+
     verify(tableSchedulerService).scheduleForHousekeeping(table);
     verifyNoInteractions(pathSchedulerService);
+    verify(beekeeperEventReader).delete(event.get());
+  }
+
+  @Test
+  public void icebergTableEventIsFiltered() {
+    HousekeepingEntity entity = path; // or table, as appropriate
+    Optional<BeekeeperEvent> event = Optional.of(newHousekeepingEvent(entity, UNREFERENCED));
+    when(beekeeperEventReader.read()).thenReturn(event);
+    when(icebergTableListenerEventFilter.isFiltered(any(), any())).thenReturn(true);
+
+    scheduler.scheduleBeekeeperEvent();
+
+    verifyNoInteractions(pathSchedulerService);
+    verifyNoInteractions(tableSchedulerService);
     verify(beekeeperEventReader).delete(event.get());
   }
 
@@ -96,6 +118,7 @@ public class SchedulerApiaryTest {
   public void typicalNoSchedule() {
     when(beekeeperEventReader.read()).thenReturn(Optional.empty());
     scheduler.scheduleBeekeeperEvent();
+
     verifyNoInteractions(pathSchedulerService);
     verifyNoInteractions(tableSchedulerService);
     verify(beekeeperEventReader, times(0)).delete(any());
@@ -105,6 +128,7 @@ public class SchedulerApiaryTest {
   public void housekeepingPathRepositoryThrowsException() {
     Optional<BeekeeperEvent> event = Optional.of(newHousekeepingEvent(path, UNREFERENCED));
     when(beekeeperEventReader.read()).thenReturn(event);
+    when(icebergTableListenerEventFilter.isFiltered(any(), any())).thenReturn(false);
     doThrow(new BeekeeperException("exception")).when(pathSchedulerService).scheduleForHousekeeping(path);
 
     try {
@@ -125,6 +149,7 @@ public class SchedulerApiaryTest {
   public void housekeepingTableRepositoryThrowsException() {
     Optional<BeekeeperEvent> event = Optional.of(newHousekeepingEvent(table, EXPIRED));
     when(beekeeperEventReader.read()).thenReturn(event);
+    when(icebergTableListenerEventFilter.isFiltered(any(), any())).thenReturn(false);
     doThrow(new BeekeeperException("exception")).when(tableSchedulerService).scheduleForHousekeeping(table);
 
     try {
