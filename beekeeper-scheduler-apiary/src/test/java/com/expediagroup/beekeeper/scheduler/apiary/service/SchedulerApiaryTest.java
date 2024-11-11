@@ -153,3 +153,4 @@ public class SchedulerApiaryTest {
     return new BeekeeperEvent(List.of(housekeepingEntity), Mockito.mock(MessageEvent.class));
   }
 }
+

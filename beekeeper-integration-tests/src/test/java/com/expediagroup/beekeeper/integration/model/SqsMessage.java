@@ -108,3 +108,4 @@ public abstract class SqsMessage {
     return apiaryEventMessageJsonObject;
   }
 }
+
