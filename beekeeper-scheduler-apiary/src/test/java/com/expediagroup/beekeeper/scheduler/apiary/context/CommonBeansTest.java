@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,8 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.IcebergTableListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.generator.ExpiredHousekeepingMetadataGenerator;
 import com.expediagroup.beekeeper.scheduler.apiary.generator.HousekeepingEntityGenerator;
 import com.expediagroup.beekeeper.scheduler.apiary.generator.UnreferencedHousekeepingPathGenerator;
@@ -117,4 +120,20 @@ public class CommonBeansTest {
         mock(MessageEventHandler.class));
     assertThat(reader).isInstanceOf(BeekeeperEventReader.class);
   }
+
+  @Test
+  public void validateUnreferencedHousekeepingPathMessageEventHandlerIncludesIcebergFilter() {
+    MessageEventHandler handler = commonBeans.unreferencedHousekeepingPathMessageEventHandler(unreferencedHousekeepingPathGenerator);
+    List<ListenerEventFilter> filters = handler.getFilters();
+    assertThat(filters).hasAtLeastOneElementOfType(IcebergTableListenerEventFilter.class);
+  }
+
+  @Test
+  public void validateExpiredHousekeepingMetadataMessageEventHandlerIncludesIcebergFilter() {
+    MessageEventHandler handler = commonBeans.expiredHousekeepingMetadataMessageEventHandler(expiredHousekeepingMetadataGenerator);
+    List<ListenerEventFilter> filters = handler.getFilters();
+    assertThat(filters).hasAtLeastOneElementOfType(IcebergTableListenerEventFilter.class);
+  }
+
 }
+

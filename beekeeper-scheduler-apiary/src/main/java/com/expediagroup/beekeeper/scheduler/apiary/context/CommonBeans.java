@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEventFilter;
+import com.expediagroup.beekeeper.scheduler.apiary.filter.IcebergTableListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.LocationOnlyUpdateListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.TableParameterListenerEventFilter;
@@ -96,7 +97,8 @@ public class CommonBeans {
         new EventTypeListenerEventFilter(eventClasses),
         new LocationOnlyUpdateListenerEventFilter(),
         new TableParameterListenerEventFilter(),
-        new WhitelistedListenerEventFilter()
+        new WhitelistedListenerEventFilter(),
+        new IcebergTableListenerEventFilter()
     );
 
     return new MessageEventHandler(generator, filters);
@@ -120,7 +122,8 @@ public class CommonBeans {
 
     List<ListenerEventFilter> filters = List.of(
         new EventTypeListenerEventFilter(eventClasses),
-        new TableParameterListenerEventFilter()
+        new TableParameterListenerEventFilter(),
+        new IcebergTableListenerEventFilter()
     );
 
     return new MessageEventHandler(generator, filters);
