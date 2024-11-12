@@ -56,6 +56,7 @@ import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.PurgeQueueRequest;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.google.gson.JsonPrimitive;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
@@ -214,6 +215,24 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   }
 
   @Test
+  public void expiredMetadataIcebergTableEventIsFiltered() throws SQLException, IOException, URISyntaxException {
+    // Create a message representing an Iceberg table
+    CreateTableSqsMessage createIcebergTableSqsMessage = new CreateTableSqsMessage(LOCATION_A, true);
+    createIcebergTableSqsMessage.getApiaryEventMessageJsonObject().add("table_type", new JsonPrimitive("ICEBERG"));
+    createIcebergTableSqsMessage.getApiaryEventMessageJsonObject().add("output_format", new JsonPrimitive("org.apache.iceberg.mr.hive.HiveIcebergOutputFormat"));
+    //Send the message to SQS
+    amazonSQS.sendMessage(sendMessageRequest(createIcebergTableSqsMessage.getFormattedString()));
+    // Wait to ensure the scheduler has processed the message
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 0);
+    // Assert that no expired metadata was scheduled
+    List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
+    assertThat(expiredMetadata).isEmpty();
+    // Assert that the event was deleted from the queue
+    int queueSize = getSqsQueueSize();
+    assertThat(queueSize).isEqualTo(0);
+  }
+
+  @Test
   public void healthCheck() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
@@ -264,5 +283,18 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
       List<Meter> meters = registry.getMeters();
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name").contains(SCHEDULED_EXPIRED_METRIC);
     });
+  }
+
+  private int getSqsQueueSize() {
+    String queueUrl = ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE);
+    // Fetch the number of messages in the queue
+    String approximateNumberOfMessages = amazonSQS.getQueueAttributes(queueUrl, List.of("ApproximateNumberOfMessages"))
+        .getAttributes()
+        .get("ApproximateNumberOfMessages");
+
+    // Return the count as an integer
+    return approximateNumberOfMessages != null && !approximateNumberOfMessages.isEmpty()
+        ? Integer.parseInt(approximateNumberOfMessages)
+        : 0;
   }
 }

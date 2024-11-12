@@ -56,6 +56,7 @@ import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.PurgeQueueRequest;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.google.gson.JsonPrimitive;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
@@ -197,6 +198,24 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   }
 
   @Test
+  public void unreferencedPathIcebergTableEventIsFiltered() throws SQLException, IOException, URISyntaxException {
+    // Create a message representing an Iceberg table
+    DropTableSqsMessage dropIcebergTableSqsMessage = new DropTableSqsMessage("s3://bucket/icebergTableLocation", true, true);
+    dropIcebergTableSqsMessage.getApiaryEventMessageJsonObject().add("table_type", new JsonPrimitive("ICEBERG"));
+    dropIcebergTableSqsMessage.getApiaryEventMessageJsonObject().add("output_format", new JsonPrimitive("org.apache.iceberg.mr.hive.HiveIcebergOutputFormat"));
+    // Send the message to SQS
+    amazonSQS.sendMessage(sendMessageRequest(dropIcebergTableSqsMessage.getFormattedString()));
+    // Wait to ensure the scheduler has processed the message
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 0);
+    // Assert that no unreferenced paths were scheduled
+    List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
+    assertThat(unreferencedPaths).isEmpty();
+    // Assert that the event was deleted from the queue
+    int queueSize = getSqsQueueSize();
+    assertThat(queueSize).isEqualTo(0);
+  }
+
+  @Test
   public void healthCheck() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
@@ -243,5 +262,19 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
       List<Meter> meters = registry.getMeters();
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name").contains(SCHEDULED_ORPHANED_METRIC);
     });
+  }
+
+  private int getSqsQueueSize() {
+    String queueUrl = ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE);
+
+    // Fetch the number of messages in the queue
+    String approximateNumberOfMessages = amazonSQS.getQueueAttributes(
+        new com.amazonaws.services.sqs.model.GetQueueAttributesRequest(queueUrl, List.of("ApproximateNumberOfMessages"))
+    ).getAttributes().get("ApproximateNumberOfMessages");
+
+    // Return the count as an integer
+    return approximateNumberOfMessages != null && !approximateNumberOfMessages.isEmpty()
+        ? Integer.parseInt(approximateNumberOfMessages)
+        : 0;
   }
 }

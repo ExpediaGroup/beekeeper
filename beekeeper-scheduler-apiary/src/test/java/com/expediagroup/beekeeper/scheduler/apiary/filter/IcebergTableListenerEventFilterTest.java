@@ -78,7 +78,6 @@ public class IcebergTableListenerEventFilterTest {
     assertThat(isFiltered).isTrue();
   }
 
-  // Helper methods to create ListenerEvent instances with the necessary table parameters
   private ListenerEvent createListenerEventWithTableType(String tableType) {
     Map<String, String> tableParameters = new HashMap<>();
     tableParameters.put("table_type", tableType);

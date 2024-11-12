@@ -17,12 +17,14 @@ package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Component;
 
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 import java.util.Map;
 
+@Component
 public class IcebergTableListenerEventFilter implements ListenerEventFilter {
 
   private static final Logger log = LogManager.getLogger(IcebergTableListenerEventFilter.class);
