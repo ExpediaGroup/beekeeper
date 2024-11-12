@@ -34,8 +34,14 @@ import com.google.gson.JsonObject;
 
 public class SqsMessageTest {
 
-  private static final Set<String> COMMON_KEYS = Set.of("protocolVersion", "eventType", "tableParameters",
-      "dbName", "tableName", "tableLocation");
+  private static final Set<String> COMMON_KEYS = Set.of(
+      "protocolVersion",
+      "eventType",
+      "tableParameters",
+      "dbName",
+      "tableName",
+      "tableLocation"
+  );
 
   @Test
   public void testCreateTableFormat() throws IOException, URISyntaxException {
@@ -50,9 +56,14 @@ public class SqsMessageTest {
         "partitionKeys",
         "partitionValues",
         "partitionLocation",
-        "tableParameters");
-    AddPartitionSqsMessage message = new AddPartitionSqsMessage(DUMMY_LOCATION, DUMMY_PARTITION_KEYS,
-        DUMMY_PARTITION_VALUES, true);
+        "tableParameters"
+    );
+    AddPartitionSqsMessage message = new AddPartitionSqsMessage(
+        DUMMY_LOCATION,
+        DUMMY_PARTITION_KEYS,
+        DUMMY_PARTITION_VALUES,
+        true
+    );
     assertKeys(message, specificKeys, "ADD_PARTITION");
   }
 
@@ -63,9 +74,14 @@ public class SqsMessageTest {
         "partitionValues",
         "partitionLocation",
         "oldPartitionValues",
-        "oldPartitionLocation");
-    AlterPartitionSqsMessage message = new AlterPartitionSqsMessage(DUMMY_LOCATION, DUMMY_PARTITION_KEYS,
-        DUMMY_PARTITION_VALUES, true);
+        "oldPartitionLocation"
+    );
+    AlterPartitionSqsMessage message = new AlterPartitionSqsMessage(
+        DUMMY_LOCATION,
+        DUMMY_PARTITION_KEYS,
+        DUMMY_PARTITION_VALUES,
+        true
+    );
     assertKeys(message, specificKeys, "ALTER_PARTITION");
   }
 
@@ -73,7 +89,8 @@ public class SqsMessageTest {
   public void testAlterTableFormat() throws IOException, URISyntaxException {
     Set<String> specificKeys = Set.of(
         "oldTableName",
-        "oldTableLocation");
+        "oldTableLocation"
+    );
     AlterTableSqsMessage message = new AlterTableSqsMessage(DUMMY_LOCATION, true);
     assertKeys(message, specificKeys, "ALTER_TABLE");
   }
@@ -84,7 +101,8 @@ public class SqsMessageTest {
         "partitionKeys",
         "partitionValues",
         "partitionLocation",
-        "tableParameters");
+        "tableParameters"
+    );
     DropPartitionSqsMessage message = new DropPartitionSqsMessage(DUMMY_LOCATION, true, true);
     assertKeys(message, specificKeys, "DROP_PARTITION");
   }
@@ -106,5 +124,31 @@ public class SqsMessageTest {
 
     assertThat(object.get("eventType").getAsString()).isEqualTo(eventType);
     assertThat(object.keySet()).isEqualTo(mergedSet);
+  }
+
+  @Test
+  public void testSetTableType() throws IOException, URISyntaxException {
+    CreateTableSqsMessage message = new CreateTableSqsMessage(DUMMY_LOCATION, true);
+
+    message.setTableType("ICEBERG");
+
+    JsonObject object = message.getApiaryEventMessageJsonObject();
+    JsonObject tableParameters = object.getAsJsonObject("tableParameters");
+
+    assertThat(tableParameters.get("table_type").getAsString()).isEqualTo("ICEBERG");
+  }
+
+  //test method to verify setOutputFormat functionality
+  @Test
+  public void testSetOutputFormat() throws IOException, URISyntaxException {
+    CreateTableSqsMessage message = new CreateTableSqsMessage(DUMMY_LOCATION, true);
+
+    String outputFormatValue = "org.apache.iceberg.mr.hive.HiveIcebergOutputFormat";
+    message.setOutputFormat(outputFormatValue);
+
+    JsonObject object = message.getApiaryEventMessageJsonObject();
+    JsonObject tableParameters = object.getAsJsonObject("tableParameters");
+
+    assertThat(tableParameters.get("output_format").getAsString()).isEqualTo(outputFormatValue);
   }
 }

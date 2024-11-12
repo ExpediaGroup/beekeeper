@@ -26,14 +26,18 @@ import org.junit.jupiter.api.Test;
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.scheduler.service.predicate.IsIcebergTablePredicate;
 
+// class to test the IcebergTableListenerEventFilter
 public class IcebergTableListenerEventFilterTest {
 
   private IcebergTableListenerEventFilter filter;
+  private IsIcebergTablePredicate predicate;
 
   @BeforeEach
   public void setUp() {
-    filter = new IcebergTableListenerEventFilter();
+    predicate = new IsIcebergTablePredicate();
+    filter = new IcebergTableListenerEventFilter(predicate);
   }
 
   @Test
@@ -201,6 +205,7 @@ public class IcebergTableListenerEventFilterTest {
     assertThat(result).isFalse();
   }
 
+  // helper method to create a ListenerEvent
   private ListenerEvent createListenerEvent(String dbName, String tableName, Map<String, String> tableParameters) {
     return new ListenerEvent() {
       @Override
