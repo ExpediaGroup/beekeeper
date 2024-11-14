@@ -20,8 +20,11 @@ import static java.lang.String.format;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,11 +33,13 @@ import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
 import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 
 @Component
 public class SchedulerApiary {
+  private static final Logger log = LoggerFactory.getLogger(SchedulerApiary.class);
 
   private final BeekeeperEventReader beekeeperEventReader;
   private final EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap;
@@ -55,6 +60,12 @@ public class SchedulerApiary {
     BeekeeperEvent beekeeperEvent = housekeepingEntitiesToBeScheduled.get();
     List<HousekeepingEntity> housekeepingEntities = beekeeperEvent.getHousekeepingEntities();
 
+    Map<String, String> tableParameters = beekeeperEvent.getMessageEvent().getEvent().getTableParameters();
+    log.info("Table parameters for event {}", tableParameters);
+    if (tableParameters.containsKey("format")) {
+      String tableType = tableParameters.get("format");
+      log.info("Table type is {}", tableType.split("/")[0]);
+    }
     for (HousekeepingEntity entity : housekeepingEntities) {
       try {
         LifecycleEventType eventType = LifecycleEventType.valueOf(entity.getLifecycleType());
