@@ -197,6 +197,22 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   }
 
   @Test
+  public void unreferencedPathIcebergTableEventIsFiltered() throws SQLException, IOException, URISyntaxException {
+    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://bucket/newTableLocation",
+        "s3://bucket/oldTableLocation", true, true);
+    alterTableSqsMessage.addTableParameter("table_type", "ICEBERG");
+    alterTableSqsMessage.addTableParameter("format", "iceberg/parquet");
+    amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 0);
+
+    List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
+    assertThat(unreferencedPaths).isEmpty();
+
+    int queueSize = getSqsQueueSize();
+    assertThat(queueSize).isEqualTo(0);
+  }
+
+  @Test
   public void healthCheck() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
@@ -243,5 +259,16 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
       List<Meter> meters = registry.getMeters();
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name").contains(SCHEDULED_ORPHANED_METRIC);
     });
+  }
+
+  private int getSqsQueueSize() {
+    String queueUrl = ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE);
+    String approximateNumberOfMessages = amazonSQS.getQueueAttributes(queueUrl, List.of("ApproximateNumberOfMessages"))
+        .getAttributes()
+        .get("ApproximateNumberOfMessages");
+
+    return approximateNumberOfMessages != null && !approximateNumberOfMessages.isEmpty()
+        ? Integer.parseInt(approximateNumberOfMessages)
+        : 0;
   }
 }

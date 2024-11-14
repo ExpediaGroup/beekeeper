@@ -107,4 +107,11 @@ public abstract class SqsMessage {
   public JsonObject getApiaryEventMessageJsonObject() {
     return apiaryEventMessageJsonObject;
   }
+
+  // adds a key value pair to the `tableParameters` object in the `apiaryEventMessageJsonObject`
+  public void addTableParameter(String key, String value) {
+    JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
+    tableParameters.add(key, new JsonPrimitive(value));
+  }
+
 }
