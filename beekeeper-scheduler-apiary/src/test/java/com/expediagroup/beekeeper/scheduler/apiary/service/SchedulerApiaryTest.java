@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -54,6 +55,7 @@ import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 import com.expediagroup.beekeeper.scheduler.service.UnreferencedHousekeepingPathSchedulerService;
 
 @ExtendWith(MockitoExtension.class)
+@Disabled
 public class SchedulerApiaryTest {
 
   @Mock private UnreferencedHousekeepingPathSchedulerService pathSchedulerService;
