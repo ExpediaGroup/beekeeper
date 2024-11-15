@@ -44,7 +44,7 @@ public class IcebergTableListenerEventFilter implements ListenerEventFilter {
       String tableType = tableParameters.get(TABLE_TYPE_KEY);
 
       if ((format != null && FORMAT_ICEBERG_VALUE.equalsIgnoreCase(format)) ||
-          (tableType != null && tableType.contains(TABLE_TYPE_ICEBERG_VALUE.toLowerCase(Locale.ROOT)))) {
+          (tableType != null && tableType.toLowerCase(Locale.ROOT).contains(TABLE_TYPE_ICEBERG_VALUE.toLowerCase(Locale.ROOT)))) {
         log.info("Ignoring Iceberg table '{}.{}'.", event.getDbName(), event.getTableName());
         return true;
       }
