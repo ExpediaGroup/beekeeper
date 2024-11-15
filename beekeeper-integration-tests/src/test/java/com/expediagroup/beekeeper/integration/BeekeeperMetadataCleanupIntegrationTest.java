@@ -26,6 +26,7 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import static com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter.METRIC_NAME;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DISABLED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SKIPPED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.LONG_CLEANUP_DELAY_VALUE;
@@ -33,6 +34,7 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_C
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -121,6 +123,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
       + UNPARTITIONED_TABLE_NAME
       + "/id1/file1";
 
+  // error here, not sure why, not due to my changes
   @Rule
   public static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
   static {
@@ -366,6 +369,79 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isTrue();
+  }
+
+  @Test
+  public void shouldSkipCleanupForIcebergTable() throws Exception {
+    // Define custom table props and outputFormat for an Iceberg table
+    Map<String, String> tableProperties = new HashMap<>();
+    tableProperties.put("table_type", "ICEBERG");
+    tableProperties.put("format", "ICEBERG/PARQUET");
+    String outputFormat = "org.apache.iceberg.mr.hive.HiveIcebergOutputFormat";
+    // Create the Iceberg table in the Hive metastore
+    hiveTestUtils.createTableWithProperties(
+        PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, tableProperties, outputFormat, true);
+    // Add data to the S3 bucket
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
+    // Insert expired metadata for the Iceberg table
+    insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
+    // wait for cleanup process to run
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == SKIPPED);
+    // Verify that the table still exists
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
+    // Verify that the data in S3 is still present
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isTrue();
+  }
+
+  @Test
+  public void shouldCleanupTableWithNullParameters() throws Exception {
+    // create table without custom properties
+    hiveTestUtils.createTableWithProperties(
+        PARTITIONED_TABLE_PATH,
+        TABLE_NAME_VALUE,
+        true,
+        null,
+        null, // default outputFormat
+        true
+    );
+
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
+    insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
+
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isFalse();
+  }
+
+  @Test
+  public void shouldCleanupNonIcebergTable() throws Exception { // Test to ensure cleanup takes place on non-iceberg table
+    // Define non-Iceberg table properties and StorageDescriptor
+    Map<String, String> tableProperties = new HashMap<>();
+    tableProperties.put("table_type", "MANAGED");
+    tableProperties.put("format", "PARQUET");
+    String outputFormat = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat";
+
+    hiveTestUtils.createTableWithProperties(
+        PARTITIONED_TABLE_PATH,
+        TABLE_NAME_VALUE,
+        true,
+        tableProperties,
+        outputFormat,
+        true
+    );
+
+    amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
+    insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == DELETED);
+
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isFalse();
   }
 
   @Test

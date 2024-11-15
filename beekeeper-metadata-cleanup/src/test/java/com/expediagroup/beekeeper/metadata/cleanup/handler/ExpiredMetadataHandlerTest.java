@@ -15,7 +15,9 @@
  */
 package com.expediagroup.beekeeper.metadata.cleanup.handler;
 
+import static org.apache.commons.lang.math.NumberUtils.LONG_ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -29,6 +31,8 @@ import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -306,6 +310,169 @@ public class ExpiredMetadataHandlerTest {
     expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(FAILED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+  }
+
+  @Test
+  public void shouldSkipCleanupForIcebergTableByTableType() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+
+    // Mock table properties to indicate Iceberg table by table_type
+    Map<String, String> tableProperties = new HashMap<>();
+    tableProperties.put("table_type", "ICEBERG");
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME)).thenReturn(tableProperties);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(hiveMetadataCleaner, never()).dropTable(any(), any());
+    verify(hiveMetadataCleaner, never()).dropPartition(any(), any());
+    verify(s3PathCleaner, never()).cleanupPath(any());
+    verify(housekeepingMetadata).setHousekeepingStatus(SKIPPED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+  }
+
+  @Test
+  public void shouldSkipCleanupForIcebergTableByFormat() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+
+    Map<String, String> tableProperties = new HashMap<>();
+    tableProperties.put("format", "ICEBERG/PARQUET");
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME)).thenReturn(tableProperties);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(hiveMetadataCleaner, never()).dropTable(any(), any());
+    verify(hiveMetadataCleaner, never()).dropPartition(any(), any());
+    verify(s3PathCleaner, never()).cleanupPath(any());
+    verify(housekeepingMetadata).setHousekeepingStatus(SKIPPED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+  }
+
+  @Test
+  public void shouldSkipCleanupForIcebergTableByOutputFormat() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+
+    // set storage descriptor properties to include Iceberg table by outputFormat
+    Map<String, String> storageDescriptorProperties = new HashMap<>();
+    storageDescriptorProperties.put("outputFormat", "org.apache.iceberg.mr.hive.HiveIcebergOutputFormat");
+    when(hiveClient.getStorageDescriptorProperties(DATABASE, TABLE_NAME)).thenReturn(storageDescriptorProperties);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(hiveMetadataCleaner, never()).dropTable(any(), any());
+    verify(hiveMetadataCleaner, never()).dropPartition(any(), any());
+    verify(s3PathCleaner, never()).cleanupPath(any());
+    verify(housekeepingMetadata).setHousekeepingStatus(SKIPPED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+  }
+
+  @Test
+  public void shouldProceedWithCleanupForNonIcebergTable() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
+    when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
+    when(housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
+        .thenReturn(LONG_ZERO);
+
+    Map<String, String> tableProperties = new HashMap<>(); // Mock table properties & outputFormat indicating a non-Iceberg table
+    tableProperties.put("table_type", "MANAGED_TABLE");
+    tableProperties.put("format", "PARQUET");
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME)).thenReturn(tableProperties);
+
+    Map<String, String> storageDescriptorProperties = new HashMap<>();
+    storageDescriptorProperties.put("outputFormat", "org.apache.mr.hive.HiveOutputFormat");
+    when(hiveClient.getStorageDescriptorProperties(DATABASE, TABLE_NAME)).thenReturn(storageDescriptorProperties);
+    // mock existing table to check the cleanup operations are only attempted on tables that actually exist
+    when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(hiveMetadataCleaner).dropTable(housekeepingMetadata, hiveClient);
+    verify(s3PathCleaner).cleanupPath(housekeepingMetadata);
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+  }
+
+  @Test
+  public void shouldHandleNullTableTypeAndFormatWithoutNPE() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
+    when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
+    when(housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
+        .thenReturn(LONG_ZERO);
+
+    // mock table properties and storage descriptor with null values for table_type, format and outputFormat
+    Map<String, String> tableProperties = new HashMap<>();
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME)).thenReturn(tableProperties);
+    Map<String, String> storageDescriptorProperties = new HashMap<>();
+    when(hiveClient.getStorageDescriptorProperties(DATABASE, TABLE_NAME)).thenReturn(storageDescriptorProperties);
+    when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+
+    // should proceed with cleanup since no Iceberg properties were found
+    verify(hiveMetadataCleaner).dropTable(housekeepingMetadata, hiveClient);
+    verify(s3PathCleaner).cleanupPath(housekeepingMetadata);
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+  }
+
+  @Test
+  public void shouldSkipCleanupForIcebergTableWithAllIndicators() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+
+    Map<String, String> tableProperties = new HashMap<>();
+    tableProperties.put("table_type", "ICEBERG");
+    tableProperties.put("format", "ICEBERG/PARQUET");
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME)).thenReturn(tableProperties);
+
+    Map<String, String> storageDescriptorProperties = new HashMap<>();
+    storageDescriptorProperties.put("outputFormat", "org.apache.iceberg.mr.hive.HiveIcebergOutputFormat");
+    when(hiveClient.getStorageDescriptorProperties(DATABASE, TABLE_NAME)).thenReturn(storageDescriptorProperties);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(hiveMetadataCleaner, never()).dropTable(any(), any());
+    verify(hiveMetadataCleaner, never()).dropPartition(any(), any());
+    verify(s3PathCleaner, never()).cleanupPath(any());
+    verify(housekeepingMetadata).setHousekeepingStatus(SKIPPED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+  }
+
+  @Test
+  public void shouldProceedWithCleanupWhenIcebergCheckThrowsException() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
+    when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
+    when(housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
+        .thenReturn(LONG_ZERO);
+
+    // Mock that fetching table properties throws an exception
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME))
+        .thenThrow(new RuntimeException("Metastore unavailable"));
+
+    // Mock that table exists
+    when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(hiveMetadataCleaner).dropTable(housekeepingMetadata, hiveClient);
+    verify(s3PathCleaner).cleanupPath(housekeepingMetadata);
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
   }
 }

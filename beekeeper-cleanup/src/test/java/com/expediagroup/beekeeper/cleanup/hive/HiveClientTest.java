@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
 import org.junit.jupiter.api.BeforeEach;
@@ -156,5 +157,39 @@ public class HiveClientTest {
     assertThrows(BeekeeperException.class, () -> {
       hiveClient.getTableProperties(DATABASE, TABLE_NAME);
     });
+  }
+
+  @Test
+  public void getStorageDescriptorPropertiesWithValidOutputFormat() throws TException {
+    // create a table with a valid outputFormat
+    Table table = new Table();
+    StorageDescriptor sd = new StorageDescriptor();
+    sd.setOutputFormat("org.apache.iceberg.mr.hive.HiveIcebergOutputFormat");
+    table.setSd(sd);
+
+    when(client.getTable(DATABASE, TABLE_NAME)).thenReturn(table);
+    // retrieve storage descriptor properties
+    Map<String, String> result = hiveClient.getStorageDescriptorProperties(DATABASE, TABLE_NAME);
+    // verifying the outputFormat should be correctly retrieved
+    Map<String, String> expected = new HashMap<>();
+    expected.put("outputFormat", "org.apache.iceberg.mr.hive.HiveIcebergOutputFormat");
+
+    assertEquals(expected, result);
+  }
+
+  @Test
+  public void getStorageDescriptorPropertiesWithNullOutputFormat() throws TException {
+    Table table = new Table();
+    StorageDescriptor sd = new StorageDescriptor();
+    sd.setOutputFormat(null);
+    table.setSd(sd);
+
+    when(client.getTable(DATABASE, TABLE_NAME)).thenReturn(table);
+
+    Map<String, String> result = hiveClient.getStorageDescriptorProperties(DATABASE, TABLE_NAME);
+    Map<String, String> expected = new HashMap<>();
+    expected.put("outputFormat", null);
+
+    assertEquals(expected, result);
   }
 }

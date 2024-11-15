@@ -22,6 +22,8 @@ import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SKIPPED;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,12 +92,22 @@ public class ExpiredMetadataHandler implements MetadataHandler {
       HousekeepingMetadata housekeepingMetadata,
       LocalDateTime instant,
       boolean dryRunEnabled) {
+
+    String databaseName = housekeepingMetadata.getDatabaseName();
+    String tableName = housekeepingMetadata.getTableName();
+
+    // Check if the table is an Iceberg table, if so, skip cleanup
+    if (isIcebergTable(client, databaseName, tableName)) {
+      log.info("Skipping cleanup for Iceberg table '{}.{}'.", databaseName, tableName);
+      updateStatus(housekeepingMetadata, SKIPPED, dryRunEnabled);
+      return false;
+    }
+
     String partitionName = housekeepingMetadata.getPartitionName();
     if (partitionName != null) {
       return cleanupPartition(client, housekeepingMetadata, dryRunEnabled);
     } else {
-      Long partitionCount = countPartitionsForDatabaseAndTable(instant, housekeepingMetadata.getDatabaseName(),
-          housekeepingMetadata.getTableName(), dryRunEnabled);
+      Long partitionCount = countPartitionsForDatabaseAndTable(instant, databaseName, tableName, dryRunEnabled);
       if (partitionCount.equals(LONG_ZERO)) {
         return cleanUpTable(client, housekeepingMetadata, dryRunEnabled);
       }
@@ -145,6 +157,30 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     }
     return true;
   }
+
+  private boolean isIcebergTable(CleanerClient client, String databaseName, String tableName) {
+    try {
+      Map<String, String> tableProperties = client.getTableProperties(databaseName, tableName); // fetching table props
+      String tableType = tableProperties != null ? tableProperties.get("table_type") : null;
+      String format = tableProperties != null ? tableProperties.get("format") : null;
+
+      // Check if tableType or format contain "iceberg"
+      boolean isIcebergByType = tableType != null && tableType.toLowerCase(Locale.ROOT).contains("iceberg");
+      boolean isIcebergByFormat = format != null && format.toLowerCase(Locale.ROOT).contains("iceberg");
+
+      // fetching SD props from table
+      Map<String, String> storageDescriptor = client.getStorageDescriptorProperties(databaseName, tableName);
+      String outputFormat = storageDescriptor != null ? storageDescriptor.get("outputFormat") : null;
+      // checking output format for iceberg contents
+      boolean isIcebergByOutputFormat = outputFormat != null && outputFormat.toLowerCase(Locale.ROOT).contains("iceberg");
+
+      return isIcebergByType || isIcebergByFormat || isIcebergByOutputFormat; // combining checks, if one of them is true, return true
+    } catch (Exception e) {
+      log.warn("Exception while checking if table is Iceberg: {}", e.getMessage());
+      return false;
+    }
+  }
+
 
   private void updateAttemptsAndStatus(HousekeepingMetadata housekeepingMetadata, HousekeepingStatus status) {
     housekeepingMetadata.setCleanupAttempts(housekeepingMetadata.getCleanupAttempts() + 1);

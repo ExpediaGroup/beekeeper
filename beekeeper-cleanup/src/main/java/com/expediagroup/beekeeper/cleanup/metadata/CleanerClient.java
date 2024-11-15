@@ -27,4 +27,6 @@ public interface CleanerClient extends Closeable {
   boolean tableExists(String databaseName, String tableName);
 
   Map<String, String> getTableProperties(String databaseName, String tableName);
+
+  Map<String, String> getStorageDescriptorProperties(String databaseName, String tableName); // Retrieves the properties of the storage descriptor
 }

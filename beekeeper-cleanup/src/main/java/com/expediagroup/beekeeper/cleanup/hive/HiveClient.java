@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -123,6 +124,27 @@ public class HiveClient implements CleanerClient {
     } catch (TException e) {
       throw new BeekeeperException(
           "Unexpected exception when getting table properties for \"" + databaseName + "." + tableName + ".", e);
+    }
+  }
+
+  // Method to retrieve properties from the Storage Descriptor
+  @Override
+  public Map<String, String> getStorageDescriptorProperties(String databaseName, String tableName) {
+    Map<String, String> storageDescriptorProperties = new HashMap<>();
+    try {
+      Table table = client.getTable(databaseName, tableName); // retrieve the table object
+      StorageDescriptor sd = table.getSd(); // and storage descriptor
+
+      String outputFormat = sd.getOutputFormat(); // retrieve the output format and store it in the map
+      storageDescriptorProperties.put("outputFormat", outputFormat);
+
+      return storageDescriptorProperties;
+    } catch (NoSuchObjectException e) { // error handling similar to getTableProperties
+      log.warn("The table '{}.{}' does not exist.", databaseName, tableName);
+      return storageDescriptorProperties; // return an empty map if nothitng is found
+    } catch (TException e) {  // catch any TException and throw BK exception
+      throw new BeekeeperException(
+          "Failed to get storage descriptor properties for table '" + databaseName + "." + tableName + "'.", e);
     }
   }
 
