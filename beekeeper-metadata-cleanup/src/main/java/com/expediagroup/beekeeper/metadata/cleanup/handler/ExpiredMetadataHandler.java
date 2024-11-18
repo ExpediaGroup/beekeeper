@@ -160,27 +160,23 @@ public class ExpiredMetadataHandler implements MetadataHandler {
 
   private boolean isIcebergTable(CleanerClient client, String databaseName, String tableName) {
     try {
-      Map<String, String> tableProperties = client.getTableProperties(databaseName, tableName); // fetching table props
+      Map<String, String> tableProperties = client.getTableProperties(databaseName, tableName);
       String tableType = tableProperties != null ? tableProperties.get("table_type") : null;
       String format = tableProperties != null ? tableProperties.get("format") : null;
 
-      // Check if tableType or format contain "iceberg"
-      boolean isIcebergByType = tableType != null && tableType.toLowerCase(Locale.ROOT).contains("iceberg");
-      boolean isIcebergByFormat = format != null && format.toLowerCase(Locale.ROOT).contains("iceberg");
+      boolean isIcebergByType = tableType != null && tableType.toLowerCase().contains("iceberg");
+      boolean isIcebergByFormat = format != null && format.toLowerCase().contains("iceberg");
 
-      // fetching SD props from table
       Map<String, String> storageDescriptor = client.getStorageDescriptorProperties(databaseName, tableName);
       String outputFormat = storageDescriptor != null ? storageDescriptor.get("outputFormat") : null;
-      // checking output format for iceberg contents
-      boolean isIcebergByOutputFormat = outputFormat != null && outputFormat.toLowerCase(Locale.ROOT).contains("iceberg");
+      boolean isIcebergByOutputFormat = outputFormat != null && outputFormat.toLowerCase().contains("iceberg");
 
-      return isIcebergByType || isIcebergByFormat || isIcebergByOutputFormat; // combining checks, if one of them is true, return true
+      return isIcebergByType || isIcebergByFormat || isIcebergByOutputFormat;
     } catch (Exception e) {
       log.warn("Exception while checking if table is Iceberg: {}", e.getMessage());
       return false;
     }
   }
-
 
   private void updateAttemptsAndStatus(HousekeepingMetadata housekeepingMetadata, HousekeepingStatus status) {
     housekeepingMetadata.setCleanupAttempts(housekeepingMetadata.getCleanupAttempts() + 1);

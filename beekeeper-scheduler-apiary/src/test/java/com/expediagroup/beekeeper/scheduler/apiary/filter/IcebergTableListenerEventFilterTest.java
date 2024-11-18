@@ -78,13 +78,6 @@ public class IcebergTableListenerEventFilterTest {
     assertThat(isFiltered).isTrue();
   }
 
-  @Test
-  public void shouldNotFilterWhenFormatIsMisspelled() {
-    ListenerEvent event = createListenerEventWithFormat("IcEbErG/PaRqUaEt");
-    boolean isFiltered = filter.isFiltered(event, LifecycleEventType.EXPIRED);
-    assertThat(isFiltered).isFalse();
-  }
-
   private ListenerEvent createListenerEventWithTableType(String tableType) {
     Map<String, String> tableParameters = new HashMap<>();
     tableParameters.put("table_type", tableType);

@@ -31,9 +31,9 @@ public class IcebergTableListenerEventFilter implements ListenerEventFilter {
   private static final Logger log = LogManager.getLogger(IcebergTableListenerEventFilter.class);
 
   private static final String FORMAT_KEY = "format";
-  private static final String FORMAT_ICEBERG_VALUE = "ICEBERG/PARQUET";
+  private static final String FORMAT_ICEBERG_VALUE = "iceberg";
   private static final String TABLE_TYPE_KEY = "table_type";
-  private static final String TABLE_TYPE_ICEBERG_VALUE = "ICEBERG";
+  private static final String TABLE_TYPE_ICEBERG_VALUE = "iceberg";
 
   @Override
   public boolean isFiltered(ListenerEvent event, LifecycleEventType type) {
@@ -43,13 +43,12 @@ public class IcebergTableListenerEventFilter implements ListenerEventFilter {
       String format = tableParameters.get(FORMAT_KEY);
       String tableType = tableParameters.get(TABLE_TYPE_KEY);
 
-      if ((format != null && FORMAT_ICEBERG_VALUE.equalsIgnoreCase(format)) ||
-          (tableType != null && tableType.toLowerCase(Locale.ROOT).contains(TABLE_TYPE_ICEBERG_VALUE.toLowerCase(Locale.ROOT)))) {
+      if ((format != null && format.toLowerCase().contains(FORMAT_ICEBERG_VALUE)) ||
+          (tableType != null && tableType.toLowerCase().contains(TABLE_TYPE_ICEBERG_VALUE))) {
         log.info("Ignoring Iceberg table '{}.{}'.", event.getDbName(), event.getTableName());
         return true;
       }
     }
-
     return false;
   }
 }
