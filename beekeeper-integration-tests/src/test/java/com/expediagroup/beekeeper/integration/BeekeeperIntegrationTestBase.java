@@ -118,7 +118,7 @@ public abstract class BeekeeperIntegrationTestBase {
   // MySQL DB CONTAINER AND UTILS
   @Container
   private static final MySQLContainer MY_SQL_CONTAINER = ContainerTestUtils.mySqlContainer();
-  private static MySqlTestUtils mySQLTestUtils;
+  protected static MySqlTestUtils mySQLTestUtils;
 
   protected final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
