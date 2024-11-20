@@ -42,6 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 
+import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
@@ -61,6 +62,7 @@ public class SchedulerApiaryTest {
   @Mock private BeekeeperEventReader beekeeperEventReader;
   @Mock private HousekeepingPath path;
   @Mock private HousekeepingMetadata table;
+  @Mock private IcebergValidator icebergValidator;
 
   private SchedulerApiary scheduler;
 
@@ -69,7 +71,7 @@ public class SchedulerApiaryTest {
     EnumMap<LifecycleEventType, SchedulerService> schedulerMap = new EnumMap<>(LifecycleEventType.class);
     schedulerMap.put(UNREFERENCED, pathSchedulerService);
     schedulerMap.put(EXPIRED, tableSchedulerService);
-    scheduler = new SchedulerApiary(beekeeperEventReader, schedulerMap);
+    scheduler = new SchedulerApiary(beekeeperEventReader, schedulerMap, icebergValidator);
   }
 
   @Test

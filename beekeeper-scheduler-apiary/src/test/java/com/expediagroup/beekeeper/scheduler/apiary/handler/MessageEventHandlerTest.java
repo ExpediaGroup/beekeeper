@@ -16,7 +16,6 @@
 package com.expediagroup.beekeeper.scheduler.apiary.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,6 +23,7 @@ import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFEREN
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
