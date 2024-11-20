@@ -36,7 +36,7 @@ public class IcebergValidator {
   /**
    * Beekeeper does not support Iceberg format right now. Iceberg tables in Hive Metastore do not store partition information,
    * so Beekeeper tries to clean up the entire table because that information is missing. This method checks if
-   * the table is an Iceberg table and throws BeekeeperIcebergException to stop the process.
+   * the table is an Iceberg table and throws IcebergTableFoundException to stop the process.
    *
    * @param databaseName
    * @param tableName
