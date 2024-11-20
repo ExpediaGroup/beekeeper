@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,11 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -37,13 +41,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
 
 import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import com.expediagroup.beekeeper.core.error.BeekeeperIcebergException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
@@ -79,6 +83,7 @@ public class SchedulerApiaryTest {
     Optional<BeekeeperEvent> event = Optional.of(newHousekeepingEvent(path, UNREFERENCED));
     when(beekeeperEventReader.read()).thenReturn(event);
     scheduler.scheduleBeekeeperEvent();
+    verify(icebergValidator).throwExceptionIfIceberg(path.getDatabaseName(), path.getTableName());
     verify(pathSchedulerService).scheduleForHousekeeping(path);
     verifyNoInteractions(tableSchedulerService);
     verify(beekeeperEventReader).delete(event.get());
@@ -89,6 +94,8 @@ public class SchedulerApiaryTest {
     Optional<BeekeeperEvent> event = Optional.of(newHousekeepingEvent(table, EXPIRED));
     when(beekeeperEventReader.read()).thenReturn(event);
     scheduler.scheduleBeekeeperEvent();
+
+    verify(icebergValidator).throwExceptionIfIceberg(table.getDatabaseName(), table.getTableName());
     verify(tableSchedulerService).scheduleForHousekeeping(table);
     verifyNoInteractions(pathSchedulerService);
     verify(beekeeperEventReader).delete(event.get());
@@ -98,6 +105,8 @@ public class SchedulerApiaryTest {
   public void typicalNoSchedule() {
     when(beekeeperEventReader.read()).thenReturn(Optional.empty());
     scheduler.scheduleBeekeeperEvent();
+
+    verifyNoInteractions(icebergValidator);
     verifyNoInteractions(pathSchedulerService);
     verifyNoInteractions(tableSchedulerService);
     verify(beekeeperEventReader, times(0)).delete(any());
@@ -113,6 +122,7 @@ public class SchedulerApiaryTest {
       scheduler.scheduleBeekeeperEvent();
       fail("Should have thrown exception");
     } catch (Exception e) {
+      verify(icebergValidator).throwExceptionIfIceberg(path.getDatabaseName(), path.getTableName());
       verify(pathSchedulerService).scheduleForHousekeeping(path);
       verify(beekeeperEventReader, times(0)).delete(any());
       verifyNoInteractions(tableSchedulerService);
@@ -133,6 +143,7 @@ public class SchedulerApiaryTest {
       scheduler.scheduleBeekeeperEvent();
       fail("Should have thrown exception");
     } catch (Exception e) {
+      verify(icebergValidator).throwExceptionIfIceberg(table.getDatabaseName(), table.getTableName());
       verify(tableSchedulerService).scheduleForHousekeeping(table);
       verify(beekeeperEventReader, times(0)).delete(any());
       verifyNoInteractions(pathSchedulerService);
@@ -144,6 +155,26 @@ public class SchedulerApiaryTest {
   }
 
   @Test
+  public void icebergValidatorThrowsException() {
+    String databaseName = "database";
+    String tableName = "table";
+    when(path.getDatabaseName()).thenReturn(databaseName);
+    when(path.getTableName()).thenReturn(tableName);
+    Optional<BeekeeperEvent> event = Optional.of(newHousekeepingEvent(path, UNREFERENCED));
+    when(beekeeperEventReader.read()).thenReturn(event);
+
+    doThrow(new BeekeeperIcebergException("Iceberg table"))
+        .when(icebergValidator).throwExceptionIfIceberg(eq(databaseName), eq(tableName));
+
+    scheduler.scheduleBeekeeperEvent();
+
+    verify(icebergValidator).throwExceptionIfIceberg(databaseName, tableName);
+    verifyNoInteractions(pathSchedulerService);
+    verifyNoInteractions(tableSchedulerService);
+    verify(beekeeperEventReader, times(2)).delete(event.get());
+  }
+
+  @Test
   public void typicalClose() throws Exception {
     scheduler.close();
     verify(beekeeperEventReader, times(1)).close();
@@ -151,7 +182,9 @@ public class SchedulerApiaryTest {
 
   private BeekeeperEvent newHousekeepingEvent(HousekeepingEntity housekeepingEntity,
       LifecycleEventType lifecycleEventType) {
-    when(housekeepingEntity.getLifecycleType()).thenReturn(lifecycleEventType.name());
-    return new BeekeeperEvent(List.of(housekeepingEntity), Mockito.mock(MessageEvent.class));
+    lenient().when(housekeepingEntity.getLifecycleType()).thenReturn(lifecycleEventType.name());
+    when(housekeepingEntity.getDatabaseName()).thenReturn("database");
+    when(housekeepingEntity.getTableName()).thenReturn("table");
+    return new BeekeeperEvent(List.of(housekeepingEntity), mock(MessageEvent.class));
   }
 }
