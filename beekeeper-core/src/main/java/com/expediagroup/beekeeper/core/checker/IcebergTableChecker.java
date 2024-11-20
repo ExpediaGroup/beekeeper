@@ -21,22 +21,18 @@ public class IcebergTableChecker {
     this.metaStoreClientSupplier = metaStoreClientSupplier;
   }
 
-  public boolean isIcebergTable(String databaseName, String tableName) {
+  public void throwExceptionIfIceberg(String databaseName, String tableName) {
     try (CloseableMetaStoreClient client = metaStoreClientSupplier.get()) {
       Table table = client.getTable(databaseName, tableName);
 
-      // Extract table parameters and storage descriptor properties
       Map<String, String> parameters = table.getParameters();
       String tableType = parameters.getOrDefault("table_type", "").toLowerCase();
       String format = parameters.getOrDefault("format", "").toLowerCase();
       String outputFormat = table.getSd().getOutputFormat().toLowerCase();
 
-      // Check if any of the fields indicate Iceberg
-      return tableType.contains("iceberg") || format.contains("iceberg") || outputFormat.contains("iceberg");
-
-    } catch (NoSuchObjectException e) {
-      log.warn("Table {}.{} does not exist.", databaseName, tableName);
-      return false;
+      if (tableType.contains("iceberg") || format.contains("iceberg") || outputFormat.contains("iceberg")) {
+        throw new BeekeeperException("Iceberg tables are not currently supported in Beekeeper");
+      }
     } catch (Exception e) {
       throw new BeekeeperException("Error checking if table is Iceberg", e);
     }
