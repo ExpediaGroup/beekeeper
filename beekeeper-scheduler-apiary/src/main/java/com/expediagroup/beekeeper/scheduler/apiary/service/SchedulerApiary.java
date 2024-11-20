@@ -22,12 +22,15 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import com.expediagroup.beekeeper.core.error.BeekeeperIcebergException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
@@ -36,6 +39,8 @@ import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 
 @Component
 public class SchedulerApiary {
+
+  private static final Logger log = LoggerFactory.getLogger(SchedulerApiary.class);
 
   private final BeekeeperEventReader beekeeperEventReader;
   private final EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap;
@@ -65,6 +70,9 @@ public class SchedulerApiary {
         LifecycleEventType eventType = LifecycleEventType.valueOf(entity.getLifecycleType());
         SchedulerService scheduler = schedulerServiceMap.get(eventType);
         scheduler.scheduleForHousekeeping(entity);
+      } catch (BeekeeperIcebergException e) {
+        log.warn("Iceberg table are not supported in Beekeeper. Deleting message from queue", e);
+        beekeeperEventReader.delete(beekeeperEvent);
       } catch (Exception e) {
         throw new BeekeeperException(format(
             "Unable to schedule %s deletion for entity, this message will go back on the queue",
