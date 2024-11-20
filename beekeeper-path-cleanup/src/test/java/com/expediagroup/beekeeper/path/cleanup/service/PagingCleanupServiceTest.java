@@ -50,7 +50,6 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import com.google.common.collect.Lists;
 
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
-import com.expediagroup.beekeeper.core.checker.IcebergTableChecker;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
@@ -75,10 +74,9 @@ public class PagingCleanupServiceTest {
   private @Autowired HousekeepingPathRepository housekeepingPathRepository;
   private @MockBean PathCleaner pathCleaner;
 
-  private @MockBean IcebergTableChecker icebergTableChecker;
   @Test
   public void typicalWithPaging() {
-    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, icebergTableChecker);
+    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 2, false);
 
     List<String> paths = List.of("s3://bucket/some_foo", "s3://bucket/some_bar", "s3://bucket/some_foobar");
@@ -99,7 +97,7 @@ public class PagingCleanupServiceTest {
 
   @Test
   public void mixOfScheduledAndFailedPaths() {
-    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, icebergTableChecker);
+    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 2, false);
     List<HousekeepingPath> paths = List
         .of(createEntityHousekeepingPath("s3://bucket/some_foo", SCHEDULED),
@@ -115,7 +113,7 @@ public class PagingCleanupServiceTest {
 
   @Test
   public void mixOfAllPaths() {
-    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, icebergTableChecker);
+    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 2, false);
     List<HousekeepingPath> paths = List
         .of(createEntityHousekeepingPath("s3://bucket/some_foo", SCHEDULED),
@@ -132,7 +130,7 @@ public class PagingCleanupServiceTest {
 
   @Test
   void pathCleanerException() {
-    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, icebergTableChecker);
+    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 2, false);
 
     doThrow(new RuntimeException("Error")).doNothing().when(pathCleaner).cleanupPath(any(HousekeepingPath.class));
@@ -160,7 +158,7 @@ public class PagingCleanupServiceTest {
   @Test
   @Timeout(value = 10)
   void doNotInfiniteLoopOnRepeatedFailures() {
-    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, icebergTableChecker);
+    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 1, false);
     List<HousekeepingPath> paths = List
         .of(createEntityHousekeepingPath("s3://bucket/some_foo", FAILED),
@@ -188,7 +186,7 @@ public class PagingCleanupServiceTest {
   @Test
   @Timeout(value = 10)
   void doNotInfiniteLoopOnDryRunCleanup() {
-    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, icebergTableChecker);
+    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 1, true);
     List<HousekeepingPath> paths = List
         .of(createEntityHousekeepingPath("s3://bucket/some_foo", SCHEDULED),
