@@ -48,6 +48,7 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
+import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
@@ -102,8 +103,9 @@ public class CommonBeans {
 
   @Bean(name = "hiveTableCleaner")
   MetadataCleaner metadataCleaner(
-      DeletedMetadataReporter deletedMetadataReporter) {
-    return new HiveMetadataCleaner(deletedMetadataReporter);
+      DeletedMetadataReporter deletedMetadataReporter,
+      IcebergValidator icebergValidator) {
+    return new HiveMetadataCleaner(deletedMetadataReporter, icebergValidator);
   }
 
   @Bean
@@ -139,8 +141,9 @@ public class CommonBeans {
   @Bean(name = "s3PathCleaner")
   PathCleaner pathCleaner(
       S3Client s3Client,
-      BytesDeletedReporter bytesDeletedReporter) {
-    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
+      BytesDeletedReporter bytesDeletedReporter,
+      IcebergValidator icebergValidator) {
+    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter, icebergValidator);
   }
 
   @Bean(name = "expiredMetadataHandler")

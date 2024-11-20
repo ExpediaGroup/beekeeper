@@ -49,6 +49,7 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
+import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.service.MetadataDisableTablesService;
@@ -76,6 +77,7 @@ public class CommonBeansTest {
   private @Mock PathCleaner pathCleaner;
   private @Mock MeterRegistry meterRegistry;
   private @Mock HiveClientFactory hiveClientFactory;
+  private @Mock IcebergValidator icebergValidator;
 
   @BeforeEach
   public void awsSetUp() {
@@ -122,7 +124,7 @@ public class CommonBeansTest {
   @Test
   public void verifyHiveMetadataCleaner() {
     DeletedMetadataReporter reporter = commonBeans.deletedMetadataReporter(meterRegistry, false);
-    MetadataCleaner metadataCleaner = commonBeans.metadataCleaner(reporter);
+    MetadataCleaner metadataCleaner = commonBeans.metadataCleaner(reporter, icebergValidator);
     assertThat(metadataCleaner).isInstanceOf(HiveMetadataCleaner.class);
   }
 
@@ -152,7 +154,7 @@ public class CommonBeansTest {
   void verifyS3pathCleaner() {
     BytesDeletedReporter reporter = commonBeans.bytesDeletedReporter(meterRegistry, false);
     S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), false);
-    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, reporter);
+    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, reporter, icebergValidator);
     assertThat(pathCleaner).isInstanceOf(S3PathCleaner.class);
   }
 
