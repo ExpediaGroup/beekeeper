@@ -40,6 +40,7 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
+import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.path.cleanup.handler.GenericPathHandler;
 import com.expediagroup.beekeeper.path.cleanup.service.PagingPathCleanupService;
@@ -85,8 +86,9 @@ public class CommonBeans {
   @Bean(name = "s3PathCleaner")
   PathCleaner pathCleaner(
       S3Client s3Client,
-      BytesDeletedReporter bytesDeletedReporter) {
-    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
+      BytesDeletedReporter bytesDeletedReporter,
+      IcebergValidator icebergValidator) {
+    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter, icebergValidator);
   }
 
   @Bean

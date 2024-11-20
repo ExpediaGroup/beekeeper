@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
+import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.path.cleanup.service.PagingPathCleanupService;
 import com.expediagroup.beekeeper.path.cleanup.service.PathRepositoryCleanupService;
@@ -59,6 +60,7 @@ class CommonBeansTest {
   private final CommonBeans commonBeans = new CommonBeans();
   private @Mock HousekeepingPathRepository repository;
   private @Mock BytesDeletedReporter bytesDeletedReporter;
+  private @Mock IcebergValidator icebergValidator;
 
   @BeforeEach
   void setUp() {
@@ -100,7 +102,7 @@ class CommonBeansTest {
     S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), dryRunEnabled);
     MeterRegistry meterRegistry = mock(GraphiteMeterRegistry.class);
 
-    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, bytesDeletedReporter);
+    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, bytesDeletedReporter, icebergValidator);
     assertThat(pathCleaner).isInstanceOf(S3PathCleaner.class);
   }
 
