@@ -29,6 +29,7 @@ import com.google.common.base.Strings;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
+import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
@@ -41,17 +42,20 @@ public class S3PathCleaner implements PathCleaner {
   private final S3Client s3Client;
   private final SentinelFilesCleaner sentinelFilesCleaner;
   private final BytesDeletedReporter bytesDeletedReporter;
+  private IcebergValidator icebergValidator;
 
   public S3PathCleaner(S3Client s3Client, SentinelFilesCleaner sentinelFilesCleaner,
-      BytesDeletedReporter bytesDeletedReporter) {
+      BytesDeletedReporter bytesDeletedReporter, IcebergValidator icebergValidator) {
     this.s3Client = s3Client;
     this.sentinelFilesCleaner = sentinelFilesCleaner;
     this.bytesDeletedReporter = bytesDeletedReporter;
+    this.icebergValidator = icebergValidator;
   }
 
   @Override
   @TimedTaggable("s3-paths-deleted")
   public void cleanupPath(HousekeepingEntity housekeepingEntity) {
+    icebergValidator.throwExceptionIfIceberg(housekeepingEntity.getDatabaseName(), housekeepingEntity.getTableName());
     S3SchemeURI s3SchemeURI = new S3SchemeURI(housekeepingEntity.getPath());
     String key = s3SchemeURI.getKey();
     String bucket = s3SchemeURI.getBucket();

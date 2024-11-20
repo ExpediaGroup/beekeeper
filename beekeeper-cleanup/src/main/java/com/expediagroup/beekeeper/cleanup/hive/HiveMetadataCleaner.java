@@ -18,6 +18,7 @@ package com.expediagroup.beekeeper.cleanup.hive;
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClient;
 import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
+import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.config.MetadataType;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
@@ -25,14 +26,18 @@ import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 public class HiveMetadataCleaner implements MetadataCleaner {
 
   private DeletedMetadataReporter deletedMetadataReporter;
+  private IcebergValidator icebergValidator;
 
-  public HiveMetadataCleaner(DeletedMetadataReporter deletedMetadataReporter) {
+  public HiveMetadataCleaner(DeletedMetadataReporter deletedMetadataReporter, IcebergValidator icebergValidator) {
     this.deletedMetadataReporter = deletedMetadataReporter;
+    this.icebergValidator = icebergValidator;
   }
 
   @Override
   @TimedTaggable("hive-table-deleted")
   public void dropTable(HousekeepingMetadata housekeepingMetadata, CleanerClient client) {
+    icebergValidator.throwExceptionIfIceberg(housekeepingMetadata.getDatabaseName(),
+        housekeepingMetadata.getTableName());
     client.dropTable(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
     deletedMetadataReporter.reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
   }
@@ -40,6 +45,8 @@ public class HiveMetadataCleaner implements MetadataCleaner {
   @Override
   @TimedTaggable("hive-partition-deleted")
   public boolean dropPartition(HousekeepingMetadata housekeepingMetadata, CleanerClient client) {
+    icebergValidator.throwExceptionIfIceberg(housekeepingMetadata.getDatabaseName(),
+        housekeepingMetadata.getTableName());
     boolean partitionDeleted = client
         .dropPartition(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(),
             housekeepingMetadata.getPartitionName());

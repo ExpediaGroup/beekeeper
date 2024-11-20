@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
@@ -38,25 +39,29 @@ public class SchedulerApiary {
 
   private final BeekeeperEventReader beekeeperEventReader;
   private final EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap;
+  private final IcebergValidator icebergValidator;
 
   @Autowired
   public SchedulerApiary(
       BeekeeperEventReader beekeeperEventReader,
-      EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap
+      EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap,
+      IcebergValidator icebergValidator
   ) {
     this.beekeeperEventReader = beekeeperEventReader;
     this.schedulerServiceMap = schedulerServiceMap;
+    this.icebergValidator = icebergValidator;
   }
 
   @Transactional
   public void scheduleBeekeeperEvent() {
     Optional<BeekeeperEvent> housekeepingEntitiesToBeScheduled = beekeeperEventReader.read();
-    if (housekeepingEntitiesToBeScheduled.isEmpty()) { return; }
+    if (housekeepingEntitiesToBeScheduled.isEmpty()) {return;}
     BeekeeperEvent beekeeperEvent = housekeepingEntitiesToBeScheduled.get();
     List<HousekeepingEntity> housekeepingEntities = beekeeperEvent.getHousekeepingEntities();
 
     for (HousekeepingEntity entity : housekeepingEntities) {
       try {
+        icebergValidator.throwExceptionIfIceberg(entity.getDatabaseName(), entity.getTableName());
         LifecycleEventType eventType = LifecycleEventType.valueOf(entity.getLifecycleType());
         SchedulerService scheduler = schedulerServiceMap.get(eventType);
         scheduler.scheduleForHousekeeping(entity);
@@ -67,7 +72,6 @@ public class SchedulerApiary {
             e);
       }
     }
-
     beekeeperEventReader.delete(beekeeperEvent);
   }
 
