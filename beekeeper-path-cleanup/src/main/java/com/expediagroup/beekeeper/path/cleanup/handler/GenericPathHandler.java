@@ -31,7 +31,7 @@ import com.expediagroup.beekeeper.core.validation.S3PathValidator;
 
 public abstract class GenericPathHandler {
 
-  private final Logger log = LoggerFactory.getLogger(GenericPathHandler.class);
+  protected final Logger log = LoggerFactory.getLogger(GenericPathHandler.class);
 
   private final HousekeepingPathRepository housekeepingPathRepository;
   private final PathCleaner pathCleaner;
@@ -75,7 +75,7 @@ public abstract class GenericPathHandler {
     return false;
   }
 
-  private void cleanupContent(HousekeepingPath housekeepingPath) {
+  protected void cleanupContent(HousekeepingPath housekeepingPath) {
     try {
       log.info("Cleaning up path \"{}\"", housekeepingPath.getPath());
       if (cleanUpPath(housekeepingPath)) {
@@ -89,13 +89,13 @@ public abstract class GenericPathHandler {
     }
   }
 
-  private void updateAttemptsAndStatus(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
+  protected void updateAttemptsAndStatus(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
     housekeepingPath.setCleanupAttempts(housekeepingPath.getCleanupAttempts() + 1);
     housekeepingPath.setHousekeepingStatus(status);
     housekeepingPathRepository.save(housekeepingPath);
   }
 
-  private void updateStatus(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
+  protected void updateStatus(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
     housekeepingPath.setHousekeepingStatus(status);
     housekeepingPathRepository.save(housekeepingPath);
   }

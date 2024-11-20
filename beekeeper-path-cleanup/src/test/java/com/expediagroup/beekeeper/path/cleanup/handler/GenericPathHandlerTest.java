@@ -36,6 +36,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
+import com.expediagroup.beekeeper.core.checker.IcebergTableChecker;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 
@@ -46,6 +47,8 @@ public class GenericPathHandlerTest {
   private HousekeepingPathRepository housekeepingPathRepository;
   @Mock
   private S3PathCleaner pathCleaner;
+  @Mock
+  private IcebergTableChecker icebergTableChecker;
   @Mock
   private HousekeepingPath mockPath;
   @Mock
@@ -60,7 +63,7 @@ public class GenericPathHandlerTest {
 
   @BeforeEach
   public void initTest() {
-    handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner);
+    handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, icebergTableChecker);
     when(mockPath.getPath()).thenReturn(VALID_TABLE_PATH);
   }
 

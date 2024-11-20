@@ -22,9 +22,12 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+import com.expediagroup.beekeeper.core.config.CoreBeans;
 
 import io.micrometer.core.instrument.MeterRegistry;
 
@@ -50,6 +53,7 @@ import com.expediagroup.beekeeper.path.cleanup.service.PathRepositoryCleanupServ
 @ComponentScan({ "com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.cleanup" })
 @EntityScan(basePackages = { "com.expediagroup.beekeeper.core.model" })
 @EnableJpaRepositories(basePackages = { "com.expediagroup.beekeeper.core.repository" })
+@Import(CoreBeans.class)
 public class CommonBeans {
 
   @Bean
