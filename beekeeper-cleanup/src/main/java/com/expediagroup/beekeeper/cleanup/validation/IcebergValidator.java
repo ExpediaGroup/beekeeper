@@ -1,3 +1,18 @@
+/**
+ * Copyright (C) 2019-2024 Expedia, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.expediagroup.beekeeper.cleanup.validation;
 
 import java.util.Map;
@@ -21,7 +36,7 @@ public class IcebergValidator {
   /**
    * Beekeeper does not support Iceberg format right now. Iceberg tables in Hive Metastore do not store partition information,
    * so Beekeeper tries to clean up the entire table because that information is missing. This method checks if
-   * the table is an Iceberg table and throw IcebergTableFoundException to stop the process.
+   * the table is an Iceberg table and throws BeekeeperIcebergException to stop the process.
    *
    * @param databaseName
    * @param tableName
@@ -33,7 +48,8 @@ public class IcebergValidator {
     String outputFormat = client.getOutputFormat(databaseName, tableName).toLowerCase();
 
     if (tableType.contains("iceberg") || format.contains("iceberg") || outputFormat.contains("iceberg")) {
-      throw new BeekeeperIcebergException("Iceberg tables are not currently supported in Beekeeper");
+      String errorMessage = String.format("Iceberg tables are not currently supported in Beekeeper. Detected in Database: '%s', Table: '%s'.", databaseName, tableName);
+      throw new BeekeeperIcebergException(errorMessage);
     }
   }
 }
