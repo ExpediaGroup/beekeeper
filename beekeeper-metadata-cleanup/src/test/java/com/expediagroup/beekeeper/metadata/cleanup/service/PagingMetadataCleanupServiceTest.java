@@ -46,6 +46,7 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +67,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.metadata.cleanup.TestApplication;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
@@ -89,6 +91,7 @@ public class PagingMetadataCleanupServiceTest {
   private @MockBean PathCleaner pathCleaner;
   private @MockBean HiveClientFactory hiveClientFactory;
   private @MockBean HiveClient hiveClient;
+  private @Mock BeekeeperHistoryService beekeeperHistoryService;
 
   private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
 
@@ -103,7 +106,8 @@ public class PagingMetadataCleanupServiceTest {
     properties.put(UNREFERENCED.getTableParameterName(), "true");
     when(hiveClient.getTableProperties(Mockito.any(), Mockito.any())).thenReturn(properties);
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
-    handler = new ExpiredMetadataHandler(hiveClientFactory, metadataRepository, metadataCleaner, pathCleaner);
+    handler = new ExpiredMetadataHandler(hiveClientFactory, metadataRepository, metadataCleaner, pathCleaner,
+        beekeeperHistoryService);
     handlers = List.of(handler);
     pagingCleanupService = new PagingMetadataCleanupService(handlers, 2, false);
   }

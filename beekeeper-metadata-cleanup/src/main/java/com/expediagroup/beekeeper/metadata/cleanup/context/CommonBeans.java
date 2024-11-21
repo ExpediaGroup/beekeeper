@@ -48,7 +48,9 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
+import com.expediagroup.beekeeper.core.repository.BeekeeperHistoryRepository;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.service.MetadataDisableTablesService;
@@ -148,9 +150,15 @@ public class CommonBeans {
       @Qualifier("hiveClientFactory") CleanerClientFactory cleanerClientFactory,
       HousekeepingMetadataRepository housekeepingMetadataRepository,
       @Qualifier("hiveTableCleaner") MetadataCleaner metadataCleaner,
-      @Qualifier("s3PathCleaner") PathCleaner pathCleaner) {
+      @Qualifier("s3PathCleaner") PathCleaner pathCleaner,
+      BeekeeperHistoryService beekeeperHistoryService) {
     return new ExpiredMetadataHandler(cleanerClientFactory, housekeepingMetadataRepository, metadataCleaner,
-        pathCleaner);
+        pathCleaner, beekeeperHistoryService);
+  }
+
+  @Bean
+  public BeekeeperHistoryService beekeeperHistoryService(BeekeeperHistoryRepository beekeeperHistoryRepository) {
+    return new BeekeeperHistoryService(beekeeperHistoryRepository);
   }
 
   @Bean

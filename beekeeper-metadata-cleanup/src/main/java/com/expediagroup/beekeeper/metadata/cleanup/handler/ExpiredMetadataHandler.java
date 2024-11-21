@@ -19,6 +19,7 @@ import static org.apache.commons.lang.math.NumberUtils.LONG_ZERO;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED_TO_DELETE;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SKIPPED;
 
 import java.time.LocalDateTime;
@@ -34,7 +35,9 @@ import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.history.ExpiredEventDetails;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.core.validation.S3PathValidator;
 
 public class ExpiredMetadataHandler implements MetadataHandler {
@@ -45,16 +48,19 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
   private final MetadataCleaner metadataCleaner;
   private final PathCleaner pathCleaner;
+  private final BeekeeperHistoryService historyService;
 
   public ExpiredMetadataHandler(
       CleanerClientFactory cleanerClientFactory,
       HousekeepingMetadataRepository housekeepingMetadataRepository,
       MetadataCleaner metadataCleaner,
-      PathCleaner pathCleaner) {
+      PathCleaner pathCleaner,
+      BeekeeperHistoryService historyService) {
     this.cleanerClientFactory = cleanerClientFactory;
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
     this.metadataCleaner = metadataCleaner;
     this.pathCleaner = pathCleaner;
+    this.historyService = historyService;
   }
 
   @Override
@@ -74,11 +80,15 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   public void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled) {
     try (CleanerClient client = cleanerClientFactory.newInstance()) {
       boolean deleted = cleanup(client, housekeepingMetadata, instant, dryRunEnabled);
-      if (deleted && !dryRunEnabled) {
-        updateAttemptsAndStatus(housekeepingMetadata, DELETED);
+      if (deleted) {
+        if (!dryRunEnabled) {
+          updateAttemptsAndStatus(housekeepingMetadata, DELETED);
+        }
+        saveHistory(housekeepingMetadata, DELETED, dryRunEnabled);
       }
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingMetadata, FAILED);
+      saveHistory(housekeepingMetadata, FAILED_TO_DELETE, dryRunEnabled);
       log
           .warn("Unexpected exception when deleting metadata for table \"{}.{}\"",
               housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(), e);
@@ -107,6 +117,7 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     if (!S3PathValidator.validTablePath(housekeepingMetadata.getPath())) {
       log.warn("Will not clean up table path \"{}\" because it is not valid.", housekeepingMetadata.getPath());
       updateStatus(housekeepingMetadata, SKIPPED, dryRunEnabled);
+      saveHistory(housekeepingMetadata, SKIPPED, dryRunEnabled);
       return false;
     }
     String databaseName = housekeepingMetadata.getDatabaseName();
@@ -128,6 +139,7 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     if (!S3PathValidator.validPartitionPath(housekeepingMetadata.getPath())) {
       log.warn("Will not clean up partition path \"{}\" because it is not valid.", housekeepingMetadata.getPath());
       updateStatus(housekeepingMetadata, SKIPPED, dryRunEnabled);
+      saveHistory(housekeepingMetadata, SKIPPED, dryRunEnabled);
       return false;
     }
     String databaseName = housekeepingMetadata.getDatabaseName();
@@ -174,5 +186,17 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     }
     return housekeepingMetadataRepository
         .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(databaseName, tableName);
+  }
+
+  private void saveHistory(HousekeepingMetadata metadata, HousekeepingStatus housekeepingStatus,
+      boolean dryRunEnabled) {
+    String eventDetails = ExpiredEventDetails.stringFromEntity(metadata);
+
+    String status = String.valueOf(housekeepingStatus);
+    if (dryRunEnabled) {
+      status = "DRY_RUN_" + housekeepingStatus;
+    }
+
+    historyService.saveHistory(metadata, eventDetails, status);
   }
 }

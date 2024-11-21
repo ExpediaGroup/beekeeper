@@ -50,6 +50,7 @@ import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
 import com.expediagroup.beekeeper.metadata.cleanup.service.MetadataDisableTablesService;
 import com.expediagroup.beekeeper.metadata.cleanup.service.MetadataRepositoryCleanupService;
@@ -76,6 +77,7 @@ public class CommonBeansTest {
   private @Mock PathCleaner pathCleaner;
   private @Mock MeterRegistry meterRegistry;
   private @Mock HiveClientFactory hiveClientFactory;
+  private @Mock BeekeeperHistoryService beekeeperHistoryService;
 
   @BeforeEach
   public void awsSetUp() {
@@ -159,8 +161,7 @@ public class CommonBeansTest {
   @Test
   public void verifyExpiredMetadataHandler() {
     ExpiredMetadataHandler expiredMetadataHandler = commonBeans.expiredMetadataHandler(hiveClientFactory,
-        metadataRepository,
-        metadataCleaner, pathCleaner);
+        metadataRepository, metadataCleaner, pathCleaner, beekeeperHistoryService);
     assertThat(expiredMetadataHandler).isInstanceOf(ExpiredMetadataHandler.class);
   }
 
@@ -169,7 +170,8 @@ public class CommonBeansTest {
     HiveClientFactory hiveClientFactory = Mockito.mock(HiveClientFactory.class);
     CleanupService cleanupService = commonBeans.cleanupService(
         List.of(
-            commonBeans.expiredMetadataHandler(hiveClientFactory, metadataRepository, metadataCleaner, pathCleaner)), 2,
+            commonBeans.expiredMetadataHandler(hiveClientFactory, metadataRepository, metadataCleaner, pathCleaner,
+                beekeeperHistoryService)), 2,
         false);
     assertThat(cleanupService).isInstanceOf(PagingMetadataCleanupService.class);
   }

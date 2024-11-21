@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 
 @Component
 public class UnreferencedPathHandler extends GenericPathHandler {
@@ -35,8 +36,9 @@ public class UnreferencedPathHandler extends GenericPathHandler {
   @Autowired
   public UnreferencedPathHandler(
       HousekeepingPathRepository housekeepingPathRepository,
-      @Qualifier("s3PathCleaner") PathCleaner pathCleaner) {
-    super(housekeepingPathRepository, pathCleaner);
+      @Qualifier("s3PathCleaner") PathCleaner pathCleaner,
+      BeekeeperHistoryService beekeeperHistoryService) {
+    super(housekeepingPathRepository, pathCleaner, beekeeperHistoryService);
     this.housekeepingPathRepository = housekeepingPathRepository;
   }
 

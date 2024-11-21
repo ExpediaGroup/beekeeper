@@ -19,10 +19,13 @@ import static java.lang.String.format;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED_TO_SCHEDULE;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
@@ -40,7 +43,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
+import com.expediagroup.beekeeper.core.model.history.ExpiredEventDetails;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 
 @ExtendWith(MockitoExtension.class)
 public class ExpiredHousekeepingMetadataSchedulerServiceTest {
@@ -54,6 +59,9 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
   @Mock
   private HousekeepingMetadataRepository housekeepingMetadataRepository;
 
+  @Mock
+  private BeekeeperHistoryService beekeeperHistoryService;
+
   @InjectMocks
   private ExpiredHousekeepingMetadataSchedulerService expiredHousekeepingMetadataSchedulerService;
 
@@ -65,8 +73,10 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
         .thenReturn(Optional.empty());
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
+    String eventDetails = ExpiredEventDetails.stringFromEntity(metadata);
 
     verify(housekeepingMetadataRepository).save(metadata);
+    verify(beekeeperHistoryService).saveHistory(metadata, eventDetails, SCHEDULED.name());
   }
 
   @Test
@@ -76,13 +86,15 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
     when(housekeepingMetadataRepository
         .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, PARTITION_NAME))
-            .thenReturn(Optional.empty());
+        .thenReturn(Optional.empty());
     when(housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, null))
         .thenReturn(Optional.of(tableMetadata));
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
+    String eventDetails = ExpiredEventDetails.stringFromEntity(metadata);
 
     verify(housekeepingMetadataRepository).save(metadata);
+    verify(beekeeperHistoryService).saveHistory(metadata, eventDetails, SCHEDULED.name());
   }
 
   @Test
@@ -95,12 +107,14 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
         .thenReturn(Optional.of(existingTable));
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
+    String eventDetails = ExpiredEventDetails.stringFromEntity(metadata);
 
     verify(existingTable).setPath(metadata.getPath());
     verify(existingTable).setHousekeepingStatus(metadata.getHousekeepingStatus());
     verify(existingTable).setClientId(metadata.getClientId());
     verify(existingTable).setCleanupDelay(metadata.getCleanupDelay());
     verify(housekeepingMetadataRepository).save(existingTable);
+    verify(beekeeperHistoryService).saveHistory(metadata, eventDetails, SCHEDULED.name());
   }
 
   @Test
@@ -126,6 +140,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     verify(existingTable).setCleanupTimestamp(CREATION_TIMESTAMP.plus(Duration.parse("P30D")));
 
     verify(housekeepingMetadataRepository).save(existingTable);
+    verify(beekeeperHistoryService).saveHistory(any(), any(), eq(SCHEDULED.name()));
   }
 
   @Test
@@ -143,6 +158,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
         .isThrownBy(() -> expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata))
         .withMessage(format("Unable to schedule %s", metadata));
     verify(housekeepingMetadataRepository).save(metadata);
+    verify(beekeeperHistoryService).saveHistory(any(), any(), eq(FAILED_TO_SCHEDULE.name()));
   }
 
   private HousekeepingMetadata createHousekeepingMetadataPartition() {

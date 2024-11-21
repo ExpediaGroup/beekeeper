@@ -17,6 +17,8 @@ package com.expediagroup.beekeeper.scheduler.service;
 
 import static java.lang.String.format;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED_TO_SCHEDULE;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.time.LocalDateTime;
@@ -30,9 +32,12 @@ import org.springframework.stereotype.Service;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.model.history.ExpiredEventDetails;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 
 @Service
 public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerService {
@@ -41,10 +46,13 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
   private static final LifecycleEventType LIFECYCLE_EVENT_TYPE = EXPIRED;
 
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
+  private final BeekeeperHistoryService beekeeperHistoryService;
 
   @Autowired
-  public ExpiredHousekeepingMetadataSchedulerService(HousekeepingMetadataRepository housekeepingMetadataRepository) {
+  public ExpiredHousekeepingMetadataSchedulerService(HousekeepingMetadataRepository housekeepingMetadataRepository,
+      BeekeeperHistoryService beekeeperHistoryService) {
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
+    this.beekeeperHistoryService = beekeeperHistoryService;
   }
 
   @Override
@@ -60,7 +68,9 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
     try {
       housekeepingMetadataRepository.save(housekeepingMetadata);
       log.info(format("Successfully scheduled %s", housekeepingMetadata));
+      saveHistory(housekeepingMetadata, SCHEDULED);
     } catch (Exception e) {
+      saveHistory(housekeepingMetadata, FAILED_TO_SCHEDULE);
       throw new BeekeeperException(format("Unable to schedule %s", housekeepingMetadata), e);
     }
   }
@@ -139,5 +149,10 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
         housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
 
     return numPartitions > 0 && housekeepingMetadata.getPartitionName() == null;
+  }
+
+  private void saveHistory(HousekeepingMetadata housekeepingMetadata, HousekeepingStatus status) {
+    String eventDetails = ExpiredEventDetails.stringFromEntity(housekeepingMetadata);
+    beekeeperHistoryService.saveHistory(housekeepingMetadata, eventDetails, status.name());
   }
 }

@@ -17,6 +17,8 @@ package com.expediagroup.beekeeper.scheduler.service;
 
 import static java.lang.String.format;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED_TO_SCHEDULE;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 import org.slf4j.Logger;
@@ -27,9 +29,12 @@ import org.springframework.stereotype.Service;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.model.history.UnreferencedEventDetails;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 
 @Service
 public class UnreferencedHousekeepingPathSchedulerService implements SchedulerService {
@@ -38,10 +43,13 @@ public class UnreferencedHousekeepingPathSchedulerService implements SchedulerSe
   private static final LifecycleEventType LIFECYCLE_EVENT_TYPE = UNREFERENCED;
 
   private final HousekeepingPathRepository housekeepingPathRepository;
+  private final BeekeeperHistoryService beekeeperHistoryService;
 
   @Autowired
-  public UnreferencedHousekeepingPathSchedulerService(HousekeepingPathRepository housekeepingPathRepository) {
+  public UnreferencedHousekeepingPathSchedulerService(HousekeepingPathRepository housekeepingPathRepository,
+      BeekeeperHistoryService beekeeperHistoryService) {
     this.housekeepingPathRepository = housekeepingPathRepository;
+    this.beekeeperHistoryService = beekeeperHistoryService;
   }
 
   @Override
@@ -56,8 +64,15 @@ public class UnreferencedHousekeepingPathSchedulerService implements SchedulerSe
     try {
       housekeepingPathRepository.save(housekeepingPath);
       log.info(format("Successfully scheduled %s", housekeepingPath));
+      saveHistory(housekeepingPath, SCHEDULED);
     } catch (Exception e) {
+      saveHistory(housekeepingPath, FAILED_TO_SCHEDULE);
       throw new BeekeeperException(format("Unable to schedule %s", housekeepingPath), e);
     }
+  }
+
+  private void saveHistory(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
+    String eventDetails = UnreferencedEventDetails.stringFromEntity(housekeepingPath);
+    beekeeperHistoryService.saveHistory(housekeepingPath, eventDetails, status.name());
   }
 }

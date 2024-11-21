@@ -1,0 +1,147 @@
+package com.expediagroup.beekeeper.core.repository;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
+
+import org.assertj.core.util.Lists;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.expediagroup.beekeeper.core.TestApplication;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
+import com.expediagroup.beekeeper.core.model.history.BeekeeperHistory;
+import com.expediagroup.beekeeper.core.model.history.ExpiredEventDetails;
+import com.expediagroup.beekeeper.core.model.history.UnreferencedEventDetails;
+
+@ExtendWith(SpringExtension.class)
+@TestPropertySource(properties = {
+    "hibernate.data-source.driver-class-name=org.h2.Driver",
+    "hibernate.dialect=org.hibernate.dialect.H2Dialect",
+    "hibernate.hbm2ddl.auto=create",
+    "spring.jpa.show-sql=true",
+    "spring.datasource.url=jdbc:h2:mem:beekeeper;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL" })
+@ContextConfiguration(classes = { TestApplication.class }, loader = AnnotationConfigContextLoader.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+public class BeekeeperHistoryRepositoryTest {
+
+  protected static final String DATABASE_NAME = "database";
+  protected static final String TABLE_NAME = "table";
+  protected static final PeriodDuration CLEANUP_DELAY = PeriodDuration.parse("P3D");
+  protected static final LocalDateTime COLUMN_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
+  protected static final LocalDateTime EVENT_TIMESTAMP = COLUMN_TIMESTAMP.plus(CLEANUP_DELAY);
+
+  private static final int PAGE = 0;
+  private static final int PAGE_SIZE = 500;
+  protected final ObjectMapper mapper = new ObjectMapper();
+
+  @Autowired
+  private BeekeeperHistoryRepository repository;
+
+  @BeforeEach
+  public void setupDb() {
+    repository.deleteAll();
+  }
+
+  @Test
+  public void typicalSave() throws JsonProcessingException {
+    BeekeeperHistory expiredEntry = createExpiredEventDetails(SCHEDULED);
+    BeekeeperHistory unreferencedEntry = createUnreferencedEventDetails(SCHEDULED);
+
+    repository.save(expiredEntry);
+    repository.save(unreferencedEntry);
+
+    List<BeekeeperHistory> historyList = Lists.newArrayList(
+        repository.findRecordsByLifecycleType("EXPIRED", PageRequest.of(PAGE, PAGE_SIZE)));
+    assertThat(historyList.size()).isEqualTo(1);
+
+    historyList = Lists.newArrayList(
+        repository.findRecordsByLifecycleType("UNREFERENCED", PageRequest.of(PAGE, PAGE_SIZE)));
+    assertThat(historyList.size()).isEqualTo(1);
+  }
+
+  @Test
+  public void expired_multipleStatuses() throws JsonProcessingException {
+    BeekeeperHistory scheduledEntry = createExpiredEventDetails(SCHEDULED);
+    BeekeeperHistory deletedEntry = createExpiredEventDetails(DELETED);
+    BeekeeperHistory failedEntry = createExpiredEventDetails(FAILED);
+
+    repository.save(scheduledEntry);
+    repository.save(deletedEntry);
+    repository.save(failedEntry);
+
+    List<BeekeeperHistory> historyList = Lists.newArrayList(
+        repository.findRecordsByLifecycleType("EXPIRED", PageRequest.of(PAGE, PAGE_SIZE)));
+    assertThat(historyList.size()).isEqualTo(3);
+  }
+
+  @Test
+  public void unreferenced_multipleStatuses() throws JsonProcessingException {
+    BeekeeperHistory scheduledEntry = createUnreferencedEventDetails(SCHEDULED);
+    BeekeeperHistory deletedEntry = createUnreferencedEventDetails(DELETED);
+    BeekeeperHistory failedEntry = createUnreferencedEventDetails(FAILED);
+
+    repository.save(scheduledEntry);
+    repository.save(deletedEntry);
+    repository.save(failedEntry);
+
+    List<BeekeeperHistory> historyList = Lists.newArrayList(
+        repository.findRecordsByLifecycleType("UNREFERENCED", PageRequest.of(PAGE, PAGE_SIZE)));
+    assertThat(historyList.size()).isEqualTo(3);
+  }
+
+  protected BeekeeperHistory createExpiredEventDetails(HousekeepingStatus status) throws JsonProcessingException {
+    ExpiredEventDetails expiredEventDetails = ExpiredEventDetails.builder()
+        .cleanupAttempts(3)
+        .cleanupDelay("P1D")
+        .partitionName("event_date")
+        .cleanupTimestamp(COLUMN_TIMESTAMP.toString())
+        .build();
+
+    mapper.findAndRegisterModules();
+    String stringDetails = mapper.writeValueAsString(expiredEventDetails);
+    return createHistoryEntry("EXPIRED", status, stringDetails);
+  }
+
+  protected BeekeeperHistory createUnreferencedEventDetails(HousekeepingStatus status) throws JsonProcessingException {
+    UnreferencedEventDetails expiredEventDetails = UnreferencedEventDetails.builder()
+        .cleanupAttempts(3)
+        .cleanupDelay("P1D")
+        .cleanupTimestamp(COLUMN_TIMESTAMP.toString())
+        .build();
+
+    mapper.findAndRegisterModules();
+    String stringDetails = mapper.writeValueAsString(expiredEventDetails);
+    return createHistoryEntry("UNREFERENCED", status, stringDetails);
+  }
+
+  protected BeekeeperHistory createHistoryEntry(String lifecycleType, HousekeepingStatus status,
+      String eventDetails) {
+    return BeekeeperHistory.builder()
+        .eventTimestamp(EVENT_TIMESTAMP)
+        .databaseName(DATABASE_NAME)
+        .tableName(TABLE_NAME)
+        .lifecycleType(lifecycleType)
+        .housekeepingStatus(status.name())
+        .eventDetails(eventDetails)
+        .build();
+  }
+}
