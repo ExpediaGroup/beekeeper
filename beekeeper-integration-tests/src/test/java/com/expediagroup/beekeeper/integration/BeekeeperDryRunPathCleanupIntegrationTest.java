@@ -15,6 +15,9 @@
  */
 package com.expediagroup.beekeeper.integration;
 
+import static org.apache.hadoop.fs.s3a.Constants.ACCESS_KEY;
+import static org.apache.hadoop.fs.s3a.Constants.ENDPOINT;
+import static org.apache.hadoop.fs.s3a.Constants.SECRET_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
@@ -25,10 +28,12 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_N
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -36,6 +41,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -47,11 +53,15 @@ import io.micrometer.core.instrument.MeterRegistry;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
+import com.google.common.collect.ImmutableMap;
 
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
+import com.expediagroup.beekeeper.integration.utils.HiveTestUtils;
 import com.expediagroup.beekeeper.integration.utils.TestAppender;
 import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
+
+import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
 
 @Testcontainers
 @ExtendWith(MockitoExtension.class)
@@ -62,6 +72,12 @@ public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrat
   private static final String SCHEDULER_DELAY_MS_PROPERTY = "properties.scheduler-delay-ms";
   private static final String DRY_RUN_ENABLED_PROPERTY = "properties.dry-run-enabled";
   private static final String AWS_S3_ENDPOINT_PROPERTY = "aws.s3.endpoint";
+  private static final String METASTORE_URI_PROPERTY = "properties.metastore-uri";
+  private static final String AWS_DISABLE_GET_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disableGetObjectMD5Validation";
+  private static final String AWS_DISABLE_PUT_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disablePutObjectMD5Validation";
+
+  private static final String S3_ACCESS_KEY = "access";
+  private static final String S3_SECRET_KEY = "secret";
 
   private static final String BUCKET = "test-path-bucket";
   private static final String DB_AND_TABLE_PREFIX = DATABASE_NAME_VALUE + "/" + TABLE_NAME_VALUE;
@@ -83,17 +99,37 @@ public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrat
 
   @Container
   private static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
+  static {
+    S3_CONTAINER.start();
+  }
   private static AmazonS3 amazonS3;
+
+  private static final String S3_ENDPOINT = ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3);
 
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
   private final TestAppender appender = new TestAppender();
+
+  private static Map<String, String> metastoreProperties = ImmutableMap
+      .<String, String>builder()
+      .put(ENDPOINT, S3_ENDPOINT)
+      .put(ACCESS_KEY, S3_ACCESS_KEY)
+      .put(SECRET_KEY, S3_SECRET_KEY)
+      .build();
+
+  @RegisterExtension
+  public ThriftHiveMetaStoreJUnitExtension thriftHiveMetaStore = new ThriftHiveMetaStoreJUnitExtension(
+      DATABASE_NAME_VALUE, metastoreProperties);
+  private HiveTestUtils hiveTestUtils;
+  private HiveMetaStoreClient metastoreClient;
 
   @BeforeAll
   public static void init() {
     System.setProperty(SPRING_PROFILES_ACTIVE_PROPERTY, SPRING_PROFILES_ACTIVE);
     System.setProperty(SCHEDULER_DELAY_MS_PROPERTY, SCHEDULER_DELAY_MS);
     System.setProperty(DRY_RUN_ENABLED_PROPERTY, DRY_RUN_ENABLED);
-    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3));
+    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, S3_ENDPOINT);
+    System.setProperty(AWS_DISABLE_GET_VALIDATION_PROPERTY, "true");
+    System.setProperty(AWS_DISABLE_PUT_VALIDATION_PROPERTY, "true");
 
     amazonS3 = ContainerTestUtils.s3Client(S3_CONTAINER, AWS_REGION);
     amazonS3.createBucket(new CreateBucketRequest(BUCKET, AWS_REGION));
@@ -105,12 +141,18 @@ public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrat
     System.clearProperty(SCHEDULER_DELAY_MS_PROPERTY);
     System.clearProperty(DRY_RUN_ENABLED_PROPERTY);
     System.clearProperty(AWS_S3_ENDPOINT_PROPERTY);
+    System.clearProperty(METASTORE_URI_PROPERTY);
 
     amazonS3.shutdown();
+    S3_CONTAINER.stop();
   }
 
   @BeforeEach
   public void setup() {
+    System.setProperty(METASTORE_URI_PROPERTY, thriftHiveMetaStore.getThriftConnectionUri());
+    metastoreClient = thriftHiveMetaStore.client();
+    hiveTestUtils = new HiveTestUtils(metastoreClient);
+
     amazonS3.listObjectsV2(BUCKET)
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
