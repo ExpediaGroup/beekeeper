@@ -15,6 +15,9 @@
  */
 package com.expediagroup.beekeeper.integration;
 
+import static org.apache.hadoop.fs.s3a.Constants.ACCESS_KEY;
+import static org.apache.hadoop.fs.s3a.Constants.ENDPOINT;
+import static org.apache.hadoop.fs.s3a.Constants.SECRET_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
@@ -27,20 +30,24 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_N
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.thrift.TException;
 import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -51,9 +58,13 @@ import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
+import com.google.common.collect.ImmutableMap;
 
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
+import com.expediagroup.beekeeper.integration.utils.HiveTestUtils;
 import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
+
+import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
 
 @Testcontainers
 public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTestBase {
@@ -63,6 +74,12 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   private static final String SCHEDULER_DELAY_MS_PROPERTY = "properties.scheduler-delay-ms";
   private static final String DRY_RUN_ENABLED_PROPERTY = "properties.dry-run-enabled";
   private static final String AWS_S3_ENDPOINT_PROPERTY = "aws.s3.endpoint";
+  private static final String METASTORE_URI_PROPERTY = "properties.metastore-uri";
+  private static final String AWS_DISABLE_GET_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disableGetObjectMD5Validation";
+  private static final String AWS_DISABLE_PUT_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disablePutObjectMD5Validation";
+  
+  private static final String S3_ACCESS_KEY = "access";
+  private static final String S3_SECRET_KEY = "secret";
 
   private static final String BUCKET = "test-path-bucket";
   private static final String DB_AND_TABLE_PREFIX = DATABASE_NAME_VALUE + "/" + TABLE_NAME_VALUE;
@@ -84,16 +101,35 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
 
   @Container
   private static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
+  static {
+    S3_CONTAINER.start();
+  }
   private static AmazonS3 amazonS3;
-
+  private static final String S3_ENDPOINT = ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3);
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
+
+  private static Map<String, String> metastoreProperties = ImmutableMap
+      .<String, String>builder()
+      .put(ENDPOINT, S3_ENDPOINT)
+      .put(ACCESS_KEY, S3_ACCESS_KEY)
+      .put(SECRET_KEY, S3_SECRET_KEY)
+      .build();
+
+  @RegisterExtension
+  public ThriftHiveMetaStoreJUnitExtension thriftHiveMetaStore = new ThriftHiveMetaStoreJUnitExtension(
+      DATABASE_NAME_VALUE, metastoreProperties);
+
+  private HiveTestUtils hiveTestUtils;
+  private HiveMetaStoreClient metastoreClient;
 
   @BeforeAll
   public static void init() {
     System.setProperty(SPRING_PROFILES_ACTIVE_PROPERTY, SPRING_PROFILES_ACTIVE);
     System.setProperty(SCHEDULER_DELAY_MS_PROPERTY, SCHEDULER_DELAY_MS);
     System.setProperty(DRY_RUN_ENABLED_PROPERTY, DRY_RUN_ENABLED);
-    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3));
+    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, S3_ENDPOINT);
+    System.setProperty(AWS_DISABLE_GET_VALIDATION_PROPERTY, "true");
+    System.setProperty(AWS_DISABLE_PUT_VALIDATION_PROPERTY, "true");
 
     amazonS3 = ContainerTestUtils.s3Client(S3_CONTAINER, AWS_REGION);
     amazonS3.createBucket(new CreateBucketRequest(BUCKET, AWS_REGION));
@@ -105,12 +141,18 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
     System.clearProperty(SCHEDULER_DELAY_MS_PROPERTY);
     System.clearProperty(DRY_RUN_ENABLED_PROPERTY);
     System.clearProperty(AWS_S3_ENDPOINT_PROPERTY);
+    System.clearProperty(METASTORE_URI_PROPERTY);
 
     amazonS3.shutdown();
+    S3_CONTAINER.stop();
   }
 
   @BeforeEach
   public void setup() {
+    System.setProperty(METASTORE_URI_PROPERTY, thriftHiveMetaStore.getThriftConnectionUri());
+    metastoreClient = thriftHiveMetaStore.client();
+    hiveTestUtils = new HiveTestUtils(metastoreClient);
+
     amazonS3.listObjectsV2(BUCKET)
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
@@ -126,7 +168,8 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   }
 
   @Test
-  public void cleanupPathsForFile() throws SQLException {
+  public void cleanupPathsForFile() throws SQLException, TException {
+    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
@@ -143,7 +186,8 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   }
 
   @Test
-  public void cleanupPathsForDirectory() throws SQLException {
+  public void cleanupPathsForDirectory() throws SQLException, TException {
+    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
@@ -162,7 +206,8 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   }
 
   @Test
-  public void cleanupPathsForDirectoryWithSpace() throws SQLException {
+  public void cleanupPathsForDirectoryWithSpace() throws SQLException, TException {
+    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
     String objectKeyRoot = DB_AND_TABLE_PREFIX + "/ /id1/partition1";
     String objectKey1 = objectKeyRoot + "/file1";
     String objectKey2 = objectKeyRoot + "/file2";
@@ -182,7 +227,8 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   }
 
   @Test
-  public void cleanupPathsForDirectoryWithTrailingSlash() throws SQLException {
+  public void cleanupPathsForDirectoryWithTrailingSlash() throws SQLException, TException {
+    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
@@ -199,7 +245,8 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   }
 
   @Test
-  public void cleanupSentinelForParent() throws SQLException {
+  public void cleanupSentinelForParent() throws SQLException, TException {
+    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
     String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
     String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
     String databaseSentinel = "database_$folder$";
@@ -223,7 +270,8 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   }
 
   @Test
-  public void cleanupSentinelForNonEmptyParent() throws SQLException {
+  public void cleanupSentinelForNonEmptyParent() throws SQLException, TException {
+    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
     String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
     String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
@@ -245,7 +293,8 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   }
 
   @Test
-  public void metrics() throws SQLException {
+  public void metrics() throws SQLException, TException {
+    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
 
