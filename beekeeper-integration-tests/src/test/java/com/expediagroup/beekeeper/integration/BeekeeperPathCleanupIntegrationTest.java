@@ -77,7 +77,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   private static final String METASTORE_URI_PROPERTY = "properties.metastore-uri";
   private static final String AWS_DISABLE_GET_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disableGetObjectMD5Validation";
   private static final String AWS_DISABLE_PUT_VALIDATION_PROPERTY = "com.amazonaws.services.s3.disablePutObjectMD5Validation";
-  
+
   private static final String S3_ACCESS_KEY = "access";
   private static final String S3_SECRET_KEY = "secret";
 
@@ -88,6 +88,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   private static final String OBJECT_KEY2 = DB_AND_TABLE_PREFIX + "/id1/partition1/file2";
   private static final String OBJECT_KEY_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition1_$folder$";
   private static final String ABSOLUTE_PATH = "s3://" + BUCKET + "/" + OBJECT_KEY_ROOT;
+  private static final String TABLE_PATH = "s3a://" + BUCKET + "/" + DATABASE_NAME_VALUE + "/" + TABLE_NAME_VALUE + "/";
 
   private static final String OBJECT_KEY_OTHER = DB_AND_TABLE_PREFIX + "/id1/partition10/file1";
   private static final String OBJECT_KEY_OTHER_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition10_$folder$";
@@ -142,6 +143,8 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
     System.clearProperty(DRY_RUN_ENABLED_PROPERTY);
     System.clearProperty(AWS_S3_ENDPOINT_PROPERTY);
     System.clearProperty(METASTORE_URI_PROPERTY);
+    System.clearProperty(AWS_DISABLE_GET_VALIDATION_PROPERTY);
+    System.clearProperty(AWS_DISABLE_PUT_VALIDATION_PROPERTY);
 
     amazonS3.shutdown();
     S3_CONTAINER.stop();
@@ -169,7 +172,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
 
   @Test
   public void cleanupPathsForFile() throws SQLException, TException {
-    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTable(TABLE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
@@ -187,7 +190,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
 
   @Test
   public void cleanupPathsForDirectory() throws SQLException, TException {
-    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTable(TABLE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
@@ -207,7 +210,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
 
   @Test
   public void cleanupPathsForDirectoryWithSpace() throws SQLException, TException {
-    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTable(TABLE_PATH, TABLE_NAME_VALUE, false);
     String objectKeyRoot = DB_AND_TABLE_PREFIX + "/ /id1/partition1";
     String objectKey1 = objectKeyRoot + "/file1";
     String objectKey2 = objectKeyRoot + "/file2";
@@ -228,7 +231,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
 
   @Test
   public void cleanupPathsForDirectoryWithTrailingSlash() throws SQLException, TException {
-    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTable(TABLE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY2, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
@@ -246,7 +249,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
 
   @Test
   public void cleanupSentinelForParent() throws SQLException, TException {
-    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTable(TABLE_PATH, TABLE_NAME_VALUE, false);
     String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
     String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
     String databaseSentinel = "database_$folder$";
@@ -271,7 +274,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
 
   @Test
   public void cleanupSentinelForNonEmptyParent() throws SQLException, TException {
-    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTable(TABLE_PATH, TABLE_NAME_VALUE, false);
     String parentSentinel = DB_AND_TABLE_PREFIX + "/id1_$folder$";
     String tableSentinel = DB_AND_TABLE_PREFIX + "_$folder$";
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
@@ -294,7 +297,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
 
   @Test
   public void metrics() throws SQLException, TException {
-    hiveTestUtils.createTable(ABSOLUTE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTable(TABLE_PATH, TABLE_NAME_VALUE, false);
     amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
     amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
 
