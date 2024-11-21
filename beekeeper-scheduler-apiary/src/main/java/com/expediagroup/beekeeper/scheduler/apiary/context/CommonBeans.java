@@ -17,7 +17,9 @@ package com.expediagroup.beekeeper.scheduler.apiary.context;
 
 import java.util.EnumMap;
 import java.util.List;
+import java.util.function.Supplier;
 
+import org.apache.hadoop.hive.conf.HiveConf;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -37,6 +39,9 @@ import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
+import com.expediagroup.beekeeper.cleanup.hive.HiveClientFactory;
+import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
+import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.EventTypeListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
@@ -51,6 +56,10 @@ import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReade
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
+
+import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
+import com.hotels.hcommon.hive.metastore.client.closeable.CloseableMetaStoreClientFactory;
+import com.hotels.hcommon.hive.metastore.client.supplier.HiveMetaStoreClientSupplier;
 
 @Configuration
 @ComponentScan(basePackages = { "com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.scheduler" })
@@ -138,5 +147,36 @@ public class CommonBeans {
     );
 
     return new MessageReaderAdapter(messageReader, handlers);
+  }
+
+  @Bean
+  public HiveConf hiveConf(@Value("${properties.metastore-uri}") String metastoreUri) {
+    HiveConf conf = new HiveConf();
+    conf.setVar(HiveConf.ConfVars.METASTOREURIS, metastoreUri);
+    return conf;
+  }
+
+  @Bean
+  public CloseableMetaStoreClientFactory metaStoreClientFactory() {
+    return new CloseableMetaStoreClientFactory();
+  }
+
+  @Bean
+  Supplier<CloseableMetaStoreClient> metaStoreClientSupplier(
+      CloseableMetaStoreClientFactory metaStoreClientFactory, HiveConf hiveConf) {
+    String name = "beekeeper-scheduler-apiary";
+    return new HiveMetaStoreClientSupplier(metaStoreClientFactory, hiveConf, name);
+  }
+
+  @Bean(name = "hiveClientFactory")
+  public CleanerClientFactory clientFactory(
+      Supplier<CloseableMetaStoreClient> metaStoreClientSupplier,
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+    return new HiveClientFactory(metaStoreClientSupplier, dryRunEnabled);
+  }
+
+  @Bean
+  public IcebergValidator icebergValidator(CleanerClientFactory clientFactory) {
+    return new IcebergValidator(clientFactory);
   }
 }

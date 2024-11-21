@@ -94,6 +94,11 @@ public class CommonBeans {
   }
 
   @Bean
+  public IcebergValidator icebergValidator(CleanerClientFactory clientFactory) {
+    return new IcebergValidator(clientFactory);
+  }
+
+  @Bean
   public DeletedMetadataReporter deletedMetadataReporter(
       MeterRegistry meterRegistry,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
