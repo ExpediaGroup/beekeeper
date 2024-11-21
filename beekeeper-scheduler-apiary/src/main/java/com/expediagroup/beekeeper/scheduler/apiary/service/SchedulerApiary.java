@@ -72,12 +72,10 @@ public class SchedulerApiary {
         scheduler.scheduleForHousekeeping(entity);
       } catch (BeekeeperIcebergException e) {
         log.warn("Iceberg table are not supported in Beekeeper. Deleting message from queue", e);
-        beekeeperEventReader.delete(beekeeperEvent);
       } catch (Exception e) {
         throw new BeekeeperException(format(
             "Unable to schedule %s deletion for entity, this message will go back on the queue",
-            entity.getLifecycleType()),
-            e);
+            entity.getLifecycleType()), e);
       }
     }
     beekeeperEventReader.delete(beekeeperEvent);
