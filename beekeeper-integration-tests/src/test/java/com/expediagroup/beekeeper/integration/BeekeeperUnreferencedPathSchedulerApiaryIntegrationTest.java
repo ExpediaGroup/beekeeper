@@ -45,6 +45,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -66,11 +67,14 @@ import com.expediagroup.beekeeper.integration.model.DropTableSqsMessage;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperSchedulerApiary;
 
+import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
+
 @Testcontainers
 public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends BeekeeperIntegrationTestBase {
 
   private static final int TIMEOUT = 5;
   private static final String APIARY_QUEUE_URL_PROPERTY = "properties.apiary.queue-url";
+  private static final String DRY_RUN_ENABLED_PROPERTY = "properties.dry-run-enabled";
 
   private static final String QUEUE = "apiary-receiver-queue";
   private static final String SCHEDULED_ORPHANED_METRIC = "paths-scheduled";
@@ -80,6 +84,10 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   @Container
   private static final LocalStackContainer SQS_CONTAINER = ContainerTestUtils.awsContainer(SQS);
   private static AmazonSQS amazonSQS;
+
+  @RegisterExtension
+  public ThriftHiveMetaStoreJUnitExtension thriftHiveMetaStore = new ThriftHiveMetaStoreJUnitExtension(
+      DATABASE_NAME_VALUE);
 
   @BeforeAll
   public static void init() {
@@ -93,12 +101,17 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   @AfterAll
   public static void teardown() {
     System.clearProperty(APIARY_QUEUE_URL_PROPERTY);
+    System.clearProperty("properties.metastore-uri");
+    System.clearProperty("properties.dry-run-enabled");
 
     amazonSQS.shutdown();
   }
 
   @BeforeEach
   public void setup() {
+    System.setProperty("properties.metastore-uri", thriftHiveMetaStore.getThriftConnectionUri());
+    System.setProperty("properties.dry-run-enabled", "false");
+
     amazonSQS.purgeQueue(new PurgeQueueRequest(ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE)));
     executorService.execute(() -> BeekeeperSchedulerApiary.main(new String[] {}));
     await().atMost(Duration.ONE_MINUTE).until(BeekeeperSchedulerApiary::isRunning);
@@ -108,6 +121,9 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   public void stop() throws InterruptedException {
     BeekeeperSchedulerApiary.stop();
     executorService.awaitTermination(5, TimeUnit.SECONDS);
+
+    System.clearProperty("properties.metastore-uri");
+    System.clearProperty("properties.dry-run-enabled");
   }
 
   @Test
