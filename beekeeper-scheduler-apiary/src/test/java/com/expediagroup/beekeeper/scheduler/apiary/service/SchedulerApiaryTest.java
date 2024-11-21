@@ -171,7 +171,7 @@ public class SchedulerApiaryTest {
     verify(icebergValidator).throwExceptionIfIceberg(databaseName, tableName);
     verifyNoInteractions(pathSchedulerService);
     verifyNoInteractions(tableSchedulerService);
-    verify(beekeeperEventReader, times(2)).delete(event.get());
+    verify(beekeeperEventReader, times(2)).delete(event.get()); // We need to fix this, we are deleting twice, not sure why
   }
 
   @Test

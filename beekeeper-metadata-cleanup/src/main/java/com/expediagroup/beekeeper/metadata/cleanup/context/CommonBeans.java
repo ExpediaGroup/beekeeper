@@ -81,8 +81,7 @@ public class CommonBeans {
 
   @Bean
   Supplier<CloseableMetaStoreClient> metaStoreClientSupplier(
-      CloseableMetaStoreClientFactory metaStoreClientFactory,
-      HiveConf hiveConf) {
+      CloseableMetaStoreClientFactory metaStoreClientFactory, HiveConf hiveConf) {
     String name = "beekeeper-metadata-cleanup";
     return new HiveMetaStoreClientSupplier(metaStoreClientFactory, hiveConf, name);
   }
@@ -103,8 +102,7 @@ public class CommonBeans {
 
   @Bean(name = "hiveTableCleaner")
   MetadataCleaner metadataCleaner(
-      DeletedMetadataReporter deletedMetadataReporter,
-      IcebergValidator icebergValidator) {
+      DeletedMetadataReporter deletedMetadataReporter, IcebergValidator icebergValidator) {
     return new HiveMetadataCleaner(deletedMetadataReporter, icebergValidator);
   }
 
@@ -141,8 +139,7 @@ public class CommonBeans {
   @Bean(name = "s3PathCleaner")
   PathCleaner pathCleaner(
       S3Client s3Client,
-      BytesDeletedReporter bytesDeletedReporter,
-      IcebergValidator icebergValidator) {
+      BytesDeletedReporter bytesDeletedReporter, IcebergValidator icebergValidator) {
     return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter, icebergValidator);
   }
 

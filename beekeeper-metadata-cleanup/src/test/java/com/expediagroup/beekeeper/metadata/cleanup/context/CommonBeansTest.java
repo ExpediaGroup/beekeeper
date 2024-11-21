@@ -161,8 +161,7 @@ public class CommonBeansTest {
   @Test
   public void verifyExpiredMetadataHandler() {
     ExpiredMetadataHandler expiredMetadataHandler = commonBeans.expiredMetadataHandler(hiveClientFactory,
-        metadataRepository,
-        metadataCleaner, pathCleaner);
+        metadataRepository, metadataCleaner, pathCleaner);
     assertThat(expiredMetadataHandler).isInstanceOf(ExpiredMetadataHandler.class);
   }
 
