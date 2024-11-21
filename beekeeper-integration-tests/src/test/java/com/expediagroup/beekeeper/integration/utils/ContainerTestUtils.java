@@ -30,13 +30,13 @@ import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 public class ContainerTestUtils {
 
   public static MySQLContainer mySqlContainer() {
-    MySQLContainer container = new MySQLContainer("mysql:8.0.40").withDatabaseName("beekeeper");
+    MySQLContainer container = new MySQLContainer("mysql:8.0.26").withDatabaseName("beekeeper");
     container.withCommand("--default-authentication-plugin=mysql_native_password");
     return container;
   }
 
   public static LocalStackContainer awsContainer(LocalStackContainer.Service service) {
-    return new LocalStackContainer("0.13.1").withServices(service);
+    return new LocalStackContainer().withServices(service);
   }
 
   public static String awsServiceEndpoint(LocalStackContainer awsContainer, LocalStackContainer.Service service) {
