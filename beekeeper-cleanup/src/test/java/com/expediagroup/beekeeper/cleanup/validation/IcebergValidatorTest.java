@@ -16,6 +16,7 @@
 package com.expediagroup.beekeeper.cleanup.validation;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
@@ -25,21 +26,25 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClient;
+import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
 import com.expediagroup.beekeeper.core.error.BeekeeperIcebergException;
 
 public class IcebergValidatorTest {
 
+  private CleanerClientFactory cleanerClientFactory;
   private CleanerClient cleanerClient;
   private IcebergValidator icebergValidator;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
+    cleanerClientFactory = mock(CleanerClientFactory.class);
     cleanerClient = mock(CleanerClient.class);
-    icebergValidator = new IcebergValidator(cleanerClient);
+    when(cleanerClientFactory.newInstance()).thenReturn(cleanerClient);
+    icebergValidator = new IcebergValidator(cleanerClientFactory);
   }
 
   @Test(expected = BeekeeperIcebergException.class)
-  public void shouldThrowExceptionWhenTableTypeIsIceberg() {
+  public void shouldThrowExceptionWhenTableTypeIsIceberg() throws Exception {
     Map<String, String> properties = new HashMap<>();
     properties.put("table_type", "ICEBERG");
 
@@ -47,10 +52,12 @@ public class IcebergValidatorTest {
     when(cleanerClient.getOutputFormat("db", "table")).thenReturn("");
 
     icebergValidator.throwExceptionIfIceberg("db", "table");
+    verify(cleanerClientFactory).newInstance();
+    verify(cleanerClient).close();
   }
 
   @Test(expected = BeekeeperIcebergException.class)
-  public void shouldThrowExceptionWhenFormatIsIceberg() {
+  public void shouldThrowExceptionWhenFormatIsIceberg() throws Exception {
     Map<String, String> properties = new HashMap<>();
     properties.put("format", "iceberg");
 
@@ -61,7 +68,7 @@ public class IcebergValidatorTest {
   }
 
   @Test
-  public void shouldNotThrowExceptionForNonIcebergTable() {
+  public void shouldNotThrowExceptionForNonIcebergTable() throws Exception {
     Map<String, String> properties = new HashMap<>();
     properties.put("table_type", "HIVE_TABLE");
 
@@ -70,10 +77,12 @@ public class IcebergValidatorTest {
         .thenReturn("org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat");
 
     icebergValidator.throwExceptionIfIceberg("db", "table");
+    verify(cleanerClientFactory).newInstance();
+    verify(cleanerClient).close();
   }
 
   @Test(expected = BeekeeperIcebergException.class)
-  public void shouldThrowExceptionWhenOutputFormatContainsIceberg() {
+  public void shouldThrowExceptionWhenOutputFormatContainsIceberg() throws Exception {
     Map<String, String> properties = new HashMap<>();
 
     when(cleanerClient.getTableProperties("db", "table")).thenReturn(properties);
