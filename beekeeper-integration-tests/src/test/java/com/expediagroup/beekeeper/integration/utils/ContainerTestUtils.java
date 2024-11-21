@@ -36,7 +36,7 @@ public class ContainerTestUtils {
   }
 
   public static LocalStackContainer awsContainer(LocalStackContainer.Service service) {
-    return new LocalStackContainer().withServices(service);
+    return new LocalStackContainer("0.13.1").withServices(service);
   }
 
   public static String awsServiceEndpoint(LocalStackContainer awsContainer, LocalStackContainer.Service service) {
