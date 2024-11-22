@@ -10,3 +10,6 @@ CREATE TABLE IF NOT EXISTS beekeeper_history (
   event_details TEXT,
   PRIMARY KEY (id)
 );
+
+ALTER TABLE beekeeper_history ADD INDEX `beekeeper_history_index_table_name_upper` ((upper(table_name)));
+ALTER TABLE beekeeper_history ADD INDEX `beekeeper_history_index_status` (`housekeeping_status`);
