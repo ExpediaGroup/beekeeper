@@ -86,6 +86,7 @@ public abstract class BeekeeperIntegrationTestBase {
   private static final String BEEKEEPER_FLYWAY_TABLE = "flyway_schema_history";
   private static final String BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME = "housekeeping_path";
   private static final String BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME = "housekeeping_metadata";
+  private static final String BEEKEEPER_HISTORY_TABLE_NAME = "beekeeper_history";
 
   // FIELDS TO INSERT INTO BEEKEEPER TABLES
   private Long id = 1L;
@@ -148,6 +149,7 @@ public abstract class BeekeeperIntegrationTestBase {
     mySQLTestUtils.dropTable(BEEKEEPER_DB_NAME, BEEKEEPER_FLYWAY_TABLE);
     mySQLTestUtils.dropTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME);
     mySQLTestUtils.dropTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME);
+    mySQLTestUtils.dropTable(BEEKEEPER_DB_NAME, BEEKEEPER_HISTORY_TABLE_NAME);
   }
 
   protected void insertUnreferencedPath(String path) throws SQLException {
