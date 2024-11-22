@@ -39,7 +39,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
-import com.expediagroup.beekeeper.core.model.history.UnreferencedEventDetails;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 
@@ -66,8 +65,7 @@ public class UnreferencedHousekeepingPathSchedulerServiceTest {
 
     verify(housekeepingPathRepository).save(path);
 
-    String eventDetails = UnreferencedEventDetails.stringFromEntity(path);
-    verify(beekeeperHistoryService).saveHistory(path, eventDetails, SCHEDULED.name());
+    verify(beekeeperHistoryService).saveHistory(path, SCHEDULED.name());
   }
 
   @Test
@@ -90,6 +88,6 @@ public class UnreferencedHousekeepingPathSchedulerServiceTest {
         .isThrownBy(() -> unreferencedHousekeepingPathSchedulerService.scheduleForHousekeeping(path))
         .withMessage(format("Unable to schedule %s", path));
     verify(housekeepingPathRepository).save(path);
-    verify(beekeeperHistoryService).saveHistory(any(), any(), eq(FAILED_TO_SCHEDULE.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_SCHEDULE.name()));
   }
 }

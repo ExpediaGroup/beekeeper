@@ -35,7 +35,6 @@ import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
-import com.expediagroup.beekeeper.core.model.history.ExpiredEventDetails;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.core.validation.S3PathValidator;
@@ -190,13 +189,10 @@ public class ExpiredMetadataHandler implements MetadataHandler {
 
   private void saveHistory(HousekeepingMetadata metadata, HousekeepingStatus housekeepingStatus,
       boolean dryRunEnabled) {
-    String eventDetails = ExpiredEventDetails.stringFromEntity(metadata);
-
     String status = String.valueOf(housekeepingStatus);
     if (dryRunEnabled) {
       status = "DRY_RUN_" + housekeepingStatus;
     }
-
-    historyService.saveHistory(metadata, eventDetails, status);
+    historyService.saveHistory(metadata, status);
   }
 }

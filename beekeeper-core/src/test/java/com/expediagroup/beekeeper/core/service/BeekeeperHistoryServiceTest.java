@@ -16,13 +16,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.core.model.history.BeekeeperHistory;
-import com.expediagroup.beekeeper.core.model.history.ExpiredEventDetails;
-import com.expediagroup.beekeeper.core.model.history.UnreferencedEventDetails;
 import com.expediagroup.beekeeper.core.repository.BeekeeperHistoryRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,22 +49,22 @@ public class BeekeeperHistoryServiceTest {
   }
 
   @Test
-  void expiredHistory() {
+  void expiredHistory() throws JsonProcessingException {
     HousekeepingMetadata metadata = createHousekeepingMetadata();
-    String details = ExpiredEventDetails.stringFromEntity(metadata);
+    String details = createEventDetails(metadata);
     BeekeeperHistory history = createHistoryEvent(metadata, details, "DELETED");
 
-    beekeeperHistoryService.saveHistory(metadata, details, "DELETED");
+    beekeeperHistoryService.saveHistory(metadata, "DELETED");
     verify(repository).save(history);
   }
 
   @Test
-  void unreferencedHistory() {
+  void unreferencedHistory() throws JsonProcessingException {
     HousekeepingPath path = createHousekeepingPath();
-    String details = UnreferencedEventDetails.stringFromEntity(path);
+    String details = createEventDetails(path);
     BeekeeperHistory history = createHistoryEvent(path, details, "SCHEDULED");
 
-    beekeeperHistoryService.saveHistory(path, details, "SCHEDULED");
+    beekeeperHistoryService.saveHistory(path, "SCHEDULED");
     verify(repository).save(history);
   }
 
@@ -101,5 +104,13 @@ public class BeekeeperHistoryServiceTest {
         .cleanupAttempts(0)
         .lifecycleType(UNREFERENCED.name())
         .build();
+  }
+
+  private String createEventDetails(HousekeepingEntity housekeepingEntity) throws JsonProcessingException {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.findAndRegisterModules();
+    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    mapper.registerModule(new JavaTimeModule());
+    return mapper.writeValueAsString(housekeepingEntity);
   }
 }

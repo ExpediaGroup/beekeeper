@@ -43,7 +43,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
-import com.expediagroup.beekeeper.core.model.history.ExpiredEventDetails;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 
@@ -73,10 +72,9 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
         .thenReturn(Optional.empty());
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
-    String eventDetails = ExpiredEventDetails.stringFromEntity(metadata);
 
     verify(housekeepingMetadataRepository).save(metadata);
-    verify(beekeeperHistoryService).saveHistory(metadata, eventDetails, SCHEDULED.name());
+    verify(beekeeperHistoryService).saveHistory(metadata, SCHEDULED.name());
   }
 
   @Test
@@ -91,10 +89,9 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
         .thenReturn(Optional.of(tableMetadata));
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
-    String eventDetails = ExpiredEventDetails.stringFromEntity(metadata);
 
     verify(housekeepingMetadataRepository).save(metadata);
-    verify(beekeeperHistoryService).saveHistory(metadata, eventDetails, SCHEDULED.name());
+    verify(beekeeperHistoryService).saveHistory(metadata, SCHEDULED.name());
   }
 
   @Test
@@ -107,14 +104,13 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
         .thenReturn(Optional.of(existingTable));
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
-    String eventDetails = ExpiredEventDetails.stringFromEntity(metadata);
 
     verify(existingTable).setPath(metadata.getPath());
     verify(existingTable).setHousekeepingStatus(metadata.getHousekeepingStatus());
     verify(existingTable).setClientId(metadata.getClientId());
     verify(existingTable).setCleanupDelay(metadata.getCleanupDelay());
     verify(housekeepingMetadataRepository).save(existingTable);
-    verify(beekeeperHistoryService).saveHistory(metadata, eventDetails, SCHEDULED.name());
+    verify(beekeeperHistoryService).saveHistory(metadata, SCHEDULED.name());
   }
 
   @Test
@@ -140,7 +136,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     verify(existingTable).setCleanupTimestamp(CREATION_TIMESTAMP.plus(Duration.parse("P30D")));
 
     verify(housekeepingMetadataRepository).save(existingTable);
-    verify(beekeeperHistoryService).saveHistory(any(), any(), eq(SCHEDULED.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(SCHEDULED.name()));
   }
 
   @Test
@@ -158,7 +154,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
         .isThrownBy(() -> expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata))
         .withMessage(format("Unable to schedule %s", metadata));
     verify(housekeepingMetadataRepository).save(metadata);
-    verify(beekeeperHistoryService).saveHistory(any(), any(), eq(FAILED_TO_SCHEDULE.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_SCHEDULE.name()));
   }
 
   private HousekeepingMetadata createHousekeepingMetadataPartition() {

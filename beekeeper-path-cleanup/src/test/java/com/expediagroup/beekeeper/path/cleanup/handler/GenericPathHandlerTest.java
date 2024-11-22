@@ -17,7 +17,6 @@ package com.expediagroup.beekeeper.path.cleanup.handler;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -41,7 +40,6 @@ import org.springframework.data.domain.Pageable;
 
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 
@@ -63,7 +61,6 @@ public class GenericPathHandlerTest {
   @Mock
   private PageImpl<HousekeepingPath> mockPage;
   private static final String VALID_TABLE_PATH = "s3://bucket/table";
-  private static final PeriodDuration CLEANUP_DELAY = PeriodDuration.parse("P3D");
 
   private UnreferencedPathHandler handler;
 
@@ -85,7 +82,6 @@ public class GenericPathHandlerTest {
   @Test
   public void typicalProcessPage() {
     when(mockPath.getCleanupAttempts()).thenReturn(0);
-    when(mockPath.getCleanupDelay()).thenReturn(CLEANUP_DELAY);
     when(mockPage.getContent()).thenReturn(List.of(mockPath));
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(pathCleaner).cleanupPath(mockPath);
@@ -93,14 +89,13 @@ public class GenericPathHandlerTest {
     verify(mockPath).setCleanupAttempts(1);
     verify(mockPath).setHousekeepingStatus(DELETED);
     verify(housekeepingPathRepository).save(mockPath);
-    verify(beekeeperHistoryService).saveHistory(any(), anyString(), eq(DELETED.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED.name()));
     assertThat(pageable).isEqualTo(pageable);
   }
 
   @Test
   public void processPageFails() {
     when(mockPath.getCleanupAttempts()).thenReturn(0);
-    when(mockPath.getCleanupDelay()).thenReturn(CLEANUP_DELAY);
     doThrow(RuntimeException.class).when(pathCleaner).cleanupPath(mockPath);
     when(mockPage.getContent()).thenReturn(List.of(mockPath));
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
@@ -108,14 +103,13 @@ public class GenericPathHandlerTest {
     verify(mockPath).setCleanupAttempts(1);
     verify(mockPath).setHousekeepingStatus(FAILED);
     verify(housekeepingPathRepository).save(mockPath);
-    verify(beekeeperHistoryService).saveHistory(any(), anyString(), eq(FAILED_TO_DELETE.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_DELETE.name()));
     assertThat(pageable).isEqualTo(pageable);
   }
 
   @Test
   public void processPageInvalidPath() {
     when(mockPath.getPath()).thenReturn("invalid");
-    when(mockPath.getCleanupDelay()).thenReturn(CLEANUP_DELAY);
     when(mockPage.getContent()).thenReturn(List.of(mockPath));
     Pageable pageable = handler.processPage(mockPageable, mockPage, false);
     verify(pathCleaner, never()).cleanupPath(mockPath);
@@ -123,7 +117,7 @@ public class GenericPathHandlerTest {
     verify(mockPath, never()).setCleanupAttempts(1);
     verify(mockPath).setHousekeepingStatus(SKIPPED);
     verify(housekeepingPathRepository).save(mockPath);
-    verify(beekeeperHistoryService).saveHistory(any(), anyString(), eq(SKIPPED.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(SKIPPED.name()));
     assertThat(pageable).isEqualTo(pageable);
   }
 }

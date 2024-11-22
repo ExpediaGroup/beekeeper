@@ -34,7 +34,6 @@ import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
-import com.expediagroup.beekeeper.core.model.history.ExpiredEventDetails;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
@@ -152,7 +151,6 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
   }
 
   private void saveHistory(HousekeepingMetadata housekeepingMetadata, HousekeepingStatus status) {
-    String eventDetails = ExpiredEventDetails.stringFromEntity(housekeepingMetadata);
-    beekeeperHistoryService.saveHistory(housekeepingMetadata, eventDetails, status.name());
+    beekeeperHistoryService.saveHistory(housekeepingMetadata, status.name());
   }
 }

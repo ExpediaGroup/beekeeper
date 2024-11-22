@@ -31,7 +31,6 @@ import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
-import com.expediagroup.beekeeper.core.model.history.UnreferencedEventDetails;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
@@ -72,7 +71,6 @@ public class UnreferencedHousekeepingPathSchedulerService implements SchedulerSe
   }
 
   private void saveHistory(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
-    String eventDetails = UnreferencedEventDetails.stringFromEntity(housekeepingPath);
-    beekeeperHistoryService.saveHistory(housekeepingPath, eventDetails, status.name());
+    beekeeperHistoryService.saveHistory(housekeepingPath, status.name());
   }
 }

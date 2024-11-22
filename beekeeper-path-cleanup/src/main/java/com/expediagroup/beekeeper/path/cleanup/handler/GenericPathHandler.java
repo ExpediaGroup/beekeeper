@@ -30,7 +30,6 @@ import org.springframework.data.domain.Slice;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
-import com.expediagroup.beekeeper.core.model.history.UnreferencedEventDetails;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.core.validation.S3PathValidator;
@@ -113,7 +112,6 @@ public abstract class GenericPathHandler {
   }
 
   private void saveHistory(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
-    String eventDetails = UnreferencedEventDetails.stringFromEntity(housekeepingPath);
-    beekeeperHistoryService.saveHistory(housekeepingPath, eventDetails, status.name());
+    beekeeperHistoryService.saveHistory(housekeepingPath, status.name());
   }
 }
