@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.TableType;
@@ -110,5 +111,41 @@ public class HiveTestUtils {
     partition.setSd(new StorageDescriptor(hiveTable.getSd()));
     partition.getSd().setLocation(location.toString());
     return partition;
+  }
+
+  public Table createTableWithProperties(String path, String tableName, boolean partitioned, Map<String, String> tableProperties, String outputFormat, boolean withBeekeeperProperty)
+      throws TException {
+    Table hiveTable = new Table();
+    hiveTable.setDbName(DATABASE_NAME_VALUE);
+    hiveTable.setTableName(tableName);
+    hiveTable.setTableType(TableType.EXTERNAL_TABLE.name());
+    hiveTable.putToParameters("EXTERNAL", "TRUE");
+
+    // Add custom table props
+    if (tableProperties != null) {
+      hiveTable.getParameters().putAll(tableProperties);
+    }
+    if (withBeekeeperProperty) {
+      hiveTable.putToParameters(LifecycleEventType.EXPIRED.getTableParameterName(), "true");
+    }
+    if (partitioned) {
+      hiveTable.setPartitionKeys(PARTITION_COLUMNS);
+    }
+    StorageDescriptor sd = new StorageDescriptor();
+    sd.setCols(DATA_COLUMNS);
+    sd.setLocation(path);
+    sd.setParameters(new HashMap<>());
+    // Set the output format for the storage descriptor, defaulting to TextOutputFormat if not specified
+    if (outputFormat != null) {
+      sd.setOutputFormat(outputFormat);
+    } else {
+      sd.setOutputFormat(TextOutputFormat.class.getName());
+    }
+    sd.setSerdeInfo(new SerDeInfo());
+    sd.getSerdeInfo().setSerializationLib("org.apache.hadoop.hive.serde2.OpenCSVSerde");
+    hiveTable.setSd(sd);
+    metastoreClient.createTable(hiveTable);
+
+    return hiveTable;
   }
 }
