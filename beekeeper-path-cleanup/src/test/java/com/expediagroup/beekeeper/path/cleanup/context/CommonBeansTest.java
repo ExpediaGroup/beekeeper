@@ -40,7 +40,9 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
+import com.expediagroup.beekeeper.core.repository.BeekeeperHistoryRepository;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.path.cleanup.service.PagingPathCleanupService;
 import com.expediagroup.beekeeper.path.cleanup.service.PathRepositoryCleanupService;
 
@@ -59,6 +61,7 @@ class CommonBeansTest {
   private final CommonBeans commonBeans = new CommonBeans();
   private @Mock HousekeepingPathRepository repository;
   private @Mock BytesDeletedReporter bytesDeletedReporter;
+  private @Mock BeekeeperHistoryRepository beekeeperHistoryRepository;
 
   @BeforeEach
   void setUp() {
@@ -120,5 +123,11 @@ class CommonBeansTest {
   public void verifyDisableTablesService() {
     DisableTablesService disableTablesService = commonBeans.disableTablesService();
     assertThat(disableTablesService).isNotNull();
+  }
+
+  @Test
+  public void verifyBeekeeperHistoryService(){
+    BeekeeperHistoryService beekeeperHistoryService = commonBeans.beekeeperHistoryService(beekeeperHistoryRepository);
+    assertThat(beekeeperHistoryService).isInstanceOf(BeekeeperHistoryService.class);
   }
 }

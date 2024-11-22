@@ -157,7 +157,7 @@ public class CommonBeans {
   }
 
   @Bean
-  public BeekeeperHistoryService beekeeperHistoryService(BeekeeperHistoryRepository beekeeperHistoryRepository) {
+  BeekeeperHistoryService beekeeperHistoryService(BeekeeperHistoryRepository beekeeperHistoryRepository) {
     return new BeekeeperHistoryService(beekeeperHistoryRepository);
   }
 

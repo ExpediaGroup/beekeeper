@@ -49,6 +49,7 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
+import com.expediagroup.beekeeper.core.repository.BeekeeperHistoryRepository;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.metadata.cleanup.handler.ExpiredMetadataHandler;
@@ -78,6 +79,7 @@ public class CommonBeansTest {
   private @Mock MeterRegistry meterRegistry;
   private @Mock HiveClientFactory hiveClientFactory;
   private @Mock BeekeeperHistoryService beekeeperHistoryService;
+  private @Mock BeekeeperHistoryRepository beekeeperHistoryRepository;
 
   @BeforeEach
   public void awsSetUp() {
@@ -187,5 +189,11 @@ public class CommonBeansTest {
     DisableTablesService disableTablesService = commonBeans.disableTablesService(
         metadataRepository, hiveClientFactory, false);
     assertThat(disableTablesService).isInstanceOf(MetadataDisableTablesService.class);
+  }
+
+  @Test
+  public void verifyBeekeeperHistoryService(){
+    BeekeeperHistoryService beekeeperHistoryService = commonBeans.beekeeperHistoryService(beekeeperHistoryRepository);
+    assertThat(beekeeperHistoryService).isInstanceOf(BeekeeperHistoryService.class);
   }
 }

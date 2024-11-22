@@ -32,6 +32,8 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.repository.BeekeeperHistoryRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.scheduler.apiary.generator.ExpiredHousekeepingMetadataGenerator;
 import com.expediagroup.beekeeper.scheduler.apiary.generator.HousekeepingEntityGenerator;
 import com.expediagroup.beekeeper.scheduler.apiary.generator.UnreferencedHousekeepingPathGenerator;
@@ -51,9 +53,10 @@ public class CommonBeansTest {
   private static final String BUCKET = "bucket";
   private static final String KEY = "key";
   private final CommonBeans commonBeans = new CommonBeans();
-  @Mock private MessageReader messageReader;
-  @Mock private UnreferencedHousekeepingPathGenerator unreferencedHousekeepingPathGenerator;
-  @Mock private ExpiredHousekeepingMetadataGenerator expiredHousekeepingMetadataGenerator;
+  private @Mock MessageReader messageReader;
+  private @Mock UnreferencedHousekeepingPathGenerator unreferencedHousekeepingPathGenerator;
+  private @Mock ExpiredHousekeepingMetadataGenerator expiredHousekeepingMetadataGenerator;
+  private @Mock BeekeeperHistoryRepository beekeeperHistoryRepository;
 
   @AfterAll
   static void tearDown() {
@@ -116,5 +119,11 @@ public class CommonBeansTest {
     BeekeeperEventReader reader = commonBeans.eventReader(messageReader, mock(MessageEventHandler.class),
         mock(MessageEventHandler.class));
     assertThat(reader).isInstanceOf(BeekeeperEventReader.class);
+  }
+
+  @Test
+  public void verifyBeekeeperHistoryService() {
+    BeekeeperHistoryService beekeeperHistoryService = commonBeans.beekeeperHistoryService(beekeeperHistoryRepository);
+    assertThat(beekeeperHistoryService).isInstanceOf(BeekeeperHistoryService.class);
   }
 }
