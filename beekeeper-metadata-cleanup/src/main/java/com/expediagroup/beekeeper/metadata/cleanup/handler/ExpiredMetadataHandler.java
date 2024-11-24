@@ -32,6 +32,8 @@ import com.expediagroup.beekeeper.cleanup.metadata.CleanerClient;
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
 import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
+import com.expediagroup.beekeeper.core.error.BeekeeperException;
+import com.expediagroup.beekeeper.core.error.BeekeeperIcebergException;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
@@ -113,18 +115,21 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     String tableName = housekeepingMetadata.getTableName();
     log.info("Cleaning up metadata for \"{}.{}\"", databaseName, tableName);
     if (metadataCleaner.tableExists(client, databaseName, tableName)) {
-      metadataCleaner.dropTable(housekeepingMetadata, client);
-      pathCleaner.cleanupPath(housekeepingMetadata);
+      try {
+        metadataCleaner.dropTable(housekeepingMetadata, client);
+        pathCleaner.cleanupPath(housekeepingMetadata);
+      } catch (BeekeeperException e) {
+        log.warn("Skipping cleanup for Iceberg table \"{}.{}\": {}", databaseName, tableName, e.getMessage());
+        updateStatus(housekeepingMetadata, SKIPPED, dryRunEnabled);
+        return false;
+      }
     } else {
       log.info("Cannot drop table \"{}.{}\". Table does not exist.", databaseName, tableName);
     }
     return true;
   }
 
-  private boolean cleanupPartition(
-      CleanerClient client,
-      HousekeepingMetadata housekeepingMetadata,
-      boolean dryRunEnabled) {
+  private boolean cleanupPartition(CleanerClient client, HousekeepingMetadata housekeepingMetadata, boolean dryRunEnabled) {
     if (!S3PathValidator.validPartitionPath(housekeepingMetadata.getPath())) {
       log.warn("Will not clean up partition path \"{}\" because it is not valid.", housekeepingMetadata.getPath());
       updateStatus(housekeepingMetadata, SKIPPED, dryRunEnabled);
@@ -132,16 +137,20 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     }
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
-    log.info("Cleaning up metadata for \"{}.{}\"", databaseName, tableName);
+    log.info("Cleaning up metadata for partition \"{}\" in table \"{}.{}\"", housekeepingMetadata.getPartitionName(), databaseName, tableName);
     if (metadataCleaner.tableExists(client, databaseName, tableName)) {
-      boolean partitionDeleted = metadataCleaner.dropPartition(housekeepingMetadata, client);
-      if (partitionDeleted) {
-        pathCleaner.cleanupPath(housekeepingMetadata);
+      try {
+        boolean partitionDeleted = metadataCleaner.dropPartition(housekeepingMetadata, client);
+        if (partitionDeleted) {
+          pathCleaner.cleanupPath(housekeepingMetadata);
+        }
+      } catch (BeekeeperException e) {
+        log.warn("Skipping cleanup for Iceberg partition \"{}\" in table \"{}.{}\": {}", housekeepingMetadata.getPartitionName(), databaseName, tableName, e.getMessage());
+        updateStatus(housekeepingMetadata, SKIPPED, dryRunEnabled);
+        return false;
       }
     } else {
-      log
-          .info("Cannot drop partition \"{}\" from table \"{}.{}\". Table does not exist.",
-              housekeepingMetadata.getPartitionName(), databaseName, tableName);
+      log.info("Cannot drop partition \"{}\" from table \"{}.{}\". Table does not exist.", housekeepingMetadata.getPartitionName(), databaseName, tableName);
     }
     return true;
   }
