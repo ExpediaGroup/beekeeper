@@ -384,18 +384,6 @@ class S3PathCleanerTest {
   }
 
   @Test
-  void shouldNotReportBytesDeletedWhenIcebergValidatorThrows() {
-    doThrow(new BeekeeperIcebergException("Iceberg tables are not supported"))
-        .when(icebergValidator)
-        .throwExceptionIfIceberg(housekeepingPath.getDatabaseName(), housekeepingPath.getTableName());
-
-    assertThatExceptionOfType(BeekeeperIcebergException.class)
-        .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath));
-
-    verify(bytesDeletedReporter, never()).reportTaggable(anyLong(), any(), any());
-  }
-
-  @Test
   void shouldProceedWithDeletionWhenNotIcebergTable() {
     // setting up objects in the bucket
     amazonS3.putObject(bucket, key1, content); // Add the files

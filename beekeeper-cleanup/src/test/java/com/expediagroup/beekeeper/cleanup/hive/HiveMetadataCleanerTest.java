@@ -95,7 +95,7 @@ public class HiveMetadataCleanerTest {
   }
 
   @Test
-  public void dropTableWhenIcebergTable() {
+  public void doesNotDropTableWhenIcebergTable() {
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     doThrow(new BeekeeperIcebergException("Iceberg table"))
@@ -106,13 +106,12 @@ public class HiveMetadataCleanerTest {
         () -> cleaner.dropTable(housekeepingMetadata, hiveClient)
     );
 
-    // Verify that dropTable was not called on hiveClient
     verify(hiveClient, never()).dropTable(DATABASE, TABLE_NAME);
     verify(deletedMetadataReporter, never()).reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
   }
 
   @Test
-  public void dropPartitionWhenIcebergTable() {
+  public void doesNotDropPartitionWhenIcebergTable() {
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     doThrow(new BeekeeperIcebergException("Iceberg table"))

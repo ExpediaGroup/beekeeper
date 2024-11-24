@@ -91,4 +91,26 @@ public class IcebergValidatorTest {
 
     icebergValidator.throwExceptionIfIceberg("db", "table");
   }
+
+  @Test(expected = BeekeeperIcebergException.class)
+  public void shouldThrowExceptionWhenFormatIsNullButTableTypeIsIceberg() throws Exception {
+    Map<String, String> properties = new HashMap<>();
+    properties.put("table_type", "ICEBERG");
+
+    when(cleanerClient.getTableProperties("db", "table")).thenReturn(properties);
+    when(cleanerClient.getOutputFormat("db", "table")).thenReturn("");
+
+    icebergValidator.throwExceptionIfIceberg("db", "table");
+  }
+
+  @Test
+  public void shouldNotThrowExceptionWhenOutputFormatIsNull() throws Exception {
+    Map<String, String> properties = new HashMap<>();
+    properties.put("table_type", "HIVE_TABLE");
+
+    when(cleanerClient.getTableProperties("db", "table")).thenReturn(properties);
+    when(cleanerClient.getOutputFormat("db", "table")).thenReturn(null);
+
+    icebergValidator.throwExceptionIfIceberg("db", "table");
+  }
 }

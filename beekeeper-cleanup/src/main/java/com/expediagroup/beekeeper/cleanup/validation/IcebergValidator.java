@@ -37,9 +37,9 @@ public class IcebergValidator {
   }
 
   /**
-   * Beekeeper does not support Iceberg format right now. Iceberg tables in Hive Metastore do not store partition information,
-   * so Beekeeper tries to clean up the entire table because that information is missing. This method checks if
-   * the table is an Iceberg table and throws IcebergTableFoundException to stop the process.
+   * Beekeeper currently does not support the Iceberg format. Iceberg tables in the Hive Metastore do not store partition information,
+   * causing Beekeeper to attempt to clean up the entire table due to the missing information. This method checks if
+   * the table is an Iceberg table and throws a BeekeeperIcebergException to stop the process.
    *
    * @param databaseName
    * @param tableName
@@ -53,13 +53,11 @@ public class IcebergValidator {
       if (tableType.contains("iceberg") || format.contains("iceberg") || (outputFormat != null
           && outputFormat.toLowerCase().contains("iceberg"))) {
         throw new BeekeeperIcebergException(
-            format("Iceberg table %s.%s is not currently supported in Beekeeper.", databaseName,
-                tableName));
+            format("Iceberg table %s.%s is not currently supported in Beekeeper.", databaseName, tableName));
       }
     } catch (Exception e) {
       throw new BeekeeperIcebergException(
-          format("Unexpected exception when identifying if table %s.%s is Iceberg.", databaseName,
-              tableName), e);
+          format("Unexpected exception when identifying if table %s.%s is Iceberg.", databaseName, tableName), e);
     }
   }
 }
