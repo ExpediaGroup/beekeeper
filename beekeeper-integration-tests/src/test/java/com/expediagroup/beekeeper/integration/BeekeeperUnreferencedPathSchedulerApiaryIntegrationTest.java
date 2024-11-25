@@ -20,6 +20,7 @@ import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_ATTEMPTS_VALUE;
@@ -59,6 +60,7 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
+import com.expediagroup.beekeeper.core.model.history.BeekeeperHistory;
 import com.expediagroup.beekeeper.integration.model.AlterPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.AlterTableSqsMessage;
 import com.expediagroup.beekeeper.integration.model.DropPartitionSqsMessage;
@@ -194,6 +196,18 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
     assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/tableLocation");
     assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/tableLocation2");
+  }
+
+  @Test
+  public void addBeekeeperHistoryEvent() throws IOException, URISyntaxException, SQLException {
+    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://bucket/tableLocation",
+        "s3://bucket/oldTableLocation", true, true);
+    amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
+
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getBeekeeperHistoryRowCount(UNREFERENCED) == 1);
+
+    List<BeekeeperHistory> beekeeperHistory = getBeekeeperHistory(EXPIRED);
+    System.out.println(beekeeperHistory);
   }
 
   @Test

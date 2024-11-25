@@ -59,6 +59,7 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
+import com.expediagroup.beekeeper.core.model.history.BeekeeperHistory;
 import com.expediagroup.beekeeper.integration.model.AddPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.AlterPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.AlterTableSqsMessage;
@@ -211,6 +212,17 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
     assertExpiredMetadata(expiredMetadata.get(0), LOCATION_A, PARTITION_A_NAME);
     assertExpiredMetadata(expiredMetadata.get(1), LOCATION_B, PARTITION_B_NAME);
+  }
+
+  @Test
+  public void addEventToHistoryTable() throws SQLException, IOException, URISyntaxException {
+    CreateTableSqsMessage createTableSqsMessage = new CreateTableSqsMessage(LOCATION_A, true);
+    amazonSQS.sendMessage(sendMessageRequest(createTableSqsMessage.getFormattedString()));
+
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getBeekeeperHistoryRowCount(EXPIRED) == 1);
+
+    List<BeekeeperHistory> beekeeperHistory = getBeekeeperHistory(EXPIRED);
+    System.out.println(beekeeperHistory);
   }
 
   @Test
