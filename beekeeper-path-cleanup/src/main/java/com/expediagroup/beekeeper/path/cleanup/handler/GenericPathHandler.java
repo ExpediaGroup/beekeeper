@@ -76,9 +76,8 @@ public abstract class GenericPathHandler {
       log.warn("Will not clean up path \"{}\" because it is not valid.", housekeepingPath.getPath());
       return false;
     } catch (BeekeeperException e) {
-      // Handle Iceberg table by updating status to SKIPPED
       updateStatus(housekeepingPath, HousekeepingStatus.SKIPPED);
-      log.warn("Skipping cleanup for Iceberg table \"{}.{}\": {}", housekeepingPath.getDatabaseName(),
+      log.warn("Skipping cleanup for table \"{}.{}\": {}", housekeepingPath.getDatabaseName(),
           housekeepingPath.getTableName(), e.getMessage());
       return false;
     }

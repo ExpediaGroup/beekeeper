@@ -21,10 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -385,17 +383,14 @@ class S3PathCleanerTest {
 
   @Test
   void shouldProceedWithDeletionWhenNotIcebergTable() {
-    // setting up objects in the bucket
-    amazonS3.putObject(bucket, key1, content); // Add the files
+    amazonS3.putObject(bucket, key1, content);
     amazonS3.putObject(bucket, key2, content);
 
-    // housekeepingPath is  set
     housekeepingPath.setPath("s3://" + bucket + "/" + keyRoot);
 
     assertThatCode(() -> s3PathCleaner.cleanupPath(housekeepingPath))
         .doesNotThrowAnyException();
 
-    // verify objects are deleted and reporter is called
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
     assertThat(amazonS3.doesObjectExist(bucket, key2)).isFalse();
 

@@ -69,6 +69,8 @@ import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.google.common.collect.ImmutableMap;
 
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.HiveTestUtils;
 import com.expediagroup.beekeeper.metadata.cleanup.BeekeeperMetadataCleanup;
@@ -229,26 +231,23 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void shouldSkipCleanupForIcebergTable() throws Exception {
-    // Define custom table props and outputFormat for an Iceberg table
     Map<String, String> tableProperties = new HashMap<>();
     tableProperties.put("table_type", "ICEBERG");
     tableProperties.put("format", "ICEBERG/PARQUET");
     String outputFormat = "org.apache.iceberg.mr.hive.HiveIcebergOutputFormat";
-    // Create the Iceberg table in the Hive metastore
+
     hiveTestUtils.createTableWithProperties(
         PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, tableProperties, outputFormat, true);
-    // Add data to the S3 bucket
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
-    // Insert expired metadata for the Iceberg table
+
     insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
-    // wait for cleanup process to run
+
     await()
         .atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == SKIPPED);
-    // Verify that the table still exists
-    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue(); // this is fine, the table is not changed
-    // Verify that the data in S3 is still present
-    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isTrue(); // this too is fine, the data is not changed
+
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isTrue();
   }
 
   @Test

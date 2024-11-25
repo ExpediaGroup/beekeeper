@@ -57,7 +57,7 @@ public class HiveMetadataCleanerTest {
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
 
     cleaner.dropTable(housekeepingMetadata, hiveClient);
-    // Verify that the IcebergValidator is called
+
     verify(icebergValidator).throwExceptionIfIceberg(DATABASE, TABLE_NAME);
     verify(hiveClient).dropTable(DATABASE, TABLE_NAME);
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
@@ -76,6 +76,7 @@ public class HiveMetadataCleanerTest {
     verify(hiveClient).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
+
 
   @Test
   public void dontReportWhenPartitionNotDropped() {
