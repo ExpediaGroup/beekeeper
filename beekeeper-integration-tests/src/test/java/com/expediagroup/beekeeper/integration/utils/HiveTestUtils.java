@@ -121,7 +121,6 @@ public class HiveTestUtils {
     hiveTable.setTableType(TableType.EXTERNAL_TABLE.name());
     hiveTable.putToParameters("EXTERNAL", "TRUE");
 
-    // Add custom table props
     if (tableProperties != null) {
       hiveTable.getParameters().putAll(tableProperties);
     }
@@ -135,7 +134,7 @@ public class HiveTestUtils {
     sd.setCols(DATA_COLUMNS);
     sd.setLocation(path);
     sd.setParameters(new HashMap<>());
-    // Set the output format for the storage descriptor, defaulting to TextOutputFormat if not specified
+
     if (outputFormat != null) {
       sd.setOutputFormat(outputFormat);
     } else {

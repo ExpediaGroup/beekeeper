@@ -58,7 +58,7 @@ class S3DryRunPathCleanerTest {
 
   private HousekeepingPath housekeepingPath;
   private AmazonS3 amazonS3;
-  private @Mock BytesDeletedReporter bytesDeletedReporter;
+  @Mock private BytesDeletedReporter bytesDeletedReporter;
   @Mock private IcebergValidator icebergValidator;
 
   private boolean dryRunEnabled = true;
