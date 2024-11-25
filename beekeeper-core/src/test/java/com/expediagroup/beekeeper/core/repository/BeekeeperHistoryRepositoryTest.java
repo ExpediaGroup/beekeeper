@@ -22,11 +22,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
 import com.expediagroup.beekeeper.core.TestApplication;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
@@ -53,7 +48,6 @@ public class BeekeeperHistoryRepositoryTest {
 
   private static final int PAGE = 0;
   private static final int PAGE_SIZE = 500;
-  protected ObjectMapper mapper;
 
   @Autowired
   private BeekeeperHistoryRepository repository;
@@ -61,17 +55,12 @@ public class BeekeeperHistoryRepositoryTest {
   @BeforeEach
   public void setupDb() {
     repository.deleteAll();
-
-    mapper = new ObjectMapper();
-    mapper.findAndRegisterModules();
-    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    mapper.registerModule(new JavaTimeModule());
   }
 
   @Test
-  public void typicalSave() throws JsonProcessingException {
-    BeekeeperHistory expiredEntry = createExpiredEventDetails(SCHEDULED);
-    BeekeeperHistory unreferencedEntry = createUnreferencedEventDetails(SCHEDULED);
+  public void typicalSave() {
+    BeekeeperHistory expiredEntry = createExpiredEvent(SCHEDULED);
+    BeekeeperHistory unreferencedEntry = createUnreferencedEvent(SCHEDULED);
 
     repository.save(expiredEntry);
     repository.save(unreferencedEntry);
@@ -86,10 +75,10 @@ public class BeekeeperHistoryRepositoryTest {
   }
 
   @Test
-  public void expired_multipleStatuses() throws JsonProcessingException {
-    BeekeeperHistory scheduledEntry = createExpiredEventDetails(SCHEDULED);
-    BeekeeperHistory deletedEntry = createExpiredEventDetails(DELETED);
-    BeekeeperHistory failedEntry = createExpiredEventDetails(FAILED);
+  public void expired_multipleStatuses() {
+    BeekeeperHistory scheduledEntry = createExpiredEvent(SCHEDULED);
+    BeekeeperHistory deletedEntry = createExpiredEvent(DELETED);
+    BeekeeperHistory failedEntry = createExpiredEvent(FAILED);
 
     repository.save(scheduledEntry);
     repository.save(deletedEntry);
@@ -101,10 +90,10 @@ public class BeekeeperHistoryRepositoryTest {
   }
 
   @Test
-  public void unreferenced_multipleStatuses() throws JsonProcessingException {
-    BeekeeperHistory scheduledEntry = createUnreferencedEventDetails(SCHEDULED);
-    BeekeeperHistory deletedEntry = createUnreferencedEventDetails(DELETED);
-    BeekeeperHistory failedEntry = createUnreferencedEventDetails(FAILED);
+  public void unreferenced_multipleStatuses() {
+    BeekeeperHistory scheduledEntry = createUnreferencedEvent(SCHEDULED);
+    BeekeeperHistory deletedEntry = createUnreferencedEvent(DELETED);
+    BeekeeperHistory failedEntry = createUnreferencedEvent(FAILED);
 
     repository.save(scheduledEntry);
     repository.save(deletedEntry);
@@ -115,7 +104,7 @@ public class BeekeeperHistoryRepositoryTest {
     assertThat(historyList.size()).isEqualTo(3);
   }
 
-  protected BeekeeperHistory createExpiredEventDetails(HousekeepingStatus status) throws JsonProcessingException {
+  protected BeekeeperHistory createExpiredEvent(HousekeepingStatus status) {
     HousekeepingMetadata entity = HousekeepingMetadata.builder()
         .cleanupAttempts(3)
         .cleanupDelay(PeriodDuration.parse("P1D"))
@@ -124,11 +113,10 @@ public class BeekeeperHistoryRepositoryTest {
         .modifiedTimestamp(COLUMN_TIMESTAMP)
         .build();
 
-    String stringDetails = mapper.writeValueAsString(entity);
-    return createHistoryEntry("EXPIRED", status, stringDetails);
+    return createHistoryEntry("EXPIRED", status, entity.toString());
   }
 
-  protected BeekeeperHistory createUnreferencedEventDetails(HousekeepingStatus status) throws JsonProcessingException {
+  protected BeekeeperHistory createUnreferencedEvent(HousekeepingStatus status) {
     HousekeepingPath entity = HousekeepingPath.builder()
         .cleanupAttempts(3)
         .cleanupDelay(PeriodDuration.parse("P1D"))
@@ -136,8 +124,7 @@ public class BeekeeperHistoryRepositoryTest {
         .modifiedTimestamp(COLUMN_TIMESTAMP)
         .build();
 
-    String stringDetails = mapper.writeValueAsString(entity);
-    return createHistoryEntry("UNREFERENCED", status, stringDetails);
+    return createHistoryEntry("UNREFERENCED", status, entity.toString());
   }
 
   protected BeekeeperHistory createHistoryEntry(String lifecycleType, HousekeepingStatus status,

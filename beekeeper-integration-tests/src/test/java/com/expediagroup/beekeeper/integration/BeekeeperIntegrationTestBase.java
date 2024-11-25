@@ -64,7 +64,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.core.model.history.BeekeeperHistory;
@@ -205,16 +204,6 @@ public abstract class BeekeeperIntegrationTestBase {
             values);
   }
 
-  protected void insertBeekeeperHistory(BeekeeperHistory beekeeperHistory) throws SQLException {
-    String values = Stream.of(beekeeperHistory.getId().toString(), beekeeperHistory.getEventTimestamp(),
-            beekeeperHistory.getDatabaseName(), beekeeperHistory.getTableName(), beekeeperHistory.getLifecycleType(),
-            beekeeperHistory.getHousekeepingStatus(), beekeeperHistory.getEventDetails())
-        .map(s -> s == null ? null : "\"" + s + "\"")
-        .collect(Collectors.joining(", "));
-
-    mySQLTestUtils.insertToTable(BEEKEEPER_DB_NAME, BEEKEEPER_HISTORY_TABLE_NAME, BEEKEEPER_HISTORY_FIELDS, values);
-  }
-
   protected int getUnreferencedPathsRowCount() throws SQLException {
     return mySQLTestUtils
         .getTableRowCount(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME,
@@ -234,7 +223,7 @@ public abstract class BeekeeperIntegrationTestBase {
   }
 
   protected int getBeekeeperHistoryRowCount(LifecycleEventType lifecycleEventType) throws SQLException {
-    String filter  = "WHERE " + LIFECYCLE_TYPE_FIELD + " = '%s'";
+    String filter = "WHERE " + LIFECYCLE_TYPE_FIELD + " = '%s'";
 
     return mySQLTestUtils.getTableRowCount(BEEKEEPER_DB_NAME, BEEKEEPER_HISTORY_TABLE_NAME,
         format(filter, lifecycleEventType));
@@ -267,7 +256,7 @@ public abstract class BeekeeperIntegrationTestBase {
   }
 
   protected List<BeekeeperHistory> getBeekeeperHistory(LifecycleEventType lifecycleEventType) throws SQLException {
-    String filter  = "WHERE " + LIFECYCLE_TYPE_FIELD + " = '%s'";
+    String filter = "WHERE " + LIFECYCLE_TYPE_FIELD + " = '%s'";
     List<BeekeeperHistory> history = new ArrayList<>();
     ResultSet resultSet = mySQLTestUtils.getTableRows(BEEKEEPER_DB_NAME, BEEKEEPER_HISTORY_TABLE_NAME,
         format(filter, lifecycleEventType));
@@ -316,23 +305,6 @@ public abstract class BeekeeperIntegrationTestBase {
         .cleanupAttempts(CLEANUP_ATTEMPTS_VALUE)
         .lifecycleType(lifecycleEventType.toString())
         .clientId(CLIENT_ID_FIELD)
-        .build();
-  }
-
-  private BeekeeperHistory createBeekeeperHistory(
-      String tableName,
-      LifecycleEventType lifecycleEventType,
-      HousekeepingStatus housekeepingStatus,
-      String eventDetails
-  ) {
-    return BeekeeperHistory.builder()
-        .id(id++)
-        .eventTimestamp(CREATION_TIMESTAMP_VALUE)
-        .databaseName(DATABASE_NAME_VALUE)
-        .tableName(tableName)
-        .lifecycleType(lifecycleEventType.toString())
-        .housekeepingStatus(housekeepingStatus.name())
-        .eventDetails(eventDetails)
         .build();
   }
 }

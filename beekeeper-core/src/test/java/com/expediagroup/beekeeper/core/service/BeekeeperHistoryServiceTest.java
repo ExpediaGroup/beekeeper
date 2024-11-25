@@ -17,9 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
@@ -106,11 +103,7 @@ public class BeekeeperHistoryServiceTest {
         .build();
   }
 
-  private String createEventDetails(HousekeepingEntity housekeepingEntity) throws JsonProcessingException {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.findAndRegisterModules();
-    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    mapper.registerModule(new JavaTimeModule());
-    return mapper.writeValueAsString(housekeepingEntity);
+  private String createEventDetails(HousekeepingEntity housekeepingEntity) {
+    return housekeepingEntity.toString();
   }
 }

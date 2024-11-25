@@ -215,14 +215,18 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   }
 
   @Test
-  public void addEventToHistoryTable() throws SQLException, IOException, URISyntaxException {
+  public void testEventAddedToHistoryTable() throws SQLException, IOException, URISyntaxException {
     CreateTableSqsMessage createTableSqsMessage = new CreateTableSqsMessage(LOCATION_A, true);
     amazonSQS.sendMessage(sendMessageRequest(createTableSqsMessage.getFormattedString()));
 
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getBeekeeperHistoryRowCount(EXPIRED) == 1);
 
     List<BeekeeperHistory> beekeeperHistory = getBeekeeperHistory(EXPIRED);
-    System.out.println(beekeeperHistory);
+    BeekeeperHistory history = beekeeperHistory.get(0);
+    assertThat(history.getDatabaseName()).isEqualTo(DATABASE_NAME_VALUE);
+    assertThat(history.getTableName()).isEqualTo(TABLE_NAME_VALUE);
+    assertThat(history.getLifecycleType()).isEqualTo(EXPIRED.toString());
+    assertThat(history.getHousekeepingStatus()).isEqualTo(SCHEDULED.name());
   }
 
   @Test

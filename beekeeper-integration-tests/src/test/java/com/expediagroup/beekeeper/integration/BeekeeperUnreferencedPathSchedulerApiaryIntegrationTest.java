@@ -199,15 +199,19 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   }
 
   @Test
-  public void addBeekeeperHistoryEvent() throws IOException, URISyntaxException, SQLException {
+  public void testEventAddedToHistoryTable() throws IOException, URISyntaxException, SQLException {
     AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://bucket/tableLocation",
         "s3://bucket/oldTableLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
 
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getBeekeeperHistoryRowCount(UNREFERENCED) == 1);
 
-    List<BeekeeperHistory> beekeeperHistory = getBeekeeperHistory(EXPIRED);
-    System.out.println(beekeeperHistory);
+    List<BeekeeperHistory> beekeeperHistory = getBeekeeperHistory(UNREFERENCED);
+    BeekeeperHistory history = beekeeperHistory.get(0);
+    assertThat(history.getDatabaseName()).isEqualTo(DATABASE_NAME_VALUE);
+    assertThat(history.getTableName()).isEqualTo(TABLE_NAME_VALUE);
+    assertThat(history.getLifecycleType()).isEqualTo(EXPIRED.toString());
+    assertThat(history.getHousekeepingStatus()).isEqualTo(SCHEDULED.name());
   }
 
   @Test

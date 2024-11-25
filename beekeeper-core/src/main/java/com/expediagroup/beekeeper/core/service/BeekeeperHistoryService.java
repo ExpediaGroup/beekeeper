@@ -25,7 +25,7 @@ public class BeekeeperHistoryService {
   }
 
   public void saveHistory(HousekeepingEntity housekeepingEntity, String status) {
-    String eventDetails = createEventDetails(housekeepingEntity);
+    String eventDetails = getEventDetails(housekeepingEntity);
 
     BeekeeperHistory event = BeekeeperHistory.builder()
         .id(housekeepingEntity.getId())
@@ -41,16 +41,7 @@ public class BeekeeperHistoryService {
     beekeeperHistoryRepository.save(event);
   }
 
-  private String createEventDetails(HousekeepingEntity entity) {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.findAndRegisterModules();
-    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    mapper.registerModule(new JavaTimeModule());
-    try {
-      return mapper.writeValueAsString(entity);
-    } catch (JsonProcessingException e) {
-      log.warn("Error encountered writing object as string", e);
-    }
-    return "{}";
+  private String getEventDetails(HousekeepingEntity entity) {
+    return entity.toString();
   }
 }
