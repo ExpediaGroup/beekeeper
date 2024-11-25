@@ -20,7 +20,6 @@ import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CLEANUP_ATTEMPTS_VALUE;
@@ -159,7 +158,7 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   public void unreferencedMultipleAlterPartitionEvent() throws IOException, SQLException, URISyntaxException {
     List
         .of(new AlterPartitionSqsMessage("s3://bucket/table/expiredTableLocation",
-            "s3://bucket/table/partitionLocation", "s3://bucket/table/unreferencedPartitionLocation", true, true),
+                "s3://bucket/table/partitionLocation", "s3://bucket/table/unreferencedPartitionLocation", true, true),
             new AlterPartitionSqsMessage("s3://bucket/table/expiredTableLocation2",
                 "s3://bucket/table/partitionLocation2", "s3://bucket/table/partitionLocation", true, true))
         .forEach(msg -> amazonSQS.sendMessage(sendMessageRequest(msg.getFormattedString())));
@@ -210,7 +209,7 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
     BeekeeperHistory history = beekeeperHistory.get(0);
     assertThat(history.getDatabaseName()).isEqualTo(DATABASE_NAME_VALUE);
     assertThat(history.getTableName()).isEqualTo(TABLE_NAME_VALUE);
-    assertThat(history.getLifecycleType()).isEqualTo(EXPIRED.toString());
+    assertThat(history.getLifecycleType()).isEqualTo(UNREFERENCED.toString());
     assertThat(history.getHousekeepingStatus()).isEqualTo(SCHEDULED.name());
   }
 

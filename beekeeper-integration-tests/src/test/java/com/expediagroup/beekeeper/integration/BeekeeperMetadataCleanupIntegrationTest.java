@@ -26,9 +26,7 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import static com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter.METRIC_NAME;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DISABLED;
-import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.LONG_CLEANUP_DELAY_VALUE;
@@ -386,7 +384,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY)).isFalse();
 
-    List<BeekeeperHistory> beekeeperHistory = getBeekeeperHistory(UNREFERENCED);
+    List<BeekeeperHistory> beekeeperHistory = getBeekeeperHistory(EXPIRED);
     BeekeeperHistory history = beekeeperHistory.get(0);
     assertThat(history.getDatabaseName()).isEqualTo(DATABASE_NAME_VALUE);
     assertThat(history.getTableName()).isEqualTo(TABLE_NAME_VALUE);

@@ -21,8 +21,6 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 
 import static com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter.METRIC_NAME;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
-import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
-import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
@@ -268,7 +266,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
     BeekeeperHistory history = beekeeperHistory.get(0);
     assertThat(history.getDatabaseName()).isEqualTo(DATABASE_NAME_VALUE);
     assertThat(history.getTableName()).isEqualTo(TABLE_NAME_VALUE);
-    assertThat(history.getLifecycleType()).isEqualTo(EXPIRED.toString());
+    assertThat(history.getLifecycleType()).isEqualTo(UNREFERENCED.toString());
     assertThat(history.getHousekeepingStatus()).isEqualTo(DELETED.name());
   }
 
