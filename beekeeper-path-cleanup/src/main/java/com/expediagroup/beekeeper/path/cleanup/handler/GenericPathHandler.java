@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
+import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
@@ -67,12 +68,20 @@ public abstract class GenericPathHandler {
   }
 
   private boolean cleanUpPath(HousekeepingPath housekeepingPath) {
-    if (S3PathValidator.validTablePath(housekeepingPath.getPath())) {
-      pathCleaner.cleanupPath(housekeepingPath);
-      return true;
+    try {
+      if (S3PathValidator.validTablePath(housekeepingPath.getPath())) {
+        pathCleaner.cleanupPath(housekeepingPath);
+        return true;
+      }
+      log.warn("Will not clean up path \"{}\" because it is not valid.", housekeepingPath.getPath());
+      return false;
+    } catch (BeekeeperException e) {
+      // Handle Iceberg table by updating status to SKIPPED
+      updateStatus(housekeepingPath, HousekeepingStatus.SKIPPED);
+      log.warn("Skipping cleanup for Iceberg table \"{}.{}\": {}", housekeepingPath.getDatabaseName(),
+          housekeepingPath.getTableName(), e.getMessage());
+      return false;
     }
-    log.warn("Will not clean up path \"{}\" because it is not valid.", housekeepingPath.getPath());
-    return false;
   }
 
   private void cleanupContent(HousekeepingPath housekeepingPath) {

@@ -24,11 +24,13 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 
 import static com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter.METRIC_NAME;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SKIPPED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,6 +62,9 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.google.common.collect.ImmutableMap;
 
+import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.HiveTestUtils;
 import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
@@ -293,6 +298,31 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, parentSentinel)).isTrue();
     assertThat(amazonS3.doesObjectExist(BUCKET, tableSentinel)).isTrue();
+  }
+
+  @Test
+  public void shouldSkipCleanupForIcebergTable() throws Exception {
+    // add iceberg table props
+    Map<String, String> tableProperties = new HashMap<>();
+    tableProperties.put("table_type", "ICEBERG");
+    tableProperties.put("format", "ICEBERG/PARQUET");
+    String outputFormat = "org.apache.iceberg.mr.hive.HiveIcebergOutputFormat";
+    // create iceberg table
+    hiveTestUtils.createTableWithProperties(
+        TABLE_PATH, TABLE_NAME_VALUE, false, tableProperties, outputFormat, true);
+    //  add data
+    String objectKey = DATABASE_NAME_VALUE + "/" + TABLE_NAME_VALUE + "/file1";
+    amazonS3.putObject(BUCKET, objectKey, CONTENT);
+    // insert housekeepingPath record
+    String path = "s3://" + BUCKET + "/" + DATABASE_NAME_VALUE + "/" + TABLE_NAME_VALUE + "/";
+    insertUnreferencedPath(path); // Uses default database and table names
+    // wait for the cleanup process to run and update to skipped
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == SKIPPED);
+    // verify that the data in S3 is still present
+    assertThat(amazonS3.doesObjectExist(BUCKET, objectKey))
+        .withFailMessage("S3 object %s should still exist as cleanup was skipped.", objectKey)
+        .isTrue();
   }
 
   @Test
