@@ -38,6 +38,7 @@ import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReade
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
 import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
+import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 
 @Component
 public class SchedulerApiary {
@@ -66,19 +67,10 @@ public class SchedulerApiary {
     BeekeeperEvent beekeeperEvent = housekeepingEntitiesToBeScheduled.get();
     List<HousekeepingEntity> housekeepingEntities = beekeeperEvent.getHousekeepingEntities();
 
-    Map<String, String> tableParameters = beekeeperEvent.getMessageEvent().getEvent().getTableParameters();
-
-    // logging: Print all table parameters
-    if (tableParameters != null && !tableParameters.isEmpty()) {
-      log.info("Processing table parameters for event:");
-      tableParameters.forEach((key, value) -> log.info(" - {}: {}", key, value));
-    } else {
-      log.info("No table parameters found for event.");
-    }
-
     for (HousekeepingEntity entity : housekeepingEntities) {
       try {
         icebergValidator.throwExceptionIfIceberg(entity.getDatabaseName(), entity.getTableName());
+
         LifecycleEventType eventType = LifecycleEventType.valueOf(entity.getLifecycleType());
         SchedulerService scheduler = schedulerServiceMap.get(eventType);
         scheduler.scheduleForHousekeeping(entity);
