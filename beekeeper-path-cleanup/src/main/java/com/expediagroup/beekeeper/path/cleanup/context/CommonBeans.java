@@ -16,9 +16,7 @@
 package com.expediagroup.beekeeper.path.cleanup.context;
 
 import java.util.List;
-import java.util.function.Supplier;
 
-import org.apache.hadoop.hive.conf.HiveConf;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -37,22 +35,15 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.expediagroup.beekeeper.cleanup.aws.S3Client;
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.aws.S3SentinelFilesCleaner;
-import com.expediagroup.beekeeper.cleanup.hive.HiveClientFactory;
-import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
-import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
 import com.expediagroup.beekeeper.path.cleanup.handler.GenericPathHandler;
 import com.expediagroup.beekeeper.path.cleanup.service.PagingPathCleanupService;
 import com.expediagroup.beekeeper.path.cleanup.service.PathRepositoryCleanupService;
-
-import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
-import com.hotels.hcommon.hive.metastore.client.closeable.CloseableMetaStoreClientFactory;
-import com.hotels.hcommon.hive.metastore.client.supplier.HiveMetaStoreClientSupplier;
 
 @Configuration
 @EnableScheduling
@@ -94,9 +85,8 @@ public class CommonBeans {
   @Bean(name = "s3PathCleaner")
   PathCleaner pathCleaner(
       S3Client s3Client,
-      BytesDeletedReporter bytesDeletedReporter,
-      IcebergValidator icebergValidator) {
-    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter, icebergValidator);
+      BytesDeletedReporter bytesDeletedReporter) {
+    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
   }
 
   @Bean
@@ -117,36 +107,5 @@ public class CommonBeans {
   @Bean
   DisableTablesService disableTablesService() {
     return () -> {};
-  }
-
-  @Bean
-  public HiveConf hiveConf(@Value("${properties.metastore-uri}") String metastoreUri) {
-    HiveConf conf = new HiveConf();
-    conf.setVar(HiveConf.ConfVars.METASTOREURIS, metastoreUri);
-    return conf;
-  }
-
-  @Bean
-  public CloseableMetaStoreClientFactory metaStoreClientFactory() {
-    return new CloseableMetaStoreClientFactory();
-  }
-
-  @Bean
-  Supplier<CloseableMetaStoreClient> metaStoreClientSupplier(
-      CloseableMetaStoreClientFactory metaStoreClientFactory, HiveConf hiveConf) {
-    String name = "beekeeper-scheduler-apiary";
-    return new HiveMetaStoreClientSupplier(metaStoreClientFactory, hiveConf, name);
-  }
-
-  @Bean(name = "hiveClientFactory")
-  public CleanerClientFactory clientFactory(
-      Supplier<CloseableMetaStoreClient> metaStoreClientSupplier,
-      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
-    return new HiveClientFactory(metaStoreClientSupplier, dryRunEnabled);
-  }
-
-  @Bean
-  public IcebergValidator icebergValidator(CleanerClientFactory clientFactory) {
-    return new IcebergValidator(clientFactory);
   }
 }

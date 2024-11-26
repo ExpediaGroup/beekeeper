@@ -33,13 +33,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.apache.hadoop.fs.s3a.BasicAWSCredentialsProvider;
+import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
@@ -55,10 +55,8 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
-import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
-import com.expediagroup.beekeeper.core.error.BeekeeperIcebergException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
 
@@ -80,16 +78,19 @@ class S3PathCleanerTest {
   private S3Client s3Client;
   private S3SentinelFilesCleaner s3SentinelFilesCleaner;
   private @Mock BytesDeletedReporter bytesDeletedReporter;
-  private @Mock IcebergValidator icebergValidator;
+
   private S3PathCleaner s3PathCleaner;
 
-  @Container
+  @Rule
   public static LocalStackContainer awsContainer = new LocalStackContainer(
       DockerImageName.parse("localstack/localstack:0.14.2")).withServices(S3);
+  static {
+    awsContainer.start();
+  }
+  public static String S3_ENDPOINT = awsContainer.getEndpointConfiguration(S3).getServiceEndpoint();
 
   @BeforeEach
   void setUp() {
-    String S3_ENDPOINT = awsContainer.getEndpointConfiguration(S3).getServiceEndpoint();
     amazonS3 = AmazonS3ClientBuilder
         .standard()
         .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
@@ -103,7 +104,7 @@ class S3PathCleanerTest {
     boolean dryRunEnabled = false;
     s3Client = new S3Client(amazonS3, dryRunEnabled);
     s3SentinelFilesCleaner = new S3SentinelFilesCleaner(s3Client);
-    s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, bytesDeletedReporter, icebergValidator);
+    s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
     String tableName = "table";
     String databaseName = "database";
     housekeepingPath = HousekeepingPath
@@ -256,7 +257,7 @@ class S3PathCleanerTest {
 
     amazonS3.putObject(bucket, key1, content);
 
-    s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, bytesDeletedReporter, icebergValidator);
+    s3PathCleaner = new S3PathCleaner(s3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
     assertThatCode(() -> s3PathCleaner.cleanupPath(housekeepingPath)).doesNotThrowAnyException();
     assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
   }
@@ -321,7 +322,7 @@ class S3PathCleanerTest {
   @Test
   void noBytesDeletedMetricWhenFileDeletionFails() {
     S3Client mockS3Client = mock(S3Client.class);
-    s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter, icebergValidator);
+    s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
     when(mockS3Client.doesObjectExist(bucket, key1)).thenReturn(true);
     ObjectMetadata objectMetadata = new ObjectMetadata();
     objectMetadata.setContentLength(10);
@@ -337,7 +338,7 @@ class S3PathCleanerTest {
   @Test
   void noBytesDeletedMetricWhenDirectoryDeletionFails() {
     S3Client mockS3Client = mock(S3Client.class);
-    s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter, icebergValidator);
+    s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
     doThrow(AmazonServiceException.class).when(mockS3Client).listObjects(bucket, keyRootAsDirectory);
 
     assertThatExceptionOfType(AmazonServiceException.class)
@@ -350,7 +351,7 @@ class S3PathCleanerTest {
     AmazonS3 mockAmazonS3 = mock(AmazonS3.class);
     S3Client mockS3Client = new S3Client(mockAmazonS3, false);
     mockOneOutOfTwoObjectsDeleted(mockAmazonS3);
-    s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter, icebergValidator);
+    s3PathCleaner = new S3PathCleaner(mockS3Client, s3SentinelFilesCleaner, bytesDeletedReporter);
     assertThatExceptionOfType(BeekeeperException.class)
         .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath))
         .withMessage(format("Not all files could be deleted at path \"%s/%s\"; deleted 1/2 objects. "
@@ -365,37 +366,6 @@ class S3PathCleanerTest {
     assertThatExceptionOfType(BeekeeperException.class)
         .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath))
         .withMessage(format("'%s' is not an S3 path.", path));
-  }
-
-  @Test
-  void shouldThrowBeekeeperIcebergExceptionWhenIcebergTableDetected() {
-    doThrow(new BeekeeperIcebergException("Iceberg tables are not supported"))
-        .when(icebergValidator)
-        .throwExceptionIfIceberg(housekeepingPath.getDatabaseName(), housekeepingPath.getTableName());
-
-    assertThatExceptionOfType(BeekeeperIcebergException.class)
-        .isThrownBy(() -> s3PathCleaner.cleanupPath(housekeepingPath))
-        .withMessage("Iceberg tables are not supported");
-
-    verify(icebergValidator).throwExceptionIfIceberg(housekeepingPath.getDatabaseName(), housekeepingPath.getTableName());
-    verifyNoInteractions(bytesDeletedReporter);
-  }
-
-  @Test
-  void shouldProceedWithDeletionWhenNotIcebergTable() {
-    amazonS3.putObject(bucket, key1, content);
-    amazonS3.putObject(bucket, key2, content);
-
-    housekeepingPath.setPath("s3://" + bucket + "/" + keyRoot);
-
-    assertThatCode(() -> s3PathCleaner.cleanupPath(housekeepingPath))
-        .doesNotThrowAnyException();
-
-    assertThat(amazonS3.doesObjectExist(bucket, key1)).isFalse();
-    assertThat(amazonS3.doesObjectExist(bucket, key2)).isFalse();
-
-    long expectedBytesDeleted = content.getBytes().length * 2L; // 11 bytes('some content') * 2 = 22 bytes
-    verify(bytesDeletedReporter).reportTaggable(expectedBytesDeleted, housekeepingPath, FileSystemType.S3);
   }
 
   private void mockOneOutOfTwoObjectsDeleted(AmazonS3 mockAmazonS3) {

@@ -38,7 +38,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
-import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
 
@@ -58,8 +57,8 @@ class S3DryRunPathCleanerTest {
 
   private HousekeepingPath housekeepingPath;
   private AmazonS3 amazonS3;
-  @Mock private BytesDeletedReporter bytesDeletedReporter;
-  @Mock private IcebergValidator icebergValidator;
+  private @Mock BytesDeletedReporter bytesDeletedReporter;
+
 
   private boolean dryRunEnabled = true;
 
@@ -83,7 +82,7 @@ class S3DryRunPathCleanerTest {
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     S3Client s3Client = new S3Client(amazonS3, dryRunEnabled);
-    s3DryRunPathCleaner = new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter, icebergValidator);
+    s3DryRunPathCleaner = new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
     housekeepingPath = HousekeepingPath
         .builder()
         .path(absolutePath)

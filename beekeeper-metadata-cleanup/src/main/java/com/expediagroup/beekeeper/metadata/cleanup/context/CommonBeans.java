@@ -145,7 +145,7 @@ public class CommonBeans {
   PathCleaner pathCleaner(
       S3Client s3Client,
       BytesDeletedReporter bytesDeletedReporter, IcebergValidator icebergValidator) {
-    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter, icebergValidator);
+    return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
   }
 
   @Bean(name = "expiredMetadataHandler")

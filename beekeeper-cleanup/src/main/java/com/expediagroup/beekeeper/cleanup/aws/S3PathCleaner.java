@@ -45,17 +45,15 @@ public class S3PathCleaner implements PathCleaner {
   private IcebergValidator icebergValidator;
 
   public S3PathCleaner(S3Client s3Client, SentinelFilesCleaner sentinelFilesCleaner,
-      BytesDeletedReporter bytesDeletedReporter, IcebergValidator icebergValidator) {
+      BytesDeletedReporter bytesDeletedReporter) {
     this.s3Client = s3Client;
     this.sentinelFilesCleaner = sentinelFilesCleaner;
     this.bytesDeletedReporter = bytesDeletedReporter;
-    this.icebergValidator = icebergValidator;
   }
 
   @Override
   @TimedTaggable("s3-paths-deleted")
   public void cleanupPath(HousekeepingEntity housekeepingEntity) {
-    icebergValidator.throwExceptionIfIceberg(housekeepingEntity.getDatabaseName(), housekeepingEntity.getTableName());
     S3SchemeURI s3SchemeURI = new S3SchemeURI(housekeepingEntity.getPath());
     String key = s3SchemeURI.getKey();
     String bucket = s3SchemeURI.getBucket();
