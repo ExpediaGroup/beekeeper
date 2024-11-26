@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2024 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static java.lang.String.format;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -34,6 +35,7 @@ import com.expediagroup.beekeeper.core.error.BeekeeperIcebergException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
+import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
 import com.expediagroup.beekeeper.scheduler.apiary.model.BeekeeperEvent;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 
@@ -63,6 +65,16 @@ public class SchedulerApiary {
     if (housekeepingEntitiesToBeScheduled.isEmpty()) {return;}
     BeekeeperEvent beekeeperEvent = housekeepingEntitiesToBeScheduled.get();
     List<HousekeepingEntity> housekeepingEntities = beekeeperEvent.getHousekeepingEntities();
+
+    Map<String, String> tableParameters = beekeeperEvent.getMessageEvent().getEvent().getTableParameters();
+
+    // logging: Print all table parameters
+    if (tableParameters != null && !tableParameters.isEmpty()) {
+      log.info("Processing table parameters for event:");
+      tableParameters.forEach((key, value) -> log.info(" - {}: {}", key, value));
+    } else {
+      log.info("No table parameters found for event.");
+    }
 
     for (HousekeepingEntity entity : housekeepingEntities) {
       try {
