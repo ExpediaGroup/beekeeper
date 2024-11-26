@@ -29,7 +29,6 @@ import com.google.common.base.Strings;
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.path.SentinelFilesCleaner;
-import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.config.FileSystemType;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
@@ -42,7 +41,6 @@ public class S3PathCleaner implements PathCleaner {
   private final S3Client s3Client;
   private final SentinelFilesCleaner sentinelFilesCleaner;
   private final BytesDeletedReporter bytesDeletedReporter;
-  private IcebergValidator icebergValidator;
 
   public S3PathCleaner(S3Client s3Client, SentinelFilesCleaner sentinelFilesCleaner,
       BytesDeletedReporter bytesDeletedReporter) {
