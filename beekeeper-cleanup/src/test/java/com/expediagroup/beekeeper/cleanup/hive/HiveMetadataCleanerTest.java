@@ -77,7 +77,6 @@ public class HiveMetadataCleanerTest {
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
 
-
   @Test
   public void dontReportWhenPartitionNotDropped() {
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);

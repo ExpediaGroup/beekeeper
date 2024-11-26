@@ -59,7 +59,6 @@ class S3DryRunPathCleanerTest {
   private AmazonS3 amazonS3;
   private @Mock BytesDeletedReporter bytesDeletedReporter;
 
-
   private boolean dryRunEnabled = true;
 
   private S3PathCleaner s3DryRunPathCleaner;

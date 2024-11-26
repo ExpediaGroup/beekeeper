@@ -68,7 +68,6 @@
       <version>27.1-jre</version>
     </dependency>
 
-
     <!-- test -->
     <dependency>
       <groupId>org.awaitility</groupId>
