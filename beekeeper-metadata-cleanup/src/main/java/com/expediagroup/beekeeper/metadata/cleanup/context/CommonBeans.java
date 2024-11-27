@@ -144,7 +144,7 @@ public class CommonBeans {
   @Bean(name = "s3PathCleaner")
   PathCleaner pathCleaner(
       S3Client s3Client,
-      BytesDeletedReporter bytesDeletedReporter, IcebergValidator icebergValidator) {
+      BytesDeletedReporter bytesDeletedReporter) {
     return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
   }
 

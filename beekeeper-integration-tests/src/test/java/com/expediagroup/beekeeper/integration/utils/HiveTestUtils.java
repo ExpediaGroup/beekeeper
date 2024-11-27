@@ -58,7 +58,7 @@ public class HiveTestUtils {
   }
 
   public Table createTable(String path, String tableName, boolean partitioned, boolean withBeekeeperProperty)
-    throws TException {
+      throws TException {
     Table hiveTable = new Table();
     hiveTable.setDbName(DATABASE_NAME_VALUE);
     hiveTable.setTableName(tableName);
@@ -89,7 +89,7 @@ public class HiveTestUtils {
    * @param hiveTable Table to add partitions to
    * @param partitionValues The list of partition values, e.g. ["2020-01-01", "0", "A"]
    * @throws Exception May be thrown if there is a problem when trying to write the data to the file, or when the client
-   *           adds the partition to the table.
+   *                   adds the partition to the table.
    */
   public void addPartitionsToTable(String path, Table hiveTable, List<String> partitionValues) throws Exception {
     String eventDate = "/event_date=" + partitionValues.get(0); // 2020-01-01
@@ -113,7 +113,8 @@ public class HiveTestUtils {
     return partition;
   }
 
-  public Table createTableWithProperties(String path, String tableName, boolean partitioned, Map<String, String> tableProperties, String outputFormat, boolean withBeekeeperProperty)
+  public Table createTableWithProperties(String path, String tableName, boolean partitioned,
+      Map<String, String> tableProperties, boolean withBeekeeperProperty)
       throws TException {
     Table hiveTable = new Table();
     hiveTable.setDbName(DATABASE_NAME_VALUE);
@@ -134,12 +135,7 @@ public class HiveTestUtils {
     sd.setCols(DATA_COLUMNS);
     sd.setLocation(path);
     sd.setParameters(new HashMap<>());
-
-    if (outputFormat != null) {
-      sd.setOutputFormat(outputFormat);
-    } else {
-      sd.setOutputFormat(TextOutputFormat.class.getName());
-    }
+    sd.setOutputFormat(TextOutputFormat.class.getName());
     sd.setSerdeInfo(new SerDeInfo());
     sd.getSerdeInfo().setSerializationLib("org.apache.hadoop.hive.serde2.OpenCSVSerde");
     hiveTable.setSd(sd);

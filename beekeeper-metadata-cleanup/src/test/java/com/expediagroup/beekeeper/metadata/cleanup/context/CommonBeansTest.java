@@ -154,7 +154,7 @@ public class CommonBeansTest {
   void verifyS3pathCleaner() {
     BytesDeletedReporter reporter = commonBeans.bytesDeletedReporter(meterRegistry, false);
     S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), false);
-    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, reporter, icebergValidator);
+    PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, reporter);
     assertThat(pathCleaner).isInstanceOf(S3PathCleaner.class);
   }
 

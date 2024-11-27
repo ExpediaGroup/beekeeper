@@ -69,8 +69,6 @@ import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.google.common.collect.ImmutableMap;
 
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
-import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.HiveTestUtils;
 import com.expediagroup.beekeeper.metadata.cleanup.BeekeeperMetadataCleanup;
@@ -233,11 +231,9 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   public void shouldSkipCleanupForIcebergTable() throws Exception {
     Map<String, String> tableProperties = new HashMap<>();
     tableProperties.put("table_type", "ICEBERG");
-    tableProperties.put("format", "ICEBERG/PARQUET");
-    String outputFormat = "org.apache.iceberg.mr.hive.HiveIcebergOutputFormat";
 
     hiveTestUtils.createTableWithProperties(
-        PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, tableProperties, outputFormat, true);
+        PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, tableProperties, true);
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
 
     insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
