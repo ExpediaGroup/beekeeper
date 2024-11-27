@@ -26,7 +26,7 @@ public class IsIcebergTablePredicate implements Predicate<Map<String, String>> {
 
   @Override
   public boolean test(Map<String, String> tableParameters) {
-    if (tableParameters == null) {
+    if (tableParameters == null || tableParameters.isEmpty()) {
       return false;
     }
 

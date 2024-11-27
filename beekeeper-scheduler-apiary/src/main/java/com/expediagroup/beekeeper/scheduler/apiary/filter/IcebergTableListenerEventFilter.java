@@ -36,7 +36,7 @@ public class IcebergTableListenerEventFilter implements ListenerEventFilter {
     Map<String, String> tableParameters = event.getTableParameters();
 
     if (isIcebergPredicate.test(tableParameters)) {
-      log.info("Iceberg table '{}.{}' is not currently supported in Beekeeper.",
+      log.info("Ignoring table '{}.{}'. Iceberg tables are not supported in Beekeeper.",
           event.getDbName(), event.getTableName());
       return true;
     }
