@@ -80,16 +80,16 @@ public class ExpiredMetadataHandler implements MetadataHandler {
       }
     } catch (BeekeeperIcebergException e) {
       updateAttemptsAndStatus(housekeepingMetadata, SKIPPED);
-      log.warn("Table \"{}.{}\" is skipped because it is iceberg or could not be identified.",
+      String logMessage = String.format("Table \"%s.%s\" is skipped because it is iceberg or could not be identified.",
           housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
-      log.debug("Table \"{}.{}\" is skipped because it is iceberg or could not be identified.",
-          housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(), e);
+      log.warn(logMessage);
+      log.debug(logMessage, e);
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingMetadata, FAILED);
-      log.warn("Unexpected exception when deleting metadata for table \"{}.{}\".",
+      String logMessage = String.format("Unexpected exception when deleting metadata for table \"%s.%s\".",
           housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
-      log.debug("Unexpected exception when deleting metadata for table \"{}.{}\".",
-          housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(), e);
+      log.warn(logMessage);
+      log.debug(logMessage, e);
     }
   }
 
