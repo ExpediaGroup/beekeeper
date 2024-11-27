@@ -21,38 +21,25 @@ import org.springframework.stereotype.Component;
 
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.predicate.IsIcebergTablePredicate;
 
-import java.util.Locale;
 import java.util.Map;
 
 @Component
 public class IcebergTableListenerEventFilter implements ListenerEventFilter {
 
   private static final Logger log = LogManager.getLogger(IcebergTableListenerEventFilter.class);
-
-  private static final String METADATA_LOCATION_KEY = "metadata_location";
-  private static final String TABLE_TYPE_KEY = "table_type";
-  private static final String TABLE_TYPE_ICEBERG_VALUE = "iceberg";
+  private final IsIcebergTablePredicate isIcebergPredicate = new IsIcebergTablePredicate();
 
   @Override
   public boolean isFiltered(ListenerEvent event, LifecycleEventType type) {
     Map<String, String> tableParameters = event.getTableParameters();
 
-    if (tableParameters != null) {
-      String metadataLocation = tableParameters.getOrDefault(METADATA_LOCATION_KEY, "");
-      String tableType = tableParameters.getOrDefault(TABLE_TYPE_KEY, "");
-
-      boolean hasMetadataLocation = !metadataLocation.trim().isEmpty();
-      boolean isIcebergType = tableType.toLowerCase().contains(TABLE_TYPE_ICEBERG_VALUE);
-
-      if (hasMetadataLocation || isIcebergType) {
-        log.info("Iceberg table '{}.{}' is not currently supported in Beekeeper.",
-            event.getDbName(), event.getTableName());
-        return true;
-      }
+    if (isIcebergPredicate.test(tableParameters)) {
+      log.info("Iceberg table '{}.{}' is not currently supported in Beekeeper.",
+          event.getDbName(), event.getTableName());
+      return true;
     }
     return false;
   }
 }
-
-

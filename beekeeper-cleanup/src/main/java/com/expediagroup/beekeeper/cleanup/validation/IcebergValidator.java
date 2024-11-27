@@ -25,15 +25,18 @@ import org.slf4j.LoggerFactory;
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClient;
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
 import com.expediagroup.beekeeper.core.error.BeekeeperIcebergException;
+import com.expediagroup.beekeeper.core.predicate.IsIcebergTablePredicate;
 
 public class IcebergValidator {
 
   private static final Logger log = LoggerFactory.getLogger(IcebergValidator.class);
 
   private final CleanerClientFactory cleanerClientFactory;
+  private final IsIcebergTablePredicate isIcebergTablePredicate;
 
   public IcebergValidator(CleanerClientFactory cleanerClientFactory) {
     this.cleanerClientFactory = cleanerClientFactory;
+    this.isIcebergTablePredicate = new IsIcebergTablePredicate();
   }
 
   /**
@@ -46,10 +49,9 @@ public class IcebergValidator {
    */
   public void throwExceptionIfIceberg(String databaseName, String tableName) {
     try (CleanerClient client = cleanerClientFactory.newInstance()) {
-      Map<String, String> parameters = client.getTableProperties(databaseName, tableName);
-      String tableType = parameters.getOrDefault("table_type", "").toLowerCase();
-      String metadataLocation = parameters.getOrDefault("metadata_location", "").toLowerCase();
-      if (tableType.contains("iceberg") || !metadataLocation.isEmpty()) {
+      Map<String, String> tableParameters = client.getTableProperties(databaseName, tableName);
+
+      if (isIcebergTablePredicate.test(tableParameters)) {
         throw new BeekeeperIcebergException(
             format("Iceberg table %s.%s is not currently supported in Beekeeper.", databaseName, tableName));
       }
