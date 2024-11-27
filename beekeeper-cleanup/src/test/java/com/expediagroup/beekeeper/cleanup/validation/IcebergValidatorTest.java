@@ -15,6 +15,7 @@
  */
 package com.expediagroup.beekeeper.cleanup.validation;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,7 +50,6 @@ public class IcebergValidatorTest {
     properties.put("table_type", "ICEBERG");
 
     when(cleanerClient.getTableProperties("db", "table")).thenReturn(properties);
-    when(cleanerClient.getOutputFormat("db", "table")).thenReturn("");
 
     icebergValidator.throwExceptionIfIceberg("db", "table");
     verify(cleanerClientFactory).newInstance();
@@ -57,12 +57,11 @@ public class IcebergValidatorTest {
   }
 
   @Test(expected = BeekeeperIcebergException.class)
-  public void shouldThrowExceptionWhenFormatIsIceberg() throws Exception {
+  public void shouldThrowExceptionWhenMetadataIsIceberg() throws Exception {
     Map<String, String> properties = new HashMap<>();
-    properties.put("format", "iceberg");
+    properties.put("metadata_location", "s3://db/table/metadata/0000.json");
 
     when(cleanerClient.getTableProperties("db", "table")).thenReturn(properties);
-    when(cleanerClient.getOutputFormat("db", "table")).thenReturn("");
 
     icebergValidator.throwExceptionIfIceberg("db", "table");
   }
@@ -73,44 +72,21 @@ public class IcebergValidatorTest {
     properties.put("table_type", "HIVE_TABLE");
 
     when(cleanerClient.getTableProperties("db", "table")).thenReturn(properties);
-    when(cleanerClient.getOutputFormat("db", "table"))
-        .thenReturn("org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat");
 
     icebergValidator.throwExceptionIfIceberg("db", "table");
     verify(cleanerClientFactory).newInstance();
     verify(cleanerClient).close();
   }
 
-  @Test(expected = BeekeeperIcebergException.class)
-  public void shouldThrowExceptionWhenOutputFormatContainsIceberg() throws Exception {
-    Map<String, String> properties = new HashMap<>();
-
-    when(cleanerClient.getTableProperties("db", "table")).thenReturn(properties);
-    when(cleanerClient.getOutputFormat("db", "table"))
-        .thenReturn("org.apache.iceberg.mr.hive.HiveIcebergOutputFormat");
-
-    icebergValidator.throwExceptionIfIceberg("db", "table");
-  }
-
-  @Test(expected = BeekeeperIcebergException.class)
-  public void shouldThrowExceptionWhenFormatIsNullButTableTypeIsIceberg() throws Exception {
-    Map<String, String> properties = new HashMap<>();
-    properties.put("table_type", "ICEBERG");
-
-    when(cleanerClient.getTableProperties("db", "table")).thenReturn(properties);
-    when(cleanerClient.getOutputFormat("db", "table")).thenReturn("");
-
-    icebergValidator.throwExceptionIfIceberg("db", "table");
-  }
-
   @Test
-  public void shouldNotThrowExceptionWhenOutputFormatIsNull() throws Exception {
+  public void shouldThrowExceptionWhenOutputFormatIsNull() throws Exception {
     Map<String, String> properties = new HashMap<>();
-    properties.put("table_type", "HIVE_TABLE");
+    properties.put("table_type", null);
+    properties.put("metadata_location", null);
 
     when(cleanerClient.getTableProperties("db", "table")).thenReturn(properties);
-    when(cleanerClient.getOutputFormat("db", "table")).thenReturn(null);
 
-    icebergValidator.throwExceptionIfIceberg("db", "table");
+    assertThatThrownBy(() -> icebergValidator.throwExceptionIfIceberg("db", "table")).isInstanceOf(
+        BeekeeperIcebergException.class);
   }
 }
