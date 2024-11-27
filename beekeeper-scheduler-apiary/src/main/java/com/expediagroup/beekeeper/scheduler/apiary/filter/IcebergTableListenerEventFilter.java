@@ -39,8 +39,8 @@ public class IcebergTableListenerEventFilter implements ListenerEventFilter {
     Map<String, String> tableParameters = event.getTableParameters();
 
     if (tableParameters != null) {
-      String metadataLocation = tableParameters.getOrDefault(METADATA_LOCATION_KEY,"");
-      String tableType = tableParameters.getOrDefault(TABLE_TYPE_KEY,"");
+      String metadataLocation = tableParameters.getOrDefault(METADATA_LOCATION_KEY, "");
+      String tableType = tableParameters.getOrDefault(TABLE_TYPE_KEY, "");
 
       boolean hasMetadataLocation = !metadataLocation.trim().isEmpty();
       boolean isIcebergType = tableType.toLowerCase().contains(TABLE_TYPE_ICEBERG_VALUE);
