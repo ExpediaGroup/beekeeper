@@ -21,7 +21,7 @@ public class BeekeeperHistoryService {
   }
 
   public void saveHistory(HousekeepingEntity housekeepingEntity, HousekeepingStatus status) {
-    String eventDetails = getEventDetails(housekeepingEntity);
+    String eventDetails = housekeepingEntity.toString();
 
     BeekeeperHistory event = BeekeeperHistory.builder()
         .id(housekeepingEntity.getId())
@@ -35,9 +35,5 @@ public class BeekeeperHistoryService {
 
     log.info("Saving activity in Beekeeper History table; {}", event);
     beekeeperHistoryRepository.save(event);
-  }
-
-  private String getEventDetails(HousekeepingEntity entity) {
-    return entity.toString();
   }
 }
