@@ -21,8 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -39,6 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageEvent;
@@ -88,7 +87,6 @@ public class SchedulerApiaryTest {
     Optional<BeekeeperEvent> event = Optional.of(newHousekeepingEvent(table, EXPIRED));
     when(beekeeperEventReader.read()).thenReturn(event);
     scheduler.scheduleBeekeeperEvent();
-
     verify(tableSchedulerService).scheduleForHousekeeping(table);
     verifyNoInteractions(pathSchedulerService);
     verify(beekeeperEventReader).delete(event.get());
@@ -98,7 +96,6 @@ public class SchedulerApiaryTest {
   public void typicalNoSchedule() {
     when(beekeeperEventReader.read()).thenReturn(Optional.empty());
     scheduler.scheduleBeekeeperEvent();
-
     verifyNoInteractions(pathSchedulerService);
     verifyNoInteractions(tableSchedulerService);
     verify(beekeeperEventReader, times(0)).delete(any());
@@ -152,9 +149,7 @@ public class SchedulerApiaryTest {
 
   private BeekeeperEvent newHousekeepingEvent(HousekeepingEntity housekeepingEntity,
       LifecycleEventType lifecycleEventType) {
-    lenient().when(housekeepingEntity.getLifecycleType()).thenReturn(lifecycleEventType.name());
-    when(housekeepingEntity.getDatabaseName()).thenReturn("database");
-    when(housekeepingEntity.getTableName()).thenReturn("table");
-    return new BeekeeperEvent(List.of(housekeepingEntity), mock(MessageEvent.class));
+    when(housekeepingEntity.getLifecycleType()).thenReturn(lifecycleEventType.name());
+    return new BeekeeperEvent(List.of(housekeepingEntity), Mockito.mock(MessageEvent.class));
   }
 }
