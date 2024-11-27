@@ -15,7 +15,8 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,42 +34,42 @@ public class IcebergTableListenerEventFilterTest {
   public void shouldFilterWhenTableTypeIsIceberg() {
     ListenerEvent event = createListenerEventWithTableType("ICEBERG");
     boolean isFiltered = filter.isFiltered(event, LifecycleEventType.EXPIRED);
-    assertThat(isFiltered).isTrue();
+    assertTrue(isFiltered);
   }
 
   @Test
   public void shouldNotFilterWhenTableTypeIsNotIceberg() {
     ListenerEvent event = createListenerEventWithTableType("HIVE");
     boolean isFiltered = filter.isFiltered(event, LifecycleEventType.EXPIRED);
-    assertThat(isFiltered).isFalse();
+    assertFalse(isFiltered);
   }
 
   @Test
   public void shouldFilterWhenTableTypeIsIcebergIgnoreCase() {
     ListenerEvent event = createListenerEventWithTableType("iceberg");
     boolean isFiltered = filter.isFiltered(event, LifecycleEventType.EXPIRED);
-    assertThat(isFiltered).isTrue();
+    assertTrue(isFiltered);
   }
 
   @Test
   public void shouldFilterWhenMetadataLocationIsPresent() {
     ListenerEvent event = createListenerEventWithMetadataLocation("s3://example/path/to/metadata");
     boolean isFiltered = filter.isFiltered(event, LifecycleEventType.EXPIRED);
-    assertThat(isFiltered).isTrue();
+    assertTrue(isFiltered);
   }
 
   @Test
   public void shouldNotFilterWhenMetadataLocationIsEmpty() {
     ListenerEvent event = createListenerEventWithMetadataLocation("");
     boolean isFiltered = filter.isFiltered(event, LifecycleEventType.EXPIRED);
-    assertThat(isFiltered).isFalse();
+    assertFalse(isFiltered);
   }
 
   @Test
   public void shouldHandleNullTableParameters() {
     ListenerEvent event = createListenerEventWithTableParameters(null);
     boolean isFiltered = filter.isFiltered(event, LifecycleEventType.EXPIRED);
-    assertThat(isFiltered).isFalse();
+    assertFalse(isFiltered);
   }
 
   private ListenerEvent createListenerEventWithTableType(String tableType) {

@@ -38,8 +38,6 @@ import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 @Component
 public class SchedulerApiary {
 
-  private static final Logger log = LoggerFactory.getLogger(SchedulerApiary.class);
-
   private final BeekeeperEventReader beekeeperEventReader;
   private final EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap;
 
