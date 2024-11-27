@@ -214,6 +214,21 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   }
 
   @Test
+  public void expiredMetadataAlterIcebergTableEventShouldBeIgnored()
+      throws SQLException, IOException, URISyntaxException {
+    insertExpiredMetadata(LOCATION_A + "-old", null);
+
+    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage(LOCATION_A, true, true);
+    amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
+
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUpdatedExpiredMetadataRowCount() == 1);
+
+    // iceberg table event should be ignored
+    List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
+    assertThat(expiredMetadata.size()).isEqualTo(0);
+  }
+
+  @Test
   public void healthCheck() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(HEALTHCHECK_URI);

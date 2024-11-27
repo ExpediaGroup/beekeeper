@@ -51,6 +51,21 @@ public class AlterTableSqsMessage extends SqsMessage {
     setExpired(isExpired);
   }
 
+  public AlterTableSqsMessage(
+      String tableLocation,
+      boolean isExpired,
+      boolean isIceberg
+  ) throws IOException, URISyntaxException {
+    super(ALTER_TABLE);
+    setTableLocation(tableLocation);
+    setOldTableLocation(DUMMY_LOCATION);
+    setOldTableName(TABLE_NAME_VALUE);
+    setExpired(isExpired);
+    if (isIceberg) {
+      setIceberg();
+    }
+  }
+
   public void setOldTableLocation(String oldTableLocation) {
     apiaryEventMessageJsonObject.add(EVENT_TABLE_OLD_LOCATION_KEY, new JsonPrimitive(oldTableLocation));
   }

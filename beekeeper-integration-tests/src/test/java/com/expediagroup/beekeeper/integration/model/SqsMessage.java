@@ -93,6 +93,12 @@ public abstract class SqsMessage {
     tableParameters.add(EXPIRED_DATA_RETENTION_PERIOD_PROPERTY_KEY, new JsonPrimitive(SHORT_CLEANUP_DELAY_VALUE));
   }
 
+  public void setIceberg() {
+    JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
+    tableParameters.add("table_format", new JsonPrimitive("ICEBERG"));
+    tableParameters.add("metadata_location", new JsonPrimitive("s3://bucket/metadata"));
+  }
+
   public void setWhitelisted(boolean isWhitelisted) {
     String whitelist = isWhitelisted ? eventType.toString() : "";
     JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
