@@ -65,7 +65,7 @@ public class UnreferencedHousekeepingPathSchedulerServiceTest {
 
     verify(housekeepingPathRepository).save(path);
 
-    verify(beekeeperHistoryService).saveHistory(path, SCHEDULED.name());
+    verify(beekeeperHistoryService).saveHistory(path, SCHEDULED);
   }
 
   @Test
@@ -88,6 +88,6 @@ public class UnreferencedHousekeepingPathSchedulerServiceTest {
         .isThrownBy(() -> unreferencedHousekeepingPathSchedulerService.scheduleForHousekeeping(path))
         .withMessage(format("Unable to schedule %s", path));
     verify(housekeepingPathRepository).save(path);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_SCHEDULE.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_SCHEDULE));
   }
 }

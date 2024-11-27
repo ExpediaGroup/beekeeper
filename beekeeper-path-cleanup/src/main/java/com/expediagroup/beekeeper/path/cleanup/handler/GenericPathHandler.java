@@ -112,6 +112,6 @@ public abstract class GenericPathHandler {
   }
 
   private void saveHistory(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
-    beekeeperHistoryService.saveHistory(housekeepingPath, status.name());
+    beekeeperHistoryService.saveHistory(housekeepingPath, status);
   }
 }

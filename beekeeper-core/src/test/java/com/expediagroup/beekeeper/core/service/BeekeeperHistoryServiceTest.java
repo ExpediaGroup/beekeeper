@@ -2,6 +2,7 @@ package com.expediagroup.beekeeper.core.service;
 
 import static org.mockito.Mockito.verify;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
@@ -51,7 +52,7 @@ public class BeekeeperHistoryServiceTest {
     String details = createEventDetails(metadata);
     BeekeeperHistory history = createHistoryEvent(metadata, details, "DELETED");
 
-    beekeeperHistoryService.saveHistory(metadata, "DELETED");
+    beekeeperHistoryService.saveHistory(metadata, DELETED);
     verify(repository).save(history);
   }
 
@@ -61,7 +62,7 @@ public class BeekeeperHistoryServiceTest {
     String details = createEventDetails(path);
     BeekeeperHistory history = createHistoryEvent(path, details, "SCHEDULED");
 
-    beekeeperHistoryService.saveHistory(path, "SCHEDULED");
+    beekeeperHistoryService.saveHistory(path, SCHEDULED);
     verify(repository).save(history);
   }
 

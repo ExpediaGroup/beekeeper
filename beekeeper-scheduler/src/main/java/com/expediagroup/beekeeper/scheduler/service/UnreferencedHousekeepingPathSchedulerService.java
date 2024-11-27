@@ -71,6 +71,6 @@ public class UnreferencedHousekeepingPathSchedulerService implements SchedulerSe
   }
 
   private void saveHistory(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
-    beekeeperHistoryService.saveHistory(housekeepingPath, status.name());
+    beekeeperHistoryService.saveHistory(housekeepingPath, status);
   }
 }

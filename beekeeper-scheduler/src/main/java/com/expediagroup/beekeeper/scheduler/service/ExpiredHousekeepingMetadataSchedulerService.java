@@ -151,6 +151,6 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
   }
 
   private void saveHistory(HousekeepingMetadata housekeepingMetadata, HousekeepingStatus status) {
-    beekeeperHistoryService.saveHistory(housekeepingMetadata, status.name());
+    beekeeperHistoryService.saveHistory(housekeepingMetadata, status);
   }
 }

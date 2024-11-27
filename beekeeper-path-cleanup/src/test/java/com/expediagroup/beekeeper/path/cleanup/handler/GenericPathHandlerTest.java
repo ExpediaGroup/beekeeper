@@ -89,7 +89,7 @@ public class GenericPathHandlerTest {
     verify(mockPath).setCleanupAttempts(1);
     verify(mockPath).setHousekeepingStatus(DELETED);
     verify(housekeepingPathRepository).save(mockPath);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED));
     assertThat(pageable).isEqualTo(pageable);
   }
 
@@ -103,7 +103,7 @@ public class GenericPathHandlerTest {
     verify(mockPath).setCleanupAttempts(1);
     verify(mockPath).setHousekeepingStatus(FAILED);
     verify(housekeepingPathRepository).save(mockPath);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_DELETE.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_DELETE));
     assertThat(pageable).isEqualTo(pageable);
   }
 
@@ -117,7 +117,7 @@ public class GenericPathHandlerTest {
     verify(mockPath, never()).setCleanupAttempts(1);
     verify(mockPath).setHousekeepingStatus(SKIPPED);
     verify(housekeepingPathRepository).save(mockPath);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(SKIPPED.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(SKIPPED));
     assertThat(pageable).isEqualTo(pageable);
   }
 }

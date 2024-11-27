@@ -74,7 +74,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
 
     verify(housekeepingMetadataRepository).save(metadata);
-    verify(beekeeperHistoryService).saveHistory(metadata, SCHEDULED.name());
+    verify(beekeeperHistoryService).saveHistory(metadata, SCHEDULED);
   }
 
   @Test
@@ -91,7 +91,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
 
     verify(housekeepingMetadataRepository).save(metadata);
-    verify(beekeeperHistoryService).saveHistory(metadata, SCHEDULED.name());
+    verify(beekeeperHistoryService).saveHistory(metadata, SCHEDULED);
   }
 
   @Test
@@ -110,7 +110,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     verify(existingTable).setClientId(metadata.getClientId());
     verify(existingTable).setCleanupDelay(metadata.getCleanupDelay());
     verify(housekeepingMetadataRepository).save(existingTable);
-    verify(beekeeperHistoryService).saveHistory(metadata, SCHEDULED.name());
+    verify(beekeeperHistoryService).saveHistory(metadata, SCHEDULED);
   }
 
   @Test
@@ -136,7 +136,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     verify(existingTable).setCleanupTimestamp(CREATION_TIMESTAMP.plus(Duration.parse("P30D")));
 
     verify(housekeepingMetadataRepository).save(existingTable);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(SCHEDULED.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(SCHEDULED));
   }
 
   @Test
@@ -154,7 +154,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
         .isThrownBy(() -> expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata))
         .withMessage(format("Unable to schedule %s", metadata));
     verify(housekeepingMetadataRepository).save(metadata);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_SCHEDULE.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_SCHEDULE));
   }
 
   private HousekeepingMetadata createHousekeepingMetadataPartition() {

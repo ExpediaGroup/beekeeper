@@ -5,12 +5,8 @@ import java.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
+import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.history.BeekeeperHistory;
 import com.expediagroup.beekeeper.core.repository.BeekeeperHistoryRepository;
 
@@ -24,7 +20,7 @@ public class BeekeeperHistoryService {
     this.beekeeperHistoryRepository = beekeeperHistoryRepository;
   }
 
-  public void saveHistory(HousekeepingEntity housekeepingEntity, String status) {
+  public void saveHistory(HousekeepingEntity housekeepingEntity, HousekeepingStatus status) {
     String eventDetails = getEventDetails(housekeepingEntity);
 
     BeekeeperHistory event = BeekeeperHistory.builder()
@@ -33,7 +29,7 @@ public class BeekeeperHistoryService {
         .databaseName(housekeepingEntity.getDatabaseName())
         .tableName(housekeepingEntity.getTableName())
         .lifecycleType(housekeepingEntity.getLifecycleType())
-        .housekeepingStatus(status)
+        .housekeepingStatus(status.name())
         .eventDetails(eventDetails)
         .build();
 

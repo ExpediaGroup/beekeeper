@@ -123,7 +123,7 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED));
   }
 
   @Test
@@ -143,7 +143,7 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata, never()).setCleanupAttempts(1);
     verify(housekeepingMetadata, never()).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository, never()).save(housekeepingMetadata);
-    verify(beekeeperHistoryService).saveHistory(any(), eq("DRY_RUN_DELETED"));
+    verify(beekeeperHistoryService, never()).saveHistory(any(), any());
   }
 
   @Test
@@ -164,7 +164,7 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED));
   }
 
   @Test
@@ -185,7 +185,7 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata, never()).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(SKIPPED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(SKIPPED.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(SKIPPED));
   }
 
   @Test
@@ -204,7 +204,7 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata, never()).setCleanupAttempts(1);
     verify(housekeepingMetadata, never()).setHousekeepingStatus(SKIPPED);
     verify(housekeepingMetadataRepository, never()).save(housekeepingMetadata);
-    verify(beekeeperHistoryService).saveHistory(any(), eq("DRY_RUN_SKIPPED"));
+    verify(beekeeperHistoryService, never()).saveHistory(any(), any());
   }
 
   @Test
@@ -247,7 +247,7 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED));
   }
 
   @Test
@@ -263,7 +263,7 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata, never()).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(SKIPPED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(SKIPPED.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(SKIPPED));
   }
 
   @Test
@@ -283,7 +283,7 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED));
   }
 
   @Test
@@ -302,7 +302,7 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED));
   }
 
   @Test
@@ -324,7 +324,7 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(FAILED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_DELETE.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_DELETE));
   }
 
   @Test
@@ -342,7 +342,7 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(FAILED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_DELETE.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_DELETE));
   }
 
   @Test
@@ -360,6 +360,6 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata).setCleanupAttempts(1);
     verify(housekeepingMetadata).setHousekeepingStatus(FAILED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
-    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_DELETE.name()));
+    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_DELETE));
   }
 }

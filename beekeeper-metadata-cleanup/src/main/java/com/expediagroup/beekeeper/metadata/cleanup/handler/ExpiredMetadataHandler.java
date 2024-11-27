@@ -79,10 +79,8 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   public void cleanupMetadata(HousekeepingMetadata housekeepingMetadata, LocalDateTime instant, boolean dryRunEnabled) {
     try (CleanerClient client = cleanerClientFactory.newInstance()) {
       boolean deleted = cleanup(client, housekeepingMetadata, instant, dryRunEnabled);
-      if (deleted) {
-        if (!dryRunEnabled) {
-          updateAttemptsAndStatus(housekeepingMetadata, DELETED);
-        }
+      if (deleted && !dryRunEnabled) {
+        updateAttemptsAndStatus(housekeepingMetadata, DELETED);
         saveHistory(housekeepingMetadata, DELETED, dryRunEnabled);
       }
     } catch (Exception e) {
@@ -189,10 +187,9 @@ public class ExpiredMetadataHandler implements MetadataHandler {
 
   private void saveHistory(HousekeepingMetadata metadata, HousekeepingStatus housekeepingStatus,
       boolean dryRunEnabled) {
-    String status = String.valueOf(housekeepingStatus);
     if (dryRunEnabled) {
-      status = "DRY_RUN_" + housekeepingStatus;
+      return;
     }
-    historyService.saveHistory(metadata, status);
+    historyService.saveHistory(metadata, housekeepingStatus);
   }
 }
