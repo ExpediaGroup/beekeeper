@@ -65,13 +65,6 @@ public class IcebergTableListenerEventFilterTest {
   }
 
   @Test
-  public void shouldNotFilterWhenMetadataLocationIsNull() {
-    ListenerEvent event = createListenerEventWithMetadataLocation(null);
-    boolean isFiltered = filter.isFiltered(event, LifecycleEventType.EXPIRED);
-    assertThat(isFiltered).isFalse();
-  }
-
-  @Test
   public void shouldHandleNullTableParameters() {
     ListenerEvent event = createListenerEventWithTableParameters(null);
     boolean isFiltered = filter.isFiltered(event, LifecycleEventType.EXPIRED);

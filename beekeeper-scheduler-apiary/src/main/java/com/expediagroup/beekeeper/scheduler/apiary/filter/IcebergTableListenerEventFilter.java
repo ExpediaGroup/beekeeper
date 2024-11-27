@@ -39,11 +39,11 @@ public class IcebergTableListenerEventFilter implements ListenerEventFilter {
     Map<String, String> tableParameters = event.getTableParameters();
 
     if (tableParameters != null) {
-      String metadataLocation = tableParameters.getOrDefault(METADATA_LOCATION_KEY,null);
-      String tableType = tableParameters.getOrDefault(TABLE_TYPE_KEY,null);
+      String metadataLocation = tableParameters.getOrDefault(METADATA_LOCATION_KEY,"");
+      String tableType = tableParameters.getOrDefault(TABLE_TYPE_KEY,"");
 
-      boolean hasMetadataLocation = metadataLocation != null && !metadataLocation.trim().isEmpty();
-      boolean isIcebergType = tableType != null && tableType.toLowerCase().contains(TABLE_TYPE_ICEBERG_VALUE);
+      boolean hasMetadataLocation = !metadataLocation.trim().isEmpty();
+      boolean isIcebergType = tableType.toLowerCase().contains(TABLE_TYPE_ICEBERG_VALUE);
 
       if (hasMetadataLocation || isIcebergType) {
         log.info("Iceberg table '{}.{}' is not currently supported in Beekeeper.",
