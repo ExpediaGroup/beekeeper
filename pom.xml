@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>beekeeper-parent</artifactId>
-  <version>3.5.800-SNAPSHOT</version>
+  <version>3.5.8-SNAPSHOT</version>
   <description>Beekeeper is a service which manages the cleanup of tables and unreferenced S3 paths.</description>
   <inceptionYear>2019</inceptionYear>
   <packaging>pom</packaging>
