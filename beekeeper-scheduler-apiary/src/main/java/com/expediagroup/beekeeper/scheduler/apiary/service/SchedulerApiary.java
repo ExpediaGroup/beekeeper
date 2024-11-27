@@ -22,8 +22,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +51,7 @@ public class SchedulerApiary {
   @Transactional
   public void scheduleBeekeeperEvent() {
     Optional<BeekeeperEvent> housekeepingEntitiesToBeScheduled = beekeeperEventReader.read();
-    if (housekeepingEntitiesToBeScheduled.isEmpty()) {return;}
+    if (housekeepingEntitiesToBeScheduled.isEmpty()) { return; }
     BeekeeperEvent beekeeperEvent = housekeepingEntitiesToBeScheduled.get();
     List<HousekeepingEntity> housekeepingEntities = beekeeperEvent.getHousekeepingEntities();
 
@@ -65,9 +63,11 @@ public class SchedulerApiary {
       } catch (Exception e) {
         throw new BeekeeperException(format(
             "Unable to schedule %s deletion for entity, this message will go back on the queue",
-            entity.getLifecycleType()), e);
+            entity.getLifecycleType()),
+            e);
       }
     }
+
     beekeeperEventReader.delete(beekeeperEvent);
   }
 
