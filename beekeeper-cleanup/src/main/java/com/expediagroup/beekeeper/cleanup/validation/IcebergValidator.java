@@ -49,9 +49,8 @@ public class IcebergValidator {
       Map<String, String> parameters = client.getTableProperties(databaseName, tableName);
       String tableType = parameters.getOrDefault("table_type", "").toLowerCase();
       String format = parameters.getOrDefault("format", "").toLowerCase();
-      String outputFormat = client.getOutputFormat(databaseName, tableName);
-      if (tableType.contains("iceberg") || format.contains("iceberg") || (outputFormat != null
-          && outputFormat.toLowerCase().contains("iceberg"))) {
+      String metadataLocation = parameters.getOrDefault("metadata_location", "").toLowerCase();
+      if (tableType.contains("iceberg") || format.contains("iceberg") || !metadataLocation.isEmpty()) {
         throw new BeekeeperIcebergException(
             format("Iceberg table %s.%s is not currently supported in Beekeeper.", databaseName, tableName));
       }

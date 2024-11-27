@@ -27,6 +27,4 @@ public interface CleanerClient extends Closeable {
   boolean tableExists(String databaseName, String tableName);
 
   Map<String, String> getTableProperties(String databaseName, String tableName);
-
-  String getOutputFormat(String databaseName, String tableName);
 }

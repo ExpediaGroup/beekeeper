@@ -37,4 +37,3 @@ public class TableParameterListenerEventFilter implements ListenerEventFilter {
     return !Boolean.parseBoolean(tableParameters.get(lifecycleEventType.getTableParameterName()));
   }
 }
-

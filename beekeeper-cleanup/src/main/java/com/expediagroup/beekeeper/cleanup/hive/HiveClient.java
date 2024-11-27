@@ -127,23 +127,6 @@ public class HiveClient implements CleanerClient {
   }
 
   @Override
-  public String getOutputFormat(String databaseName, String tableName) {
-    String result = null;
-    try {
-      Table table = client.getTable(databaseName, tableName);
-      if (table.getSd() != null) {
-        result = table.getSd().getOutputFormat();
-      }
-    } catch (NoSuchObjectException e) {
-      log.warn("Table {}.{} does not exist", databaseName, tableName);
-    } catch (TException e) {
-      throw new BeekeeperException(
-          "Unexpected exception when getting output format for \"" + databaseName + "." + tableName + ".", e);
-    }
-    return result;
-  }
-
-  @Override
   public void close() {
     client.close();
   }
