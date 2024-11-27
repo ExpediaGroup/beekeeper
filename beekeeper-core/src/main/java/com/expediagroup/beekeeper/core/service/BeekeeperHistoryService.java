@@ -21,8 +21,6 @@ public class BeekeeperHistoryService {
   }
 
   public void saveHistory(HousekeepingEntity housekeepingEntity, HousekeepingStatus status) {
-    String eventDetails = housekeepingEntity.toString();
-
     BeekeeperHistory event = BeekeeperHistory.builder()
         .id(housekeepingEntity.getId())
         .eventTimestamp(LocalDateTime.now())
@@ -30,7 +28,7 @@ public class BeekeeperHistoryService {
         .tableName(housekeepingEntity.getTableName())
         .lifecycleType(housekeepingEntity.getLifecycleType())
         .housekeepingStatus(status.name())
-        .eventDetails(eventDetails)
+        .eventDetails(housekeepingEntity.toString())
         .build();
 
     log.info("Saving activity in Beekeeper History table; {}", event);
