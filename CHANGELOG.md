@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.6.0] - 2024-11-28
 ### Added
-- Added filter for Iceberg tables in `beekeeper-scheduler-apiary` to prevent scheduling paths and metadata for deletion. 
+- Added `IcebergTableListenerEventFilter` filter for Iceberg tables in `beekeeper-scheduler-apiary` to prevent scheduling paths and metadata for deletion. 
 - Added `IcebergValidator` to ensure Iceberg tables are identified and excluded from cleanup operations.
 
 ## [3.5.7] - 2024-10-25
