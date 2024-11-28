@@ -215,6 +215,17 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   }
 
   @Test
+  public void expiredMetadataCreateIcebergTableEvent() throws SQLException, IOException, URISyntaxException {
+    CreateTableSqsMessage createTableSqsMessage = new CreateTableSqsMessage(LOCATION_A, true, true);
+    amazonSQS.sendMessage(sendMessageRequest(createTableSqsMessage.getFormattedString()));
+
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getExpiredMetadataRowCount() == 0);
+
+    List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
+    assertThat(expiredMetadata.size()).isEqualTo(0);
+  }
+
+  @Test
   public void testEventAddedToHistoryTable() throws SQLException, IOException, URISyntaxException {
     CreateTableSqsMessage createTableSqsMessage = new CreateTableSqsMessage(LOCATION_A, true);
     amazonSQS.sendMessage(sendMessageRequest(createTableSqsMessage.getFormattedString()));

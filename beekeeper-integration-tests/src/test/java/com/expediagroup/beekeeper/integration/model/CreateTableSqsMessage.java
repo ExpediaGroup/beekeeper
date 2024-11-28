@@ -30,4 +30,17 @@ public class CreateTableSqsMessage extends SqsMessage {
     setTableLocation(tableLocation);
     setExpired(isExpired);
   }
+
+  public CreateTableSqsMessage(
+      String tableLocation,
+      boolean isIceberg,
+      boolean isExpired
+  ) throws IOException, URISyntaxException {
+    super(CREATE_TABLE);
+    setTableLocation(tableLocation);
+    setExpired(isExpired);
+    if (isIceberg) {
+      setIceberg();
+    }
+  }
 }

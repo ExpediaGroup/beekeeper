@@ -239,10 +239,10 @@ public class PagingMetadataCleanupServiceTest {
   }
 
   @Test
-  void metadataCleanerException() {
+  public void metadataCleanerException() {
     Mockito
         .doNothing()
-        .doThrow(new BeekeeperException("Error"))
+        .doThrow(new RuntimeException("Error"))
         .when(metadataCleaner)
         .dropTable(Mockito.any(HousekeepingMetadata.class), Mockito.any(HiveClient.class));
 
@@ -274,7 +274,7 @@ public class PagingMetadataCleanupServiceTest {
   }
 
   @Test
-  void invalidPaths() {
+  public void invalidPaths() {
     List<HousekeepingMetadata> tables = List
         .of(createHousekeepingMetadata("table1", "s3://invalid", null, SCHEDULED),
             createHousekeepingMetadata("table2", "s3://invalid/path", "partition", SCHEDULED));

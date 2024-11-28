@@ -33,6 +33,7 @@ import com.expediagroup.beekeeper.cleanup.metadata.CleanerClient;
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
 import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
+import com.expediagroup.beekeeper.core.error.BeekeeperIcebergException;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
@@ -83,8 +84,18 @@ public class ExpiredMetadataHandler implements MetadataHandler {
         updateAttemptsAndStatus(housekeepingMetadata, DELETED);
         saveHistory(housekeepingMetadata, DELETED, dryRunEnabled);
       }
+    } catch (BeekeeperIcebergException e) {
+      updateAttemptsAndStatus(housekeepingMetadata, SKIPPED);
+      String logMessage = String.format("Table \"%s.%s\" is skipped because it is iceberg or could not be identified.",
+          housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
+      log.info(logMessage);
+      log.debug(logMessage, e);
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingMetadata, FAILED);
+      String logMessage = String.format("Unexpected exception when deleting metadata for table \"%s.%s\".",
+          housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
+      log.info(logMessage);
+      log.debug(logMessage, e);
       saveHistory(housekeepingMetadata, FAILED_TO_DELETE, dryRunEnabled);
       log
           .warn("Unexpected exception when deleting metadata for table \"{}.{}\"",

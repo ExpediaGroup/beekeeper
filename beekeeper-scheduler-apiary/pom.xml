@@ -5,10 +5,11 @@
   <parent>
     <artifactId>beekeeper-parent</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>3.5.8-SNAPSHOT</version>
+    <version>3.5.9-SNAPSHOT</version>
   </parent>
 
   <artifactId>beekeeper-scheduler-apiary</artifactId>
+
 
   <dependencies>
     <dependency>
@@ -56,8 +57,8 @@
           <artifactId>geronimo-jaspic_1.0_spec</artifactId>
         </exclusion>
         <exclusion>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-util</artifactId>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-util</artifactId>
         </exclusion>
         <exclusion>
           <groupId>org.eclipse.jetty.aggregate</groupId>

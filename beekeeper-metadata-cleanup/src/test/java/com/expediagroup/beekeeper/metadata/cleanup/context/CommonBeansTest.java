@@ -49,6 +49,7 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
+import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.repository.BeekeeperHistoryRepository;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
@@ -78,6 +79,7 @@ public class CommonBeansTest {
   private @Mock PathCleaner pathCleaner;
   private @Mock MeterRegistry meterRegistry;
   private @Mock HiveClientFactory hiveClientFactory;
+  private @Mock IcebergValidator icebergValidator;
   private @Mock BeekeeperHistoryService beekeeperHistoryService;
   private @Mock BeekeeperHistoryRepository beekeeperHistoryRepository;
 
@@ -126,7 +128,7 @@ public class CommonBeansTest {
   @Test
   public void verifyHiveMetadataCleaner() {
     DeletedMetadataReporter reporter = commonBeans.deletedMetadataReporter(meterRegistry, false);
-    MetadataCleaner metadataCleaner = commonBeans.metadataCleaner(reporter);
+    MetadataCleaner metadataCleaner = commonBeans.metadataCleaner(reporter, icebergValidator);
     assertThat(metadataCleaner).isInstanceOf(HiveMetadataCleaner.class);
   }
 

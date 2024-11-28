@@ -58,4 +58,8 @@ public class MessageEventHandler {
   private List<HousekeepingEntity> generateHousekeepingEntities(ListenerEvent listenerEvent) {
     return generator.generate(listenerEvent, CLIENT_ID);
   }
+
+  public List<ListenerEventFilter> getFilters() {
+    return filters;
+  }
 }

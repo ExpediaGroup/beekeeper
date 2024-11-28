@@ -48,6 +48,7 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
+import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.repository.BeekeeperHistoryRepository;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
@@ -82,8 +83,7 @@ public class CommonBeans {
 
   @Bean
   Supplier<CloseableMetaStoreClient> metaStoreClientSupplier(
-      CloseableMetaStoreClientFactory metaStoreClientFactory,
-      HiveConf hiveConf) {
+      CloseableMetaStoreClientFactory metaStoreClientFactory, HiveConf hiveConf) {
     String name = "beekeeper-metadata-cleanup";
     return new HiveMetaStoreClientSupplier(metaStoreClientFactory, hiveConf, name);
   }
@@ -96,6 +96,11 @@ public class CommonBeans {
   }
 
   @Bean
+  public IcebergValidator icebergValidator(CleanerClientFactory clientFactory) {
+    return new IcebergValidator(clientFactory);
+  }
+
+  @Bean
   public DeletedMetadataReporter deletedMetadataReporter(
       MeterRegistry meterRegistry,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
@@ -104,8 +109,8 @@ public class CommonBeans {
 
   @Bean(name = "hiveTableCleaner")
   MetadataCleaner metadataCleaner(
-      DeletedMetadataReporter deletedMetadataReporter) {
-    return new HiveMetadataCleaner(deletedMetadataReporter);
+      DeletedMetadataReporter deletedMetadataReporter, IcebergValidator icebergValidator) {
+    return new HiveMetadataCleaner(deletedMetadataReporter, icebergValidator);
   }
 
   @Bean

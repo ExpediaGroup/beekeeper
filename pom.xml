@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>beekeeper-parent</artifactId>
-  <version>3.5.8-SNAPSHOT</version>
+  <version>3.5.9-SNAPSHOT</version>
   <description>Beekeeper is a service which manages the cleanup of tables and unreferenced S3 paths.</description>
   <inceptionYear>2019</inceptionYear>
   <packaging>pom</packaging>
@@ -50,7 +50,7 @@
     <snakeyaml.version>1.27</snakeyaml.version>
     <springframework.boot.version>2.7.9</springframework.boot.version>
     <springframework.version>5.3.25</springframework.version>
-    <testcontainers.version>1.17.1</testcontainers.version>
+    <testcontainers.version>1.17.6</testcontainers.version>
     <docker.from.tag>11-slim</docker.from.tag>
     <jackson.version>2.17.2</jackson.version>
   </properties>

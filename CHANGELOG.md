@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.0] - 2024-11-28
+## Added
+- Added a db migration file and implementation of a new `beekeeper-history` table to track beekeeper activity. 
+
+## [3.6.0] - 2024-11-28
+### Added
+- Added filter for Iceberg tables in `beekeeper-scheduler-apiary` to prevent scheduling paths and metadata for deletion. 
+- Added `IcebergValidator` to ensure Iceberg tables are identified and excluded from cleanup operations.
+
 ## [3.5.7] - 2024-10-25
 ### Changed
 - Added error handling for bad requests with incorrect sort parameters.

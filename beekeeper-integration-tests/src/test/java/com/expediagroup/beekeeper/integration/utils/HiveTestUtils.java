@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.TableType;
@@ -57,7 +58,7 @@ public class HiveTestUtils {
   }
 
   public Table createTable(String path, String tableName, boolean partitioned, boolean withBeekeeperProperty)
-    throws TException {
+      throws TException {
     Table hiveTable = new Table();
     hiveTable.setDbName(DATABASE_NAME_VALUE);
     hiveTable.setTableName(tableName);
@@ -88,7 +89,7 @@ public class HiveTestUtils {
    * @param hiveTable Table to add partitions to
    * @param partitionValues The list of partition values, e.g. ["2020-01-01", "0", "A"]
    * @throws Exception May be thrown if there is a problem when trying to write the data to the file, or when the client
-   *           adds the partition to the table.
+   *                   adds the partition to the table.
    */
   public void addPartitionsToTable(String path, Table hiveTable, List<String> partitionValues) throws Exception {
     String eventDate = "/event_date=" + partitionValues.get(0); // 2020-01-01
@@ -110,5 +111,36 @@ public class HiveTestUtils {
     partition.setSd(new StorageDescriptor(hiveTable.getSd()));
     partition.getSd().setLocation(location.toString());
     return partition;
+  }
+
+  public Table createTableWithProperties(String path, String tableName, boolean partitioned,
+      Map<String, String> tableProperties, boolean withBeekeeperProperty)
+      throws TException {
+    Table hiveTable = new Table();
+    hiveTable.setDbName(DATABASE_NAME_VALUE);
+    hiveTable.setTableName(tableName);
+    hiveTable.setTableType(TableType.EXTERNAL_TABLE.name());
+    hiveTable.putToParameters("EXTERNAL", "TRUE");
+
+    if (tableProperties != null) {
+      hiveTable.getParameters().putAll(tableProperties);
+    }
+    if (withBeekeeperProperty) {
+      hiveTable.putToParameters(LifecycleEventType.EXPIRED.getTableParameterName(), "true");
+    }
+    if (partitioned) {
+      hiveTable.setPartitionKeys(PARTITION_COLUMNS);
+    }
+    StorageDescriptor sd = new StorageDescriptor();
+    sd.setCols(DATA_COLUMNS);
+    sd.setLocation(path);
+    sd.setParameters(new HashMap<>());
+    sd.setOutputFormat(TextOutputFormat.class.getName());
+    sd.setSerdeInfo(new SerDeInfo());
+    sd.getSerdeInfo().setSerializationLib("org.apache.hadoop.hive.serde2.OpenCSVSerde");
+    hiveTable.setSd(sd);
+    metastoreClient.createTable(hiveTable);
+
+    return hiveTable;
   }
 }
