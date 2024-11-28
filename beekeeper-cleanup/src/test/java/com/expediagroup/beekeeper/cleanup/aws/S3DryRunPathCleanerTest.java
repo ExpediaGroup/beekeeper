@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2023 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 import org.apache.hadoop.fs.s3a.BasicAWSCredentialsProvider;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
@@ -58,20 +58,18 @@ class S3DryRunPathCleanerTest {
   private HousekeepingPath housekeepingPath;
   private AmazonS3 amazonS3;
   private @Mock BytesDeletedReporter bytesDeletedReporter;
+
   private boolean dryRunEnabled = true;
 
   private S3PathCleaner s3DryRunPathCleaner;
 
-  @Rule
+  @Container
   public static LocalStackContainer awsContainer = new LocalStackContainer(
       DockerImageName.parse("localstack/localstack:0.14.2")).withServices(S3);
-  static {
-    awsContainer.start();
-  }
-  public static String S3_ENDPOINT = awsContainer.getEndpointConfiguration(S3).getServiceEndpoint();
 
   @BeforeEach
   void setUp() {
+    String S3_ENDPOINT = awsContainer.getEndpointConfiguration(S3).getServiceEndpoint();
     amazonS3 = AmazonS3ClientBuilder
         .standard()
         .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))

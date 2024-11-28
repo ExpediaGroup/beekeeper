@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.cleanup.hive;
 
+import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,7 +28,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataReporter;
+import com.expediagroup.beekeeper.cleanup.validation.IcebergValidator;
 import com.expediagroup.beekeeper.core.config.MetadataType;
+import com.expediagroup.beekeeper.core.error.BeekeeperIcebergException;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +39,7 @@ public class HiveMetadataCleanerTest {
   private @Mock HousekeepingMetadata housekeepingMetadata;
   private @Mock DeletedMetadataReporter deletedMetadataReporter;
   private @Mock HiveClient hiveClient;
+  private @Mock IcebergValidator icebergValidator;
 
   private HiveMetadataCleaner cleaner;
   private static final String DATABASE = "database";
@@ -43,14 +48,18 @@ public class HiveMetadataCleanerTest {
 
   @BeforeEach
   public void init() {
-    cleaner = new HiveMetadataCleaner(deletedMetadataReporter);
+    cleaner = new HiveMetadataCleaner(deletedMetadataReporter, icebergValidator);
   }
 
   @Test
   public void typicalDropTable() {
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+
     cleaner.dropTable(housekeepingMetadata, hiveClient);
+
+    verify(icebergValidator).throwExceptionIfIceberg(DATABASE, TABLE_NAME);
+    verify(hiveClient).dropTable(DATABASE, TABLE_NAME);
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
   }
 
@@ -62,6 +71,9 @@ public class HiveMetadataCleanerTest {
     when(hiveClient.dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME)).thenReturn(true);
 
     cleaner.dropPartition(housekeepingMetadata, hiveClient);
+
+    verify(icebergValidator).throwExceptionIfIceberg(DATABASE, TABLE_NAME);
+    verify(hiveClient).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
     verify(deletedMetadataReporter).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
 
@@ -80,5 +92,37 @@ public class HiveMetadataCleanerTest {
   public void tableExists() {
     cleaner.tableExists(hiveClient, DATABASE, TABLE_NAME);
     verify(hiveClient).tableExists(DATABASE, TABLE_NAME);
+  }
+
+  @Test
+  public void doesNotDropTableWhenIcebergTable() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    doThrow(new BeekeeperIcebergException("Iceberg table"))
+        .when(icebergValidator).throwExceptionIfIceberg(DATABASE, TABLE_NAME);
+
+    assertThrows(
+        BeekeeperIcebergException.class,
+        () -> cleaner.dropTable(housekeepingMetadata, hiveClient)
+    );
+
+    verify(hiveClient, never()).dropTable(DATABASE, TABLE_NAME);
+    verify(deletedMetadataReporter, never()).reportTaggable(housekeepingMetadata, MetadataType.HIVE_TABLE);
+  }
+
+  @Test
+  public void doesNotDropPartitionWhenIcebergTable() {
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    doThrow(new BeekeeperIcebergException("Iceberg table"))
+        .when(icebergValidator).throwExceptionIfIceberg(DATABASE, TABLE_NAME);
+
+    assertThrows(
+        BeekeeperIcebergException.class,
+        () -> cleaner.dropPartition(housekeepingMetadata, hiveClient)
+    );
+
+    verify(hiveClient, never()).dropPartition(DATABASE, TABLE_NAME, PARTITION_NAME);
+    verify(deletedMetadataReporter, never()).reportTaggable(housekeepingMetadata, MetadataType.HIVE_PARTITION);
   }
 }

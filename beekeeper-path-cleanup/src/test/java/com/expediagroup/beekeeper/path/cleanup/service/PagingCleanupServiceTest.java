@@ -211,7 +211,6 @@ public class PagingCleanupServiceTest {
         .housekeepingStatus(housekeepingStatus)
         .creationTimestamp(localNow)
         .modifiedTimestamp(localNow)
-        .modifiedTimestamp(localNow)
         .cleanupDelay(PeriodDuration.of(Duration.parse("P3D")))
         .cleanupAttempts(0)
         .lifecycleType(UNREFERENCED.toString())
