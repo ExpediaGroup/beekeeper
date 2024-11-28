@@ -82,13 +82,13 @@ public class ExpiredMetadataHandler implements MetadataHandler {
       updateAttemptsAndStatus(housekeepingMetadata, SKIPPED);
       String logMessage = String.format("Table \"%s.%s\" is skipped because it is iceberg or could not be identified.",
           housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
-      log.warn(logMessage);
+      log.info(logMessage);
       log.debug(logMessage, e);
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingMetadata, FAILED);
       String logMessage = String.format("Unexpected exception when deleting metadata for table \"%s.%s\".",
           housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
-      log.warn(logMessage);
+      log.info(logMessage);
       log.debug(logMessage, e);
     }
   }
