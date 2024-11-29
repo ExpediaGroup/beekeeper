@@ -40,7 +40,9 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.cleanup.service.CleanupService;
 import com.expediagroup.beekeeper.cleanup.service.DisableTablesService;
 import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupService;
+import com.expediagroup.beekeeper.core.repository.BeekeeperHistoryRepository;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.path.cleanup.handler.GenericPathHandler;
 import com.expediagroup.beekeeper.path.cleanup.service.PagingPathCleanupService;
 import com.expediagroup.beekeeper.path.cleanup.service.PathRepositoryCleanupService;
@@ -107,5 +109,10 @@ public class CommonBeans {
   @Bean
   DisableTablesService disableTablesService() {
     return () -> {};
+  }
+
+  @Bean
+  BeekeeperHistoryService beekeeperHistoryService(BeekeeperHistoryRepository beekeeperHistoryRepository) {
+    return new BeekeeperHistoryService(beekeeperHistoryRepository);
   }
 }

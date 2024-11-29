@@ -15,6 +15,10 @@
  */
 package com.expediagroup.beekeeper.path.cleanup.handler;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED_TO_DELETE;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SKIPPED;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,6 +31,7 @@ import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.core.validation.S3PathValidator;
 
 public abstract class GenericPathHandler {
@@ -35,10 +40,13 @@ public abstract class GenericPathHandler {
 
   private final HousekeepingPathRepository housekeepingPathRepository;
   private final PathCleaner pathCleaner;
+  private final BeekeeperHistoryService beekeeperHistoryService;
 
-  public GenericPathHandler(HousekeepingPathRepository housekeepingPathRepository, PathCleaner pathCleaner) {
+  public GenericPathHandler(HousekeepingPathRepository housekeepingPathRepository, PathCleaner pathCleaner,
+      BeekeeperHistoryService beekeeperHistoryService) {
     this.housekeepingPathRepository = housekeepingPathRepository;
     this.pathCleaner = pathCleaner;
+    this.beekeeperHistoryService = beekeeperHistoryService;
   }
 
   public abstract Slice<HousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable);
@@ -49,11 +57,11 @@ public abstract class GenericPathHandler {
    * @param pageable Pageable to iterate through for dryRun
    * @param page Page to get content from
    * @param dryRunEnabled Dry Run boolean flag
-   * @implNote This parent handler expects the child's cleanupPath call to update & remove the record from this call
-   *           such that subsequent DB queries will not return the record. Hence why we only call next during dryRuns
-   *           where no updates occur.
-   * @implNote Note that we only expect pageable.next to be called during a dry run.
    * @return Pageable to pass to query. In the case of dry runs, this is the next page.
+   * @implNote This parent handler expects the child's cleanupPath call to update & remove the record from this call
+   * such that subsequent DB queries will not return the record. Hence why we only call next during dryRuns
+   * where no updates occur.
+   * @implNote Note that we only expect pageable.next to be called during a dry run.
    */
   public Pageable processPage(Pageable pageable, Slice<HousekeepingPath> page, boolean dryRunEnabled) {
     List<HousekeepingPath> pageContent = page.getContent();
@@ -79,12 +87,14 @@ public abstract class GenericPathHandler {
     try {
       log.info("Cleaning up path \"{}\"", housekeepingPath.getPath());
       if (cleanUpPath(housekeepingPath)) {
-        updateAttemptsAndStatus(housekeepingPath, HousekeepingStatus.DELETED);
+        updateAttemptsAndStatus(housekeepingPath, DELETED);
+        saveHistory(housekeepingPath, DELETED);
       } else {
-        updateStatus(housekeepingPath, HousekeepingStatus.SKIPPED);
+        updateStatus(housekeepingPath, SKIPPED);
       }
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingPath, HousekeepingStatus.FAILED);
+      saveHistory(housekeepingPath, FAILED_TO_DELETE);
       log.warn("Unexpected exception deleting \"{}\"", housekeepingPath.getPath(), e);
     }
   }
@@ -98,5 +108,10 @@ public abstract class GenericPathHandler {
   private void updateStatus(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
     housekeepingPath.setHousekeepingStatus(status);
     housekeepingPathRepository.save(housekeepingPath);
+    saveHistory(housekeepingPath, status);
+  }
+
+  private void saveHistory(HousekeepingPath housekeepingPath, HousekeepingStatus status) {
+    beekeeperHistoryService.saveHistory(housekeepingPath, status);
   }
 }

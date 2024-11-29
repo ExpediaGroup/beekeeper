@@ -19,9 +19,13 @@ import static java.lang.String.format;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED_TO_SCHEDULE;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
 import java.time.LocalDateTime;
@@ -36,12 +40,16 @@ import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 
 @ExtendWith(MockitoExtension.class)
 public class UnreferencedHousekeepingPathSchedulerServiceTest {
 
   @Mock
   private HousekeepingPathRepository housekeepingPathRepository;
+
+  @Mock
+  private BeekeeperHistoryService beekeeperHistoryService;
 
   @InjectMocks
   private UnreferencedHousekeepingPathSchedulerService unreferencedHousekeepingPathSchedulerService;
@@ -54,7 +62,10 @@ public class UnreferencedHousekeepingPathSchedulerServiceTest {
         .cleanupDelay(PeriodDuration.parse("P3D"))
         .build();
     unreferencedHousekeepingPathSchedulerService.scheduleForHousekeeping(path);
+
     verify(housekeepingPathRepository).save(path);
+
+    verify(beekeeperHistoryService).saveHistory(path, SCHEDULED);
   }
 
   @Test
@@ -77,5 +88,6 @@ public class UnreferencedHousekeepingPathSchedulerServiceTest {
         .isThrownBy(() -> unreferencedHousekeepingPathSchedulerService.scheduleForHousekeeping(path))
         .withMessage(format("Unable to schedule %s", path));
     verify(housekeepingPathRepository).save(path);
+    verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_SCHEDULE));
   }
 }

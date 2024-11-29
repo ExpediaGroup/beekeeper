@@ -19,6 +19,7 @@ import static org.apache.commons.lang.math.NumberUtils.LONG_ZERO;
 
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED;
+import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED_TO_DELETE;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SKIPPED;
 
 import java.time.LocalDateTime;
@@ -36,6 +37,7 @@ import com.expediagroup.beekeeper.core.error.BeekeeperIcebergException;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.core.validation.S3PathValidator;
 
 public class ExpiredMetadataHandler implements MetadataHandler {
@@ -46,16 +48,19 @@ public class ExpiredMetadataHandler implements MetadataHandler {
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
   private final MetadataCleaner metadataCleaner;
   private final PathCleaner pathCleaner;
+  private final BeekeeperHistoryService historyService;
 
   public ExpiredMetadataHandler(
       CleanerClientFactory cleanerClientFactory,
       HousekeepingMetadataRepository housekeepingMetadataRepository,
       MetadataCleaner metadataCleaner,
-      PathCleaner pathCleaner) {
+      PathCleaner pathCleaner,
+      BeekeeperHistoryService historyService) {
     this.cleanerClientFactory = cleanerClientFactory;
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
     this.metadataCleaner = metadataCleaner;
     this.pathCleaner = pathCleaner;
+    this.historyService = historyService;
   }
 
   @Override
@@ -77,6 +82,7 @@ public class ExpiredMetadataHandler implements MetadataHandler {
       boolean deleted = cleanup(client, housekeepingMetadata, instant, dryRunEnabled);
       if (deleted && !dryRunEnabled) {
         updateAttemptsAndStatus(housekeepingMetadata, DELETED);
+        saveHistory(housekeepingMetadata, DELETED, dryRunEnabled);
       }
     } catch (BeekeeperIcebergException e) {
       updateAttemptsAndStatus(housekeepingMetadata, SKIPPED);
@@ -90,6 +96,10 @@ public class ExpiredMetadataHandler implements MetadataHandler {
           housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
       log.info(logMessage);
       log.debug(logMessage, e);
+      saveHistory(housekeepingMetadata, FAILED_TO_DELETE, dryRunEnabled);
+      log
+          .warn("Unexpected exception when deleting metadata for table \"{}.{}\"",
+              housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(), e);
     }
   }
 
@@ -115,6 +125,7 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     if (!S3PathValidator.validTablePath(housekeepingMetadata.getPath())) {
       log.warn("Will not clean up table path \"{}\" because it is not valid.", housekeepingMetadata.getPath());
       updateStatus(housekeepingMetadata, SKIPPED, dryRunEnabled);
+      saveHistory(housekeepingMetadata, SKIPPED, dryRunEnabled);
       return false;
     }
     String databaseName = housekeepingMetadata.getDatabaseName();
@@ -136,6 +147,7 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     if (!S3PathValidator.validPartitionPath(housekeepingMetadata.getPath())) {
       log.warn("Will not clean up partition path \"{}\" because it is not valid.", housekeepingMetadata.getPath());
       updateStatus(housekeepingMetadata, SKIPPED, dryRunEnabled);
+      saveHistory(housekeepingMetadata, SKIPPED, dryRunEnabled);
       return false;
     }
     String databaseName = housekeepingMetadata.getDatabaseName();
@@ -182,5 +194,13 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     }
     return housekeepingMetadataRepository
         .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(databaseName, tableName);
+  }
+
+  private void saveHistory(HousekeepingMetadata metadata, HousekeepingStatus housekeepingStatus,
+      boolean dryRunEnabled) {
+    if (dryRunEnabled) {
+      return;
+    }
+    historyService.saveHistory(metadata, housekeepingStatus);
   }
 }

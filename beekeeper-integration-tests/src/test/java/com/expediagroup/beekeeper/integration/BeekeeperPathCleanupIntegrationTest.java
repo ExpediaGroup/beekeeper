@@ -21,6 +21,7 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 
 import static com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter.METRIC_NAME;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
@@ -52,6 +53,7 @@ import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 
+import com.expediagroup.beekeeper.core.model.history.BeekeeperHistory;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup;
 
@@ -242,6 +244,30 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, parentSentinel)).isTrue();
     assertThat(amazonS3.doesObjectExist(BUCKET, tableSentinel)).isTrue();
+  }
+
+  @Test
+  public void testEventAddedToHistoryTable() throws SQLException {
+    amazonS3.putObject(BUCKET, OBJECT_KEY1, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER, CONTENT);
+    amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
+
+    String path = "s3://" + BUCKET + "/" + OBJECT_KEY1;
+    insertUnreferencedPath(path);
+
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getBeekeeperHistoryRowCount(UNREFERENCED) == 1);
+
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
+    // deleting a file shouldn't delete a folder sentinel
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_OTHER)).isTrue();
+
+    List<BeekeeperHistory> beekeeperHistory = getBeekeeperHistory(UNREFERENCED);
+    BeekeeperHistory history = beekeeperHistory.get(0);
+    assertThat(history.getDatabaseName()).isEqualTo(DATABASE_NAME_VALUE);
+    assertThat(history.getTableName()).isEqualTo(TABLE_NAME_VALUE);
+    assertThat(history.getLifecycleType()).isEqualTo(UNREFERENCED.toString());
+    assertThat(history.getHousekeepingStatus()).isEqualTo(DELETED.name());
   }
 
   @Test

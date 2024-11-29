@@ -29,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.google.common.base.Supplier;
 
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 import com.expediagroup.beekeeper.scheduler.service.UnreferencedHousekeepingPathSchedulerService;
 import com.expediagroup.beekeeper.vacuum.repository.BeekeeperRepository;
@@ -48,6 +49,7 @@ class CommonBeansTest {
   private final CommonBeans commonBeans = new CommonBeans();
   private final String metastoreUri = "thrift://localhost:1234";
   private @Mock BeekeeperRepository repository;
+  private @Mock BeekeeperHistoryService historyService;
 
   @AfterAll
   static void teardown() {
@@ -90,7 +92,8 @@ class CommonBeansTest {
 
   @Test
   void schedulerService() {
-    SchedulerService schedulerService = new UnreferencedHousekeepingPathSchedulerService(repository);
-    assertThat(schedulerService).isEqualToComparingFieldByField(commonBeans.schedulerService(repository));
+    SchedulerService schedulerService = new UnreferencedHousekeepingPathSchedulerService(repository, historyService);
+    assertThat(schedulerService).isEqualToComparingFieldByField(
+        commonBeans.schedulerService(repository, historyService));
   }
 }

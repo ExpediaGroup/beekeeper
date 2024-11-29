@@ -26,8 +26,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.google.common.base.Supplier;
 
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 import com.expediagroup.beekeeper.scheduler.service.UnreferencedHousekeepingPathSchedulerService;
+import com.expediagroup.beekeeper.vacuum.repository.BeekeeperEventsHistoryRepository;
 import com.expediagroup.beekeeper.vacuum.repository.BeekeeperRepository;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
@@ -75,7 +77,13 @@ public class CommonBeans {
   }
 
   @Bean
-  public SchedulerService schedulerService(BeekeeperRepository beekeeperRepository) {
-    return new UnreferencedHousekeepingPathSchedulerService(beekeeperRepository);
+  public BeekeeperHistoryService beekeeperHistoryService(BeekeeperEventsHistoryRepository repository){
+    return new BeekeeperHistoryService(repository);
   }
+
+  @Bean
+  public SchedulerService schedulerService(BeekeeperRepository beekeeperRepository, BeekeeperHistoryService beekeeperHistoryService) {
+    return new UnreferencedHousekeepingPathSchedulerService(beekeeperRepository, beekeeperHistoryService);
+  }
+
 }

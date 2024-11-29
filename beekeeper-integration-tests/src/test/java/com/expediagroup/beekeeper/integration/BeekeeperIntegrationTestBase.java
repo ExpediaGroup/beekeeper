@@ -30,6 +30,8 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.CREATIO
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.CREATION_TIMESTAMP_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.EVENT_DETAILS_FIELD;
+import static com.expediagroup.beekeeper.integration.CommonTestVariables.EVENT_TIMESTAMP_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.HOUSEKEEPING_STATUS_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.ID_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.LIFECYCLE_TYPE_FIELD;
@@ -39,6 +41,7 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.PATH_FI
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_CLEANUP_DELAY_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_FIELD;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
+import static com.expediagroup.beekeeper.integration.utils.ResultSetToBeekeeperHistoryMapper.mapToBeekeeperHistory;
 import static com.expediagroup.beekeeper.integration.utils.ResultSetToHousekeepingEntityMapper.mapToHousekeepingMetadata;
 import static com.expediagroup.beekeeper.integration.utils.ResultSetToHousekeepingEntityMapper.mapToHousekeepingPath;
 
@@ -63,6 +66,7 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
+import com.expediagroup.beekeeper.core.model.history.BeekeeperHistory;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.MySqlTestUtils;
 
@@ -86,6 +90,7 @@ public abstract class BeekeeperIntegrationTestBase {
   private static final String BEEKEEPER_FLYWAY_TABLE = "flyway_schema_history";
   private static final String BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME = "housekeeping_path";
   private static final String BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME = "housekeeping_metadata";
+  private static final String BEEKEEPER_HISTORY_TABLE_NAME = "beekeeper_history";
 
   // FIELDS TO INSERT INTO BEEKEEPER TABLES
   private Long id = 1L;
@@ -97,6 +102,8 @@ public abstract class BeekeeperIntegrationTestBase {
       .join(",", ID_FIELD, PATH_FIELD, DATABASE_NAME_FIELD, TABLE_NAME_FIELD, PARTITION_NAME_FIELD,
           HOUSEKEEPING_STATUS_FIELD, CREATION_TIMESTAMP_FIELD, MODIFIED_TIMESTAMP_FIELD, CLEANUP_TIMESTAMP_FIELD,
           CLEANUP_DELAY_FIELD, CLEANUP_ATTEMPTS_FIELD, CLIENT_ID_FIELD, LIFECYCLE_TYPE_FIELD);
+  private static final String BEEKEEPER_HISTORY_FIELDS = String.join(",", ID_FIELD, EVENT_TIMESTAMP_FIELD,
+      DATABASE_NAME_FIELD, TABLE_NAME_FIELD, LIFECYCLE_TYPE_FIELD, HOUSEKEEPING_STATUS_FIELD, EVENT_DETAILS_FIELD);
   private static final String LIFE_CYCLE_FILTER = "WHERE " + LIFECYCLE_TYPE_FIELD + " = '%s' ORDER BY " + PATH_FIELD;
   private static final String LIFE_CYCLE_AND_UPDATE_FILTER = "WHERE "
       + LIFECYCLE_TYPE_FIELD
@@ -148,6 +155,7 @@ public abstract class BeekeeperIntegrationTestBase {
     mySQLTestUtils.dropTable(BEEKEEPER_DB_NAME, BEEKEEPER_FLYWAY_TABLE);
     mySQLTestUtils.dropTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_PATH_TABLE_NAME);
     mySQLTestUtils.dropTable(BEEKEEPER_DB_NAME, BEEKEEPER_HOUSEKEEPING_METADATA_TABLE_NAME);
+    mySQLTestUtils.dropTable(BEEKEEPER_DB_NAME, BEEKEEPER_HISTORY_TABLE_NAME);
   }
 
   protected void insertUnreferencedPath(String path) throws SQLException {
@@ -176,7 +184,7 @@ public abstract class BeekeeperIntegrationTestBase {
   }
 
   protected void insertExpiredMetadata(String tableName, String path, String partitionName, String cleanupDelay)
-    throws SQLException {
+      throws SQLException {
     HousekeepingMetadata metadata = createHousekeepingMetadata(tableName, path, partitionName, EXPIRED, cleanupDelay);
     insertExpiredMetadata(metadata);
   }
@@ -214,6 +222,13 @@ public abstract class BeekeeperIntegrationTestBase {
             format(LIFE_CYCLE_AND_UPDATE_FILTER, EXPIRED));
   }
 
+  protected int getBeekeeperHistoryRowCount(LifecycleEventType lifecycleEventType) throws SQLException {
+    String filter = "WHERE " + LIFECYCLE_TYPE_FIELD + " = '%s'";
+
+    return mySQLTestUtils.getTableRowCount(BEEKEEPER_DB_NAME, BEEKEEPER_HISTORY_TABLE_NAME,
+        format(filter, lifecycleEventType));
+  }
+
   protected List<HousekeepingPath> getUnreferencedPaths() throws SQLException {
     List<HousekeepingPath> paths = new ArrayList<>();
     ResultSet resultSet = mySQLTestUtils
@@ -238,6 +253,19 @@ public abstract class BeekeeperIntegrationTestBase {
     }
 
     return metadata;
+  }
+
+  protected List<BeekeeperHistory> getBeekeeperHistory(LifecycleEventType lifecycleEventType) throws SQLException {
+    String filter = "WHERE " + LIFECYCLE_TYPE_FIELD + " = '%s'";
+    List<BeekeeperHistory> history = new ArrayList<>();
+    ResultSet resultSet = mySQLTestUtils.getTableRows(BEEKEEPER_DB_NAME, BEEKEEPER_HISTORY_TABLE_NAME,
+        format(filter, lifecycleEventType));
+
+    while (resultSet.next()) {
+      history.add(mapToBeekeeperHistory(resultSet));
+    }
+
+    return history;
   }
 
   private HousekeepingPath createHousekeepingPath(String path, LifecycleEventType lifecycleEventType) {
@@ -279,5 +307,4 @@ public abstract class BeekeeperIntegrationTestBase {
         .clientId(CLIENT_ID_FIELD)
         .build();
   }
-
 }

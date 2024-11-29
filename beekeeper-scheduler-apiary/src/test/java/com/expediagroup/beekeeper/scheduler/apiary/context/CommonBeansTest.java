@@ -33,6 +33,8 @@ import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
 import com.expedia.apiary.extensions.receiver.sqs.messaging.SqsMessageReader;
 
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.repository.BeekeeperHistoryRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.IcebergTableListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.filter.ListenerEventFilter;
 import com.expediagroup.beekeeper.scheduler.apiary.generator.ExpiredHousekeepingMetadataGenerator;
@@ -49,14 +51,12 @@ public class CommonBeansTest {
   private static final String AWS_S3_ENDPOINT_PROPERTY = "aws.s3.endpoint";
   private static final String AWS_REGION_PROPERTY = "aws.region";
   private static final String REGION = "us-west-2";
-  private static final String AWS_ENDPOINT = String.join(".", "s3", REGION, "amazonaws.com");
   private static final String ENDPOINT = "endpoint";
-  private static final String BUCKET = "bucket";
-  private static final String KEY = "key";
   private final CommonBeans commonBeans = new CommonBeans();
-  @Mock private MessageReader messageReader;
-  @Mock private UnreferencedHousekeepingPathGenerator unreferencedHousekeepingPathGenerator;
-  @Mock private ExpiredHousekeepingMetadataGenerator expiredHousekeepingMetadataGenerator;
+  private @Mock MessageReader messageReader;
+  private @Mock UnreferencedHousekeepingPathGenerator unreferencedHousekeepingPathGenerator;
+  private @Mock ExpiredHousekeepingMetadataGenerator expiredHousekeepingMetadataGenerator;
+  private @Mock BeekeeperHistoryRepository beekeeperHistoryRepository;
 
   @AfterAll
   static void tearDown() {
@@ -123,15 +123,23 @@ public class CommonBeansTest {
 
   @Test
   public void validateUnreferencedHousekeepingPathMessageEventHandlerIncludesIcebergFilter() {
-    MessageEventHandler handler = commonBeans.unreferencedHousekeepingPathMessageEventHandler(unreferencedHousekeepingPathGenerator);
+    MessageEventHandler handler = commonBeans.unreferencedHousekeepingPathMessageEventHandler(
+        unreferencedHousekeepingPathGenerator);
     List<ListenerEventFilter> filters = handler.getFilters();
     assertThat(filters).hasAtLeastOneElementOfType(IcebergTableListenerEventFilter.class);
   }
 
   @Test
   public void validateExpiredHousekeepingMetadataMessageEventHandlerIncludesIcebergFilter() {
-    MessageEventHandler handler = commonBeans.expiredHousekeepingMetadataMessageEventHandler(expiredHousekeepingMetadataGenerator);
+    MessageEventHandler handler = commonBeans.expiredHousekeepingMetadataMessageEventHandler(
+        expiredHousekeepingMetadataGenerator);
     List<ListenerEventFilter> filters = handler.getFilters();
     assertThat(filters).hasAtLeastOneElementOfType(IcebergTableListenerEventFilter.class);
+  }
+
+  @Test
+  public void verifyBeekeeperHistoryService() {
+    BeekeeperHistoryService beekeeperHistoryService = commonBeans.beekeeperHistoryService(beekeeperHistoryRepository);
+    assertThat(beekeeperHistoryService).isInstanceOf(BeekeeperHistoryService.class);
   }
 }

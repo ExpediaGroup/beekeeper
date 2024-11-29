@@ -27,6 +27,7 @@ import static com.expediagroup.beekeeper.cleanup.monitoring.DeletedMetadataRepor
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DELETED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.DISABLED;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SKIPPED;
+import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.AWS_REGION;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.DATABASE_NAME_VALUE;
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.LONG_CLEANUP_DELAY_VALUE;
@@ -69,6 +70,8 @@ import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.google.common.collect.ImmutableMap;
 
 import com.expediagroup.beekeeper.cleanup.monitoring.BytesDeletedReporter;
+import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.model.history.BeekeeperHistory;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.integration.utils.HiveTestUtils;
 import com.expediagroup.beekeeper.metadata.cleanup.BeekeeperMetadataCleanup;
@@ -387,6 +390,27 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_TABLE_OBJECT_KEY)).isFalse();
     assertThat(amazonS3.doesObjectExist(BUCKET, PARTITIONED_OBJECT_KEY)).isTrue();
+  }
+
+  @Test
+  public void testEventAddedToHistoryTable() throws TException, SQLException {
+    hiveTestUtils.createTable(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
+    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, TABLE_DATA);
+
+    insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getBeekeeperHistoryRowCount(LifecycleEventType.EXPIRED) == 1);
+
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isFalse();
+    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY)).isFalse();
+
+    List<BeekeeperHistory> beekeeperHistory = getBeekeeperHistory(EXPIRED);
+    BeekeeperHistory history = beekeeperHistory.get(0);
+    assertThat(history.getDatabaseName()).isEqualTo(DATABASE_NAME_VALUE);
+    assertThat(history.getTableName()).isEqualTo(TABLE_NAME_VALUE);
+    assertThat(history.getLifecycleType()).isEqualTo(EXPIRED.toString());
+    assertThat(history.getHousekeepingStatus()).isEqualTo(DELETED.name());
   }
 
   @Test

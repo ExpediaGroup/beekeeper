@@ -59,6 +59,7 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
+import com.expediagroup.beekeeper.core.model.history.BeekeeperHistory;
 import com.expediagroup.beekeeper.integration.model.AddPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.AlterPartitionSqsMessage;
 import com.expediagroup.beekeeper.integration.model.AlterTableSqsMessage;
@@ -222,6 +223,21 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
 
     List<HousekeepingMetadata> expiredMetadata = getExpiredMetadata();
     assertThat(expiredMetadata.size()).isEqualTo(0);
+  }
+
+  @Test
+  public void testEventAddedToHistoryTable() throws SQLException, IOException, URISyntaxException {
+    CreateTableSqsMessage createTableSqsMessage = new CreateTableSqsMessage(LOCATION_A, true);
+    amazonSQS.sendMessage(sendMessageRequest(createTableSqsMessage.getFormattedString()));
+
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getBeekeeperHistoryRowCount(EXPIRED) == 1);
+
+    List<BeekeeperHistory> beekeeperHistory = getBeekeeperHistory(EXPIRED);
+    BeekeeperHistory history = beekeeperHistory.get(0);
+    assertThat(history.getDatabaseName()).isEqualTo(DATABASE_NAME_VALUE);
+    assertThat(history.getTableName()).isEqualTo(TABLE_NAME_VALUE);
+    assertThat(history.getLifecycleType()).isEqualTo(EXPIRED.toString());
+    assertThat(history.getHousekeepingStatus()).isEqualTo(SCHEDULED.name());
   }
 
   @Test

@@ -41,6 +41,8 @@ public final class CommonTestVariables {
   public static final String CLEANUP_ATTEMPTS_FIELD = "cleanup_attempts";
   public static final String CLIENT_ID_FIELD = "client_id";
   public static final String LIFECYCLE_TYPE_FIELD = "lifecycle_type";
+  public static final String EVENT_DETAILS_FIELD = "event_details";
+  public static final String EVENT_TIMESTAMP_FIELD = "event_timestamp";
 
   // HOUSEKEEPINGENTITY DEFAULT VALUES
   public static final String DATABASE_NAME_VALUE = "some_database";

@@ -33,6 +33,7 @@ import org.springframework.data.domain.Pageable;
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
+import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 
 @ExtendWith(MockitoExtension.class)
 public class UnreferencedPathHandlerTest {
@@ -41,13 +42,16 @@ public class UnreferencedPathHandlerTest {
   private HousekeepingPathRepository housekeepingPathRepository;
   @Mock
   private S3PathCleaner s3PathCleaner;
+  @Mock
+  private BeekeeperHistoryService beekeeperHistoryService;
+
   private LifecycleEventType lifecycleEventType = UNREFERENCED;
 
   private UnreferencedPathHandler handler;
 
   @BeforeEach
   public void initTest() {
-    handler = new UnreferencedPathHandler(housekeepingPathRepository, s3PathCleaner);
+    handler = new UnreferencedPathHandler(housekeepingPathRepository, s3PathCleaner, beekeeperHistoryService);
   }
 
   @Test
