@@ -4,11 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.6.1] - 2024-11-29
+## [3.6.1] - 2024-12-03
 ## Added
-- Updated maven plugin to be able to extend functionalities in `beekeeper-integration-test`.
-## Update
-- Update scope attribute to be able to reuse in some test class.
+- Added `maven-jar-plugin` in `beekeeper-integration-test`.
+## Changed
+- Changed scope of attributes to `protected` in `beekeeper-integration-test`
 
 ## [3.6.0] - 2024-11-29
 ## Added
