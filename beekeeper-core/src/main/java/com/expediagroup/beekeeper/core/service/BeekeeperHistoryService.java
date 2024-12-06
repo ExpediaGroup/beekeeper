@@ -22,7 +22,6 @@ public class BeekeeperHistoryService {
 
   public void saveHistory(HousekeepingEntity housekeepingEntity, HousekeepingStatus status) {
     BeekeeperHistory event = BeekeeperHistory.builder()
-        .id(housekeepingEntity.getId())
         .eventTimestamp(LocalDateTime.now())
         .databaseName(housekeepingEntity.getDatabaseName())
         .tableName(housekeepingEntity.getTableName())
