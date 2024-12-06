@@ -17,8 +17,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
@@ -47,7 +45,7 @@ public class BeekeeperHistoryServiceTest {
   }
 
   @Test
-  void expiredHistory() throws JsonProcessingException {
+  void expiredHistory() {
     HousekeepingMetadata metadata = createHousekeepingMetadata();
     String details = createEventDetails(metadata);
     BeekeeperHistory history = createHistoryEvent(metadata, details, "DELETED");
@@ -57,7 +55,7 @@ public class BeekeeperHistoryServiceTest {
   }
 
   @Test
-  void unreferencedHistory() throws JsonProcessingException {
+  void unreferencedHistory() {
     HousekeepingPath path = createHousekeepingPath();
     String details = createEventDetails(path);
     BeekeeperHistory history = createHistoryEvent(path, details, "SCHEDULED");
