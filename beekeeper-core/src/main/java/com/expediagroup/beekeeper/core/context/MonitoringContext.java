@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,31 +20,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import io.micrometer.core.aop.TimedAspect;
-import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.config.NamingConvention;
-import io.micrometer.core.instrument.util.HierarchicalNameMapper;
-import io.micrometer.graphite.GraphiteConfig;
-import io.micrometer.graphite.GraphiteMeterRegistry;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 
-import com.expediagroup.beekeeper.core.config.GraphiteConfigFactory;
 import com.expediagroup.beekeeper.core.config.PrometheusConfigFactory;
 
 @Configuration
 public class MonitoringContext {
-
-  @Bean
-  GraphiteMeterRegistry meterRegistry(GraphiteConfigFactory graphiteConfigFactory) {
-    GraphiteConfig graphiteConfig = graphiteConfigFactory.newInstance();
-    GraphiteMeterRegistry graphiteMeterRegistry = new GraphiteMeterRegistry(graphiteConfig, Clock.SYSTEM,
-        (id, convention) -> graphiteConfig.prefix()
-            + "."
-            + HierarchicalNameMapper.DEFAULT.toHierarchicalName(id, convention));
-    graphiteMeterRegistry.config()
-        .namingConvention(NamingConvention.dot);
-    return graphiteMeterRegistry;
-  }
 
   @Bean
   MeterRegistryCustomizer<MeterRegistry> metricsCommonTags(PrometheusConfigFactory prometheusConfigFactory) {

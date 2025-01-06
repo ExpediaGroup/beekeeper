@@ -29,7 +29,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.graphite.GraphiteMeterRegistry;
 
 import com.amazonaws.services.s3.AmazonS3;
 
@@ -101,7 +100,6 @@ class CommonBeansTest {
   @Test
   void verifyS3pathCleaner() {
     S3Client s3Client = commonBeans.s3Client(commonBeans.amazonS3(), dryRunEnabled);
-    MeterRegistry meterRegistry = mock(GraphiteMeterRegistry.class);
 
     PathCleaner pathCleaner = commonBeans.pathCleaner(s3Client, bytesDeletedReporter);
     assertThat(pathCleaner).isInstanceOf(S3PathCleaner.class);
