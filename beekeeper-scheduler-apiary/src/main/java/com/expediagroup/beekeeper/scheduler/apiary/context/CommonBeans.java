@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@ package com.expediagroup.beekeeper.scheduler.apiary.context;
 
 import java.util.EnumMap;
 import java.util.List;
+import java.util.function.Supplier;
 
+import org.apache.hadoop.hive.conf.HiveConf;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -53,7 +55,13 @@ import com.expediagroup.beekeeper.scheduler.apiary.handler.MessageEventHandler;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.MessageReaderAdapter;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
+import com.expediagroup.beekeeper.scheduler.hive.HiveClientFactory;
+import com.expediagroup.beekeeper.scheduler.hive.PartitionIteratorFactory;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
+
+import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
+import com.hotels.hcommon.hive.metastore.client.closeable.CloseableMetaStoreClientFactory;
+import com.hotels.hcommon.hive.metastore.client.supplier.HiveMetaStoreClientSupplier;
 
 @Configuration
 @ComponentScan(basePackages = { "com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.scheduler" })
@@ -148,5 +156,35 @@ public class CommonBeans {
   @Bean
   BeekeeperHistoryService beekeeperHistoryService(BeekeeperHistoryRepository beekeeperHistoryRepository) {
     return new BeekeeperHistoryService(beekeeperHistoryRepository);
+  }
+
+  @Bean
+  public HiveConf hiveConf(@Value("${properties.metastore-uri}") String metastoreUri) {
+    HiveConf conf = new HiveConf();
+    conf.setVar(HiveConf.ConfVars.METASTOREURIS, metastoreUri);
+    return conf;
+  }
+
+  @Bean
+  public CloseableMetaStoreClientFactory metaStoreClientFactory() {
+    return new CloseableMetaStoreClientFactory();
+  }
+
+  @Bean
+  Supplier<CloseableMetaStoreClient> metaStoreClientSupplier(CloseableMetaStoreClientFactory metaStoreClientFactory,
+      HiveConf hiveConf) {
+    String name = "beekeeper-scheduler";
+    return new HiveMetaStoreClientSupplier(metaStoreClientFactory, hiveConf, name);
+  }
+
+  @Bean
+  public PartitionIteratorFactory partitionIteratorFactory() {
+    return new PartitionIteratorFactory();
+  }
+
+  @Bean(name = "hiveClientFactory")
+  public HiveClientFactory clientFactory(Supplier<CloseableMetaStoreClient> metaStoreClientSupplier,
+      PartitionIteratorFactory partitionIteratorFactory) {
+    return new HiveClientFactory(metaStoreClientSupplier, partitionIteratorFactory);
   }
 }

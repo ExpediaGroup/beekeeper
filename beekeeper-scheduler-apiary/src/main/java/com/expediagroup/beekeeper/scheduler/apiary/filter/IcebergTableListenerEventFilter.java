@@ -15,15 +15,16 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
+import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
+
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.predicate.IsIcebergTablePredicate;
-
-import java.util.Map;
 
 @Component
 public class IcebergTableListenerEventFilter implements ListenerEventFilter {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,15 @@ import static org.mockito.Mockito.mock;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.function.Supplier;
 
+import org.apache.hadoop.hive.conf.HiveConf;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expedia.apiary.extensions.receiver.common.messaging.MessageReader;
@@ -44,6 +47,10 @@ import com.expediagroup.beekeeper.scheduler.apiary.handler.MessageEventHandler;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
+
+import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
+import com.hotels.hcommon.hive.metastore.client.closeable.CloseableMetaStoreClientFactory;
+import com.hotels.hcommon.hive.metastore.client.supplier.HiveMetaStoreClientSupplier;
 
 @ExtendWith(MockitoExtension.class)
 public class CommonBeansTest {
@@ -141,5 +148,15 @@ public class CommonBeansTest {
   public void verifyBeekeeperHistoryService() {
     BeekeeperHistoryService beekeeperHistoryService = commonBeans.beekeeperHistoryService(beekeeperHistoryRepository);
     assertThat(beekeeperHistoryService).isInstanceOf(BeekeeperHistoryService.class);
+  }
+
+  @Test
+  public void verifyMetaStoreClientSupplier() {
+    CloseableMetaStoreClientFactory metaStoreClientFactory = commonBeans.metaStoreClientFactory();
+    HiveConf hiveConf = Mockito.mock(HiveConf.class);
+
+    Supplier<CloseableMetaStoreClient> metaStoreClientSupplier = commonBeans
+        .metaStoreClientSupplier(metaStoreClientFactory, hiveConf);
+    assertThat(metaStoreClientSupplier).isInstanceOf(HiveMetaStoreClientSupplier.class);
   }
 }

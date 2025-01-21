@@ -102,7 +102,7 @@ public class BeekeeperControllerTest {
   }
 
   @Test
-  public void testControllerWhenWrongUrl() throws Exception {
+  void testControllerWhenWrongUrl() throws Exception {
     mockMvc
         .perform(get("/api/v1/database/some_database/table/some_table/metadataa"))
         .andDo(MockMvcResultHandlers.print())
@@ -110,7 +110,7 @@ public class BeekeeperControllerTest {
   }
 
   @Test
-  public void testPagingWhenValidInput() throws Exception {
+  void testPagingWhenValidInput() throws Exception {
     int pageNumber = 5;
     int pageSize = 10;
     HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");

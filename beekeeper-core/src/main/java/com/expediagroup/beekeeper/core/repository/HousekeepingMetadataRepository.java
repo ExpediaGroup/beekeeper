@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2023 Expedia, Inc.
+ * Copyright (C) 2019-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,4 +145,20 @@ public interface HousekeepingMetadataRepository
   @Query(value = "delete from HousekeepingMetadata t where t.cleanupTimestamp < :instant "
       + "and (t.housekeepingStatus = 'DELETED' or t.housekeepingStatus = 'DISABLED')")
   void cleanUpOldDeletedRecords(@Param("instant") LocalDateTime instant);
+
+  /**
+   * Returns the list of partitions of table that are schedule or failed, if there is one.
+   *
+   * @param databaseName
+   * @param tableName
+   * @return List of records that match the inputs given.
+   */
+  @Query(value = "from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and t.partitionName IS NOT NULL "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  List<HousekeepingMetadata> findRecordsForCleanupByDbAndTableName(
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName);
 }
