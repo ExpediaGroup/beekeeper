@@ -55,7 +55,6 @@
     <jackson.version>2.17.2</jackson.version>
     <hive.version>2.3.7</hive.version>
     <hcommon-hive-metastore.version>1.4.2</hcommon-hive-metastore.version>
-
   </properties>
 
   <dependencyManagement>
