@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2024 Expedia, Inc.
+ * Copyright (C) 2019-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class HiveMetadataCleaner implements MetadataCleaner {
 
   @Override
   @TimedTaggable("hive-table-deleted")
-  void dropTable(HousekeepingMetadata housekeepingMetadata, CleanerClient client) {
+  public void dropTable(HousekeepingMetadata housekeepingMetadata, CleanerClient client) {
     icebergValidator.throwExceptionIfIceberg(housekeepingMetadata.getDatabaseName(),
         housekeepingMetadata.getTableName());
     client.dropTable(housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
