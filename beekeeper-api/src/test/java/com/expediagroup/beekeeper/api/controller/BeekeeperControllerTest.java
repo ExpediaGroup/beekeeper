@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ public class BeekeeperControllerTest {
   }
 
   @Test
-  void testControllerWhenWrongUrl() throws Exception {
+  public void testControllerWhenWrongUrl() throws Exception {
     mockMvc
         .perform(get("/api/v1/database/some_database/table/some_table/metadataa"))
         .andDo(MockMvcResultHandlers.print())
@@ -110,7 +110,7 @@ public class BeekeeperControllerTest {
   }
 
   @Test
-  void testPagingWhenValidInput() throws Exception {
+  public void testPagingWhenValidInput() throws Exception {
     int pageNumber = 5;
     int pageSize = 10;
     HousekeepingMetadata metadata1 = generateDummyHousekeepingMetadata("some_database", "some_table");
