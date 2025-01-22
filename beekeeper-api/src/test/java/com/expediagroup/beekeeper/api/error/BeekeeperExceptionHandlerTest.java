@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2023 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,21 @@
  */
 package com.expediagroup.beekeeper.api.error;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.data.mapping.PropertyReferenceException;
-import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.util.ClassTypeInformation;
-import org.springframework.data.util.TypeInformation;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
-import com.expediagroup.beekeeper.api.error.BeekeeperExceptionHandler;
-import com.expediagroup.beekeeper.api.error.ErrorResponse;
-import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 import java.util.Collections;
 import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.mapping.PropertyReferenceException;
+import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
+
+import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 public class BeekeeperExceptionHandlerTest {
 

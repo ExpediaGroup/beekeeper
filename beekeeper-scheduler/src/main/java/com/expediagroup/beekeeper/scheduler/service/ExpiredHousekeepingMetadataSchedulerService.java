@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,13 @@ import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED_TO
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +39,12 @@ import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
+import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.core.monitoring.TimedTaggable;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
+import com.expediagroup.beekeeper.scheduler.hive.HiveClient;
+import com.expediagroup.beekeeper.scheduler.hive.HiveClientFactory;
 
 @Service
 public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerService {
@@ -46,12 +54,16 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
 
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
   private final BeekeeperHistoryService beekeeperHistoryService;
+  private final HiveClientFactory hiveClientFactory;
+  private final Clock clock;
 
   @Autowired
   public ExpiredHousekeepingMetadataSchedulerService(HousekeepingMetadataRepository housekeepingMetadataRepository,
-      BeekeeperHistoryService beekeeperHistoryService) {
+      BeekeeperHistoryService beekeeperHistoryService, HiveClientFactory hiveClientFactory) {
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
     this.beekeeperHistoryService = beekeeperHistoryService;
+    this.hiveClientFactory = hiveClientFactory;
+    this.clock = Clock.systemDefaultZone();
   }
 
   @Override
@@ -66,7 +78,7 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
         (HousekeepingMetadata) housekeepingEntity);
     try {
       housekeepingMetadataRepository.save(housekeepingMetadata);
-      log.info(format("Successfully scheduled %s", housekeepingMetadata));
+      log.info("Successfully scheduled {}", housekeepingMetadata);
       saveHistory(housekeepingMetadata, SCHEDULED);
     } catch (Exception e) {
       saveHistory(housekeepingMetadata, FAILED_TO_SCHEDULE);
@@ -80,44 +92,48 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
         housekeepingMetadata.getPartitionName());
 
     if (housekeepingMetadataOptional.isEmpty()) {
-      if (housekeepingMetadata.getPartitionName() != null) {
-        updateTableCleanupTimestamp(housekeepingMetadata);
-      }
+      handleNewMetadata(housekeepingMetadata);
       return housekeepingMetadata;
     }
-
     HousekeepingMetadata existingHousekeepingMetadata = housekeepingMetadataOptional.get();
-    existingHousekeepingMetadata.setPath(housekeepingMetadata.getPath());
-    existingHousekeepingMetadata.setHousekeepingStatus(housekeepingMetadata.getHousekeepingStatus());
-    existingHousekeepingMetadata.setCleanupDelay(housekeepingMetadata.getCleanupDelay());
-    existingHousekeepingMetadata.setClientId(housekeepingMetadata.getClientId());
+    updateExistingMetadata(existingHousekeepingMetadata, housekeepingMetadata);
 
-    if (isPartitionedTable(housekeepingMetadata)) {
-      updateTableCleanupTimestampToMax(existingHousekeepingMetadata);
+    if (existingHousekeepingMetadata.getPartitionName() == null) {
+      handlerAlterTable(existingHousekeepingMetadata);
     }
 
     return existingHousekeepingMetadata;
   }
 
-  /**
-   * When the cleanup delay of a table with partitions is altered, the delay should be updated but the cleanup
-   * timestamp should be the max timestamp of any of the partitions which the table has.
-   *
-   * e.g. if the cleanup delay was 10 but now its being updated to 2, the cleanup timestamp should match any partition
-   * with delay 10 (or above) to prevent premature attempts to cleanup the table.
-   *
-   * @param housekeepingMetadata
-   */
-  private void updateTableCleanupTimestampToMax(HousekeepingMetadata housekeepingMetadata) {
-    LocalDateTime currentCleanupTimestamp = housekeepingMetadata.getCleanupTimestamp();
-    LocalDateTime maxCleanupTimestamp = housekeepingMetadataRepository.findMaximumCleanupTimestampForDbAndTable(
-        housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
-
-    if (maxCleanupTimestamp != null && maxCleanupTimestamp.isAfter(currentCleanupTimestamp)) {
-      log.info("Updating entry for \"{}.{}\". Cleanup timestamp is now \"{}\".", housekeepingMetadata.getDatabaseName(),
-          housekeepingMetadata.getTableName(), maxCleanupTimestamp);
-      housekeepingMetadata.setCleanupTimestamp(maxCleanupTimestamp);
+  private void handleNewMetadata(HousekeepingMetadata housekeepingMetadata) {
+    if (housekeepingMetadata.getPartitionName() != null) {
+      updateTableCleanupTimestamp(housekeepingMetadata);
+    } else {
+      scheduleTablePartitions(housekeepingMetadata);
     }
+  }
+
+  private void handlerAlterTable(HousekeepingMetadata existingHousekeepingMetadata) {
+    List<HousekeepingMetadata> scheduledPartitions = housekeepingMetadataRepository.findRecordsForCleanupByDbAndTableName(
+        existingHousekeepingMetadata.getDatabaseName(), existingHousekeepingMetadata.getTableName());
+    scheduleMissingPartitions(existingHousekeepingMetadata, scheduledPartitions);
+    updateTableCleanupTimestampToMax(existingHousekeepingMetadata);
+    if (isActionableUpdate(existingHousekeepingMetadata, scheduledPartitions)) {
+      updateScheduledPartitions(existingHousekeepingMetadata, scheduledPartitions);
+    }
+  }
+
+  /**
+   * When an alteration to the table occurs pre-existing partitions should be scheduled.
+   *
+   * @param tableMetadata Entity that stored the cleanup delay.
+   */
+  private void scheduleTablePartitions(HousekeepingMetadata tableMetadata) {
+    log.info("Scheduling all partitions for table {}.{}", tableMetadata.getDatabaseName(),
+        tableMetadata.getTableName());
+    Map<String, String> partitionNamesAndPaths = retrieveTablePartitions(tableMetadata.getDatabaseName(),
+        tableMetadata.getTableName());
+    schedule(partitionNamesAndPaths, tableMetadata);
   }
 
   /**
@@ -143,11 +159,114 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
     }
   }
 
-  private boolean isPartitionedTable(HousekeepingMetadata housekeepingMetadata) {
-    Long numPartitions = housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(
+  private void updateExistingMetadata(HousekeepingMetadata existingMetadata, HousekeepingMetadata newMetadata) {
+    existingMetadata.setPath(newMetadata.getPath());
+    existingMetadata.setHousekeepingStatus(newMetadata.getHousekeepingStatus());
+    existingMetadata.setCleanupDelay(newMetadata.getCleanupDelay());
+    existingMetadata.setClientId(newMetadata.getClientId());
+  }
+
+  /**
+   * Compares all partitions on the table with any that are currently scheduled.
+   * If any partitions on the table are missing, they will be scheduled.
+   */
+  private void scheduleMissingPartitions(HousekeepingMetadata tableMetadata,
+      List<HousekeepingMetadata> scheduledPartitions) {
+    Map<String, String> unscheduledPartitionNames = findUnscheduledPartitionNames(tableMetadata, scheduledPartitions);
+    if (unscheduledPartitionNames.isEmpty()) {
+      log.info("All table partitions have already been scheduled.");
+      return;
+    }
+    schedule(unscheduledPartitionNames, tableMetadata);
+  }
+
+  /**
+   * When the cleanup delay of a table with partitions is altered, the delay should be updated but the cleanup
+   * timestamp should be the max timestamp of any of the partitions which the table has.
+   *
+   * e.g. if the cleanup delay was 10 but now its being updated to 2, the cleanup timestamp should match any partition
+   * with delay 10 (or above) to prevent premature attempts to cleanup the table.
+   *
+   * @param housekeepingMetadata
+   */
+  private void updateTableCleanupTimestampToMax(HousekeepingMetadata housekeepingMetadata) {
+    LocalDateTime currentCleanupTimestamp = housekeepingMetadata.getCleanupTimestamp();
+    LocalDateTime maxCleanupTimestamp = housekeepingMetadataRepository.findMaximumCleanupTimestampForDbAndTable(
         housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
 
-    return numPartitions > 0 && housekeepingMetadata.getPartitionName() == null;
+    if (maxCleanupTimestamp != null && maxCleanupTimestamp.isAfter(currentCleanupTimestamp)) {
+      log.info("Updating entry for \"{}.{}\". Cleanup timestamp is now \"{}\".", housekeepingMetadata.getDatabaseName(),
+          housekeepingMetadata.getTableName(), maxCleanupTimestamp);
+      housekeepingMetadata.setCleanupTimestamp(maxCleanupTimestamp);
+    }
+  }
+
+  private boolean isActionableUpdate(HousekeepingMetadata metadata, List<HousekeepingMetadata> scheduledPartitions) {
+    if(scheduledPartitions.isEmpty()) {
+      return false;
+    }
+    PeriodDuration tableCleanupDelay = metadata.getCleanupDelay();
+
+    HousekeepingMetadata scheduledPartition = scheduledPartitions.get(0);
+    PeriodDuration metadataCleanupDelay = scheduledPartition.getCleanupDelay();
+
+    return (!tableCleanupDelay.equals(metadataCleanupDelay));
+  }
+
+  private void updateScheduledPartitions(HousekeepingMetadata metadata,
+      List<HousekeepingMetadata> partitions) {
+    log.info("Updating scheduled partitions.");
+    partitions.forEach(partition -> {
+      partition.setCleanupDelay(metadata.getCleanupDelay());
+      housekeepingMetadataRepository.save(partition);
+      beekeeperHistoryService.saveHistory(partition, SCHEDULED);
+    });
+  }
+
+  private Map<String, String> findUnscheduledPartitionNames(HousekeepingMetadata tableMetadata,
+      List<HousekeepingMetadata> scheduledPartitions) {
+    Map<String, String> tablePartitionNamesAndPaths = retrieveTablePartitions(tableMetadata.getDatabaseName(),
+        tableMetadata.getTableName());
+
+    Set<String> scheduledPartitionNames = scheduledPartitions.stream()
+        .map(HousekeepingMetadata::getPartitionName)
+        .collect(Collectors.toSet());
+
+    return tablePartitionNamesAndPaths.entrySet().stream()
+        .filter(entry -> !scheduledPartitionNames.contains(entry.getKey()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  private Map<String, String> retrieveTablePartitions(String database, String tableName) {
+    try (HiveClient hiveClient = hiveClientFactory.newInstance()) {
+      return hiveClient.getTablePartitionsAndPaths(database, tableName);
+    }
+  }
+
+  private void schedule(Map<String, String> partitionNamesAndPaths, HousekeepingMetadata tableMetadata) {
+    partitionNamesAndPaths.forEach((partitionName, path) -> {
+      HousekeepingMetadata partitionMetadata = createNewMetadata(tableMetadata, partitionName, path);
+
+      housekeepingMetadataRepository.save(partitionMetadata);
+      beekeeperHistoryService.saveHistory(partitionMetadata, SCHEDULED);
+    });
+    log.info("Scheduled {} partitions for table {}.{}", partitionNamesAndPaths.size(), tableMetadata.getDatabaseName(),
+        tableMetadata.getTableName());
+  }
+
+  private HousekeepingMetadata createNewMetadata(HousekeepingMetadata tableMetadata, String partitionName,
+      String path) {
+    return HousekeepingMetadata
+        .builder()
+        .housekeepingStatus(SCHEDULED)
+        .creationTimestamp(LocalDateTime.now(clock))
+        .cleanupDelay(tableMetadata.getCleanupDelay())
+        .lifecycleType(LIFECYCLE_EVENT_TYPE.toString())
+        .path(path)
+        .databaseName(tableMetadata.getDatabaseName())
+        .tableName(tableMetadata.getTableName())
+        .partitionName(partitionName)
+        .build();
   }
 
   private void saveHistory(HousekeepingMetadata housekeepingMetadata, HousekeepingStatus status) {

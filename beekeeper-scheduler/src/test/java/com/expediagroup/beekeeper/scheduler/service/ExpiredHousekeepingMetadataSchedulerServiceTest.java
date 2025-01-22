@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2023 Expedia, Inc.
+ * Copyright (C) 2019-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 package com.expediagroup.beekeeper.scheduler.service;
 
 import static java.lang.String.format;
+import static java.util.Collections.singletonList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +34,7 @@ import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -45,6 +48,8 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository;
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
+import com.expediagroup.beekeeper.scheduler.hive.HiveClient;
+import com.expediagroup.beekeeper.scheduler.hive.HiveClientFactory;
 
 @ExtendWith(MockitoExtension.class)
 public class ExpiredHousekeepingMetadataSchedulerServiceTest {
@@ -53,6 +58,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
   private static final String DATABASE_NAME = "database";
   private static final String TABLE_NAME = "table";
   private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
+  private static final String PARTITION_PATH = PATH + "/" + PARTITION_NAME;
   private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
 
   @Mock
@@ -60,6 +66,12 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
   @Mock
   private BeekeeperHistoryService beekeeperHistoryService;
+
+  @Mock
+  private HiveClientFactory hiveClientFactory;
+
+  @Mock
+  private HiveClient hiveClient;
 
   @InjectMocks
   private ExpiredHousekeepingMetadataSchedulerService expiredHousekeepingMetadataSchedulerService;
@@ -70,6 +82,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
     when(housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, null))
         .thenReturn(Optional.empty());
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
 
@@ -81,6 +94,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
   public void typicalCreatePartitionScheduleForHousekeeping() {
     HousekeepingMetadata metadata = createHousekeepingMetadataPartition();
     HousekeepingMetadata tableMetadata = createHousekeepingMetadataTable();
+    tableMetadata.setCleanupDelay(PeriodDuration.parse("P1D"));
 
     when(housekeepingMetadataRepository
         .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, PARTITION_NAME))
@@ -102,6 +116,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
     when(housekeepingMetadataRepository.findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, null))
         .thenReturn(Optional.of(existingTable));
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
 
@@ -123,8 +138,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
         .thenReturn(Optional.of(existingTable));
     when(housekeepingMetadataRepository.findMaximumCleanupTimestampForDbAndTable(DATABASE_NAME, TABLE_NAME))
         .thenReturn(CREATION_TIMESTAMP.plus(Duration.parse("P30D")));
-    when(housekeepingMetadataRepository
-        .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE_NAME, TABLE_NAME)).thenReturn(1L);
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(metadata);
 
@@ -147,7 +161,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
   @Test
   public void scheduleFails() {
     HousekeepingMetadata metadata = createHousekeepingMetadataTable();
-
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(housekeepingMetadataRepository.save(metadata)).thenThrow(new RuntimeException());
 
     assertThatExceptionOfType(BeekeeperException.class)
@@ -155,6 +169,55 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
         .withMessage(format("Unable to schedule %s", metadata));
     verify(housekeepingMetadataRepository).save(metadata);
     verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_SCHEDULE));
+  }
+
+  @Test
+  public void schedulePreexistingTablePartitionsOnTableEvent() {
+    HousekeepingMetadata tableMetadata = createHousekeepingMetadataTable();
+
+    String partitionName2 = "event_date=2020-01-01/event_hour=1/event_type=B";
+    String partitionName3 = "event_date=2020-01-01/event_hour=3/event_type=C";
+    Map<String, String> partitionNamesPathMap = Map.of(PARTITION_NAME, PARTITION_PATH, partitionName2,
+        "path/" + partitionName2, partitionName3, "path/" + partitionName3);
+
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(hiveClient.getTablePartitionsAndPaths(DATABASE_NAME, TABLE_NAME)).thenReturn(partitionNamesPathMap);
+    when(housekeepingMetadataRepository
+        .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, null))
+        .thenReturn(Optional.empty());
+
+    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(tableMetadata);
+
+    verify(housekeepingMetadataRepository, times(4)).save(any());
+    verify(beekeeperHistoryService, times(4)).saveHistory(any(), eq(SCHEDULED));
+  }
+
+  @Test
+  public void updateScheduledPartsAndCreateNewEntriesForExistingPartsOnTableEvent() {
+    HousekeepingMetadata existingPartition = spy(createHousekeepingMetadataPartition());
+    existingPartition.setCleanupDelay(PeriodDuration.parse("P4M"));
+    HousekeepingMetadata existingTable = createHousekeepingMetadataTable();
+    existingTable.setCleanupDelay(PeriodDuration.parse("P4M"));
+
+    HousekeepingMetadata tableMetadata = createHousekeepingMetadataTable();
+    String partitionName2 = "event_date=2020-01-01/event_hour=1/event_type=B";
+    Map<String, String> partitionNamesPathMap = Map.of(PARTITION_NAME, PARTITION_PATH, partitionName2,
+        "path/" + partitionName2);
+
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(hiveClient.getTablePartitionsAndPaths(DATABASE_NAME, TABLE_NAME)).thenReturn(partitionNamesPathMap);
+
+    when(housekeepingMetadataRepository
+        .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, null))
+        .thenReturn(Optional.of(existingTable));
+    when(housekeepingMetadataRepository.findRecordsForCleanupByDbAndTableName(DATABASE_NAME, TABLE_NAME)).thenReturn(
+        singletonList(existingPartition));
+
+    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(tableMetadata);
+
+    verify(housekeepingMetadataRepository, times(3)).save(any());
+    verify(existingPartition).setCleanupDelay(PeriodDuration.parse("P3D"));
+    verify(beekeeperHistoryService, times(3)).saveHistory(any(), eq(SCHEDULED));
   }
 
   private HousekeepingMetadata createHousekeepingMetadataPartition() {

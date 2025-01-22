@@ -15,6 +15,8 @@
  */
 package com.expediagroup.beekeeper.integration;
 
+import static java.util.Collections.emptyMap;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
@@ -45,6 +47,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -67,11 +70,14 @@ import com.expediagroup.beekeeper.integration.model.DropTableSqsMessage;
 import com.expediagroup.beekeeper.integration.utils.ContainerTestUtils;
 import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperSchedulerApiary;
 
+import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
+
 @Testcontainers
 public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends BeekeeperIntegrationTestBase {
 
   protected static final int TIMEOUT = 5;
   protected static final String APIARY_QUEUE_URL_PROPERTY = "properties.apiary.queue-url";
+  protected static final String METASTORE_URI_PROPERTY = "properties.metastore-uri";
 
   protected static final String QUEUE = "apiary-receiver-queue";
   protected static final String SCHEDULED_ORPHANED_METRIC = "paths-scheduled";
@@ -81,6 +87,10 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   @Container
   protected static final LocalStackContainer SQS_CONTAINER = ContainerTestUtils.awsContainer(SQS);
   protected static AmazonSQS amazonSQS;
+
+  @RegisterExtension
+  protected ThriftHiveMetaStoreJUnitExtension thriftHiveMetaStore = new ThriftHiveMetaStoreJUnitExtension(
+      DATABASE_NAME_VALUE, emptyMap());
 
   @BeforeAll
   public static void init() {
@@ -100,6 +110,8 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
 
   @BeforeEach
   public void setup() {
+    System.setProperty(METASTORE_URI_PROPERTY, thriftHiveMetaStore.getThriftConnectionUri());
+
     amazonSQS.purgeQueue(new PurgeQueueRequest(ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE)));
     executorService.execute(() -> BeekeeperSchedulerApiary.main(new String[] {}));
     await().atMost(Duration.ONE_MINUTE).until(BeekeeperSchedulerApiary::isRunning);
