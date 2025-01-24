@@ -62,7 +62,7 @@ public class CommonBeans {
 
   @Bean
   @Profile("test")
-  AmazonS3 amazonS3Test() {
+  public AmazonS3 amazonS3Test() {
     String s3Endpoint = System.getProperty("aws.s3.endpoint");
     String region = System.getProperty("aws.region");
 
@@ -73,7 +73,7 @@ public class CommonBeans {
   }
 
   @Bean
-  BytesDeletedReporter bytesDeletedReporter(
+  public BytesDeletedReporter bytesDeletedReporter(
       MeterRegistry meterRegistry,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
     return new BytesDeletedReporter(meterRegistry, dryRunEnabled);
@@ -85,14 +85,14 @@ public class CommonBeans {
   }
 
   @Bean(name = "s3PathCleaner")
-  PathCleaner pathCleaner(
+  public PathCleaner pathCleaner(
       S3Client s3Client,
       BytesDeletedReporter bytesDeletedReporter) {
     return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
   }
 
   @Bean
-  CleanupService cleanupService(
+  public CleanupService cleanupService(
       List<GenericPathHandler> pathHandlers,
       @Value("${properties.cleanup-page-size}") int pageSize,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
@@ -107,12 +107,12 @@ public class CommonBeans {
   }
 
   @Bean
-  DisableTablesService disableTablesService() {
+  public DisableTablesService disableTablesService() {
     return () -> {};
   }
 
   @Bean
-  BeekeeperHistoryService beekeeperHistoryService(BeekeeperHistoryRepository beekeeperHistoryRepository) {
+  public BeekeeperHistoryService beekeeperHistoryService(BeekeeperHistoryRepository beekeeperHistoryRepository) {
     return new BeekeeperHistoryService(beekeeperHistoryRepository);
   }
 }
