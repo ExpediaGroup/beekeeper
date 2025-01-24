@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class CommonBeans {
   }
 
   @Bean
-  Supplier<CloseableMetaStoreClient> metaStoreClientSupplier(
+  public Supplier<CloseableMetaStoreClient> metaStoreClientSupplier(
       CloseableMetaStoreClientFactory metaStoreClientFactory, HiveConf hiveConf) {
     String name = "beekeeper-metadata-cleanup";
     return new HiveMetaStoreClientSupplier(metaStoreClientFactory, hiveConf, name);
@@ -108,7 +108,7 @@ public class CommonBeans {
   }
 
   @Bean(name = "hiveTableCleaner")
-  MetadataCleaner metadataCleaner(
+  public MetadataCleaner metadataCleaner(
       DeletedMetadataReporter deletedMetadataReporter, IcebergValidator icebergValidator) {
     return new HiveMetadataCleaner(deletedMetadataReporter, icebergValidator);
   }
@@ -121,7 +121,7 @@ public class CommonBeans {
 
   @Bean
   @Profile("test")
-  AmazonS3 amazonS3Test() {
+  public AmazonS3 amazonS3Test() {
     String s3Endpoint = System.getProperty("aws.s3.endpoint");
     String region = System.getProperty("aws.region");
 
@@ -132,7 +132,7 @@ public class CommonBeans {
   }
 
   @Bean
-  BytesDeletedReporter bytesDeletedReporter(
+  public BytesDeletedReporter bytesDeletedReporter(
       MeterRegistry meterRegistry,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
     return new BytesDeletedReporter(meterRegistry, dryRunEnabled);
@@ -144,7 +144,7 @@ public class CommonBeans {
   }
 
   @Bean(name = "s3PathCleaner")
-  PathCleaner pathCleaner(
+  public PathCleaner pathCleaner(
       S3Client s3Client,
       BytesDeletedReporter bytesDeletedReporter) {
     return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
@@ -162,12 +162,12 @@ public class CommonBeans {
   }
 
   @Bean
-  BeekeeperHistoryService beekeeperHistoryService(BeekeeperHistoryRepository beekeeperHistoryRepository) {
+  public BeekeeperHistoryService beekeeperHistoryService(BeekeeperHistoryRepository beekeeperHistoryRepository) {
     return new BeekeeperHistoryService(beekeeperHistoryRepository);
   }
 
   @Bean
-  CleanupService cleanupService(
+  public CleanupService cleanupService(
       List<MetadataHandler> metadataHandlers,
       @Value("${properties.cleanup-page-size}") int pageSize,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
@@ -175,14 +175,14 @@ public class CommonBeans {
   }
 
   @Bean
-  RepositoryCleanupService repositoryCleanupService(
+  public RepositoryCleanupService repositoryCleanupService(
       HousekeepingMetadataRepository housekeepingMetadataRepository,
       @Value("${properties.old-data-retention-period-days}") int retentionPeriodInDays) {
     return new MetadataRepositoryCleanupService(housekeepingMetadataRepository, retentionPeriodInDays);
   }
 
   @Bean
-  DisableTablesService disableTablesService(
+  public DisableTablesService disableTablesService(
       HousekeepingMetadataRepository housekeepingMetadataRepository,
       CleanerClientFactory cleanerClientFactory,
       @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {

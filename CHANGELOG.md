@@ -4,13 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.6.1] - 2024-12-02
+
+## [3.5.13] - 2025-01-24
+## Added
+- Changed scope of beans to `public` in `beekeeper-metadata-cleanup` and `beekeeper-path-cleanup`.
+
+## [3.5.12] - 2025-01-22
+## Added
+- add support to schedule partitions that already exist in table metadata.
+
+## [3.5.11] - 2024-12-06
+## Fixed
+- Remove entity ID to force new entries to history table.
+
+## [3.5.10] - 2024-12-02
 ## Added
 - Added `maven-jar-plugin` in `beekeeper-integration-test`.
 ## Changed
 - Changed scope of attributes to `protected` in `beekeeper-integration-test`
 
-## [3.6.0] - 2024-11-29
+## [3.5.9] - 2024-11-29
 ## Added
 - Added a db migration file and implementation of `beekeeper-history` table to track beekeeper activity.
 

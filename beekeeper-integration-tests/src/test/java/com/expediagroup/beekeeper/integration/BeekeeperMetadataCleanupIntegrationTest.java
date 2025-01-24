@@ -133,7 +133,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   }
 
   protected static AmazonS3 amazonS3;
-  private static final String S3_ENDPOINT = ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3);
+  protected static final String S3_ENDPOINT = ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3);
   protected final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   private static Map<String, String> metastoreProperties = ImmutableMap
