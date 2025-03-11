@@ -32,6 +32,7 @@ import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,6 +109,8 @@ public class ExpiredMetadataHandlerTest {
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME))
+        .thenReturn(Collections.singletonMap("beekeeper.table.deletion.enabled", "true"));
     when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
     when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
     when(
@@ -127,12 +130,32 @@ public class ExpiredMetadataHandlerTest {
   }
 
   @Test
+  public void catchesBeekeeperIcebergException() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
+    when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
+    doThrow(new com.expediagroup.beekeeper.core.error.BeekeeperIcebergException("Iceberg table"))
+        .when(hiveClient).getTableProperties(DATABASE, TABLE_NAME);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadata).setHousekeepingStatus(SKIPPED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+    verify(beekeeperHistoryService, never()).saveHistory(any(), any());
+  }
+
+  @Test
   public void typicalDroppingTable_DryRun() {
     boolean dryRunEnabled = true;
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME))
+        .thenReturn(Collections.singletonMap("beekeeper.table.deletion.enabled", "true"));
     when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
     when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
 
@@ -233,10 +256,10 @@ public class ExpiredMetadataHandlerTest {
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
     when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME))
+        .thenReturn(Collections.singletonMap("beekeeper.table.deletion.enabled", "true"));
     when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
-    when(
-        housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE,
-            TABLE_NAME))
+    when(housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
         .thenReturn(Long.valueOf(0));
     when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(false);
 
@@ -311,11 +334,12 @@ public class ExpiredMetadataHandlerTest {
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME))
+        .thenReturn(Collections.singletonMap("beekeeper.table.deletion.enabled", "true"));
     when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
     when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
     when(
-        housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE,
-            TABLE_NAME))
+        housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
         .thenReturn(Long.valueOf(0));
     when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
     doThrow(RuntimeException.class).when(hiveMetadataCleaner).dropTable(housekeepingMetadata, hiveClient);
@@ -333,6 +357,8 @@ public class ExpiredMetadataHandlerTest {
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME))
+        .thenReturn(Collections.singletonMap("beekeeper.table.deletion.enabled", "true"));
     when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
     when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
     when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
@@ -361,5 +387,47 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata).setHousekeepingStatus(FAILED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
     verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_DELETE));
+  }
+
+  @Test
+  public void tableDeletionPropertyFalse_shouldNotDropTable() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME))
+        .thenReturn(Collections.singletonMap("beekeeper.table.deletion.enabled", "false"));
+    when(housekeepingMetadataRepository
+        .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
+        .thenReturn(0L);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata, hiveClient);
+    verify(housekeepingMetadata).setHousekeepingStatus(SKIPPED);
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+    verify(beekeeperHistoryService).saveHistory(any(), eq(SKIPPED));
+  }
+
+  @Test
+  public void tableDeletionPropertyNotPresent_shouldDefaultToFalse() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(null);
+    when(hiveClient.getTableProperties(DATABASE, TABLE_NAME)).thenReturn(Collections.emptyMap());
+    when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
+    when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
+    when(housekeepingMetadataRepository
+        .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
+        .thenReturn(0L);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata, hiveClient);
+    verify(housekeepingMetadata).setCleanupAttempts(1);
+    verify(housekeepingMetadata).setHousekeepingStatus(SKIPPED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+    verify(beekeeperHistoryService).saveHistory(any(), eq(SKIPPED));
   }
 }

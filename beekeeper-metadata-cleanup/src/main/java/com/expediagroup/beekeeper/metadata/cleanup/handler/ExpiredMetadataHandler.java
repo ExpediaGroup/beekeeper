@@ -23,6 +23,7 @@ import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.FAILED_TO
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SKIPPED;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,7 @@ import com.expediagroup.beekeeper.core.validation.S3PathValidator;
 public class ExpiredMetadataHandler implements MetadataHandler {
 
   private final Logger log = LoggerFactory.getLogger(ExpiredMetadataHandler.class);
+  private static final String TABLE_DELETION_PROPERTY = "beekeeper.table.deletion.enabled";
 
   private final CleanerClientFactory cleanerClientFactory;
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
@@ -130,6 +132,14 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     }
     String databaseName = housekeepingMetadata.getDatabaseName();
     String tableName = housekeepingMetadata.getTableName();
+
+    if (!isTableDeletionEnabled(client, databaseName, tableName)) {
+      log.info("Skipping table drop for '{}.{}' as table deletion is disabled.", databaseName, tableName);
+      updateAttemptsAndStatus(housekeepingMetadata, SKIPPED);
+      saveHistory(housekeepingMetadata, SKIPPED, dryRunEnabled); // should we set it to skipped when we avoid deletion?
+      return false;
+    }
+
     log.info("Cleaning up metadata for \"{}.{}\"", databaseName, tableName);
     if (metadataCleaner.tableExists(client, databaseName, tableName)) {
       metadataCleaner.dropTable(housekeepingMetadata, client);
@@ -202,5 +212,14 @@ public class ExpiredMetadataHandler implements MetadataHandler {
       return;
     }
     historyService.saveHistory(metadata, housekeepingStatus);
+  }
+
+  private boolean isTableDeletionEnabled(CleanerClient client, String databaseName, String tableName) {
+    Map<String, String> tableProperties = client.getTableProperties(databaseName, tableName);
+    String tableDeletionProperty = tableProperties.get(TABLE_DELETION_PROPERTY);
+    if (tableDeletionProperty != null) {
+      return Boolean.parseBoolean(tableDeletionProperty);
+    }
+    return false;
   }
 }
