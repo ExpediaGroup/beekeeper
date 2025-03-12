@@ -416,7 +416,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   @Test
   public void tableNotDeletedWhenDeletionPropertyIsFalse() throws TException, SQLException {
     Map<String, String> tableProperties = new HashMap<>();
-    tableProperties.put("beekeeper.table.deletion.enabled", "false");
+    tableProperties.put("beekeeper.expired.data.table.deletion.enabled", "false");
 
     hiveTestUtils.createTableWithProperties(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false, tableProperties, true);
     amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, TABLE_DATA);
@@ -477,7 +477,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   private Map<String, String> createBeeKeeperDeletionProperties() {
     Map<String, String> tableProperties = new HashMap<>();
-    tableProperties.put("beekeeper.table.deletion.enabled", "true");
+    tableProperties.put("beekeeper.expired.data.table.deletion.enabled", "true");
     return tableProperties;
   }
 

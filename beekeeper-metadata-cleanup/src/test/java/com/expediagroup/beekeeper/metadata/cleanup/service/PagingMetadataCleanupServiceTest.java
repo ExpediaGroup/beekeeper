@@ -104,7 +104,7 @@ public class PagingMetadataCleanupServiceTest {
     when(metadataCleaner.dropPartition(Mockito.any(), Mockito.any())).thenReturn(true);
     Map<String, String> properties = new HashMap<>();
     properties.put(UNREFERENCED.getTableParameterName(), "true");
-    properties.put("beekeeper.table.deletion.enabled", "true");
+    properties.put("beekeeper.expired.data.table.deletion.enabled", "true");
     when(hiveClient.getTableProperties(Mockito.anyString(), Mockito.anyString()))
         .thenReturn(properties);
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);

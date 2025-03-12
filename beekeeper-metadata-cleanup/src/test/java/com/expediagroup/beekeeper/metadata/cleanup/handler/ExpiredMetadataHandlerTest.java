@@ -110,7 +110,7 @@ public class ExpiredMetadataHandlerTest {
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
     when(hiveClient.getTableProperties(DATABASE, TABLE_NAME))
-        .thenReturn(Collections.singletonMap("beekeeper.table.deletion.enabled", "true"));
+        .thenReturn(Collections.singletonMap("beekeeper.expired.data.table.deletion.enabled", "true"));
     when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
     when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
     when(
@@ -155,7 +155,7 @@ public class ExpiredMetadataHandlerTest {
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
     when(hiveClient.getTableProperties(DATABASE, TABLE_NAME))
-        .thenReturn(Collections.singletonMap("beekeeper.table.deletion.enabled", "true"));
+        .thenReturn(Collections.singletonMap("beekeeper.expired.data.table.deletion.enabled", "true"));
     when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
     when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
 
@@ -257,7 +257,7 @@ public class ExpiredMetadataHandlerTest {
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
     when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
     when(hiveClient.getTableProperties(DATABASE, TABLE_NAME))
-        .thenReturn(Collections.singletonMap("beekeeper.table.deletion.enabled", "true"));
+        .thenReturn(Collections.singletonMap("beekeeper.expired.data.table.deletion.enabled", "true"));
     when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
     when(housekeepingMetadataRepository.countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
         .thenReturn(Long.valueOf(0));
@@ -335,7 +335,7 @@ public class ExpiredMetadataHandlerTest {
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
     when(hiveClient.getTableProperties(DATABASE, TABLE_NAME))
-        .thenReturn(Collections.singletonMap("beekeeper.table.deletion.enabled", "true"));
+        .thenReturn(Collections.singletonMap("beekeeper.expired.data.table.deletion.enabled", "true"));
     when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
     when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
     when(
@@ -358,7 +358,7 @@ public class ExpiredMetadataHandlerTest {
     when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
     when(hiveClient.getTableProperties(DATABASE, TABLE_NAME))
-        .thenReturn(Collections.singletonMap("beekeeper.table.deletion.enabled", "true"));
+        .thenReturn(Collections.singletonMap("beekeeper.expired.data.table.deletion.enabled", "true"));
     when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
     when(housekeepingMetadata.getCleanupAttempts()).thenReturn(0);
     when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
@@ -397,7 +397,7 @@ public class ExpiredMetadataHandlerTest {
     when(housekeepingMetadata.getPath()).thenReturn(VALID_TABLE_PATH);
     when(housekeepingMetadata.getPartitionName()).thenReturn(null);
     when(hiveClient.getTableProperties(DATABASE, TABLE_NAME))
-        .thenReturn(Collections.singletonMap("beekeeper.table.deletion.enabled", "false"));
+        .thenReturn(Collections.singletonMap("beekeeper.expired.data.table.deletion.enabled", "false"));
     when(housekeepingMetadataRepository
         .countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(DATABASE, TABLE_NAME))
         .thenReturn(0L);

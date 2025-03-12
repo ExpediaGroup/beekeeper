@@ -317,7 +317,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
   private Map<String, String> createBeeKeeperDeletionProperties() {
     Map<String, String> tableProperties = new HashMap<>();
-    tableProperties.put("beekeeper.table.deletion.enabled", "true");
+    tableProperties.put("beekeeper.expired.data.table.deletion.enabled", "true");
     return tableProperties;
   }
 }

@@ -44,7 +44,7 @@ import com.expediagroup.beekeeper.core.validation.S3PathValidator;
 public class ExpiredMetadataHandler implements MetadataHandler {
 
   private final Logger log = LoggerFactory.getLogger(ExpiredMetadataHandler.class);
-  private static final String TABLE_DELETION_PROPERTY = "beekeeper.table.deletion.enabled";
+  private static final String TABLE_DELETION_PROPERTY = "beekeeper.expired.data.table.deletion.enabled";
 
   private final CleanerClientFactory cleanerClientFactory;
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
