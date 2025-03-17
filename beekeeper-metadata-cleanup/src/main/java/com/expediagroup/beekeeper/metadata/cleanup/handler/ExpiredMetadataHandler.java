@@ -136,7 +136,7 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     if (!isTableDeletionEnabled(client, databaseName, tableName)) {
       log.info("Skipping table drop for '{}.{}' as table deletion is disabled.", databaseName, tableName);
       updateAttemptsAndStatus(housekeepingMetadata, SKIPPED);
-      saveHistory(housekeepingMetadata, SKIPPED, dryRunEnabled); // should we set it to skipped when we avoid deletion?
+      saveHistory(housekeepingMetadata, SKIPPED, dryRunEnabled);
       return false;
     }
 
