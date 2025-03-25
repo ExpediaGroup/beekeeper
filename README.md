@@ -102,6 +102,7 @@ Beekeeper only actions on events which are marked with specific parameters. Thes
 | `beekeeper.hive.event.whitelist=X` | No | Comma separated list of event types to whitelist for orphaned data. Valid event values are: `alter_partition`, `alter_table`, `drop_table`, `drop_partition`. | Beekeeper will only process whitelisted events. Default value: `alter_partition`, `alter_table`. |
 | `beekeeper.remove.expired.data=true`   | Yes |  `true` or `false`       | Set this parameter to enable TTL on your table. |
 | `beekeeper.expired.data.retention.period=X` | No | e.g. `P7D` or `PT3H` (based on [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601)) | Set this parameter to control the TTL duration for your table. If this is either not set, or configured incorrectly, the default value of `P30D` (30 days) will be used. |
+| `beekeeper.expired.data.table.deletion.enabled`               | No |`true` or `false` | Whether to delete a partitioned table when all partitions are expired. Default is `false`.                                                                                             |
 
 **Usage**
 

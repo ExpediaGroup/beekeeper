@@ -199,7 +199,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void cleanupUnpartitionedTable() throws TException, SQLException {
-    hiveTestUtils.createTable(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTableWithProperties(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false, createBeeKeeperDeletionProperties(), true);
     amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, TABLE_DATA);
 
     insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
@@ -213,7 +213,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void cleanupPartitionedTable() throws Exception {
-    Table table = hiveTestUtils.createTable(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
+    Table table = hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, createBeeKeeperDeletionProperties(), true);
     hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
 
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
@@ -284,7 +284,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void cleanupPartitionedTableWithNoPartitions() throws TException, SQLException {
-    hiveTestUtils.createTable(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
+    hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, createBeeKeeperDeletionProperties(), true);
 
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
     insertExpiredMetadata(PARTITIONED_TABLE_PATH, null);
@@ -342,10 +342,10 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void cleanupMultipleTablesOfMixedType() throws Exception {
-    hiveTestUtils.createTable(UNPARTITIONED_TABLE_PATH, UNPARTITIONED_TABLE_NAME, false);
+    hiveTestUtils.createTableWithProperties(UNPARTITIONED_TABLE_PATH, UNPARTITIONED_TABLE_NAME, false, createBeeKeeperDeletionProperties(), true);
 
     Table partitionedTable = hiveTestUtils
-        .createTable(PARTITIONED_TABLE_PATH, PARTITIONED_TABLE_NAME, true);
+        .createTableWithProperties(PARTITIONED_TABLE_PATH, PARTITIONED_TABLE_NAME, true, createBeeKeeperDeletionProperties(), true);
     hiveTestUtils
         .addPartitionsToTable(PARTITION_ROOT_PATH, partitionedTable, PARTITION_VALUES);
 
@@ -376,7 +376,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void onlyCleanupLocationWhenPartitionExists() throws TException, SQLException {
-    hiveTestUtils.createTable(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
+    hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, createBeeKeeperDeletionProperties() ,true);
 
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
     amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
@@ -394,7 +394,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void testEventAddedToHistoryTable() throws TException, SQLException {
-    hiveTestUtils.createTable(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
+    hiveTestUtils.createTableWithProperties(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false, createBeeKeeperDeletionProperties(), true);
     amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, TABLE_DATA);
 
     insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
@@ -414,8 +414,39 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   }
 
   @Test
+  public void tableNotDeletedWhenDeletionPropertyIsFalse() throws TException, SQLException {
+    Map<String, String> tableProperties = new HashMap<>();
+    tableProperties.put("beekeeper.expired.data.table.deletion.enabled", "false");
+
+    hiveTestUtils.createTableWithProperties(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false, tableProperties, true);
+    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, TABLE_DATA);
+
+    insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == SKIPPED);
+
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY)).isTrue();
+  }
+
+  @Test
+  public void tableNotDeletedWhenDeletionPropertyNotSet() throws TException, SQLException {
+    hiveTestUtils.createTable(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false);
+    amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, TABLE_DATA);
+
+    insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> getExpiredMetadata().get(0).getHousekeepingStatus() == SKIPPED);
+
+    assertThat(metastoreClient.tableExists(DATABASE_NAME_VALUE, TABLE_NAME_VALUE)).isTrue();
+    assertThat(amazonS3.doesObjectExist(BUCKET, UNPARTITIONED_OBJECT_KEY)).isTrue();
+  }
+
+  @Test
   public void metrics() throws Exception {
-    Table table = hiveTestUtils.createTable(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true);
+    Table table = hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, createBeeKeeperDeletionProperties(), true);
     hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
 
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
@@ -442,6 +473,12 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
           .contains("metadata-cleanup-job", "hive-table-deleted", "hive-partition-deleted", "hive-table-" + METRIC_NAME,
               "hive-partition-" + METRIC_NAME, "s3-paths-deleted", "s3-" + BytesDeletedReporter.METRIC_NAME);
     });
+  }
+
+  private Map<String, String> createBeeKeeperDeletionProperties() {
+    Map<String, String> tableProperties = new HashMap<>();
+    tableProperties.put("beekeeper.expired.data.table.deletion.enabled", "true");
+    return tableProperties;
   }
 
   @Test

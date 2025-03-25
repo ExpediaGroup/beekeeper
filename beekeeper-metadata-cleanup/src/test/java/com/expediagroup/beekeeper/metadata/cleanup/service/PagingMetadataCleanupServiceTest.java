@@ -35,6 +35,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,7 +104,10 @@ public class PagingMetadataCleanupServiceTest {
     when(metadataCleaner.dropPartition(Mockito.any(), Mockito.any())).thenReturn(true);
     Map<String, String> properties = new HashMap<>();
     properties.put(UNREFERENCED.getTableParameterName(), "true");
-    when(hiveClient.getTableProperties(Mockito.any(), Mockito.any())).thenReturn(properties);
+    properties.put("beekeeper.expired.data.table.deletion.enabled", "true");
+    when(hiveClient.getTableProperties(Mockito.anyString(), Mockito.anyString()))
+        .thenReturn(properties);
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     handler = new ExpiredMetadataHandler(hiveClientFactory, metadataRepository, metadataCleaner, pathCleaner,
         beekeeperHistoryService);
