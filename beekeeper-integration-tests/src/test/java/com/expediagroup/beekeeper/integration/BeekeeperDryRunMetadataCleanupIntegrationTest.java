@@ -28,7 +28,6 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.LONG_CL
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -194,7 +193,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
   @Test
   public void dryRunDropUnpartitionedTable() throws TException, SQLException {
-    hiveTestUtils.createTableWithProperties(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false, createBeeKeeperDeletionProperties(), true);
+    hiveTestUtils.createTableWithDeletionProperties(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false, true);
     amazonS3.putObject(BUCKET, UNPARTITIONED_TABLE_OBJECT_KEY, TABLE_DATA);
     insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
 
@@ -208,7 +207,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
   @Test
   public void dryRunDropPartitionedTable() throws Exception {
-    Table table = hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, createBeeKeeperDeletionProperties(), true);
+    Table table = hiveTestUtils.createTableWithDeletionProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, true);
     hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
     amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);
@@ -226,7 +225,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
   @Test
   public void dryRunDontDropPartitionedTable() throws Exception {
-    Table table = hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, createBeeKeeperDeletionProperties(), true);
+    Table table = hiveTestUtils.createTableWithDeletionProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, true);
     hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
     hiveTestUtils
         .addPartitionsToTable(PARTITION_ROOT_PATH, table, List.of("2020-01-01", "1", "B"));
@@ -255,7 +254,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
 
   @Test
   public void dryRunMetrics() throws Exception {
-    Table table = hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, createBeeKeeperDeletionProperties(), true);
+    Table table = hiveTestUtils.createTableWithDeletionProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, true);
     hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
 
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
@@ -315,9 +314,4 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
     assertThat(logsFromHiveClient).isEqualTo(expected);
   }
 
-  private Map<String, String> createBeeKeeperDeletionProperties() {
-    Map<String, String> tableProperties = new HashMap<>();
-    tableProperties.put("beekeeper.expired.data.table.deletion.enabled", "true");
-    return tableProperties;
-  }
 }

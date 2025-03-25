@@ -143,4 +143,15 @@ public class HiveTestUtils {
 
     return hiveTable;
   }
+
+  public Table createTableWithDeletionProperties(String path, String tableName, boolean partitioned,
+      boolean shouldTableBeDeletedIfEmpty) throws TException {
+    Map<String, String> tableProperties = new HashMap<>();
+    if (shouldTableBeDeletedIfEmpty) {
+      tableProperties.put("beekeeper.expired.data.table.deletion.enabled", "true");
+    } else {
+      tableProperties.put("beekeeper.expired.data.table.deletion.enabled", "false");
+    }
+    return createTableWithProperties(path, tableName, partitioned, tableProperties, true);
+  }
 }
