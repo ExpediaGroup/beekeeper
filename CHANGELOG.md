@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.6.0] - 2025-03-24
+## [3.6.0] - 2025-03-25
 ## Added
 - Added the `beekeeper.expired.data.table.deletion.enabled` property to separate table deletion into its own configuration item. 
 - Note: Before this release, partitioned tables were automatically deleted when all partitions expired. This is now considered a bug and the default behavior has changed, but you can restore the previous behavior by enabling this property.
