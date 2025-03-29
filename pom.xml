@@ -42,7 +42,7 @@
     <docker.registry>expediagroup</docker.registry>
     <jdk.version>11</jdk.version>
     <junit.jupiter.version>5.6.3</junit.jupiter.version>
-    <logback.version>1.2.3</logback.version>
+    <logback.version>1.2.13</logback.version>
     <log4j2.version>2.16.0</log4j2.version>
     <lombok.version>1.18.20</lombok.version>
     <maven.assembly.plugin.version>3.1.0</maven.assembly.plugin.version>
