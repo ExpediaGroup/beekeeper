@@ -16,6 +16,9 @@
 package com.expediagroup.beekeeper.scheduler.hive;
 
 import java.io.Closeable;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +38,7 @@ import com.hotels.hcommon.hive.metastore.iterator.PartitionIterator;
 public class HiveClient implements Closeable {
 
   private static final Logger log = LoggerFactory.getLogger(HiveClient.class);
+  private static final String CREATE_TIME = "transient_lastDdlTime";
 
   protected final CloseableMetaStoreClient metaStoreClient;
   protected final PartitionIteratorFactory partitionIteratorFactory;
@@ -44,9 +48,9 @@ public class HiveClient implements Closeable {
     this.partitionIteratorFactory = partitionIteratorFactory;
   }
 
-  public Map<String, String> getTablePartitionsAndPaths(String databaseName, String tableName) {
+  public Map<String, PartitionInfo> getTablePartitionsInfo(String databaseName, String tableName) {
     try {
-      Map<String, String> partitionNamePathMap = new HashMap<>();
+      Map<String, PartitionInfo> partitionInfoMap = new HashMap<>();
 
       Table table = metaStoreClient.getTable(databaseName, tableName);
       List<FieldSchema> partitionKeys = table.getPartitionKeys();
@@ -57,16 +61,33 @@ public class HiveClient implements Closeable {
         List<String> values = partition.getValues();
         String path = partition.getSd().getLocation();
         String partitionName = Warehouse.makePartName(partitionKeys, values);
-        partitionNamePathMap.put(partitionName, path);
+        
+        LocalDateTime createTime = extractCreateTime(partition.getParameters());
+        
+        partitionInfoMap.put(partitionName, new PartitionInfo(path, createTime));
 
         log.debug("Retrieved partition values '{}' with path '{}' for table {}.{}",
             values, path, databaseName, table);
       }
-      return partitionNamePathMap;
+      return partitionInfoMap;
     } catch (TException e) {
-      log.warn("Got error. Returning empty list. Error message: {}", e.getMessage());
+      log.warn("Got error. Returning empty map. Error message: {}", e.getMessage());
       return Collections.emptyMap();
     }
+  }
+
+  private LocalDateTime extractCreateTime(Map<String, String> parameters) {
+    if (parameters != null && parameters.containsKey(CREATE_TIME)) {
+      try {
+        long createTimeSeconds = Long.parseLong(parameters.get(CREATE_TIME));
+        return LocalDateTime.ofInstant(
+            Instant.ofEpochSecond(createTimeSeconds), 
+            ZoneId.systemDefault());
+      } catch (NumberFormatException e) {
+        log.warn("Could not parse create time, using current time instead: {}", e.getMessage());
+      }
+    }
+    return LocalDateTime.now();
   }
 
   public void close() {

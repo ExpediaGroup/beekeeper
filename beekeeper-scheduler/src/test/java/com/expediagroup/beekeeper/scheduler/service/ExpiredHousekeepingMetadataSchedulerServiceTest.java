@@ -50,6 +50,7 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.scheduler.hive.HiveClient;
 import com.expediagroup.beekeeper.scheduler.hive.HiveClientFactory;
+import com.expediagroup.beekeeper.scheduler.hive.PartitionInfo;
 
 @ExtendWith(MockitoExtension.class)
 public class ExpiredHousekeepingMetadataSchedulerServiceTest {
@@ -177,11 +178,13 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
     String partitionName2 = "event_date=2020-01-01/event_hour=1/event_type=B";
     String partitionName3 = "event_date=2020-01-01/event_hour=3/event_type=C";
-    Map<String, String> partitionNamesPathMap = Map.of(PARTITION_NAME, PARTITION_PATH, partitionName2,
-        "path/" + partitionName2, partitionName3, "path/" + partitionName3);
+    Map<String, PartitionInfo> partitionInfoMap = Map.of(
+        PARTITION_NAME, new PartitionInfo(PARTITION_PATH, CREATION_TIMESTAMP),
+        partitionName2, new PartitionInfo("path/" + partitionName2, CREATION_TIMESTAMP),
+        partitionName3, new PartitionInfo("path/" + partitionName3, CREATION_TIMESTAMP));
 
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
-    when(hiveClient.getTablePartitionsAndPaths(DATABASE_NAME, TABLE_NAME)).thenReturn(partitionNamesPathMap);
+    when(hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME)).thenReturn(partitionInfoMap);
     when(housekeepingMetadataRepository
         .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, null))
         .thenReturn(Optional.empty());
@@ -201,11 +204,12 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
     HousekeepingMetadata tableMetadata = createHousekeepingMetadataTable();
     String partitionName2 = "event_date=2020-01-01/event_hour=1/event_type=B";
-    Map<String, String> partitionNamesPathMap = Map.of(PARTITION_NAME, PARTITION_PATH, partitionName2,
-        "path/" + partitionName2);
+    Map<String, PartitionInfo> partitionInfoMap = Map.of(
+        PARTITION_NAME, new PartitionInfo(PARTITION_PATH, CREATION_TIMESTAMP),
+        partitionName2, new PartitionInfo("path/" + partitionName2, CREATION_TIMESTAMP));
 
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
-    when(hiveClient.getTablePartitionsAndPaths(DATABASE_NAME, TABLE_NAME)).thenReturn(partitionNamesPathMap);
+    when(hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME)).thenReturn(partitionInfoMap);
 
     when(housekeepingMetadataRepository
         .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, null))

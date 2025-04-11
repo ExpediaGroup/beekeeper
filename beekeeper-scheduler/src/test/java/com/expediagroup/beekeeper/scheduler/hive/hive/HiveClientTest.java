@@ -20,6 +20,9 @@ import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +38,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.expediagroup.beekeeper.scheduler.hive.HiveClient;
+import com.expediagroup.beekeeper.scheduler.hive.PartitionInfo;
 import com.expediagroup.beekeeper.scheduler.hive.PartitionIteratorFactory;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
@@ -89,9 +93,12 @@ public class HiveClientTest {
     when(partition.getValues()).thenReturn(List.of("2024-01-01", "1"));
     when(partition.getSd()).thenReturn(storageDescriptor);
     when(storageDescriptor.getLocation()).thenReturn(PARTITION_PATH);
+    when(partition.getParameters()).thenReturn(Map.of("transient_lastDdlTime", "1234567890"));
 
-    Map<String, String> tablePartitionsAndPaths = hiveClient.getTablePartitionsAndPaths(DATABASE_NAME, TABLE_NAME);
-    assertThat(tablePartitionsAndPaths).isEqualTo(Map.of(PARTITION_NAME, PARTITION_PATH));
+    Map<String, PartitionInfo> tablePartitionsInfo = hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME);
+    assertThat(tablePartitionsInfo.get(PARTITION_NAME).getPath()).isEqualTo(PARTITION_PATH);
+    assertThat(tablePartitionsInfo.get(PARTITION_NAME).getCreateTime())
+        .isEqualTo(LocalDateTime.ofInstant(Instant.ofEpochSecond(1234567890), ZoneId.systemDefault()));
   }
 
   @Test
@@ -127,16 +134,29 @@ public class HiveClientTest {
     when(storageDescriptor2.getLocation()).thenReturn(partition2Path);
     when(storageDescriptor3.getLocation()).thenReturn(partition3Path);
 
-    Map<String, String> tablePartitionsAndPaths = hiveClient.getTablePartitionsAndPaths(DATABASE_NAME, TABLE_NAME);
-    assertThat(tablePartitionsAndPaths).isEqualTo(
-        Map.of(PARTITION_NAME, PARTITION_PATH, partition2Name, partition2Path, partition23Name, partition3Path));
+    when(partition.getParameters()).thenReturn(Map.of("transient_lastDdlTime", "1234567890"));
+    when(partition2.getParameters()).thenReturn(Map.of("transient_lastDdlTime", "1234567891"));
+    when(partition3.getParameters()).thenReturn(Map.of("transient_lastDdlTime", "1234567892"));
+
+    Map<String, PartitionInfo> tablePartitionsInfo = hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME);
+    
+    assertThat(tablePartitionsInfo.get(PARTITION_NAME).getPath()).isEqualTo(PARTITION_PATH);
+    assertThat(tablePartitionsInfo.get(partition2Name).getPath()).isEqualTo(partition2Path);
+    assertThat(tablePartitionsInfo.get(partition23Name).getPath()).isEqualTo(partition3Path);
+
+    assertThat(tablePartitionsInfo.get(PARTITION_NAME).getCreateTime())
+        .isEqualTo(LocalDateTime.ofInstant(Instant.ofEpochSecond(1234567890), ZoneId.systemDefault()));
+    assertThat(tablePartitionsInfo.get(partition2Name).getCreateTime())
+        .isEqualTo(LocalDateTime.ofInstant(Instant.ofEpochSecond(1234567891), ZoneId.systemDefault()));
+    assertThat(tablePartitionsInfo.get(partition23Name).getCreateTime())
+        .isEqualTo(LocalDateTime.ofInstant(Instant.ofEpochSecond(1234567892), ZoneId.systemDefault()));
   }
 
   @Test
   public void throwsExceptionOnTableRetrieval() throws TException {
     when(metaStoreClient.getTable(DATABASE_NAME, TABLE_NAME)).thenThrow(TException.class);
 
-    Map<String, String> partitionNames = hiveClient.getTablePartitionsAndPaths(DATABASE_NAME, TABLE_NAME);
-    assertThat(partitionNames).isEqualTo(emptyMap());
+    Map<String, PartitionInfo> partitionInfo = hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME);
+    assertThat(partitionInfo).isEqualTo(emptyMap());
   }
 }

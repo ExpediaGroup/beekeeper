@@ -45,6 +45,7 @@ import com.expediagroup.beekeeper.core.repository.HousekeepingMetadataRepository
 import com.expediagroup.beekeeper.core.service.BeekeeperHistoryService;
 import com.expediagroup.beekeeper.scheduler.hive.HiveClient;
 import com.expediagroup.beekeeper.scheduler.hive.HiveClientFactory;
+import com.expediagroup.beekeeper.scheduler.hive.PartitionInfo;
 
 @Service
 public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerService {
@@ -239,7 +240,9 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
 
   private Map<String, String> retrieveTablePartitions(String database, String tableName) {
     try (HiveClient hiveClient = hiveClientFactory.newInstance()) {
-      return hiveClient.getTablePartitionsAndPaths(database, tableName);
+      Map<String, PartitionInfo> partitionInfo = hiveClient.getTablePartitionsInfo(database, tableName);
+      return partitionInfo.entrySet().stream()
+          .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getPath()));
     }
   }
 
