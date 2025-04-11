@@ -34,6 +34,7 @@ import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,6 +43,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentCaptor;
 
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
@@ -191,7 +193,16 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(tableMetadata);
 
-    verify(housekeepingMetadataRepository, times(4)).save(any());
+    ArgumentCaptor<HousekeepingMetadata> metadataCaptor = ArgumentCaptor.forClass(HousekeepingMetadata.class);
+    verify(housekeepingMetadataRepository, times(4)).save(metadataCaptor.capture());
+    
+    List<HousekeepingMetadata> savedMetadata = metadataCaptor.getAllValues();
+    for (HousekeepingMetadata metadata : savedMetadata) {
+      if (metadata.getPartitionName() != null) {  // Skip table metadata
+        assertThat(metadata.getCreationTimestamp()).isEqualTo(CREATION_TIMESTAMP);
+      }
+    }
+    
     verify(beekeeperHistoryService, times(4)).saveHistory(any(), eq(SCHEDULED));
   }
 
@@ -219,7 +230,16 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(tableMetadata);
 
-    verify(housekeepingMetadataRepository, times(3)).save(any());
+    ArgumentCaptor<HousekeepingMetadata> metadataCaptor = ArgumentCaptor.forClass(HousekeepingMetadata.class);
+    verify(housekeepingMetadataRepository, times(3)).save(metadataCaptor.capture());
+
+    List<HousekeepingMetadata> savedMetadata = metadataCaptor.getAllValues();
+    for (HousekeepingMetadata metadata : savedMetadata) {
+      if (metadata.getPartitionName() != null && !metadata.equals(existingPartition)) {  // Skip table metadata and existing partition
+        assertThat(metadata.getCreationTimestamp()).isEqualTo(CREATION_TIMESTAMP);
+      }
+    }
+    
     verify(existingPartition).setCleanupDelay(PeriodDuration.parse("P3D"));
     verify(beekeeperHistoryService, times(3)).saveHistory(any(), eq(SCHEDULED));
   }

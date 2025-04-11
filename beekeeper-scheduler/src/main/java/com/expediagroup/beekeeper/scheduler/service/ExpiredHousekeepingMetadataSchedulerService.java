@@ -259,17 +259,22 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
 
   private HousekeepingMetadata createNewMetadata(HousekeepingMetadata tableMetadata, String partitionName,
       String path) {
-    return HousekeepingMetadata
-        .builder()
-        .housekeepingStatus(SCHEDULED)
-        .creationTimestamp(LocalDateTime.now(clock))
-        .cleanupDelay(tableMetadata.getCleanupDelay())
-        .lifecycleType(LIFECYCLE_EVENT_TYPE.toString())
-        .path(path)
-        .databaseName(tableMetadata.getDatabaseName())
-        .tableName(tableMetadata.getTableName())
-        .partitionName(partitionName)
-        .build();
+    try (HiveClient hiveClient = hiveClientFactory.newInstance()) {
+      Map<String, PartitionInfo> partitionInfo = hiveClient.getTablePartitionsInfo(tableMetadata.getDatabaseName(), tableMetadata.getTableName());
+      LocalDateTime createTime = partitionInfo.get(partitionName).getCreateTime();
+      
+      return HousekeepingMetadata
+          .builder()
+          .housekeepingStatus(SCHEDULED)
+          .creationTimestamp(createTime)
+          .cleanupDelay(tableMetadata.getCleanupDelay())
+          .lifecycleType(LIFECYCLE_EVENT_TYPE.toString())
+          .path(path)
+          .databaseName(tableMetadata.getDatabaseName())
+          .tableName(tableMetadata.getTableName())
+          .partitionName(partitionName)
+          .build();
+    }
   }
 
   private void saveHistory(HousekeepingMetadata housekeepingMetadata, HousekeepingStatus status) {
