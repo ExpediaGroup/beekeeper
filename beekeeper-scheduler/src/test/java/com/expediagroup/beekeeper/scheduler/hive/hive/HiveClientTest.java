@@ -159,4 +159,58 @@ public class HiveClientTest {
     Map<String, PartitionInfo> partitionInfo = hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME);
     assertThat(partitionInfo).isEqualTo(emptyMap());
   }
+  
+  @Test
+  public void partitionInfoWithMissingCreateTimeParameter() throws TException {
+    when(metaStoreClient.getTable(DATABASE_NAME, TABLE_NAME)).thenReturn(table);
+    when(table.getPartitionKeys()).thenReturn(List.of(eventDatePartitionKey, eventHourPartitionKey));
+    when(eventDatePartitionKey.getName()).thenReturn("event_date");
+    when(eventHourPartitionKey.getName()).thenReturn("event_hour");
+    when(partitionIteratorFactory.newInstance(metaStoreClient, table)).thenReturn(partitionIterator);
+    when(partitionIterator.hasNext()).thenReturn(true, false);
+    when(partitionIterator.next()).thenReturn(partition);
+    when(partition.getValues()).thenReturn(List.of("2024-01-01", "1"));
+    when(partition.getSd()).thenReturn(storageDescriptor);
+    when(storageDescriptor.getLocation()).thenReturn(PARTITION_PATH);
+    when(partition.getParameters()).thenReturn(Map.of());
+
+    LocalDateTime beforeTest = LocalDateTime.now();
+    
+    Map<String, PartitionInfo> tablePartitionsInfo = hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME);
+
+    LocalDateTime afterTest = LocalDateTime.now();
+    
+    assertThat(tablePartitionsInfo.get(PARTITION_NAME).getPath()).isEqualTo(PARTITION_PATH);
+    LocalDateTime createTime = tablePartitionsInfo.get(PARTITION_NAME).getCreateTime();
+    assertThat(createTime).isNotNull();
+    assertThat(createTime).isAfterOrEqualTo(beforeTest);
+    assertThat(createTime).isBeforeOrEqualTo(afterTest);
+  }
+  
+  @Test
+  public void partitionInfoWithInvalidCreateTimeParameter() throws TException {
+    when(metaStoreClient.getTable(DATABASE_NAME, TABLE_NAME)).thenReturn(table);
+    when(table.getPartitionKeys()).thenReturn(List.of(eventDatePartitionKey, eventHourPartitionKey));
+    when(eventDatePartitionKey.getName()).thenReturn("event_date");
+    when(eventHourPartitionKey.getName()).thenReturn("event_hour");
+    when(partitionIteratorFactory.newInstance(metaStoreClient, table)).thenReturn(partitionIterator);
+    when(partitionIterator.hasNext()).thenReturn(true, false);
+    when(partitionIterator.next()).thenReturn(partition);
+    when(partition.getValues()).thenReturn(List.of("2024-01-01", "1"));
+    when(partition.getSd()).thenReturn(storageDescriptor);
+    when(storageDescriptor.getLocation()).thenReturn(PARTITION_PATH);
+    when(partition.getParameters()).thenReturn(Map.of("transient_lastDdlTime", "not-a-number")); // Invalid format
+
+    LocalDateTime beforeTest = LocalDateTime.now();
+    
+    Map<String, PartitionInfo> tablePartitionsInfo = hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME);
+
+    LocalDateTime afterTest = LocalDateTime.now();
+    
+    assertThat(tablePartitionsInfo.get(PARTITION_NAME).getPath()).isEqualTo(PARTITION_PATH);
+    LocalDateTime createTime = tablePartitionsInfo.get(PARTITION_NAME).getCreateTime();
+    assertThat(createTime).isNotNull();
+    assertThat(createTime).isAfterOrEqualTo(beforeTest);
+    assertThat(createTime).isBeforeOrEqualTo(afterTest);
+  }
 }

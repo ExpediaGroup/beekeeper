@@ -263,6 +263,11 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
       Map<String, PartitionInfo> partitionInfo = hiveClient.getTablePartitionsInfo(tableMetadata.getDatabaseName(), tableMetadata.getTableName());
       LocalDateTime createTime = partitionInfo.get(partitionName).getCreateTime();
       
+      if (createTime == null) {
+        log.warn("Creation time for partition {} is null, using current time", partitionName);
+        createTime = LocalDateTime.now(clock);
+      }
+      
       return HousekeepingMetadata
           .builder()
           .housekeepingStatus(SCHEDULED)

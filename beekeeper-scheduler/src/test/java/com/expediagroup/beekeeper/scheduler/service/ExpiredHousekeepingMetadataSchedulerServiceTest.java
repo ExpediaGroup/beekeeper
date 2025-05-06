@@ -162,6 +162,39 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
   }
 
   @Test
+  public void fallbackToCurrentTimeWhenPartitionCreateTimeIsMissing() {
+    HousekeepingMetadata tableMetadata = createHousekeepingMetadataTable();
+    LocalDateTime beforeTest = LocalDateTime.now();
+
+    Map<String, PartitionInfo> partitionInfoMap = Map.of(
+        PARTITION_NAME, new PartitionInfo(PARTITION_PATH, null));
+
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME)).thenReturn(partitionInfoMap);
+    when(housekeepingMetadataRepository
+        .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, null))
+        .thenReturn(Optional.empty());
+
+    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(tableMetadata);
+
+    ArgumentCaptor<HousekeepingMetadata> metadataCaptor = ArgumentCaptor.forClass(HousekeepingMetadata.class);
+    verify(housekeepingMetadataRepository, times(2)).save(metadataCaptor.capture());
+    
+    List<HousekeepingMetadata> savedMetadata = metadataCaptor.getAllValues();
+    LocalDateTime afterTest = LocalDateTime.now();
+
+    HousekeepingMetadata partitionMetadata = savedMetadata.stream()
+        .filter(metadata -> PARTITION_NAME.equals(metadata.getPartitionName()))
+        .findFirst()
+        .orElseThrow();
+
+    assertThat(partitionMetadata.getCreationTimestamp()).isNotNull();
+    assertThat(partitionMetadata.getCreationTimestamp())
+        .isAfterOrEqualTo(beforeTest)
+        .isBeforeOrEqualTo(afterTest);
+  }
+
+  @Test
   public void scheduleFails() {
     HousekeepingMetadata metadata = createHousekeepingMetadataTable();
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
@@ -242,6 +275,59 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     
     verify(existingPartition).setCleanupDelay(PeriodDuration.parse("P3D"));
     verify(beekeeperHistoryService, times(3)).saveHistory(any(), eq(SCHEDULED));
+  }
+
+  @Test
+  public void integrationTestForPartitionCreationTimeFlow() {
+    HousekeepingMetadata tableMetadata = createHousekeepingMetadataTable();
+
+    LocalDateTime olderPartitionCreationTime = LocalDateTime.of(2023, 1, 15, 12, 0);
+    LocalDateTime newerPartitionCreationTime = LocalDateTime.of(2024, 2, 20, 8, 30);
+    
+    String olderPartitionName = "event_date=2023-01-15/event_hour=12";
+    String olderPartitionPath = "path/" + olderPartitionName;
+    String newerPartitionName = "event_date=2024-02-20/event_hour=8";
+    String newerPartitionPath = "path/" + newerPartitionName;
+
+    Map<String, PartitionInfo> partitionInfoMap = Map.of(
+        olderPartitionName, new PartitionInfo(olderPartitionPath, olderPartitionCreationTime),
+        newerPartitionName, new PartitionInfo(newerPartitionPath, newerPartitionCreationTime)
+    );
+    
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME)).thenReturn(partitionInfoMap);
+    when(housekeepingMetadataRepository
+        .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, null))
+        .thenReturn(Optional.empty());
+
+    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(tableMetadata);
+
+    ArgumentCaptor<HousekeepingMetadata> metadataCaptor = ArgumentCaptor.forClass(HousekeepingMetadata.class);
+    verify(housekeepingMetadataRepository, times(3)).save(metadataCaptor.capture());
+    
+    List<HousekeepingMetadata> savedMetadata = metadataCaptor.getAllValues();
+
+    Map<String, LocalDateTime> expectedCreationTimes = Map.of(
+        olderPartitionName, olderPartitionCreationTime,
+        newerPartitionName, newerPartitionCreationTime
+    );
+    
+    for (String partitionName : expectedCreationTimes.keySet()) {
+      LocalDateTime expectedTime = expectedCreationTimes.get(partitionName);
+      
+      HousekeepingMetadata partitionMetadata = savedMetadata.stream()
+          .filter(metadata -> partitionName.equals(metadata.getPartitionName()))
+          .findFirst()
+          .orElseThrow(() -> new AssertionError("Metadata for partition " + partitionName + " not found"));
+      
+      assertThat(partitionMetadata.getCreationTimestamp()).isEqualTo(expectedTime);
+
+      if (partitionMetadata.getCleanupDelay() != null) {
+        Duration cleanupDelay = Duration.parse(tableMetadata.getCleanupDelay().toString());
+        LocalDateTime expectedCleanupTime = expectedTime.plus(cleanupDelay);
+        assertThat(partitionMetadata.getCleanupTimestamp()).isEqualTo(expectedCleanupTime);
+      }
+    }
   }
 
   private HousekeepingMetadata createHousekeepingMetadataPartition() {
