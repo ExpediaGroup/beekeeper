@@ -70,6 +70,14 @@ The "expired" TTL property will delete tables, partitions, and their locations a
 
 If the table is partitioned the cleanup delay will also apply to each partition that is added to the table. The table will only be dropped when there are no remaining partitions. 
 
+### Partition Creation Time and TTL
+
+When scheduling partitions for deletion, Beekeeper uses the actual partition creation time extracted from Hive's metadata (`transient_lastDdlTime`). This ensures that partitions are scheduled for deletion based on when they were originally created rather than when Beekeeper discovered them.
+
+For existing partitions that are discovered when a table is first tagged with TTL properties, Beekeeper will retrieve and use their original creation timestamps. This maintains consistent behavior between newly created partitions and pre-existing ones.
+
+If the partition creation time cannot be determined from Hive, Beekeeper will fall back to using the current time.
+
 To see whether a table has been configured to use the TTL feature, the `beekeeper-api` metadata endpoint can be used to check if a table has been successfully registered in the Beekeeper database and see when it is going to be deleted. More information in the [Beekeeper API](#Beekeeper-API) section.
 
 ### End-to-end lifecycle example
