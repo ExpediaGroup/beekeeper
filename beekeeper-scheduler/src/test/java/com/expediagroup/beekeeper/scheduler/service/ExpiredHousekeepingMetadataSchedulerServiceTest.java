@@ -231,7 +231,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     
     List<HousekeepingMetadata> savedMetadata = metadataCaptor.getAllValues();
     for (HousekeepingMetadata metadata : savedMetadata) {
-      if (metadata.getPartitionName() != null) {  // Skip table metadata
+      if (metadata.getPartitionName() != null) {
         assertThat(metadata.getCreationTimestamp()).isEqualTo(CREATION_TIMESTAMP);
       }
     }
@@ -268,7 +268,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
 
     List<HousekeepingMetadata> savedMetadata = metadataCaptor.getAllValues();
     for (HousekeepingMetadata metadata : savedMetadata) {
-      if (metadata.getPartitionName() != null && !metadata.equals(existingPartition)) {  // Skip table metadata and existing partition
+      if (metadata.getPartitionName() != null && !metadata.equals(existingPartition)) {
         assertThat(metadata.getCreationTimestamp()).isEqualTo(CREATION_TIMESTAMP);
       }
     }

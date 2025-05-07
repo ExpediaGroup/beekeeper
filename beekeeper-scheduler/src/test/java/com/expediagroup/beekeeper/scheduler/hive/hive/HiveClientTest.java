@@ -199,7 +199,7 @@ public class HiveClientTest {
     when(partition.getValues()).thenReturn(List.of("2024-01-01", "1"));
     when(partition.getSd()).thenReturn(storageDescriptor);
     when(storageDescriptor.getLocation()).thenReturn(PARTITION_PATH);
-    when(partition.getParameters()).thenReturn(Map.of("transient_lastDdlTime", "not-a-number")); // Invalid format
+    when(partition.getParameters()).thenReturn(Map.of("transient_lastDdlTime", "not-a-number"));
 
     LocalDateTime beforeTest = LocalDateTime.now();
     
