@@ -132,9 +132,9 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
   private void scheduleTablePartitions(HousekeepingMetadata tableMetadata) {
     log.info("Scheduling all partitions for table {}.{}", tableMetadata.getDatabaseName(),
         tableMetadata.getTableName());
-    Map<String, String> partitionNamesAndPaths = retrieveTablePartitions(tableMetadata.getDatabaseName(),
+    Map<String, PartitionInfo> partitionInfo = retrieveTablePartitions(tableMetadata.getDatabaseName(),
         tableMetadata.getTableName());
-    schedule(partitionNamesAndPaths, tableMetadata);
+    schedule(partitionInfo, tableMetadata);
   }
 
   /**
@@ -173,12 +173,12 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
    */
   private void scheduleMissingPartitions(HousekeepingMetadata tableMetadata,
       List<HousekeepingMetadata> scheduledPartitions) {
-    Map<String, String> unscheduledPartitionNames = findUnscheduledPartitionNames(tableMetadata, scheduledPartitions);
-    if (unscheduledPartitionNames.isEmpty()) {
+    Map<String, PartitionInfo> unscheduledPartitionInfo = findUnscheduledPartitionNames(tableMetadata, scheduledPartitions);
+    if (unscheduledPartitionInfo.isEmpty()) {
       log.info("All table partitions have already been scheduled.");
       return;
     }
-    schedule(unscheduledPartitionNames, tableMetadata);
+    schedule(unscheduledPartitionInfo, tableMetadata);
   }
 
   /**
@@ -224,62 +224,57 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
     });
   }
 
-  private Map<String, String> findUnscheduledPartitionNames(HousekeepingMetadata tableMetadata,
+  private Map<String, PartitionInfo> findUnscheduledPartitionNames(HousekeepingMetadata tableMetadata,
       List<HousekeepingMetadata> scheduledPartitions) {
-    Map<String, String> tablePartitionNamesAndPaths = retrieveTablePartitions(tableMetadata.getDatabaseName(),
+    Map<String, PartitionInfo> tablePartitionInfo = retrieveTablePartitions(tableMetadata.getDatabaseName(),
         tableMetadata.getTableName());
 
     Set<String> scheduledPartitionNames = scheduledPartitions.stream()
         .map(HousekeepingMetadata::getPartitionName)
         .collect(Collectors.toSet());
 
-    return tablePartitionNamesAndPaths.entrySet().stream()
+    return tablePartitionInfo.entrySet().stream()
         .filter(entry -> !scheduledPartitionNames.contains(entry.getKey()))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private Map<String, String> retrieveTablePartitions(String database, String tableName) {
+  private Map<String, PartitionInfo> retrieveTablePartitions(String database, String tableName) {
     try (HiveClient hiveClient = hiveClientFactory.newInstance()) {
-      Map<String, PartitionInfo> partitionInfo = hiveClient.getTablePartitionsInfo(database, tableName);
-      return partitionInfo.entrySet().stream()
-          .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getPath()));
+      return hiveClient.getTablePartitionsInfo(database, tableName);
     }
   }
 
-  private void schedule(Map<String, String> partitionNamesAndPaths, HousekeepingMetadata tableMetadata) {
-    partitionNamesAndPaths.forEach((partitionName, path) -> {
-      HousekeepingMetadata partitionMetadata = createNewMetadata(tableMetadata, partitionName, path);
+  private void schedule(Map<String, PartitionInfo> partitionInfo, HousekeepingMetadata tableMetadata) {
+    partitionInfo.forEach((partitionName, info) -> {
+      HousekeepingMetadata partitionMetadata = createNewMetadata(tableMetadata, partitionName, info);
 
       housekeepingMetadataRepository.save(partitionMetadata);
       beekeeperHistoryService.saveHistory(partitionMetadata, SCHEDULED);
     });
-    log.info("Scheduled {} partitions for table {}.{}", partitionNamesAndPaths.size(), tableMetadata.getDatabaseName(),
+    log.info("Scheduled {} partitions for table {}.{}", partitionInfo.size(), tableMetadata.getDatabaseName(),
         tableMetadata.getTableName());
   }
 
   private HousekeepingMetadata createNewMetadata(HousekeepingMetadata tableMetadata, String partitionName,
-      String path) {
-    try (HiveClient hiveClient = hiveClientFactory.newInstance()) {
-      Map<String, PartitionInfo> partitionInfo = hiveClient.getTablePartitionsInfo(tableMetadata.getDatabaseName(), tableMetadata.getTableName());
-      LocalDateTime createTime = partitionInfo.get(partitionName).getCreateTime();
-      
-      if (createTime == null) {
-        log.warn("Creation time for partition {} is null, using current time", partitionName);
-        createTime = LocalDateTime.now(clock);
-      }
-      
-      return HousekeepingMetadata
-          .builder()
-          .housekeepingStatus(SCHEDULED)
-          .creationTimestamp(createTime)
-          .cleanupDelay(tableMetadata.getCleanupDelay())
-          .lifecycleType(LIFECYCLE_EVENT_TYPE.toString())
-          .path(path)
-          .databaseName(tableMetadata.getDatabaseName())
-          .tableName(tableMetadata.getTableName())
-          .partitionName(partitionName)
-          .build();
+      PartitionInfo partitionInfo) {
+    LocalDateTime createTime = partitionInfo.getCreateTime();
+    
+    if (createTime == null) {
+      log.warn("Creation time for partition {} is null, using current time", partitionName);
+      createTime = LocalDateTime.now(clock);
     }
+    
+    return HousekeepingMetadata
+        .builder()
+        .housekeepingStatus(SCHEDULED)
+        .creationTimestamp(createTime)
+        .cleanupDelay(tableMetadata.getCleanupDelay())
+        .lifecycleType(LIFECYCLE_EVENT_TYPE.toString())
+        .path(partitionInfo.getPath())
+        .databaseName(tableMetadata.getDatabaseName())
+        .tableName(tableMetadata.getTableName())
+        .partitionName(partitionName)
+        .build();
   }
 
   private void saveHistory(HousekeepingMetadata housekeepingMetadata, HousekeepingStatus status) {
