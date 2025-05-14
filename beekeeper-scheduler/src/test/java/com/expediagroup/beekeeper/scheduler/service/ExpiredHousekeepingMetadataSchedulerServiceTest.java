@@ -162,12 +162,13 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
   }
 
   @Test
-  public void fallbackToCurrentTimeWhenPartitionCreateTimeIsMissing() {
+  public void useCurrentTimeFromPartitionInfo() {
     HousekeepingMetadata tableMetadata = createHousekeepingMetadataTable();
     LocalDateTime beforeTest = LocalDateTime.now();
 
+    LocalDateTime currentTime = LocalDateTime.now();
     Map<String, PartitionInfo> partitionInfoMap = Map.of(
-        PARTITION_NAME, new PartitionInfo(PARTITION_PATH, null));
+        PARTITION_NAME, new PartitionInfo(PARTITION_PATH, currentTime));
 
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME)).thenReturn(partitionInfoMap);
