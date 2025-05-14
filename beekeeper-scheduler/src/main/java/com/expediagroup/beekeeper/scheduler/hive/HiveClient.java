@@ -16,6 +16,9 @@
 package com.expediagroup.beekeeper.scheduler.hive;
 
 import java.io.Closeable;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -44,9 +47,9 @@ public class HiveClient implements Closeable {
     this.partitionIteratorFactory = partitionIteratorFactory;
   }
 
-  public Map<String, String> getTablePartitionsAndPaths(String databaseName, String tableName) {
+  public Map<String, PartitionInfo> getTablePartitionsInfo(String databaseName, String tableName) {
     try {
-      Map<String, String> partitionNamePathMap = new HashMap<>();
+      Map<String, PartitionInfo> partitionInfoMap = new HashMap<>();
 
       Table table = metaStoreClient.getTable(databaseName, tableName);
       List<FieldSchema> partitionKeys = table.getPartitionKeys();
@@ -57,16 +60,30 @@ public class HiveClient implements Closeable {
         List<String> values = partition.getValues();
         String path = partition.getSd().getLocation();
         String partitionName = Warehouse.makePartName(partitionKeys, values);
-        partitionNamePathMap.put(partitionName, path);
+        
+        LocalDateTime createTime = extractCreateTime(partition);
+        
+        partitionInfoMap.put(partitionName, new PartitionInfo(path, createTime));
 
         log.debug("Retrieved partition values '{}' with path '{}' for table {}.{}",
             values, path, databaseName, table);
       }
-      return partitionNamePathMap;
+      return partitionInfoMap;
     } catch (TException e) {
-      log.warn("Got error. Returning empty list. Error message: {}", e.getMessage());
+      log.warn("Got error. Returning empty map. Error message: {}", e.getMessage());
       return Collections.emptyMap();
     }
+  }
+
+  private LocalDateTime extractCreateTime(Partition partition) {
+    if (partition.getCreateTime() > 0) {
+        return LocalDateTime.ofInstant(
+            Instant.ofEpochSecond(partition.getCreateTime()), 
+            ZoneId.systemDefault());
+    }
+    
+    log.warn("Creation time for partition is not available, using current time");
+    return LocalDateTime.now();
   }
 
   public void close() {
