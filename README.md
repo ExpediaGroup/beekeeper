@@ -72,7 +72,7 @@ If the table is partitioned the cleanup delay will also apply to each partition 
 
 ### Partition Creation Time and TTL
 
-When scheduling partitions for deletion, Beekeeper uses the actual partition creation time extracted from Hive's metadata (`transient_lastDdlTime`). This ensures that partitions are scheduled for deletion based on when they were originally created rather than when Beekeeper discovered them.
+When scheduling partitions for deletion, Beekeeper uses the actual partition creation time extracted from Hive's metadata (`CreateTime`). This ensures that partitions are scheduled for deletion based on when they were originally created rather than when Beekeeper discovered them.
 
 For existing partitions that are discovered when a table is first tagged with TTL properties, Beekeeper will retrieve and use their original creation timestamps. This maintains consistent behavior between newly created partitions and pre-existing ones.
 

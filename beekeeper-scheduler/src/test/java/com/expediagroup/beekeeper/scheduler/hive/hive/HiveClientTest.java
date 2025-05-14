@@ -93,7 +93,7 @@ public class HiveClientTest {
     when(partition.getValues()).thenReturn(List.of("2024-01-01", "1"));
     when(partition.getSd()).thenReturn(storageDescriptor);
     when(storageDescriptor.getLocation()).thenReturn(PARTITION_PATH);
-    when(partition.getParameters()).thenReturn(Map.of("transient_lastDdlTime", "1234567890"));
+    when(partition.getCreateTime()).thenReturn(1234567890);
 
     Map<String, PartitionInfo> tablePartitionsInfo = hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME);
     assertThat(tablePartitionsInfo.get(PARTITION_NAME).getPath()).isEqualTo(PARTITION_PATH);
@@ -134,9 +134,9 @@ public class HiveClientTest {
     when(storageDescriptor2.getLocation()).thenReturn(partition2Path);
     when(storageDescriptor3.getLocation()).thenReturn(partition3Path);
 
-    when(partition.getParameters()).thenReturn(Map.of("transient_lastDdlTime", "1234567890"));
-    when(partition2.getParameters()).thenReturn(Map.of("transient_lastDdlTime", "1234567891"));
-    when(partition3.getParameters()).thenReturn(Map.of("transient_lastDdlTime", "1234567892"));
+    when(partition.getCreateTime()).thenReturn(1234567890);
+    when(partition2.getCreateTime()).thenReturn(1234567891);
+    when(partition3.getCreateTime()).thenReturn(1234567892);
 
     Map<String, PartitionInfo> tablePartitionsInfo = hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME);
     
@@ -161,7 +161,7 @@ public class HiveClientTest {
   }
   
   @Test
-  public void partitionInfoWithMissingCreateTimeParameter() throws TException {
+  public void partitionInfoWithMissingCreateTime() throws TException {
     when(metaStoreClient.getTable(DATABASE_NAME, TABLE_NAME)).thenReturn(table);
     when(table.getPartitionKeys()).thenReturn(List.of(eventDatePartitionKey, eventHourPartitionKey));
     when(eventDatePartitionKey.getName()).thenReturn("event_date");
@@ -172,7 +172,7 @@ public class HiveClientTest {
     when(partition.getValues()).thenReturn(List.of("2024-01-01", "1"));
     when(partition.getSd()).thenReturn(storageDescriptor);
     when(storageDescriptor.getLocation()).thenReturn(PARTITION_PATH);
-    when(partition.getParameters()).thenReturn(Map.of());
+    when(partition.getCreateTime()).thenReturn(0);
 
     LocalDateTime beforeTest = LocalDateTime.now();
     
@@ -188,7 +188,7 @@ public class HiveClientTest {
   }
   
   @Test
-  public void partitionInfoWithInvalidCreateTimeParameter() throws TException {
+  public void partitionInfoWithNegativeCreateTime() throws TException {
     when(metaStoreClient.getTable(DATABASE_NAME, TABLE_NAME)).thenReturn(table);
     when(table.getPartitionKeys()).thenReturn(List.of(eventDatePartitionKey, eventHourPartitionKey));
     when(eventDatePartitionKey.getName()).thenReturn("event_date");
@@ -199,7 +199,7 @@ public class HiveClientTest {
     when(partition.getValues()).thenReturn(List.of("2024-01-01", "1"));
     when(partition.getSd()).thenReturn(storageDescriptor);
     when(storageDescriptor.getLocation()).thenReturn(PARTITION_PATH);
-    when(partition.getParameters()).thenReturn(Map.of("transient_lastDdlTime", "not-a-number"));
+    when(partition.getCreateTime()).thenReturn(-1);
 
     LocalDateTime beforeTest = LocalDateTime.now();
     

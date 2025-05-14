@@ -38,7 +38,6 @@ import com.hotels.hcommon.hive.metastore.iterator.PartitionIterator;
 public class HiveClient implements Closeable {
 
   private static final Logger log = LoggerFactory.getLogger(HiveClient.class);
-  private static final String CREATE_TIME = "transient_lastDdlTime";
 
   protected final CloseableMetaStoreClient metaStoreClient;
   protected final PartitionIteratorFactory partitionIteratorFactory;
@@ -62,7 +61,7 @@ public class HiveClient implements Closeable {
         String path = partition.getSd().getLocation();
         String partitionName = Warehouse.makePartName(partitionKeys, values);
         
-        LocalDateTime createTime = extractCreateTime(partition.getParameters());
+        LocalDateTime createTime = extractCreateTime(partition);
         
         partitionInfoMap.put(partitionName, new PartitionInfo(path, createTime));
 
@@ -76,17 +75,15 @@ public class HiveClient implements Closeable {
     }
   }
 
-  private LocalDateTime extractCreateTime(Map<String, String> parameters) {
-    if (parameters != null && parameters.containsKey(CREATE_TIME)) {
-      try {
-        long createTimeSeconds = Long.parseLong(parameters.get(CREATE_TIME));
+  private LocalDateTime extractCreateTime(Partition partition) {
+    // The CreateTime is stored in seconds since epoch
+    if (partition.getCreateTime() > 0) {
         return LocalDateTime.ofInstant(
-            Instant.ofEpochSecond(createTimeSeconds), 
+            Instant.ofEpochSecond(partition.getCreateTime()), 
             ZoneId.systemDefault());
-      } catch (NumberFormatException e) {
-        log.warn("Could not parse create time, using current time instead: {}", e.getMessage());
-      }
     }
+    
+    log.warn("Creation time for partition is not available, using current time");
     return LocalDateTime.now();
   }
 

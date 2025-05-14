@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.6.1] - 2025-05-14
 ## Fixed
-- Use Hive partition creation time (`transient_lastDdlTime`) for scheduling partition cleanup, ensuring accurate expiry timing for both new and existing partitions.
+- Use Hive partition creation time (`createTime`) for scheduling partition cleanup, ensuring accurate expiry timing for both new and existing partitions.
 - Updated workflows to use `Ubuntu 22.04` instead of `Ubuntu 20.04`.
 
 ## [3.6.0] - 2025-03-25
