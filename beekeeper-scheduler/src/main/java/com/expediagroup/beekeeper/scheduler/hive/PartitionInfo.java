@@ -22,6 +22,12 @@ public class PartitionInfo {
   private final LocalDateTime createTime;
 
   public PartitionInfo(String path, LocalDateTime createTime) {
+    if (path == null) {
+        throw new IllegalArgumentException("Path cannot be null");
+    }
+    if (createTime == null) {
+        throw new IllegalArgumentException("CreateTime cannot be null");
+    }
     this.path = path;
     this.createTime = createTime;
   }

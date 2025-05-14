@@ -257,17 +257,10 @@ public class ExpiredHousekeepingMetadataSchedulerService implements SchedulerSer
 
   private HousekeepingMetadata createNewMetadata(HousekeepingMetadata tableMetadata, String partitionName,
       PartitionInfo partitionInfo) {
-    LocalDateTime createTime = partitionInfo.getCreateTime();
-    
-    if (createTime == null) {
-      log.warn("Creation time for partition {} is null, using current time", partitionName);
-      createTime = LocalDateTime.now(clock);
-    }
-    
     return HousekeepingMetadata
         .builder()
         .housekeepingStatus(SCHEDULED)
-        .creationTimestamp(createTime)
+        .creationTimestamp(partitionInfo.getCreateTime())
         .cleanupDelay(tableMetadata.getCleanupDelay())
         .lifecycleType(LIFECYCLE_EVENT_TYPE.toString())
         .path(partitionInfo.getPath())
