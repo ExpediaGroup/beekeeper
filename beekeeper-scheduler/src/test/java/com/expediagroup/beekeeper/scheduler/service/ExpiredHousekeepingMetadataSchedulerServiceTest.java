@@ -331,6 +331,127 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     }
   }
 
+  @Test
+  public void integrationTestForExistingAndNewPartitions() {
+    HousekeepingMetadata tableMetadata = createHousekeepingMetadataTable();
+    LocalDateTime existingPartitionTime = LocalDateTime.of(2023, 5, 10, 14, 30);
+
+    String existingPartitionName = "event_date=2023-05-10/event_hour=14";
+    String existingPartitionPath = "path/" + existingPartitionName;
+
+    HousekeepingMetadata existingPartitionMetadata = HousekeepingMetadata
+        .builder()
+        .path(existingPartitionPath)
+        .databaseName(DATABASE_NAME)
+        .tableName(TABLE_NAME)
+        .partitionName(existingPartitionName)
+        .housekeepingStatus(SCHEDULED)
+        .creationTimestamp(existingPartitionTime)
+        .modifiedTimestamp(existingPartitionTime)
+        .cleanupDelay(PeriodDuration.parse("P3D"))
+        .cleanupAttempts(0)
+        .lifecycleType(EXPIRED.toString())
+        .build();
+
+    LocalDateTime newPartitionTime = LocalDateTime.of(2023, 6, 15, 9, 45);
+
+    String newPartitionName = "event_date=2023-06-15/event_hour=9";
+    String newPartitionPath = "path/" + newPartitionName;
+
+    Map<String, PartitionInfo> partitionInfoMap = Map.of(
+        existingPartitionName, new PartitionInfo(existingPartitionPath, existingPartitionTime),
+        newPartitionName, new PartitionInfo(newPartitionPath, newPartitionTime)
+    );
+
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME)).thenReturn(partitionInfoMap);
+
+    when(housekeepingMetadataRepository
+        .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, null))
+        .thenReturn(Optional.of(tableMetadata));
+    when(housekeepingMetadataRepository.findRecordsForCleanupByDbAndTableName(DATABASE_NAME, TABLE_NAME))
+        .thenReturn(List.of(existingPartitionMetadata));
+
+    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(tableMetadata);
+
+    ArgumentCaptor<HousekeepingMetadata> metadataCaptor = ArgumentCaptor.forClass(HousekeepingMetadata.class);
+    verify(housekeepingMetadataRepository, times(2)).save(metadataCaptor.capture());
+
+    List<HousekeepingMetadata> savedMetadata = metadataCaptor.getAllValues();
+
+    HousekeepingMetadata newPartitionMetadata = savedMetadata.stream()
+        .filter(metadata -> newPartitionName.equals(metadata.getPartitionName()))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("Metadata for new partition not found"));
+
+    assertThat(newPartitionMetadata.getCreationTimestamp()).isEqualTo(newPartitionTime);
+
+    Duration cleanupDelay = Duration.parse(tableMetadata.getCleanupDelay().toString());
+    LocalDateTime expectedCleanupTime = newPartitionTime.plus(cleanupDelay);
+    assertThat(newPartitionMetadata.getCleanupTimestamp()).isEqualTo(expectedCleanupTime);
+  }
+
+  @Test
+  public void integrationTestForNewlyDiscoveredPartitionsWithCreateTime() {
+    HousekeepingMetadata tableMetadata = createHousekeepingMetadataTable();
+
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME)).thenReturn(Map.of());
+    when(housekeepingMetadataRepository
+        .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, null))
+        .thenReturn(Optional.empty());
+
+    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(tableMetadata);
+
+    LocalDateTime firstPartitionTime = LocalDateTime.of(2024, 1, 5, 8, 15);
+    LocalDateTime secondPartitionTime = LocalDateTime.of(2024, 1, 6, 10, 30);
+
+    String firstPartitionName = "event_date=2024-01-05/event_hour=8";
+    String secondPartitionName = "event_date=2024-01-06/event_hour=10";
+    String firstPartitionPath = "path/" + firstPartitionName;
+    String secondPartitionPath = "path/" + secondPartitionName;
+
+    when(housekeepingMetadataRepository
+        .findRecordForCleanupByDbTableAndPartitionName(DATABASE_NAME, TABLE_NAME, null))
+        .thenReturn(Optional.of(tableMetadata));
+
+    Map<String, PartitionInfo> newPartitionsMap = Map.of(
+        firstPartitionName, new PartitionInfo(firstPartitionPath, firstPartitionTime),
+        secondPartitionName, new PartitionInfo(secondPartitionPath, secondPartitionTime)
+    );
+    when(hiveClient.getTablePartitionsInfo(DATABASE_NAME, TABLE_NAME)).thenReturn(newPartitionsMap);
+
+    when(housekeepingMetadataRepository.findRecordsForCleanupByDbAndTableName(DATABASE_NAME, TABLE_NAME))
+        .thenReturn(List.of());
+
+    expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(tableMetadata);
+
+    ArgumentCaptor<HousekeepingMetadata> metadataCaptor = ArgumentCaptor.forClass(HousekeepingMetadata.class);
+    verify(housekeepingMetadataRepository, times(4)).save(metadataCaptor.capture());
+
+    List<HousekeepingMetadata> allSavedMetadata = metadataCaptor.getAllValues();
+
+    List<HousekeepingMetadata> newPartitionsMetadata = allSavedMetadata.subList(1, 3);
+
+    Map<String, LocalDateTime> expectedCreationTimes = Map.of(
+        firstPartitionName, firstPartitionTime,
+        secondPartitionName, secondPartitionTime
+    );
+
+    for (HousekeepingMetadata metadata : newPartitionsMetadata) {
+      String partitionName = metadata.getPartitionName();
+      assertThat(partitionName).isNotNull();
+
+      LocalDateTime expectedTime = expectedCreationTimes.get(partitionName);
+      assertThat(expectedTime).isNotNull();
+      assertThat(metadata.getCreationTimestamp()).isEqualTo(expectedTime);
+
+      Duration cleanupDelay = Duration.parse(tableMetadata.getCleanupDelay().toString());
+      LocalDateTime expectedCleanupTime = expectedTime.plus(cleanupDelay);
+      assertThat(metadata.getCleanupTimestamp()).isEqualTo(expectedCleanupTime);
+    }
+  }
+
   private HousekeepingMetadata createHousekeepingMetadataPartition() {
     return createEntityHousekeepingTable(PARTITION_NAME);
   }
