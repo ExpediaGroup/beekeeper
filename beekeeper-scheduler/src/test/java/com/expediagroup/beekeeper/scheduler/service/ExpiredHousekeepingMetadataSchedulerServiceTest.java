@@ -265,7 +265,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(tableMetadata);
 
     ArgumentCaptor<HousekeepingMetadata> metadataCaptor = ArgumentCaptor.forClass(HousekeepingMetadata.class);
-    verify(housekeepingMetadataRepository, times(3)).save(metadataCaptor.capture());
+    verify(housekeepingMetadataRepository, times(4)).save(metadataCaptor.capture());
 
     List<HousekeepingMetadata> savedMetadata = metadataCaptor.getAllValues();
     for (HousekeepingMetadata metadata : savedMetadata) {
@@ -275,7 +275,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     }
     
     verify(existingPartition).setCleanupDelay(PeriodDuration.parse("P3D"));
-    verify(beekeeperHistoryService, times(3)).saveHistory(any(), eq(SCHEDULED));
+    verify(beekeeperHistoryService, times(4)).saveHistory(any(), eq(SCHEDULED));
   }
 
   @Test
@@ -304,7 +304,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(tableMetadata);
 
     ArgumentCaptor<HousekeepingMetadata> metadataCaptor = ArgumentCaptor.forClass(HousekeepingMetadata.class);
-    verify(housekeepingMetadataRepository, times(3)).save(metadataCaptor.capture());
+    verify(housekeepingMetadataRepository, times(4)).save(metadataCaptor.capture());
     
     List<HousekeepingMetadata> savedMetadata = metadataCaptor.getAllValues();
 
@@ -375,7 +375,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(tableMetadata);
     
     ArgumentCaptor<HousekeepingMetadata> metadataCaptor = ArgumentCaptor.forClass(HousekeepingMetadata.class);
-    verify(housekeepingMetadataRepository, times(2)).save(metadataCaptor.capture());
+    verify(housekeepingMetadataRepository, times(4)).save(metadataCaptor.capture());
     
     List<HousekeepingMetadata> savedMetadata = metadataCaptor.getAllValues();
     
@@ -427,7 +427,7 @@ public class ExpiredHousekeepingMetadataSchedulerServiceTest {
     expiredHousekeepingMetadataSchedulerService.scheduleForHousekeeping(tableMetadata);
     
     ArgumentCaptor<HousekeepingMetadata> metadataCaptor = ArgumentCaptor.forClass(HousekeepingMetadata.class);
-    verify(housekeepingMetadataRepository, times(3)).save(metadataCaptor.capture());
+    verify(housekeepingMetadataRepository, times(4)).save(metadataCaptor.capture());
     
     List<HousekeepingMetadata> allSavedMetadata = metadataCaptor.getAllValues();
     
