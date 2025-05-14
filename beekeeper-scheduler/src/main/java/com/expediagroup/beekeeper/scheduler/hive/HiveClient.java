@@ -76,7 +76,6 @@ public class HiveClient implements Closeable {
   }
 
   private LocalDateTime extractCreateTime(Partition partition) {
-    // The CreateTime is stored in seconds since epoch
     if (partition.getCreateTime() > 0) {
         return LocalDateTime.ofInstant(
             Instant.ofEpochSecond(partition.getCreateTime()), 
