@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.anyString;
 
 import static com.expedia.apiary.extensions.receiver.common.event.EventType.ADD_PARTITION;
 import static com.expedia.apiary.extensions.receiver.common.event.EventType.ALTER_PARTITION;
@@ -32,6 +33,7 @@ import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,9 @@ import com.expedia.apiary.extensions.receiver.common.event.DropTableEvent;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.core.model.HousekeepingEntity;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
+import com.expediagroup.beekeeper.scheduler.hive.HiveClient;
+import com.expediagroup.beekeeper.scheduler.hive.HiveClientFactory;
+import com.expediagroup.beekeeper.scheduler.hive.PartitionInfo;
 
 @ExtendWith(MockitoExtension.class)
 public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntityGeneratorTestBase {
@@ -65,11 +70,16 @@ public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntity
   @Mock private AlterTableEvent alterTableEvent;
   @Mock private AddPartitionEvent addPartitionEvent;
   @Mock private AlterPartitionEvent alterPartitionEvent;
+  @Mock private HiveClientFactory hiveClientFactory;
+  @Mock private HiveClient hiveClient;
   private ExpiredHousekeepingMetadataGenerator generator;
 
   @BeforeEach
   public void setup() {
-    generator = new ExpiredHousekeepingMetadataGenerator(cleanupDelayExtractor, clock);
+    generator = new ExpiredHousekeepingMetadataGenerator(cleanupDelayExtractor, clock, hiveClientFactory);
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    Map<String, PartitionInfo> emptyPartitionInfo = Collections.emptyMap();
+    when(hiveClient.getTablePartitionsInfo(anyString(), anyString())).thenReturn(emptyPartitionInfo);
   }
 
   @Test

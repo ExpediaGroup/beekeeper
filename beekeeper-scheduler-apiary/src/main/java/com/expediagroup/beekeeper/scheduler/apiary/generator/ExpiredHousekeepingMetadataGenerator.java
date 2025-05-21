@@ -26,6 +26,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -47,6 +48,9 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.scheduler.apiary.generator.utils.CleanupDelayExtractor;
+import com.expediagroup.beekeeper.scheduler.hive.HiveClient;
+import com.expediagroup.beekeeper.scheduler.hive.HiveClientFactory;
+import com.expediagroup.beekeeper.scheduler.hive.PartitionInfo;
 
 public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityGenerator {
 
@@ -57,16 +61,19 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
 
   private final CleanupDelayExtractor cleanupDelayExtractor;
   private final Clock clock;
+  private final HiveClientFactory hiveClientFactory;
 
-  public ExpiredHousekeepingMetadataGenerator(String cleanupDelay) {
+  public ExpiredHousekeepingMetadataGenerator(String cleanupDelay, HiveClientFactory hiveClientFactory) {
     this(new CleanupDelayExtractor(EXPIRED_DATA_RETENTION_PERIOD_PROPERTY_KEY, cleanupDelay),
-        Clock.systemDefaultZone());
+        Clock.systemDefaultZone(), hiveClientFactory);
   }
 
   @VisibleForTesting
-  ExpiredHousekeepingMetadataGenerator(CleanupDelayExtractor cleanupDelayExtractor, Clock clock) {
+  ExpiredHousekeepingMetadataGenerator(CleanupDelayExtractor cleanupDelayExtractor, Clock clock,
+      HiveClientFactory hiveClientFactory) {
     this.cleanupDelayExtractor = cleanupDelayExtractor;
     this.clock = clock;
+    this.hiveClientFactory = hiveClientFactory;
   }
 
   @Override
@@ -136,10 +143,23 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
       String path,
       String partitionName) {
     PeriodDuration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
+    
+    // Get the creation time from Hive if this is a partition
+    LocalDateTime creationTime;
+    if (partitionName != null) {
+      creationTime = getPartitionCreationTime(listenerEvent.getDbName(), listenerEvent.getTableName(), partitionName);
+    } else {
+      // For tables, use current time as there's no reliable way to get table creation time
+      creationTime = LocalDateTime.now(clock);
+    }
+    
+    log.info("TIMESTAMP_INFO: Creating housekeeping entity with creationTimestamp={} for partition={}", 
+             creationTime, partitionName);
+             
     return HousekeepingMetadata
         .builder()
         .housekeepingStatus(SCHEDULED)
-        .creationTimestamp(LocalDateTime.now(clock))
+        .creationTimestamp(creationTime)
         .cleanupDelay(cleanupDelay)
         .lifecycleType(LIFECYCLE_EVENT_TYPE.toString())
         .clientId(clientId)
@@ -162,5 +182,31 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
         .range(0, keys.size())
         .mapToObj(i -> keys.get(i) + "=" + values.get(i))
         .collect(Collectors.joining("/"));
+  }
+  
+  /**
+   * Gets the creation time of a partition from Hive.
+   * 
+   * @param databaseName The database name
+   * @param tableName The table name
+   * @param partitionName The partition name
+   * @return The partition creation time from Hive, or current time if not available
+   */
+  private LocalDateTime getPartitionCreationTime(String databaseName, String tableName, String partitionName) {
+    try (HiveClient hiveClient = hiveClientFactory.newInstance()) {
+      Map<String, PartitionInfo> partitionInfo = hiveClient.getTablePartitionsInfo(databaseName, tableName);
+      
+      if (partitionInfo.containsKey(partitionName)) {
+        return partitionInfo.get(partitionName).getCreateTime();
+      }
+      
+      log.warn("Partition {} not found in Hive for table {}.{}, using current time",
+               partitionName, databaseName, tableName);
+      return LocalDateTime.now(clock);
+    } catch (Exception e) {
+      log.warn("Failed to get partition creation time from Hive for {}.{}.{}, using current time",
+               databaseName, tableName, partitionName, e);
+      return LocalDateTime.now(clock);
+    }
   }
 }
