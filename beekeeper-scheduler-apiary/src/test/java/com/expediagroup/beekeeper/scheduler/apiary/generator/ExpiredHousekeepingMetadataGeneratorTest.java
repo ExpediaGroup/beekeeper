@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.anyString;
 
 import static com.expedia.apiary.extensions.receiver.common.event.EventType.ADD_PARTITION;
 import static com.expedia.apiary.extensions.receiver.common.event.EventType.ALTER_PARTITION;
@@ -31,9 +30,9 @@ import static com.expedia.apiary.extensions.receiver.common.event.EventType.DROP
 
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,9 +76,6 @@ public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntity
   @BeforeEach
   public void setup() {
     generator = new ExpiredHousekeepingMetadataGenerator(cleanupDelayExtractor, clock, hiveClientFactory);
-    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
-    Map<String, PartitionInfo> emptyPartitionInfo = Collections.emptyMap();
-    when(hiveClient.getTablePartitionsInfo(anyString(), anyString())).thenReturn(emptyPartitionInfo);
   }
 
   @Test
@@ -111,6 +107,8 @@ public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntity
     when(addPartitionEvent.getPartitionLocation()).thenReturn(PARTITION_PATH);
     when(addPartitionEvent.getPartitionKeys()).thenReturn(PARTITION_KEYS);
     when(addPartitionEvent.getPartitionValues()).thenReturn(PARTITION_VALUES);
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(hiveClient.getSinglePartitionInfo(DATABASE, TABLE, PARTITION_NAME)).thenReturn(null);
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(addPartitionEvent, CLIENT_ID);
     assertThat(housekeepingEntities.size()).isEqualTo(1);
@@ -124,6 +122,8 @@ public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntity
     when(alterPartitionEvent.getPartitionLocation()).thenReturn(PARTITION_PATH);
     when(alterPartitionEvent.getPartitionKeys()).thenReturn(PARTITION_KEYS);
     when(alterPartitionEvent.getPartitionValues()).thenReturn(PARTITION_VALUES);
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(hiveClient.getSinglePartitionInfo(DATABASE, TABLE, PARTITION_NAME)).thenReturn(null);
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(alterPartitionEvent, CLIENT_ID);
     assertThat(housekeepingEntities.size()).isEqualTo(1);
@@ -150,6 +150,26 @@ public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntity
     } catch (BeekeeperException e) {
       assertThat(e.getMessage()).isEqualTo(format("No handler case for %s event type", dropTableEvent.getEventType()));
     }
+  }
+
+  @Test
+  public void usesPartitionCreationTimeFromHive() {
+    setupListenerEvent(addPartitionEvent, ADD_PARTITION);
+    when(cleanupDelayExtractor.extractCleanupDelay(addPartitionEvent)).thenReturn(CLEANUP_DELAY);
+    when(addPartitionEvent.getPartitionLocation()).thenReturn(PARTITION_PATH);
+    when(addPartitionEvent.getPartitionKeys()).thenReturn(PARTITION_KEYS);
+    when(addPartitionEvent.getPartitionValues()).thenReturn(PARTITION_VALUES);
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    LocalDateTime hiveCreationTime = LocalDateTime.of(2023, 6, 15, 10, 30);
+    PartitionInfo partitionInfo = new PartitionInfo(PARTITION_PATH, hiveCreationTime);
+    when(hiveClient.getSinglePartitionInfo(DATABASE, TABLE, PARTITION_NAME)).thenReturn(partitionInfo);
+
+    List<HousekeepingEntity> housekeepingEntities = generator.generate(addPartitionEvent, CLIENT_ID);
+    
+    assertThat(housekeepingEntities.size()).isEqualTo(1);
+    HousekeepingMetadata metadata = (HousekeepingMetadata) housekeepingEntities.get(0);
+    assertThat(metadata.getCreationTimestamp()).isEqualTo(hiveCreationTime);
+    assertThat(metadata.getPartitionName()).isEqualTo(PARTITION_NAME);
   }
 
   private void assertExpiredHousekeepingMetadataEntity(HousekeepingEntity housekeepingEntity, String partitionName) {
