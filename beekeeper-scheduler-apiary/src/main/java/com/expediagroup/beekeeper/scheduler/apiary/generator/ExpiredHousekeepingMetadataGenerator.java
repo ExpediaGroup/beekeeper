@@ -174,7 +174,15 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
         .mapToObj(i -> keys.get(i) + "=" + values.get(i))
         .collect(Collectors.joining("/"));
   }
-
+  
+  /**
+   * Gets the creation time of a partition from Hive.
+   * 
+   * @param databaseName The database name
+   * @param tableName The table name
+   * @param partitionName The partition name
+   * @return The partition creation time from Hive, or current time if not available
+   */
   private LocalDateTime getPartitionCreationTime(String databaseName, String tableName, String partitionName) {
     try (HiveClient hiveClient = hiveClientFactory.newInstance()) {
       Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(databaseName, tableName, partitionName);

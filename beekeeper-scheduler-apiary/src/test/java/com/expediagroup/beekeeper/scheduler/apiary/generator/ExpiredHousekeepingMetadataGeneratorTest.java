@@ -166,7 +166,7 @@ public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntity
     when(hiveClient.getSinglePartitionInfo(DATABASE, TABLE, PARTITION_NAME)).thenReturn(Optional.of(partitionInfo));
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(addPartitionEvent, CLIENT_ID);
-    
+
     assertThat(housekeepingEntities.size()).isEqualTo(1);
     HousekeepingMetadata metadata = (HousekeepingMetadata) housekeepingEntities.get(0);
     assertThat(metadata.getCreationTimestamp()).isEqualTo(hiveCreationTime);

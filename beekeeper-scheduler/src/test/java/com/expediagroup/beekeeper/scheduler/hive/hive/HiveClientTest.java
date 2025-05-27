@@ -223,7 +223,7 @@ public class HiveClientTest {
     when(partition.getCreateTime()).thenReturn(1234567890);
 
     Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
-    
+
     assertThat(partitionInfo).isPresent();
     assertThat(partitionInfo.get().getPath()).isEqualTo(PARTITION_PATH);
     assertThat(partitionInfo.get().getCreateTime())
@@ -238,11 +238,11 @@ public class HiveClientTest {
     when(partition.getCreateTime()).thenReturn(0);
 
     LocalDateTime beforeTest = LocalDateTime.now();
-    
+
     Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
 
     LocalDateTime afterTest = LocalDateTime.now();
-    
+
     assertThat(partitionInfo).isPresent();
     assertThat(partitionInfo.get().getPath()).isEqualTo(PARTITION_PATH);
     LocalDateTime createTime = partitionInfo.get().getCreateTime();
@@ -256,14 +256,14 @@ public class HiveClientTest {
     when(metaStoreClient.getPartition(DATABASE_NAME, TABLE_NAME, List.of("2024-01-01", "1"))).thenThrow(TException.class);
 
     Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
-    
+
     assertThat(partitionInfo).isEmpty();
   }
 
   @Test
   public void getSinglePartitionInfoWithNullPartitionName() {
     Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, null);
-    
+
     assertThat(partitionInfo).isEmpty();
   }
 }
