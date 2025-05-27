@@ -144,12 +144,10 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
       String partitionName) {
     PeriodDuration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
     
-    // Get the creation time from Hive if this is a partition
     LocalDateTime creationTime;
     if (partitionName != null) {
       creationTime = getPartitionCreationTime(listenerEvent.getDbName(), listenerEvent.getTableName(), partitionName);
     } else {
-      // For tables, use current time as there's no reliable way to get table creation time
       creationTime = LocalDateTime.now(clock);
     }
     
@@ -184,14 +182,6 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
         .collect(Collectors.joining("/"));
   }
   
-  /**
-   * Gets the creation time of a partition from Hive.
-   * 
-   * @param databaseName The database name
-   * @param tableName The table name
-   * @param partitionName The partition name
-   * @return The partition creation time from Hive, or current time if not available
-   */
   private LocalDateTime getPartitionCreationTime(String databaseName, String tableName, String partitionName) {
     try (HiveClient hiveClient = hiveClientFactory.newInstance()) {
       PartitionInfo partitionInfo = hiveClient.getSinglePartitionInfo(databaseName, tableName, partitionName);
