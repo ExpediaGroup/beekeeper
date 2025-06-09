@@ -6,6 +6,14 @@ on:
         description: "The branch to use to build a SNAPSHOT from."
         required: true
         default: "main"
+      skip-tests:
+        type: choice
+        description: Whether to skip tests?
+        required: false
+        options:
+          - "true"
+          - "false"
+        default: "false"
 jobs:
   deploy:
     name: Build SNAPSHOT to Sonatype
@@ -33,7 +41,7 @@ jobs:
           settings-path: ${{ github.workspace }}
 
       - name: Run Maven Targets
-        run: mvn deploy -DskipTests jacoco:report checkstyle:checkstyle spotbugs:spotbugs --settings $GITHUB_WORKSPACE/settings.xml --batch-mode --show-version --no-transfer-progress --activate-profiles sonatype-oss-release-github-actions
+        run: mvn deploy -DskipTests=${{ github.event.inputs.skip-tests }} jacoco:report checkstyle:checkstyle spotbugs:spotbugs --settings $GITHUB_WORKSPACE/settings.xml --batch-mode --show-version --no-transfer-progress --activate-profiles sonatype-oss-release-github-actions
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
