@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2023 Expedia, Inc.
+ * Copyright (C) 2019-2024 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,9 +45,12 @@ public class MessageEventHandler {
 
   public List<HousekeepingEntity> handleMessage(MessageEvent event) {
     ListenerEvent listenerEvent = event.getEvent();
+    log.info("Filtering message {}, generator {}", filters, generator.getClass().getSimpleName());
     if (shouldFilterMessage(listenerEvent)) {
+      log.info("Filtered message {}", event);
       return Collections.emptyList();
     }
+    log.info("Filtered message");
     return generateHousekeepingEntities(listenerEvent);
   }
 

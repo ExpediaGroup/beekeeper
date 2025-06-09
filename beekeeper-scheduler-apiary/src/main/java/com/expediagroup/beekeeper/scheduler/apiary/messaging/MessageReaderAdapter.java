@@ -54,7 +54,7 @@ public class MessageReaderAdapter implements BeekeeperEventReader {
     }
 
     MessageEvent message = messageEvent.get();
-
+    log.info("Received message: {}", message);
     List<HousekeepingEntity> housekeepingEntities = handlers.parallelStream()
         .map(eventHandler -> eventHandler.handleMessage(message))
         .flatMap(Collection::stream)

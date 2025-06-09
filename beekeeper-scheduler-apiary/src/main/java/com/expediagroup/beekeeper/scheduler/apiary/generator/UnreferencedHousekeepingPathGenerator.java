@@ -69,6 +69,9 @@ public class UnreferencedHousekeepingPathGenerator implements HousekeepingEntity
   @Override
   public List<HousekeepingEntity> generate(ListenerEvent listenerEvent, String clientId) {
     List<HousekeepingEntity> housekeepingEntities = new ArrayList<>();
+    log
+    .info("Processing '{}' event for table: {}.{}", listenerEvent.getEventType(), listenerEvent.getDbName(),
+        listenerEvent.getTableName());
 
     switch (listenerEvent.getEventType()) {
     case ALTER_PARTITION:
