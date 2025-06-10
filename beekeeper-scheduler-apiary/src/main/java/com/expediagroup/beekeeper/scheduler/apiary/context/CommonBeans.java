@@ -116,8 +116,9 @@ public class CommonBeans {
 
   @Bean(name = "expiredHousekeepingMetadataGenerator")
   public HousekeepingEntityGenerator expiredHousekeepingMetadataGenerator(
-      @Value("${properties.beekeeper.default-expiration-delay}") String cleanupDelay) {
-    return new ExpiredHousekeepingMetadataGenerator(cleanupDelay);
+      @Value("${properties.beekeeper.default-expiration-delay}") String cleanupDelay,
+      @Qualifier("hiveClientFactory") HiveClientFactory hiveClientFactory) {
+    return new ExpiredHousekeepingMetadataGenerator(cleanupDelay, hiveClientFactory);
   }
 
   @Bean(name = "expiredHousekeepingMetadataMessageEventHandler")
