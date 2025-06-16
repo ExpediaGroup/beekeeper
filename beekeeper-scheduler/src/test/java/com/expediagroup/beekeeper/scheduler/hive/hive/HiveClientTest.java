@@ -217,8 +217,6 @@ public class HiveClientTest {
 
   @Test
   public void getSinglePartitionInfoSuccess() throws TException {
-    when(metaStoreClient.getTable(DATABASE_NAME, TABLE_NAME)).thenReturn(table);
-    when(table.getPartitionKeys()).thenReturn(List.of(eventDatePartitionKey, eventHourPartitionKey));
     when(metaStoreClient.getPartition(DATABASE_NAME, TABLE_NAME, List.of("2024-01-01", "1"))).thenReturn(partition);
     when(partition.getSd()).thenReturn(storageDescriptor);
     when(storageDescriptor.getLocation()).thenReturn(PARTITION_PATH);
@@ -234,8 +232,6 @@ public class HiveClientTest {
 
   @Test
   public void getSinglePartitionInfoWithMissingCreateTime() throws TException {
-    when(metaStoreClient.getTable(DATABASE_NAME, TABLE_NAME)).thenReturn(table);
-    when(table.getPartitionKeys()).thenReturn(List.of(eventDatePartitionKey, eventHourPartitionKey));
     when(metaStoreClient.getPartition(DATABASE_NAME, TABLE_NAME, List.of("2024-01-01", "1"))).thenReturn(partition);
     when(partition.getSd()).thenReturn(storageDescriptor);
     when(storageDescriptor.getLocation()).thenReturn(PARTITION_PATH);
@@ -257,7 +253,7 @@ public class HiveClientTest {
 
   @Test
   public void getSinglePartitionInfoNotFound() throws TException {
-    when(metaStoreClient.getTable(DATABASE_NAME, TABLE_NAME)).thenThrow(TException.class);
+    when(metaStoreClient.getPartition(DATABASE_NAME, TABLE_NAME, List.of("2024-01-01", "1"))).thenThrow(TException.class);
 
     Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
     
