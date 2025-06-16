@@ -177,7 +177,7 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
   
   /**
    * Gets the creation time of a partition from Hive.
-   * 
+   *
    * @param databaseName The database name
    * @param tableName The table name
    * @param partitionName The partition name
