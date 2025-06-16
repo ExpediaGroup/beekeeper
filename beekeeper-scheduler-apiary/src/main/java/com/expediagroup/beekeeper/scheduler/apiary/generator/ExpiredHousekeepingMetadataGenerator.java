@@ -145,13 +145,8 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
       String partitionName) {
     PeriodDuration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
     
-    LocalDateTime creationTime;
-    if (partitionName != null) {
-      creationTime = getPartitionCreationTime(listenerEvent.getDbName(), listenerEvent.getTableName(), partitionName);
-    } else {
-      creationTime = LocalDateTime.now(clock);
-    }
-             
+    LocalDateTime creationTime = getPartitionCreationTime(listenerEvent.getDbName(), listenerEvent.getTableName(), partitionName);
+    
     return HousekeepingMetadata
         .builder()
         .housekeepingStatus(SCHEDULED)
@@ -181,6 +176,10 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
   }
   
   private LocalDateTime getPartitionCreationTime(String databaseName, String tableName, String partitionName) {
+    if (partitionName == null) {
+      return LocalDateTime.now(clock);
+    }
+    
     try (HiveClient hiveClient = hiveClientFactory.newInstance()) {
       Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(databaseName, tableName, partitionName);
       
