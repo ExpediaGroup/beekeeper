@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Partition;
@@ -223,11 +224,11 @@ public class HiveClientTest {
     when(storageDescriptor.getLocation()).thenReturn(PARTITION_PATH);
     when(partition.getCreateTime()).thenReturn(1234567890);
 
-    PartitionInfo partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
+    Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
     
-    assertThat(partitionInfo).isNotNull();
-    assertThat(partitionInfo.getPath()).isEqualTo(PARTITION_PATH);
-    assertThat(partitionInfo.getCreateTime())
+    assertThat(partitionInfo).isPresent();
+    assertThat(partitionInfo.get().getPath()).isEqualTo(PARTITION_PATH);
+    assertThat(partitionInfo.get().getCreateTime())
         .isEqualTo(LocalDateTime.ofInstant(Instant.ofEpochSecond(1234567890), ZoneId.systemDefault()));
   }
 
@@ -242,13 +243,13 @@ public class HiveClientTest {
 
     LocalDateTime beforeTest = LocalDateTime.now();
     
-    PartitionInfo partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
+    Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
 
     LocalDateTime afterTest = LocalDateTime.now();
     
-    assertThat(partitionInfo).isNotNull();
-    assertThat(partitionInfo.getPath()).isEqualTo(PARTITION_PATH);
-    LocalDateTime createTime = partitionInfo.getCreateTime();
+    assertThat(partitionInfo).isPresent();
+    assertThat(partitionInfo.get().getPath()).isEqualTo(PARTITION_PATH);
+    LocalDateTime createTime = partitionInfo.get().getCreateTime();
     assertThat(createTime).isNotNull();
     assertThat(createTime).isAfterOrEqualTo(beforeTest);
     assertThat(createTime).isBeforeOrEqualTo(afterTest);
@@ -258,8 +259,8 @@ public class HiveClientTest {
   public void getSinglePartitionInfoNotFound() throws TException {
     when(metaStoreClient.getTable(DATABASE_NAME, TABLE_NAME)).thenThrow(TException.class);
 
-    PartitionInfo partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
+    Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
     
-    assertThat(partitionInfo).isNull();
+    assertThat(partitionInfo).isEmpty();
   }
 }

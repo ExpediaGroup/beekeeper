@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -150,9 +151,6 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
     } else {
       creationTime = LocalDateTime.now(clock);
     }
-    
-    log.info("TIMESTAMP_INFO: Creating housekeeping entity with creationTimestamp={} for partition={}", 
-             creationTime, partitionName);
              
     return HousekeepingMetadata
         .builder()
@@ -184,10 +182,10 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
   
   private LocalDateTime getPartitionCreationTime(String databaseName, String tableName, String partitionName) {
     try (HiveClient hiveClient = hiveClientFactory.newInstance()) {
-      PartitionInfo partitionInfo = hiveClient.getSinglePartitionInfo(databaseName, tableName, partitionName);
+      Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(databaseName, tableName, partitionName);
       
-      if (partitionInfo != null) {
-        return partitionInfo.getCreateTime();
+      if (partitionInfo.isPresent()) {
+        return partitionInfo.get().getCreateTime();
       }
       
       log.warn("Partition {} not found in Hive for table {}.{}, using current time",

@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -75,10 +76,8 @@ public class HiveClient implements Closeable {
     }
   }
 
-  public PartitionInfo getSinglePartitionInfo(String databaseName, String tableName, String partitionName) {
+  public Optional<PartitionInfo> getSinglePartitionInfo(String databaseName, String tableName, String partitionName) {
     try {
-      Table table = metaStoreClient.getTable(databaseName, tableName);
-      List<FieldSchema> partitionKeys = table.getPartitionKeys();
       List<String> partitionValues = Warehouse.getPartValuesFromPartName(partitionName);
 
       Partition partition = metaStoreClient.getPartition(databaseName, tableName, partitionValues);
@@ -89,11 +88,11 @@ public class HiveClient implements Closeable {
       log.debug("Retrieved partition '{}' with path '{}' for table {}.{}", 
           partitionName, path, databaseName, tableName);
       
-      return new PartitionInfo(path, createTime);
+      return Optional.of(new PartitionInfo(path, createTime));
     } catch (TException e) {
-      log.warn("Failed to get partition info for {}.{}.{}: {}", 
-          databaseName, tableName, partitionName, e.getMessage());
-      return null;
+      log.warn("Failed to get partition info for {}.{}.{}", 
+          databaseName, tableName, partitionName, e);
+      return Optional.empty();
     }
   }
 

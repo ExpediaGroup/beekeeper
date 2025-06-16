@@ -33,6 +33,7 @@ import static com.expediagroup.beekeeper.core.model.LifecycleEventType.EXPIRED;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,7 +109,7 @@ public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntity
     when(addPartitionEvent.getPartitionKeys()).thenReturn(PARTITION_KEYS);
     when(addPartitionEvent.getPartitionValues()).thenReturn(PARTITION_VALUES);
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
-    when(hiveClient.getSinglePartitionInfo(DATABASE, TABLE, PARTITION_NAME)).thenReturn(null);
+    when(hiveClient.getSinglePartitionInfo(DATABASE, TABLE, PARTITION_NAME)).thenReturn(Optional.empty());
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(addPartitionEvent, CLIENT_ID);
     assertThat(housekeepingEntities.size()).isEqualTo(1);
@@ -123,7 +124,7 @@ public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntity
     when(alterPartitionEvent.getPartitionKeys()).thenReturn(PARTITION_KEYS);
     when(alterPartitionEvent.getPartitionValues()).thenReturn(PARTITION_VALUES);
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
-    when(hiveClient.getSinglePartitionInfo(DATABASE, TABLE, PARTITION_NAME)).thenReturn(null);
+    when(hiveClient.getSinglePartitionInfo(DATABASE, TABLE, PARTITION_NAME)).thenReturn(Optional.empty());
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(alterPartitionEvent, CLIENT_ID);
     assertThat(housekeepingEntities.size()).isEqualTo(1);
@@ -162,7 +163,7 @@ public class ExpiredHousekeepingMetadataGeneratorTest extends HousekeepingEntity
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     LocalDateTime hiveCreationTime = LocalDateTime.of(2023, 6, 15, 10, 30);
     PartitionInfo partitionInfo = new PartitionInfo(PARTITION_PATH, hiveCreationTime);
-    when(hiveClient.getSinglePartitionInfo(DATABASE, TABLE, PARTITION_NAME)).thenReturn(partitionInfo);
+    when(hiveClient.getSinglePartitionInfo(DATABASE, TABLE, PARTITION_NAME)).thenReturn(Optional.of(partitionInfo));
 
     List<HousekeepingEntity> housekeepingEntities = generator.generate(addPartitionEvent, CLIENT_ID);
     
