@@ -76,6 +76,15 @@ public class HiveClient implements Closeable {
     }
   }
 
+  /**
+   * Retrieves information for a single partition from Hive metastore.
+   *
+   * @param databaseName the name of the Hive database
+   * @param tableName the name of the Hive table
+   * @param partitionName the partition identifier in Hive's standard format: "key1=value1/key2=value2"
+   *                      (e.g., "event_date=2024-01-01/event_hour=1")
+   * @return Optional containing PartitionInfo if found, empty if partition doesn't exist or on error
+   */
   public Optional<PartitionInfo> getSinglePartitionInfo(String databaseName, String tableName, String partitionName) {
     try {
       List<String> partitionValues = Warehouse.getPartValuesFromPartName(partitionName);
