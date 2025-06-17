@@ -46,6 +46,8 @@ import com.expediagroup.beekeeper.scheduler.apiary.generator.UnreferencedHouseke
 import com.expediagroup.beekeeper.scheduler.apiary.handler.MessageEventHandler;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
+import com.expediagroup.beekeeper.scheduler.hive.PartitionIteratorFactory;
+import com.expediagroup.beekeeper.scheduler.hive.HiveClientFactory;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 
 import com.hotels.hcommon.hive.metastore.client.api.CloseableMetaStoreClient;
@@ -110,7 +112,8 @@ public class CommonBeansTest {
 
   @Test
   public void validateExpiredHousekeepingMetadataGenerator() {
-    HousekeepingEntityGenerator generator = commonBeans.expiredHousekeepingMetadataGenerator("P30D");
+    HiveClientFactory mockHiveClientFactory = mock(HiveClientFactory.class);
+    HousekeepingEntityGenerator generator = commonBeans.expiredHousekeepingMetadataGenerator("P30D", mockHiveClientFactory);
     assertThat(generator).isInstanceOf(ExpiredHousekeepingMetadataGenerator.class);
   }
 

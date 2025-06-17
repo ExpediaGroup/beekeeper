@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Partition;
@@ -212,5 +213,57 @@ public class HiveClientTest {
     assertThat(createTime).isNotNull();
     assertThat(createTime).isAfterOrEqualTo(beforeTest);
     assertThat(createTime).isBeforeOrEqualTo(afterTest);
+  }
+
+  @Test
+  public void getSinglePartitionInfoSuccess() throws TException {
+    when(metaStoreClient.getPartition(DATABASE_NAME, TABLE_NAME, List.of("2024-01-01", "1"))).thenReturn(partition);
+    when(partition.getSd()).thenReturn(storageDescriptor);
+    when(storageDescriptor.getLocation()).thenReturn(PARTITION_PATH);
+    when(partition.getCreateTime()).thenReturn(1234567890);
+
+    Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
+    
+    assertThat(partitionInfo).isPresent();
+    assertThat(partitionInfo.get().getPath()).isEqualTo(PARTITION_PATH);
+    assertThat(partitionInfo.get().getCreateTime())
+        .isEqualTo(LocalDateTime.ofInstant(Instant.ofEpochSecond(1234567890), ZoneId.systemDefault()));
+  }
+
+  @Test
+  public void getSinglePartitionInfoWithMissingCreateTime() throws TException {
+    when(metaStoreClient.getPartition(DATABASE_NAME, TABLE_NAME, List.of("2024-01-01", "1"))).thenReturn(partition);
+    when(partition.getSd()).thenReturn(storageDescriptor);
+    when(storageDescriptor.getLocation()).thenReturn(PARTITION_PATH);
+    when(partition.getCreateTime()).thenReturn(0);
+
+    LocalDateTime beforeTest = LocalDateTime.now();
+    
+    Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
+
+    LocalDateTime afterTest = LocalDateTime.now();
+    
+    assertThat(partitionInfo).isPresent();
+    assertThat(partitionInfo.get().getPath()).isEqualTo(PARTITION_PATH);
+    LocalDateTime createTime = partitionInfo.get().getCreateTime();
+    assertThat(createTime).isNotNull();
+    assertThat(createTime).isAfterOrEqualTo(beforeTest);
+    assertThat(createTime).isBeforeOrEqualTo(afterTest);
+  }
+
+  @Test
+  public void getSinglePartitionInfoNotFound() throws TException {
+    when(metaStoreClient.getPartition(DATABASE_NAME, TABLE_NAME, List.of("2024-01-01", "1"))).thenThrow(TException.class);
+
+    Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, PARTITION_NAME);
+    
+    assertThat(partitionInfo).isEmpty();
+  }
+
+  @Test
+  public void getSinglePartitionInfoWithNullPartitionName() {
+    Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, null);
+    
+    assertThat(partitionInfo).isEmpty();
   }
 }
