@@ -176,10 +176,6 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
   }
   
   private LocalDateTime getPartitionCreationTime(String databaseName, String tableName, String partitionName) {
-    if (partitionName == null) {
-      return LocalDateTime.now(clock);
-    }
-    
     try (HiveClient hiveClient = hiveClientFactory.newInstance()) {
       Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(databaseName, tableName, partitionName);
       
