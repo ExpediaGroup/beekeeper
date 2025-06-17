@@ -266,4 +266,11 @@ public class HiveClientTest {
 
     assertThat(partitionInfo).isEmpty();
   }
+
+  @Test
+  public void getSinglePartitionInfoWithNullPartitionName() {
+    Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(DATABASE_NAME, TABLE_NAME, null);
+    
+    assertThat(partitionInfo).isEmpty();
+  }
 }
