@@ -26,6 +26,8 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -47,6 +49,9 @@ import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.model.PeriodDuration;
 import com.expediagroup.beekeeper.scheduler.apiary.generator.utils.CleanupDelayExtractor;
+import com.expediagroup.beekeeper.scheduler.hive.HiveClient;
+import com.expediagroup.beekeeper.scheduler.hive.HiveClientFactory;
+import com.expediagroup.beekeeper.scheduler.hive.PartitionInfo;
 
 public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityGenerator {
 
@@ -57,16 +62,19 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
 
   private final CleanupDelayExtractor cleanupDelayExtractor;
   private final Clock clock;
+  private final HiveClientFactory hiveClientFactory;
 
-  public ExpiredHousekeepingMetadataGenerator(String cleanupDelay) {
+  public ExpiredHousekeepingMetadataGenerator(String cleanupDelay, HiveClientFactory hiveClientFactory) {
     this(new CleanupDelayExtractor(EXPIRED_DATA_RETENTION_PERIOD_PROPERTY_KEY, cleanupDelay),
-        Clock.systemDefaultZone());
+        Clock.systemDefaultZone(), hiveClientFactory);
   }
 
   @VisibleForTesting
-  ExpiredHousekeepingMetadataGenerator(CleanupDelayExtractor cleanupDelayExtractor, Clock clock) {
+  ExpiredHousekeepingMetadataGenerator(CleanupDelayExtractor cleanupDelayExtractor, Clock clock,
+      HiveClientFactory hiveClientFactory) {
     this.cleanupDelayExtractor = cleanupDelayExtractor;
     this.clock = clock;
+    this.hiveClientFactory = hiveClientFactory;
   }
 
   @Override
@@ -136,10 +144,13 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
       String path,
       String partitionName) {
     PeriodDuration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
+    
+    LocalDateTime creationTime = getPartitionCreationTime(listenerEvent.getDbName(), listenerEvent.getTableName(), partitionName);
+    
     return HousekeepingMetadata
         .builder()
         .housekeepingStatus(SCHEDULED)
-        .creationTimestamp(LocalDateTime.now(clock))
+        .creationTimestamp(creationTime)
         .cleanupDelay(cleanupDelay)
         .lifecycleType(LIFECYCLE_EVENT_TYPE.toString())
         .clientId(clientId)
@@ -162,5 +173,23 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
         .range(0, keys.size())
         .mapToObj(i -> keys.get(i) + "=" + values.get(i))
         .collect(Collectors.joining("/"));
+  }
+  
+  private LocalDateTime getPartitionCreationTime(String databaseName, String tableName, String partitionName) {
+    try (HiveClient hiveClient = hiveClientFactory.newInstance()) {
+      Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(databaseName, tableName, partitionName);
+      
+      if (partitionInfo.isPresent()) {
+        return partitionInfo.get().getCreateTime();
+      }
+      
+      log.warn("Partition {} not found in Hive for table {}.{}, using current time",
+               partitionName, databaseName, tableName);
+      return LocalDateTime.now(clock);
+    } catch (Exception e) {
+      log.warn("Failed to get partition creation time from Hive for {}.{}.{}, using current time",
+               databaseName, tableName, partitionName, e);
+      return LocalDateTime.now(clock);
+    }
   }
 }

@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.6.1] - 2025-05-14
+## [3.6.2] - 2025-06-17
+## Fixed
+- Extended the use of Hive's partition `createTime` to event-driven scheduling. Cleanup events are now scheduled based on the partition's actual creation time in Hive, not the event processing time.
+
+- ## [3.6.1] - 2025-05-14
 ## Fixed
 - Use Hive partition creation time (`createTime`) for scheduling partition cleanup, ensuring accurate expiry timing for both new and existing partitions.
 - Updated workflows to use `Ubuntu 22.04` instead of `Ubuntu 20.04`.
