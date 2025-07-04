@@ -94,13 +94,13 @@ public class HiveClient implements Closeable {
       Partition partition = metaStoreClient.getPartition(databaseName, tableName, partitionValues);
       String path = partition.getSd().getLocation();
       LocalDateTime createTime = extractCreateTime(partition);
-      
-      log.debug("Retrieved partition '{}' with path '{}' for table {}.{}", 
+
+      log.debug("Retrieved partition '{}' with path '{}' for table {}.{}",
           partitionName, path, databaseName, tableName);
-      
+
       return Optional.of(new PartitionInfo(path, createTime));
     } catch (TException e) {
-      log.warn("Failed to get partition info for {}.{}.{}", 
+      log.warn("Failed to get partition info for {}.{}.{}",
           databaseName, tableName, partitionName, e);
       return Optional.empty();
     }

@@ -82,32 +82,32 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
     List<HousekeepingEntity> housekeepingEntities = new ArrayList<>();
 
     switch (listenerEvent.getEventType()) {
-    case CREATE_TABLE:
-      CreateTableEvent createTableEvent = (CreateTableEvent) listenerEvent;
-      if (validTablePath(createTableEvent.getTableLocation())) {
-        housekeepingEntities.add(generateHousekeepingEntity((CreateTableEvent) listenerEvent, clientId));
-      }
-      break;
-    case ALTER_TABLE:
-      AlterTableEvent alterTableEvent = (AlterTableEvent) listenerEvent;
-      if (validTablePath(alterTableEvent.getTableLocation())) {
-        housekeepingEntities.add(generateHousekeepingEntity((AlterTableEvent) listenerEvent, clientId));
-      }
-      break;
-    case ADD_PARTITION:
-      AddPartitionEvent addPartitionEvent = (AddPartitionEvent) listenerEvent;
-      if (validPartitionPath(addPartitionEvent.getPartitionLocation())) {
-        housekeepingEntities.add(generateHousekeepingEntity((AddPartitionEvent) listenerEvent, clientId));
-      }
-      break;
-    case ALTER_PARTITION:
-      AlterPartitionEvent alterPartitionEvent = (AlterPartitionEvent) listenerEvent;
-      if (validPartitionPath(alterPartitionEvent.getPartitionLocation())) {
-        housekeepingEntities.add(generateHousekeepingEntity((AlterPartitionEvent) listenerEvent, clientId));
-      }
-      break;
-    default:
-      throw new BeekeeperException(format("No handler case for %s event type", listenerEvent.getEventType()));
+      case CREATE_TABLE:
+        CreateTableEvent createTableEvent = (CreateTableEvent) listenerEvent;
+        if (validTablePath(createTableEvent.getTableLocation())) {
+          housekeepingEntities.add(generateHousekeepingEntity((CreateTableEvent) listenerEvent, clientId));
+        }
+        break;
+      case ALTER_TABLE:
+        AlterTableEvent alterTableEvent = (AlterTableEvent) listenerEvent;
+        if (validTablePath(alterTableEvent.getTableLocation())) {
+          housekeepingEntities.add(generateHousekeepingEntity((AlterTableEvent) listenerEvent, clientId));
+        }
+        break;
+      case ADD_PARTITION:
+        AddPartitionEvent addPartitionEvent = (AddPartitionEvent) listenerEvent;
+        if (validPartitionPath(addPartitionEvent.getPartitionLocation())) {
+          housekeepingEntities.add(generateHousekeepingEntity((AddPartitionEvent) listenerEvent, clientId));
+        }
+        break;
+      case ALTER_PARTITION:
+        AlterPartitionEvent alterPartitionEvent = (AlterPartitionEvent) listenerEvent;
+        if (validPartitionPath(alterPartitionEvent.getPartitionLocation())) {
+          housekeepingEntities.add(generateHousekeepingEntity((AlterPartitionEvent) listenerEvent, clientId));
+        }
+        break;
+      default:
+        throw new BeekeeperException(format("No handler case for %s event type", listenerEvent.getEventType()));
     }
 
     return housekeepingEntities;
@@ -144,9 +144,9 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
       String path,
       String partitionName) {
     PeriodDuration cleanupDelay = cleanupDelayExtractor.extractCleanupDelay(listenerEvent);
-    
+
     LocalDateTime creationTime = getPartitionCreationTime(listenerEvent.getDbName(), listenerEvent.getTableName(), partitionName);
-    
+
     return HousekeepingMetadata
         .builder()
         .housekeepingStatus(SCHEDULED)
@@ -175,20 +175,28 @@ public class ExpiredHousekeepingMetadataGenerator implements HousekeepingEntityG
         .collect(Collectors.joining("/"));
   }
   
+  /**
+   * Gets the creation time of a partition from Hive.
+   *
+   * @param databaseName The database name
+   * @param tableName The table name
+   * @param partitionName The partition name
+   * @return The partition creation time from Hive, or current time if not available
+   */
   private LocalDateTime getPartitionCreationTime(String databaseName, String tableName, String partitionName) {
     try (HiveClient hiveClient = hiveClientFactory.newInstance()) {
       Optional<PartitionInfo> partitionInfo = hiveClient.getSinglePartitionInfo(databaseName, tableName, partitionName);
-      
+
       if (partitionInfo.isPresent()) {
         return partitionInfo.get().getCreateTime();
       }
-      
+
       log.warn("Partition {} not found in Hive for table {}.{}, using current time",
-               partitionName, databaseName, tableName);
+          partitionName, databaseName, tableName);
       return LocalDateTime.now(clock);
     } catch (Exception e) {
       log.warn("Failed to get partition creation time from Hive for {}.{}.{}, using current time",
-               databaseName, tableName, partitionName, e);
+          databaseName, tableName, partitionName, e);
       return LocalDateTime.now(clock);
     }
   }
