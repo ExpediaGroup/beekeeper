@@ -46,7 +46,6 @@ import com.expediagroup.beekeeper.scheduler.apiary.generator.UnreferencedHouseke
 import com.expediagroup.beekeeper.scheduler.apiary.handler.MessageEventHandler;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.BeekeeperEventReader;
 import com.expediagroup.beekeeper.scheduler.apiary.messaging.RetryingMessageReader;
-import com.expediagroup.beekeeper.scheduler.hive.PartitionIteratorFactory;
 import com.expediagroup.beekeeper.scheduler.hive.HiveClientFactory;
 import com.expediagroup.beekeeper.scheduler.service.SchedulerService;
 

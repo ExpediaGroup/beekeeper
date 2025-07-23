@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2024 Expedia, Inc.
+ * Copyright (C) 2019-2025 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import com.expedia.apiary.extensions.receiver.common.event.ListenerEvent;
+
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 public class IcebergTableListenerEventFilterTest {

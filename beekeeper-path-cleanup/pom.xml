@@ -5,10 +5,11 @@
   <parent>
     <artifactId>beekeeper-parent</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>3.6.3-SNAPSHOT</version>
+    <version>3.6.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>beekeeper-path-cleanup</artifactId>
+  <name>${project.groupId}:${project.artifactId}</name>
 
   <dependencies>
     <dependency>
@@ -101,7 +102,7 @@
         <configuration>
           <classifier>spring-boot</classifier>
           <mainClass>com.expediagroup.beekeeper.path.cleanup.BeekeeperPathCleanup</mainClass>
-          <executable>true</executable>
+          <executable>false</executable>
         </configuration>
         <executions>
           <execution>

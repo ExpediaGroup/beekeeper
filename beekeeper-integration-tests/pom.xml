@@ -5,10 +5,11 @@
   <parent>
     <artifactId>beekeeper-parent</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>3.6.3-SNAPSHOT</version>
+    <version>3.6.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>beekeeper-integration-tests</artifactId>
+  <name>${project.groupId}:${project.artifactId}</name>
 
   <properties>
     <beeju.version>4.0.0</beeju.version>

@@ -5,14 +5,17 @@
   <parent>
     <groupId>com.expediagroup</groupId>
     <artifactId>eg-oss-parent</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
   </parent>
 
   <artifactId>beekeeper-parent</artifactId>
-  <version>3.6.3-SNAPSHOT</version>
+  <version>3.6.2-SNAPSHOT</version>
   <description>Beekeeper is a service which manages the cleanup of tables and unreferenced S3 paths.</description>
   <inceptionYear>2019</inceptionYear>
   <packaging>pom</packaging>
+  <url>https://github.com/ExpediaGroup/beekeeper</url>
+  <name>Beekeeper</name>
+
 
   <modules>
     <module>beekeeper-core</module>

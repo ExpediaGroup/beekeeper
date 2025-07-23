@@ -4,10 +4,11 @@
   <parent>
     <artifactId>beekeeper-parent</artifactId>
     <groupId>com.expediagroup</groupId>
-    <version>3.6.3-SNAPSHOT</version>
+    <version>3.6.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>beekeeper-api</artifactId>
+  <name>${project.groupId}:${project.artifactId}</name>
 
   <properties>
     <specification-arg-resolver.version>2.18.1</specification-arg-resolver.version>
@@ -65,7 +66,7 @@
         <configuration>
           <classifier>spring-boot</classifier>
           <mainClass>com.expediagroup.beekeeper.api.BeekeeperApiApplication</mainClass>
-          <executable>true</executable>
+          <executable>false</executable>
         </configuration>
         <executions>
           <execution>
