@@ -191,6 +191,27 @@ public class ExpiredMetadataHandlerTest {
   }
 
   @Test
+  public void runDroppingPartition_retry() {
+    when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
+    when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
+    when(housekeepingMetadata.getTableName()).thenReturn(TABLE_NAME);
+    when(housekeepingMetadata.getPartitionName()).thenReturn(PARTITION_NAME);
+    when(housekeepingMetadata.getPath()).thenReturn(VALID_PARTITION_PATH);
+    when(housekeepingMetadata.getCleanupAttempts()).thenReturn(1);
+
+    when(hiveMetadataCleaner.dropPartition(Mockito.any(), Mockito.any())).thenReturn(false);
+    when(hiveMetadataCleaner.tableExists(hiveClient, DATABASE, TABLE_NAME)).thenReturn(true);
+
+    expiredMetadataHandler.cleanupMetadata(housekeepingMetadata, CLEANUP_INSTANCE, false);
+    verify(s3PathCleaner).cleanupPath(housekeepingMetadata);
+    verify(hiveMetadataCleaner, never()).dropTable(housekeepingMetadata, hiveClient);
+    verify(housekeepingMetadata).setCleanupAttempts(2);
+    verify(housekeepingMetadata).setHousekeepingStatus(DELETED);
+    verify(housekeepingMetadataRepository).save(housekeepingMetadata);
+    verify(beekeeperHistoryService).saveHistory(any(), eq(DELETED));
+  }
+
+  @Test
   public void dontDropTableWithInvalidPath() {
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(housekeepingMetadata.getDatabaseName()).thenReturn(DATABASE);
