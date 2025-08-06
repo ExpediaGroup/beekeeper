@@ -165,7 +165,7 @@ public class ExpiredMetadataHandler implements MetadataHandler {
     log.info("Cleaning up metadata for \"{}.{}\"", databaseName, tableName);
     if (metadataCleaner.tableExists(client, databaseName, tableName)) {
       boolean partitionDeleted = metadataCleaner.dropPartition(housekeepingMetadata, client);
-      if (partitionDeleted) {
+      if (partitionDeleted || housekeepingMetadata.getCleanupAttempts() > 0) {
         pathCleaner.cleanupPath(housekeepingMetadata);
       }
     } else {
