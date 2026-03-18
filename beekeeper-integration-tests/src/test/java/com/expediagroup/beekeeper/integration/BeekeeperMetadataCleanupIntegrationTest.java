@@ -50,7 +50,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.thrift.TException;
-import org.awaitility.Duration;
+import java.time.Duration;
 import org.junit.Rule;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -188,7 +188,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
     executorService.execute(() -> BeekeeperMetadataCleanup.main(new String[] {}));
-    await().atMost(Duration.ONE_MINUTE).until(BeekeeperMetadataCleanup::isRunning);
+    await().atMost(Duration.ofMinutes(1)).until(BeekeeperMetadataCleanup::isRunning);
   }
 
   @AfterEach

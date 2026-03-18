@@ -1,16 +1,14 @@
 /**
- * Copyright (C) 2019-2022 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.cleanup.aws;
@@ -58,20 +56,24 @@ class S3ClientTest {
   private AmazonS3 amazonS3;
 
   @Rule
-  public static LocalStackContainer awsContainer = new LocalStackContainer(
-      DockerImageName.parse("localstack/localstack:0.14.2")).withServices(S3);
+  public static LocalStackContainer awsContainer =
+      new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.14.2"))
+          .withServices(S3);
+
   static {
     awsContainer.start();
   }
-  public static String S3_ENDPOINT = awsContainer.getEndpointConfiguration(S3).getServiceEndpoint();
+
+  public static String S3_ENDPOINT = awsContainer.getEndpointOverride(S3).toString();
 
   @BeforeEach
   void setUp() {
-    amazonS3 = AmazonS3ClientBuilder
-        .standard()
-        .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
-        .withEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region")).build();
+    amazonS3 =
+        AmazonS3ClientBuilder.standard()
+            .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
+            .withEndpointConfiguration(
+                new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region"))
+            .build();
     amazonS3.createBucket(bucket);
     emptyBucket(bucket);
     assertThat(amazonS3.listObjectsV2(bucket).getObjectSummaries()).isEmpty();
@@ -83,16 +85,16 @@ class S3ClientTest {
     ListObjectsV2Result listObjectsV2Result;
     String continuationToken = null;
     do {
-      ListObjectsV2Request request = new ListObjectsV2Request()
-          .withBucketName(bucket)
-          .withContinuationToken(continuationToken);
+      ListObjectsV2Request request =
+          new ListObjectsV2Request()
+              .withBucketName(bucket)
+              .withContinuationToken(continuationToken);
       listObjectsV2Result = amazonS3.listObjectsV2(request);
       DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucket);
-      List<String> keys = listObjectsV2Result
-          .getObjectSummaries()
-          .stream()
-          .map(S3ObjectSummary::getKey)
-          .collect(Collectors.toList());
+      List<String> keys =
+          listObjectsV2Result.getObjectSummaries().stream()
+              .map(S3ObjectSummary::getKey)
+              .collect(Collectors.toList());
       if (keys.size() > 0) {
         amazonS3.deleteObjects(deleteObjectsRequest.withKeys(keys.toArray(new String[] {})));
       }
@@ -210,7 +212,7 @@ class S3ClientTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = { 500, 1000, 1500 })
+  @ValueSource(ints = {500, 1000, 1500})
   void splitDeleteObjectsInDirectory(final int totalObjects) {
     ArrayList<String> keys = new ArrayList<>();
     for (int i = 1; i <= totalObjects; i++) {

@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
-import org.awaitility.Duration;
+import java.time.Duration;
 import org.junit.Rule;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -179,7 +179,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
     executorService.execute(() -> BeekeeperMetadataCleanup.main(new String[] {}));
-    await().atMost(Duration.ONE_MINUTE).until(BeekeeperMetadataCleanup::isRunning);
+    await().atMost(Duration.ofMinutes(1)).until(BeekeeperMetadataCleanup::isRunning);
 
     // clear all logs before asserting them
     appender.clear();

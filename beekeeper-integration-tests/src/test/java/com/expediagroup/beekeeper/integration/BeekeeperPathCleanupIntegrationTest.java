@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.awaitility.Duration;
+import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -117,7 +117,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
     executorService.execute(() -> BeekeeperPathCleanup.main(new String[] {}));
-    await().atMost(Duration.ONE_MINUTE)
+    await().atMost(Duration.ofMinutes(1))
         .until(BeekeeperPathCleanup::isRunning);
   }
 

@@ -46,7 +46,7 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.awaitility.Duration;
+import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -167,7 +167,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     amazonS3.listObjectsV2(BUCKET).getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
     executorService.execute(() -> BeekeeperSchedulerApiary.main(new String[] {}));
-    await().atMost(Duration.ONE_MINUTE).until(BeekeeperSchedulerApiary::isRunning);
+    await().atMost(Duration.ofMinutes(1)).until(BeekeeperSchedulerApiary::isRunning);
   }
 
   @AfterEach

@@ -1,16 +1,14 @@
 /**
- * Copyright (C) 2019-2024 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.cleanup.aws;
@@ -64,32 +62,35 @@ class S3DryRunPathCleanerTest {
   private S3PathCleaner s3DryRunPathCleaner;
 
   @Container
-  public static LocalStackContainer awsContainer = new LocalStackContainer(
-      DockerImageName.parse("localstack/localstack:0.14.2")).withServices(S3);
+  public static LocalStackContainer awsContainer =
+      new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.14.2"))
+          .withServices(S3);
 
   @BeforeEach
   void setUp() {
-    String S3_ENDPOINT = awsContainer.getEndpointConfiguration(S3).getServiceEndpoint();
-    amazonS3 = AmazonS3ClientBuilder
-        .standard()
-        .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
-        .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region"))
-        .build();
+    String S3_ENDPOINT = awsContainer.getEndpointOverride(S3).toString();
+    amazonS3 =
+        AmazonS3ClientBuilder.standard()
+            .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
+            .withEndpointConfiguration(
+                new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region"))
+            .build();
     amazonS3.createBucket(bucket);
     amazonS3
         .listObjectsV2(bucket)
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     S3Client s3Client = new S3Client(amazonS3, dryRunEnabled);
-    s3DryRunPathCleaner = new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
-    housekeepingPath = HousekeepingPath
-        .builder()
-        .path(absolutePath)
-        .tableName(tableName)
-        .databaseName(databaseName)
-        .creationTimestamp(LocalDateTime.now())
-        .cleanupDelay(PeriodDuration.of(Duration.ofDays(1)))
-        .build();
+    s3DryRunPathCleaner =
+        new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
+    housekeepingPath =
+        HousekeepingPath.builder()
+            .path(absolutePath)
+            .tableName(tableName)
+            .databaseName(databaseName)
+            .creationTimestamp(LocalDateTime.now())
+            .cleanupDelay(PeriodDuration.of(Duration.ofDays(1)))
+            .build();
   }
 
   @Test
@@ -207,6 +208,7 @@ class S3DryRunPathCleanerTest {
 
   @Test
   void pathDoesNotExist() {
-    assertThatCode(() -> s3DryRunPathCleaner.cleanupPath(housekeepingPath)).doesNotThrowAnyException();
+    assertThatCode(() -> s3DryRunPathCleaner.cleanupPath(housekeepingPath))
+        .doesNotThrowAnyException();
   }
 }
