@@ -7,7 +7,7 @@ jobs:
     name: Package and run all tests
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Init Coveralls
@@ -24,10 +24,10 @@ jobs:
           fi
           echo "COVERALLS_SKIP=${COVERALLS_SKIP}" >> $GITHUB_ENV
     - name: Set up JDK
-      uses: actions/setup-java@v2
+      uses: actions/setup-java@v4
       with:
-        distribution: 'adopt'
-        java-version: '11'
+        distribution: 'corretto'
+        java-version: '21'
         java-package: jdk
 
     - name: Run Maven Package
