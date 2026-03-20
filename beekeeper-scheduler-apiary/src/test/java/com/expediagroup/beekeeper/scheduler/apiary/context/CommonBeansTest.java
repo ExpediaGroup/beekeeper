@@ -1,16 +1,14 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.scheduler.apiary.context;
@@ -80,13 +78,14 @@ public class CommonBeansTest {
 
   @Test
   public void validateSchedulerServiceMap() {
-    EnumMap<LifecycleEventType, SchedulerService> scheduleMap = commonBeans.schedulerServiceMap(Collections.EMPTY_LIST);
+    EnumMap<LifecycleEventType, SchedulerService> scheduleMap =
+        commonBeans.schedulerServiceMap(Collections.EMPTY_LIST);
     assertThat(scheduleMap).isInstanceOf(EnumMap.class);
   }
 
   @Test
   public void validateMessageReader() {
-    MessageReader reader = commonBeans.messageReader("some_path");
+    MessageReader reader = commonBeans.messageReader("some_path", "", "us-east-1");
     assertThat(reader).isInstanceOf(SqsMessageReader.class);
   }
 
@@ -98,57 +97,65 @@ public class CommonBeansTest {
 
   @Test
   public void validateUnreferencedHousekeepingPathGenerator() {
-    HousekeepingEntityGenerator generator = commonBeans.unreferencedHousekeepingPathGenerator("P30D");
+    HousekeepingEntityGenerator generator =
+        commonBeans.unreferencedHousekeepingPathGenerator("P30D");
     assertThat(generator).isInstanceOf(UnreferencedHousekeepingPathGenerator.class);
   }
 
   @Test
   public void validateUnreferencedHousekeepingPathMessageEventHandler() {
-    MessageEventHandler handler = commonBeans.unreferencedHousekeepingPathMessageEventHandler(
-        unreferencedHousekeepingPathGenerator);
+    MessageEventHandler handler =
+        commonBeans.unreferencedHousekeepingPathMessageEventHandler(
+            unreferencedHousekeepingPathGenerator);
     assertThat(handler).isInstanceOf(MessageEventHandler.class);
   }
 
   @Test
   public void validateExpiredHousekeepingMetadataGenerator() {
     HiveClientFactory mockHiveClientFactory = mock(HiveClientFactory.class);
-    HousekeepingEntityGenerator generator = commonBeans.expiredHousekeepingMetadataGenerator("P30D", mockHiveClientFactory);
+    HousekeepingEntityGenerator generator =
+        commonBeans.expiredHousekeepingMetadataGenerator("P30D", mockHiveClientFactory);
     assertThat(generator).isInstanceOf(ExpiredHousekeepingMetadataGenerator.class);
   }
 
   @Test
   public void validateExpiredHousekeepingMetadataMessageEventHandler() {
-    MessageEventHandler handler = commonBeans.expiredHousekeepingMetadataMessageEventHandler(
-        expiredHousekeepingMetadataGenerator);
+    MessageEventHandler handler =
+        commonBeans.expiredHousekeepingMetadataMessageEventHandler(
+            expiredHousekeepingMetadataGenerator);
     assertThat(handler).isInstanceOf(MessageEventHandler.class);
   }
 
   @Test
   public void validatePathEventReader() {
-    BeekeeperEventReader reader = commonBeans.eventReader(messageReader, mock(MessageEventHandler.class),
-        mock(MessageEventHandler.class));
+    BeekeeperEventReader reader =
+        commonBeans.eventReader(
+            messageReader, mock(MessageEventHandler.class), mock(MessageEventHandler.class));
     assertThat(reader).isInstanceOf(BeekeeperEventReader.class);
   }
 
   @Test
   public void validateUnreferencedHousekeepingPathMessageEventHandlerIncludesIcebergFilter() {
-    MessageEventHandler handler = commonBeans.unreferencedHousekeepingPathMessageEventHandler(
-        unreferencedHousekeepingPathGenerator);
+    MessageEventHandler handler =
+        commonBeans.unreferencedHousekeepingPathMessageEventHandler(
+            unreferencedHousekeepingPathGenerator);
     List<ListenerEventFilter> filters = handler.getFilters();
     assertThat(filters).hasAtLeastOneElementOfType(IcebergTableListenerEventFilter.class);
   }
 
   @Test
   public void validateExpiredHousekeepingMetadataMessageEventHandlerIncludesIcebergFilter() {
-    MessageEventHandler handler = commonBeans.expiredHousekeepingMetadataMessageEventHandler(
-        expiredHousekeepingMetadataGenerator);
+    MessageEventHandler handler =
+        commonBeans.expiredHousekeepingMetadataMessageEventHandler(
+            expiredHousekeepingMetadataGenerator);
     List<ListenerEventFilter> filters = handler.getFilters();
     assertThat(filters).hasAtLeastOneElementOfType(IcebergTableListenerEventFilter.class);
   }
 
   @Test
   public void verifyBeekeeperHistoryService() {
-    BeekeeperHistoryService beekeeperHistoryService = commonBeans.beekeeperHistoryService(beekeeperHistoryRepository);
+    BeekeeperHistoryService beekeeperHistoryService =
+        commonBeans.beekeeperHistoryService(beekeeperHistoryRepository);
     assertThat(beekeeperHistoryService).isInstanceOf(BeekeeperHistoryService.class);
   }
 
@@ -157,8 +164,8 @@ public class CommonBeansTest {
     CloseableMetaStoreClientFactory metaStoreClientFactory = commonBeans.metaStoreClientFactory();
     HiveConf hiveConf = Mockito.mock(HiveConf.class);
 
-    Supplier<CloseableMetaStoreClient> metaStoreClientSupplier = commonBeans
-        .metaStoreClientSupplier(metaStoreClientFactory, hiveConf);
+    Supplier<CloseableMetaStoreClient> metaStoreClientSupplier =
+        commonBeans.metaStoreClientSupplier(metaStoreClientFactory, hiveConf);
     assertThat(metaStoreClientSupplier).isInstanceOf(HiveMetaStoreClientSupplier.class);
   }
 }

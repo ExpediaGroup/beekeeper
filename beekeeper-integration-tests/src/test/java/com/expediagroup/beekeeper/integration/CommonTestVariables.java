@@ -1,16 +1,14 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration;
@@ -47,7 +45,8 @@ public final class CommonTestVariables {
   // HOUSEKEEPINGENTITY DEFAULT VALUES
   public static final String DATABASE_NAME_VALUE = "some_database";
   public static final String TABLE_NAME_VALUE = "some_table";
-  public static final LocalDateTime CREATION_TIMESTAMP_VALUE = LocalDateTime.now(UTC).minus(1L, ChronoUnit.MINUTES);
+  public static final LocalDateTime CREATION_TIMESTAMP_VALUE =
+      LocalDateTime.now(UTC).minus(1L, ChronoUnit.MINUTES);
   public static final String SHORT_CLEANUP_DELAY_VALUE = "PT1S";
   public static final String LONG_CLEANUP_DELAY_VALUE = "P3D";
   public static final int CLEANUP_ATTEMPTS_VALUE = 0;

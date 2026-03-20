@@ -1,16 +1,14 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration.utils;
@@ -39,23 +37,28 @@ public class MySqlTestUtils {
     connection.close();
   }
 
-  public void insertToTable(String database, String table, String fields, String values) throws SQLException {
-    connection.createStatement().executeUpdate(format(INSERT_TO_TABLE, database, table, fields, values));
+  public void insertToTable(String database, String table, String fields, String values)
+      throws SQLException {
+    connection
+        .createStatement()
+        .executeUpdate(format(INSERT_TO_TABLE, database, table, fields, values));
   }
 
-  public int getTableRowCount(String database, String table, String additionalFilters) throws SQLException {
+  public int getTableRowCount(String database, String table, String additionalFilters)
+      throws SQLException {
     return getTableRowCount(format(SELECT_TABLE, database, table, additionalFilters));
   }
 
   private int getTableRowCount(String statementString) throws SQLException {
-    Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
-        ResultSet.CONCUR_READ_ONLY);
+    Statement statement =
+        connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
     ResultSet resultSet = statement.executeQuery(statementString);
     resultSet.last();
     return resultSet.getRow();
   }
 
-  public ResultSet getTableRows(String database, String table, String additionalFilters) throws SQLException {
+  public ResultSet getTableRows(String database, String table, String additionalFilters)
+      throws SQLException {
     return getTableRows(format(SELECT_TABLE, database, table, additionalFilters));
   }
 

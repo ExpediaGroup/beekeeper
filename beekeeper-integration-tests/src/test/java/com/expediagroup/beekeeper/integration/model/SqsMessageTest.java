@@ -1,16 +1,14 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration.model;
@@ -34,8 +32,14 @@ import com.google.gson.JsonObject;
 
 public class SqsMessageTest {
 
-  private static final Set<String> COMMON_KEYS = Set.of("protocolVersion", "eventType", "tableParameters",
-      "dbName", "tableName", "tableLocation");
+  private static final Set<String> COMMON_KEYS =
+      Set.of(
+          "protocolVersion",
+          "eventType",
+          "tableParameters",
+          "dbName",
+          "tableName",
+          "tableLocation");
 
   @Test
   public void testCreateTableFormat() throws IOException, URISyntaxException {
@@ -46,45 +50,40 @@ public class SqsMessageTest {
 
   @Test
   public void testAddPartitionFormat() throws IOException, URISyntaxException {
-    Set<String> specificKeys = Set.of(
-        "partitionKeys",
-        "partitionValues",
-        "partitionLocation",
-        "tableParameters");
-    AddPartitionSqsMessage message = new AddPartitionSqsMessage(DUMMY_LOCATION, DUMMY_PARTITION_KEYS,
-        DUMMY_PARTITION_VALUES, true);
+    Set<String> specificKeys =
+        Set.of("partitionKeys", "partitionValues", "partitionLocation", "tableParameters");
+    AddPartitionSqsMessage message =
+        new AddPartitionSqsMessage(
+            DUMMY_LOCATION, DUMMY_PARTITION_KEYS, DUMMY_PARTITION_VALUES, true);
     assertKeys(message, specificKeys, "ADD_PARTITION");
   }
 
   @Test
   public void testAlterPartitionFormat() throws IOException, URISyntaxException {
-    Set<String> specificKeys = Set.of(
-        "partitionKeys",
-        "partitionValues",
-        "partitionLocation",
-        "oldPartitionValues",
-        "oldPartitionLocation");
-    AlterPartitionSqsMessage message = new AlterPartitionSqsMessage(DUMMY_LOCATION, DUMMY_PARTITION_KEYS,
-        DUMMY_PARTITION_VALUES, true);
+    Set<String> specificKeys =
+        Set.of(
+            "partitionKeys",
+            "partitionValues",
+            "partitionLocation",
+            "oldPartitionValues",
+            "oldPartitionLocation");
+    AlterPartitionSqsMessage message =
+        new AlterPartitionSqsMessage(
+            DUMMY_LOCATION, DUMMY_PARTITION_KEYS, DUMMY_PARTITION_VALUES, true);
     assertKeys(message, specificKeys, "ALTER_PARTITION");
   }
 
   @Test
   public void testAlterTableFormat() throws IOException, URISyntaxException {
-    Set<String> specificKeys = Set.of(
-        "oldTableName",
-        "oldTableLocation");
+    Set<String> specificKeys = Set.of("oldTableName", "oldTableLocation");
     AlterTableSqsMessage message = new AlterTableSqsMessage(DUMMY_LOCATION, true);
     assertKeys(message, specificKeys, "ALTER_TABLE");
   }
 
   @Test
   public void testDropPartitionFormat() throws IOException, URISyntaxException {
-    Set<String> specificKeys = Set.of(
-        "partitionKeys",
-        "partitionValues",
-        "partitionLocation",
-        "tableParameters");
+    Set<String> specificKeys =
+        Set.of("partitionKeys", "partitionValues", "partitionLocation", "tableParameters");
     DropPartitionSqsMessage message = new DropPartitionSqsMessage(DUMMY_LOCATION, true, true);
     assertKeys(message, specificKeys, "DROP_PARTITION");
   }
@@ -97,10 +96,13 @@ public class SqsMessageTest {
   }
 
   private void assertKeys(SqsMessage sqsMessage, Set<String> specificKeys, String eventType) {
-    SortedSet<String> mergedSet = new TreeSet<>() {{
-      addAll(specificKeys);
-      addAll(COMMON_KEYS);
-    }};
+    SortedSet<String> mergedSet =
+        new TreeSet<>() {
+          {
+            addAll(specificKeys);
+            addAll(COMMON_KEYS);
+          }
+        };
 
     JsonObject object = sqsMessage.getApiaryEventMessageJsonObject();
 
