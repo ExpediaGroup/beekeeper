@@ -1,14 +1,16 @@
 /**
- * Copyright (C) 2019-2026 Expedia, Inc.
+ * Copyright (C) 2019-2023 Expedia, Inc.
  *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration.utils;
@@ -38,17 +40,15 @@ import com.expediagroup.beekeeper.core.model.PeriodDuration;
 public class ResultSetToHousekeepingEntityMapper {
 
   public static HousekeepingPath mapToHousekeepingPath(ResultSet resultSet) throws SQLException {
-    return HousekeepingPath.builder()
+    return HousekeepingPath
+        .builder()
         .id(resultSet.getLong(ID_FIELD))
         .path(resultSet.getString(PATH_FIELD))
         .databaseName(resultSet.getString(DATABASE_NAME_FIELD))
         .tableName(resultSet.getString(TABLE_NAME_FIELD))
-        .housekeepingStatus(
-            HousekeepingStatus.valueOf(resultSet.getString(HOUSEKEEPING_STATUS_FIELD)))
-        .creationTimestamp(
-            Timestamp.valueOf(resultSet.getString(CREATION_TIMESTAMP_FIELD)).toLocalDateTime())
-        .modifiedTimestamp(
-            Timestamp.valueOf(resultSet.getString(MODIFIED_TIMESTAMP_FIELD)).toLocalDateTime())
+        .housekeepingStatus(HousekeepingStatus.valueOf(resultSet.getString(HOUSEKEEPING_STATUS_FIELD)))
+        .creationTimestamp(Timestamp.valueOf(resultSet.getString(CREATION_TIMESTAMP_FIELD)).toLocalDateTime())
+        .modifiedTimestamp(Timestamp.valueOf(resultSet.getString(MODIFIED_TIMESTAMP_FIELD)).toLocalDateTime())
         .cleanupDelay(PeriodDuration.parse(resultSet.getString(CLEANUP_DELAY_FIELD)))
         .cleanupAttempts(resultSet.getInt(CLEANUP_ATTEMPTS_FIELD))
         .clientId(resultSet.getString(CLIENT_ID_FIELD))
@@ -56,20 +56,17 @@ public class ResultSetToHousekeepingEntityMapper {
         .build();
   }
 
-  public static HousekeepingMetadata mapToHousekeepingMetadata(ResultSet resultSet)
-      throws SQLException {
-    return HousekeepingMetadata.builder()
+  public static HousekeepingMetadata mapToHousekeepingMetadata(ResultSet resultSet) throws SQLException {
+    return HousekeepingMetadata
+        .builder()
         .id(resultSet.getLong(ID_FIELD))
         .path(resultSet.getString(PATH_FIELD))
         .databaseName(resultSet.getString(DATABASE_NAME_FIELD))
         .tableName(resultSet.getString(TABLE_NAME_FIELD))
         .partitionName(resultSet.getString(PARTITION_NAME_FIELD))
-        .housekeepingStatus(
-            HousekeepingStatus.valueOf(resultSet.getString(HOUSEKEEPING_STATUS_FIELD)))
-        .creationTimestamp(
-            Timestamp.valueOf(resultSet.getString(CREATION_TIMESTAMP_FIELD)).toLocalDateTime())
-        .modifiedTimestamp(
-            Timestamp.valueOf(resultSet.getString(MODIFIED_TIMESTAMP_FIELD)).toLocalDateTime())
+        .housekeepingStatus(HousekeepingStatus.valueOf(resultSet.getString(HOUSEKEEPING_STATUS_FIELD)))
+        .creationTimestamp(Timestamp.valueOf(resultSet.getString(CREATION_TIMESTAMP_FIELD)).toLocalDateTime())
+        .modifiedTimestamp(Timestamp.valueOf(resultSet.getString(MODIFIED_TIMESTAMP_FIELD)).toLocalDateTime())
         .cleanupDelay(PeriodDuration.parse(resultSet.getString(CLEANUP_DELAY_FIELD)))
         .cleanupAttempts(resultSet.getInt(CLEANUP_ATTEMPTS_FIELD))
         .clientId(resultSet.getString(CLIENT_ID_FIELD))

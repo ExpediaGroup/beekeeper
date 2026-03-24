@@ -1,14 +1,16 @@
 /**
- * Copyright (C) 2019-2026 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration.utils;
@@ -37,12 +39,11 @@ public class RestResponsePage<T> extends PageImpl<T> {
       @JsonProperty("first") boolean first,
       @JsonProperty("numberOfElements") int numberOfElements,
       @JsonProperty("empty") boolean empty) {
-    // If the page size is 0, we override the value to 1. This is because the jackson dependency
-    // does not allow to
-    // create empty pages, which makes it hard to test what happens when the table is not found and
-    // an empty page is
+    // If the page size is 0, we override the value to 1. This is because the jackson dependency does not allow to
+    // create empty pages, which makes it hard to test what happens when the table is not found and an empty page is
     // returned.
     // By overriding that value to 1, it is possible to create the 'empty' page and do the testing.
     super(content, PageRequest.of(number, size == 0 ? 1 : size), totalElements);
   }
+
 }

@@ -1,14 +1,16 @@
 /**
  * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.cleanup.aws;
@@ -45,9 +47,8 @@ class S3SentinelFilesCleanerTest {
   private AmazonS3 amazonS3;
 
   @Rule
-  public static LocalStackContainer awsContainer =
-      new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.14.2"))
-          .withServices(S3);
+  public static LocalStackContainer awsContainer = new LocalStackContainer(
+      DockerImageName.parse("localstack/localstack:0.14.2")).withServices(S3);
 
   static {
     awsContainer.start();
@@ -57,15 +58,13 @@ class S3SentinelFilesCleanerTest {
 
   @BeforeEach
   void setUp() {
-    amazonS3 =
-        AmazonS3ClientBuilder.standard()
-            .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
-            .withEndpointConfiguration(
-                new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region"))
-            .build();
+    amazonS3 =AmazonS3ClientBuilder
+        .standard()
+        .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
+        .withEndpointConfiguration(
+            new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region")).build();
     amazonS3.createBucket(bucket);
-    amazonS3
-        .listObjectsV2(bucket)
+    amazonS3.listObjectsV2(bucket)
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(bucket, object.getKey()));
     S3Client s3Client = new S3Client(amazonS3, false);
@@ -117,8 +116,7 @@ class S3SentinelFilesCleanerTest {
   @Test
   void sentinelFileDoesntExist() {
     amazonS3.putObject(bucket, "table/partition_1", "content");
-    assertThatCode(() -> s3SentinelFilesCleaner.deleteSentinelFiles(partition1AbsolutePath))
-        .doesNotThrowAnyException();
+    assertThatCode(() -> s3SentinelFilesCleaner.deleteSentinelFiles(partition1AbsolutePath)).doesNotThrowAnyException();
   }
 
   @Test

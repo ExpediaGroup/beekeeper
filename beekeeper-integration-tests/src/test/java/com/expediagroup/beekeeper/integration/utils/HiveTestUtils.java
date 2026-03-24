@@ -1,14 +1,16 @@
 /**
- * Copyright (C) 2019-2026 Expedia, Inc.
+ * Copyright (C) 2019-2025 Expedia, Inc.
  *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration.utils;
@@ -43,24 +45,19 @@ public class HiveTestUtils {
     this.metastoreClient = metastoreClient;
   }
 
-  private final List<FieldSchema> DATA_COLUMNS =
-      Arrays.asList(
-          new FieldSchema("id", "bigint", ""),
-          new FieldSchema("name", "string", ""),
+  private final List<FieldSchema> DATA_COLUMNS = Arrays
+      .asList(new FieldSchema("id", "bigint", ""), new FieldSchema("name", "string", ""),
           new FieldSchema("city", "tinyint", ""));
 
-  private final List<FieldSchema> PARTITION_COLUMNS =
-      Arrays.asList(
-          new FieldSchema("event_date", "string", ""),
-          new FieldSchema("event_hour", "string", ""),
+  private final List<FieldSchema> PARTITION_COLUMNS = Arrays
+      .asList(new FieldSchema("event_date", "string", ""), new FieldSchema("event_hour", "string", ""),
           new FieldSchema("event_type", "string", ""));
 
   public Table createTable(String path, String tableName, boolean partitioned) throws TException {
     return createTable(path, tableName, partitioned, true);
   }
 
-  public Table createTable(
-      String path, String tableName, boolean partitioned, boolean withBeekeeperProperty)
+  public Table createTable(String path, String tableName, boolean partitioned, boolean withBeekeeperProperty)
       throws TException {
     Table hiveTable = new Table();
     hiveTable.setDbName(DATABASE_NAME_VALUE);
@@ -91,22 +88,19 @@ public class HiveTestUtils {
    * @param path Path of the table
    * @param hiveTable Table to add partitions to
    * @param partitionValues The list of partition values, e.g. ["2020-01-01", "0", "A"]
-   * @throws Exception May be thrown if there is a problem when trying to write the data to the
-   *     file, or when the client adds the partition to the table.
+   * @throws Exception May be thrown if there is a problem when trying to write the data to the file, or when the client
+   *                   adds the partition to the table.
    */
-  public void addPartitionsToTable(String path, Table hiveTable, List<String> partitionValues)
-      throws Exception {
+  public void addPartitionsToTable(String path, Table hiveTable, List<String> partitionValues) throws Exception {
     String eventDate = "/event_date=" + partitionValues.get(0); // 2020-01-01
     String eventHour = eventDate + "/event_hour=" + partitionValues.get(1); // 0
     String eventType = eventHour + "/event_type=" + partitionValues.get(2); // A
     URI partitionUri = URI.create(path + eventType);
 
-    metastoreClient.add_partitions(
-        Collections.singletonList(
-            newTablePartition(
-                hiveTable,
-                List.of(partitionValues.get(0), partitionValues.get(1), partitionValues.get(2)),
-                partitionUri)));
+    metastoreClient
+        .add_partitions(Collections
+            .singletonList(newTablePartition(hiveTable,
+                List.of(partitionValues.get(0), partitionValues.get(1), partitionValues.get(2)), partitionUri)));
   }
 
   private Partition newTablePartition(Table hiveTable, List<String> values, URI location) {
@@ -119,12 +113,8 @@ public class HiveTestUtils {
     return partition;
   }
 
-  public Table createTableWithProperties(
-      String path,
-      String tableName,
-      boolean partitioned,
-      Map<String, String> tableProperties,
-      boolean withBeekeeperProperty)
+  public Table createTableWithProperties(String path, String tableName, boolean partitioned,
+      Map<String, String> tableProperties, boolean withBeekeeperProperty)
       throws TException {
     Table hiveTable = new Table();
     hiveTable.setDbName(DATABASE_NAME_VALUE);
@@ -154,9 +144,8 @@ public class HiveTestUtils {
     return hiveTable;
   }
 
-  public Table createTableWithDeletionProperties(
-      String path, String tableName, boolean partitioned, boolean shouldTableBeDeletedIfEmpty)
-      throws TException {
+  public Table createTableWithDeletionProperties(String path, String tableName, boolean partitioned,
+      boolean shouldTableBeDeletedIfEmpty) throws TException {
     Map<String, String> tableProperties = new HashMap<>();
     if (shouldTableBeDeletedIfEmpty) {
       tableProperties.put("beekeeper.expired.data.table.deletion.enabled", "true");

@@ -21,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static com.expediagroup.beekeeper.core.model.HousekeepingStatus.SCHEDULED;
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
+import static java.time.temporal.ChronoUnit.MICROS;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -109,7 +111,7 @@ class BeekeeperRepositoryTest {
   }
 
   private HousekeepingPath createEntityHousekeepingPath() {
-    LocalDateTime creationTimestamp = LocalDateTime.now(ZoneId.of("UTC"));
+    LocalDateTime creationTimestamp = LocalDateTime.now(ZoneId.of("UTC")).truncatedTo(MICROS);
     return HousekeepingPath
         .builder()
         .path("path")

@@ -23,10 +23,8 @@ import org.springframework.data.repository.query.Param;
 
 import com.expediagroup.beekeeper.core.model.history.BeekeeperHistory;
 
-public interface BeekeeperHistoryRepository
-    extends PagingAndSortingRepository<BeekeeperHistory, Long>,
-        CrudRepository<BeekeeperHistory, Long>,
-        JpaSpecificationExecutor<BeekeeperHistory> {
+public interface BeekeeperHistoryRepository extends PagingAndSortingRepository<BeekeeperHistory, Long>,
+        CrudRepository<BeekeeperHistory, Long>, JpaSpecificationExecutor<BeekeeperHistory> {
 
   @Query(value = "from BeekeeperHistory t where t.lifecycleType = :lifecycle")
   Slice<BeekeeperHistory> findRecordsByLifecycleType(

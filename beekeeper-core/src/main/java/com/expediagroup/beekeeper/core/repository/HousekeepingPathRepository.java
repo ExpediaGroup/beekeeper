@@ -29,22 +29,17 @@ import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 
 @Repository
 public interface HousekeepingPathRepository
-    extends PagingAndSortingRepository<HousekeepingPath, Long>,
-        CrudRepository<HousekeepingPath, Long>,
+    extends PagingAndSortingRepository<HousekeepingPath, Long>, CrudRepository<HousekeepingPath, Long>,
         JpaSpecificationExecutor<HousekeepingPath> {
 
-  @Query(
-      value =
-          "from HousekeepingPath p where p.cleanupTimestamp <= :instant "
-              + "and (p.housekeepingStatus = 'SCHEDULED' or p.housekeepingStatus = 'FAILED') "
-              + "and p.modifiedTimestamp <= :instant and p.cleanupAttempts < 10")
+  @Query(value = "from HousekeepingPath p where p.cleanupTimestamp <= :instant "
+      + "and (p.housekeepingStatus = 'SCHEDULED' or p.housekeepingStatus = 'FAILED') "
+      + "and p.modifiedTimestamp <= :instant and p.cleanupAttempts < 10")
   Slice<HousekeepingPath> findRecordsForCleanup(
       @Param("instant") LocalDateTime instant, Pageable pageable);
 
   @Modifying
-  @Query(
-      value =
-          "delete from HousekeepingPath p where p.cleanupTimestamp < :instant "
-              + "and p.housekeepingStatus = 'DELETED'")
+  @Query(value = "delete from HousekeepingPath p where p.cleanupTimestamp < :instant "
+      + "and p.housekeepingStatus = 'DELETED'")
   void cleanUpOldDeletedRecords(@Param("instant") LocalDateTime instant);
 }

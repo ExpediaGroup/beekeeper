@@ -1,14 +1,16 @@
 /**
- * Copyright (C) 2019-2026 Expedia, Inc.
+ * Copyright (C) 2019-2021 Expedia, Inc.
  *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration.utils;
@@ -36,53 +38,37 @@ public class BeekeeperApiTestClient {
     this.httpClient = HttpClient.newHttpClient();
   }
 
-  public HttpResponse<String> getMetadata(String database, String table)
-      throws IOException, InterruptedException {
-    HttpRequest request =
-        newBuilder()
-            .uri(
-                URI.create(
-                    String.format(
-                        housekeepingEntityUrl + "/database/%s/table/%s" + METADATA_PATH,
-                        database,
-                        table)))
-            .GET()
-            .build();
+  public HttpResponse<String> getMetadata(String database, String table) throws IOException, InterruptedException {
+    HttpRequest request = newBuilder()
+        .uri(
+            URI.create(String.format(housekeepingEntityUrl + "/database/%s/table/%s" + METADATA_PATH, database, table)))
+        .GET()
+        .build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
   public HttpResponse<String> getMetadata(String database, String table, String filters)
-      throws IOException, InterruptedException {
-    HttpRequest request =
-        newBuilder()
-            .uri(
-                URI.create(
-                    String.format(
-                        housekeepingEntityUrl + "/database/%s/table/%s" + METADATA_PATH + "%s",
-                        database,
-                        table,
-                        filters)))
-            .GET()
-            .build();
+    throws IOException, InterruptedException {
+    HttpRequest request = newBuilder()
+        .uri(URI
+            .create(String
+                .format(housekeepingEntityUrl + "/database/%s/table/%s" + METADATA_PATH + "%s", database, table,
+                    filters)))
+        .GET()
+        .build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
 
   public HttpResponse<String> getUnreferencedPaths(String database, String table, String filters)
       throws IOException, InterruptedException {
-    HttpRequest request =
-        newBuilder()
-            .uri(
-                URI.create(
-                    String.format(
-                        housekeepingEntityUrl
-                            + "/database/%s/table/%s"
-                            + UNREFERENCED_PATHS_PATH
-                            + "%s",
-                        database,
-                        table,
-                        filters)))
-            .GET()
-            .build();
+    HttpRequest request = newBuilder()
+        .uri(URI
+            .create(String
+                .format(housekeepingEntityUrl + "/database/%s/table/%s" + UNREFERENCED_PATHS_PATH + "%s", database, table,
+                    filters)))
+        .GET()
+        .build();
     return httpClient.send(request, BodyHandlers.ofString());
   }
+
 }

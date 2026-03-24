@@ -1,14 +1,16 @@
 /**
- * Copyright (C) 2019-2026 Expedia, Inc.
+ * Copyright (C) 2019-2020 Expedia, Inc.
  *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration.model;
@@ -27,8 +29,8 @@ public class AlterPartitionSqsMessage extends SqsMessage {
       String partitionLocation,
       String oldPartitionLocation,
       boolean isUnreferenced,
-      boolean isWhitelisted)
-      throws IOException, URISyntaxException {
+      boolean isWhitelisted
+  ) throws IOException, URISyntaxException {
     super(ALTER_PARTITION);
     setTableLocation(tableLocation);
     setPartitionLocation(partitionLocation);
@@ -41,8 +43,11 @@ public class AlterPartitionSqsMessage extends SqsMessage {
   }
 
   public AlterPartitionSqsMessage(
-      String partitionLocation, String partitionKeys, String partitionValues, boolean isExpired)
-      throws IOException, URISyntaxException {
+      String partitionLocation,
+      String partitionKeys,
+      String partitionValues,
+      boolean isExpired
+  ) throws IOException, URISyntaxException {
     super(ALTER_PARTITION);
     setTableLocation(DUMMY_LOCATION);
     setPartitionLocation(partitionLocation);
@@ -54,27 +59,22 @@ public class AlterPartitionSqsMessage extends SqsMessage {
   }
 
   public void setPartitionLocation(String partitionLocation) {
-    apiaryEventMessageJsonObject.add(
-        EVENT_TABLE_PARTITION_LOCATION_KEY, new JsonPrimitive(partitionLocation));
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_PARTITION_LOCATION_KEY, new JsonPrimitive(partitionLocation));
   }
 
   public void setOldPartitionLocation(String oldPartitionLocation) {
-    apiaryEventMessageJsonObject.add(
-        EVENT_TABLE_OLD_PARTITION_LOCATION_KEY, new JsonPrimitive(oldPartitionLocation));
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_OLD_PARTITION_LOCATION_KEY, new JsonPrimitive(oldPartitionLocation));
   }
 
   public void setPartitionKeys(String partitionKeys) {
-    apiaryEventMessageJsonObject.add(
-        EVENT_TABLE_PARTITION_KEYS_KEY, PARSER.parse(partitionKeys).getAsJsonObject());
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_PARTITION_KEYS_KEY, PARSER.parse(partitionKeys).getAsJsonObject());
   }
 
   public void setPartitionValues(String partitionValues) {
-    apiaryEventMessageJsonObject.add(
-        EVENT_TABLE_PARTITION_VALUES_KEY, PARSER.parse(partitionValues).getAsJsonArray());
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_PARTITION_VALUES_KEY, PARSER.parse(partitionValues).getAsJsonArray());
   }
 
   public void setOldPartitionValues(String oldPartitionValues) {
-    apiaryEventMessageJsonObject.add(
-        EVENT_TABLE_OLD_PARTITION_VALUES_KEY, PARSER.parse(oldPartitionValues).getAsJsonArray());
+    apiaryEventMessageJsonObject.add(EVENT_TABLE_OLD_PARTITION_VALUES_KEY, PARSER.parse(oldPartitionValues).getAsJsonArray());
   }
 }

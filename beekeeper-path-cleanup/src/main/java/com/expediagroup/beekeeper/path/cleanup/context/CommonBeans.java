@@ -1,14 +1,16 @@
 /**
- * Copyright (C) 2019-2026 Expedia, Inc.
+ * Copyright (C) 2019-2025 Expedia, Inc.
  *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.path.cleanup.context;
@@ -47,9 +49,9 @@ import com.expediagroup.beekeeper.path.cleanup.service.PathRepositoryCleanupServ
 
 @Configuration
 @EnableScheduling
-@ComponentScan({"com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.cleanup"})
-@EntityScan(basePackages = {"com.expediagroup.beekeeper.core.model"})
-@EnableJpaRepositories(basePackages = {"com.expediagroup.beekeeper.core.repository"})
+@ComponentScan({ "com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.cleanup" })
+@EntityScan(basePackages = { "com.expediagroup.beekeeper.core.model" })
+@EnableJpaRepositories(basePackages = { "com.expediagroup.beekeeper.core.repository" })
 public class CommonBeans {
 
   @Bean
@@ -72,18 +74,20 @@ public class CommonBeans {
 
   @Bean
   public BytesDeletedReporter bytesDeletedReporter(
-      MeterRegistry meterRegistry, @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+      MeterRegistry meterRegistry,
+      @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
     return new BytesDeletedReporter(meterRegistry, dryRunEnabled);
   }
 
   @Bean
-  public S3Client s3Client(
-      AmazonS3 amazonS3, @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
+  public S3Client s3Client(AmazonS3 amazonS3, @Value("${properties.dry-run-enabled}") boolean dryRunEnabled) {
     return new S3Client(amazonS3, dryRunEnabled);
   }
 
   @Bean(name = "s3PathCleaner")
-  public PathCleaner pathCleaner(S3Client s3Client, BytesDeletedReporter bytesDeletedReporter) {
+  public PathCleaner pathCleaner(
+      S3Client s3Client,
+      BytesDeletedReporter bytesDeletedReporter) {
     return new S3PathCleaner(s3Client, new S3SentinelFilesCleaner(s3Client), bytesDeletedReporter);
   }
 
@@ -108,8 +112,7 @@ public class CommonBeans {
   }
 
   @Bean
-  public BeekeeperHistoryService beekeeperHistoryService(
-      BeekeeperHistoryRepository beekeeperHistoryRepository) {
+  public BeekeeperHistoryService beekeeperHistoryService(BeekeeperHistoryRepository beekeeperHistoryRepository) {
     return new BeekeeperHistoryService(beekeeperHistoryRepository);
   }
 }

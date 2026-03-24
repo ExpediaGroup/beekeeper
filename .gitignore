@@ -36,3 +36,5 @@ target/
 # HMS data
 metastore_db
 derby.log
+
+CLAUDE.md

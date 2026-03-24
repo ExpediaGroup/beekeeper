@@ -66,13 +66,11 @@ public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrat
   private static final String OBJECT_KEY_ROOT = DB_AND_TABLE_PREFIX + "/id1/partition1";
   private static final String OBJECT_KEY1 = DB_AND_TABLE_PREFIX + "/id1/partition1/file1";
   private static final String OBJECT_KEY2 = DB_AND_TABLE_PREFIX + "/id1/partition1/file2";
-  private static final String OBJECT_KEY_SENTINEL =
-      DB_AND_TABLE_PREFIX + "/id1/partition1_$folder$";
+  private static final String OBJECT_KEY_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition1_$folder$";
   private static final String ABSOLUTE_PATH = "s3://" + BUCKET + "/" + OBJECT_KEY_ROOT;
 
   private static final String OBJECT_KEY_OTHER = DB_AND_TABLE_PREFIX + "/id1/partition10/file1";
-  private static final String OBJECT_KEY_OTHER_SENTINEL =
-      DB_AND_TABLE_PREFIX + "/id1/partition10_$folder$";
+  private static final String OBJECT_KEY_OTHER_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition10_$folder$";
 
   private static final String SPRING_PROFILES_ACTIVE = "test";
   private static final String SCHEDULER_DELAY_MS = "5000";
@@ -83,7 +81,6 @@ public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrat
 
   @Container
   private static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
-
   private static AmazonS3 amazonS3;
 
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
@@ -94,8 +91,7 @@ public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrat
     System.setProperty(SPRING_PROFILES_ACTIVE_PROPERTY, SPRING_PROFILES_ACTIVE);
     System.setProperty(SCHEDULER_DELAY_MS_PROPERTY, SCHEDULER_DELAY_MS);
     System.setProperty(DRY_RUN_ENABLED_PROPERTY, DRY_RUN_ENABLED);
-    System.setProperty(
-        AWS_S3_ENDPOINT_PROPERTY, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3));
+    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3));
 
     amazonS3 = ContainerTestUtils.s3Client(S3_CONTAINER, AWS_REGION);
     amazonS3.createBucket(new CreateBucketRequest(BUCKET, AWS_REGION));
@@ -113,8 +109,7 @@ public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrat
 
   @BeforeEach
   public void setup() {
-    amazonS3
-        .listObjectsV2(BUCKET)
+    amazonS3.listObjectsV2(BUCKET)
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
     executorService.execute(() -> BeekeeperPathCleanup.main(new String[] {}));
@@ -139,9 +134,7 @@ public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrat
     amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER_SENTINEL, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> logsContainLineFromS3Client(OBJECT_KEY_SENTINEL));
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLineFromS3Client(OBJECT_KEY_SENTINEL));
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isTrue();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY2)).isTrue();
@@ -159,9 +152,7 @@ public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrat
     amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER_SENTINEL, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> logsContainLineFromS3Client(OBJECT_KEY_SENTINEL));
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLineFromS3Client(OBJECT_KEY_SENTINEL));
 
     assertS3ClientLogs(3);
   }
@@ -209,9 +200,7 @@ public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrat
     amazonS3.putObject(BUCKET, tableSentinel, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> logsContainLineFromS3Client(OBJECT_KEY_SENTINEL));
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLineFromS3Client(OBJECT_KEY_SENTINEL));
 
     assertS3ClientLogs(3);
   }
@@ -234,13 +223,8 @@ public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrat
   private boolean assertMetrics() {
     MeterRegistry meterRegistry = BeekeeperPathCleanup.meterRegistry();
     List<Meter> meters = meterRegistry.getMeters();
-    assertThat(meters)
-        .extracting("id", Meter.Id.class)
-        .extracting("name")
-        .contains(
-            "path-cleanup-job",
-            "s3-paths-deleted",
-            "s3-" + BytesDeletedReporter.DRY_RUN_METRIC_NAME);
+    assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
+        .contains("path-cleanup-job", "s3-paths-deleted", "s3-" + BytesDeletedReporter.DRY_RUN_METRIC_NAME);
     return true;
   }
 

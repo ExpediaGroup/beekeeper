@@ -1,14 +1,16 @@
 /**
- * Copyright (C) 2019-2026 Expedia, Inc.
+ * Copyright (C) 2019-2025 Expedia, Inc.
  *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration.model;
@@ -56,8 +58,7 @@ public abstract class SqsMessage {
   public static final String EVENT_TABLE_OLD_PARTITION_VALUES_KEY = "oldPartitionValues";
 
   public static final String DUMMY_LOCATION = "s3://dummy-location";
-  public static final String DUMMY_PARTITION_KEYS =
-      "{ \"col_1\": \"string\", \"col_2\": \"integer\", \"col_3\": \"string\" }";
+  public static final String DUMMY_PARTITION_KEYS = "{ \"col_1\": \"string\", \"col_2\": \"integer\", \"col_3\": \"string\" }";
   public static final String DUMMY_PARTITION_VALUES = "[ \"val_1\", \"val_2\", \"val_3\" ]";
   public static final String EVENT_PROTOCOL_VERSION_VALUE = "1.0";
 
@@ -67,11 +68,9 @@ public abstract class SqsMessage {
 
   public SqsMessage(EventType eventType) throws URISyntaxException, IOException {
     this.eventType = eventType;
-    apiaryEventJsonObject =
-        PARSER.parse(readString(Path.of(APIARY_EVENT_JSON_URL.toURI()))).getAsJsonObject();
+    apiaryEventJsonObject = PARSER.parse(readString(Path.of(APIARY_EVENT_JSON_URL.toURI()))).getAsJsonObject();
     apiaryEventMessageJsonObject = new JsonObject();
-    apiaryEventMessageJsonObject.add(
-        EVENT_PROTOCOL_VERSION_KEY, new JsonPrimitive(EVENT_PROTOCOL_VERSION_VALUE));
+    apiaryEventMessageJsonObject.add(EVENT_PROTOCOL_VERSION_KEY, new JsonPrimitive(EVENT_PROTOCOL_VERSION_VALUE));
     apiaryEventMessageJsonObject.add(EVENT_TYPE_KEY, new JsonPrimitive(eventType.toString()));
     apiaryEventMessageJsonObject.add(EVENT_DB_KEY, new JsonPrimitive(DATABASE_NAME_VALUE));
     apiaryEventMessageJsonObject.add(EVENT_TABLE_NAME_KEY, new JsonPrimitive(TABLE_NAME_VALUE));
@@ -83,41 +82,31 @@ public abstract class SqsMessage {
   }
 
   public void setUnreferenced(boolean isUnreferenced) {
-    JsonObject tableParameters =
-        apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
-    tableParameters.add(
-        UNREFERENCED.getTableParameterName(), new JsonPrimitive(String.valueOf(isUnreferenced)));
-    tableParameters.add(
-        UNREFERENCED_DATA_RETENTION_PERIOD_PROPERTY_KEY,
-        new JsonPrimitive(SHORT_CLEANUP_DELAY_VALUE));
+    JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
+    tableParameters.add(UNREFERENCED.getTableParameterName(), new JsonPrimitive(String.valueOf(isUnreferenced)));
+    tableParameters.add(UNREFERENCED_DATA_RETENTION_PERIOD_PROPERTY_KEY, new JsonPrimitive(SHORT_CLEANUP_DELAY_VALUE));
   }
 
   public void setExpired(boolean isExpired) {
-    JsonObject tableParameters =
-        apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
-    tableParameters.add(
-        EXPIRED.getTableParameterName(), new JsonPrimitive(String.valueOf(isExpired)));
-    tableParameters.add(
-        EXPIRED_DATA_RETENTION_PERIOD_PROPERTY_KEY, new JsonPrimitive(SHORT_CLEANUP_DELAY_VALUE));
+    JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
+    tableParameters.add(EXPIRED.getTableParameterName(), new JsonPrimitive(String.valueOf(isExpired)));
+    tableParameters.add(EXPIRED_DATA_RETENTION_PERIOD_PROPERTY_KEY, new JsonPrimitive(SHORT_CLEANUP_DELAY_VALUE));
   }
 
   public void setIceberg() {
-    JsonObject tableParameters =
-        apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
+    JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
     tableParameters.add("table_format", new JsonPrimitive("ICEBERG"));
     tableParameters.add("metadata_location", new JsonPrimitive("s3://bucket/metadata"));
   }
 
   public void setWhitelisted(boolean isWhitelisted) {
     String whitelist = isWhitelisted ? eventType.toString() : "";
-    JsonObject tableParameters =
-        apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
+    JsonObject tableParameters = apiaryEventMessageJsonObject.getAsJsonObject(EVENT_TABLE_PARAMETERS_KEY);
     tableParameters.add(BEEKEEPER_HIVE_EVENT_WHITELIST, new JsonPrimitive(whitelist));
   }
 
   public final String getFormattedString() {
-    apiaryEventJsonObject.add(
-        APIARY_EVENT_MESSAGE_KEY, new JsonPrimitive(apiaryEventMessageJsonObject.toString()));
+    apiaryEventJsonObject.add(APIARY_EVENT_MESSAGE_KEY, new JsonPrimitive(apiaryEventMessageJsonObject.toString()));
     return apiaryEventJsonObject.toString();
   }
 

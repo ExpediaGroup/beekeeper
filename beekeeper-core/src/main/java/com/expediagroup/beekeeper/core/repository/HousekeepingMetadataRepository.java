@@ -29,36 +29,31 @@ import org.springframework.data.repository.query.Param;
 import com.expediagroup.beekeeper.core.model.HousekeepingMetadata;
 
 public interface HousekeepingMetadataRepository
-    extends PagingAndSortingRepository<HousekeepingMetadata, Long>,
-        CrudRepository<HousekeepingMetadata, Long>,
+    extends PagingAndSortingRepository<HousekeepingMetadata, Long>, CrudRepository<HousekeepingMetadata, Long>,
         JpaSpecificationExecutor<HousekeepingMetadata> {
 
-  @Query(
-      value =
-          "from HousekeepingMetadata t where t.cleanupTimestamp <= :instant "
-              + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED') "
-              + "and t.modifiedTimestamp <= :instant and t.cleanupAttempts < 10 order by t.modifiedTimestamp")
+  @Query(value = "from HousekeepingMetadata t where t.cleanupTimestamp <= :instant "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED') "
+      + "and t.modifiedTimestamp <= :instant and t.cleanupAttempts < 10 order by t.modifiedTimestamp")
   Slice<HousekeepingMetadata> findRecordsForCleanupByModifiedTimestamp(
       @Param("instant") LocalDateTime instant, Pageable pageable);
 
   /**
    * Returns the record that matches the inputs given, if there is one.
    *
-   * @implNote To get the record for a partitioned table both the input value and the value of the
-   *     partitionName of the current record must be NULL.
+   * @implNote To get the record for a partitioned table both the input value and the value of the partitionName of the
+   *           current record must be NULL.
    * @param databaseName
    * @param tableName
    * @param partitionName
    * @return
    */
-  @Query(
-      value =
-          "from HousekeepingMetadata t "
-              + "where t.databaseName = :databaseName "
-              + "and t.tableName = :tableName "
-              + "and (t.partitionName = :partitionName or (:partitionName is NULL and t.partitionName is NULL)) "
-              // To handle special null case
-              + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  @Query(value = "from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and (t.partitionName = :partitionName or (:partitionName is NULL and t.partitionName is NULL)) "
+      // To handle special null case
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   Optional<HousekeepingMetadata> findRecordForCleanupByDbTableAndPartitionName(
       @Param("databaseName") String databaseName,
       @Param("tableName") String tableName,
@@ -71,94 +66,80 @@ public interface HousekeepingMetadataRepository
    * @param tableName
    * @return
    */
-  @Query(
-      value =
-          "select max(cleanupTimestamp) from HousekeepingMetadata t "
-              + "where t.databaseName = :databaseName "
-              + "and t.tableName = :tableName "
-              + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  @Query(value = "select max(cleanupTimestamp) from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   LocalDateTime findMaximumCleanupTimestampForDbAndTable(
       @Param("databaseName") String databaseName, @Param("tableName") String tableName);
 
   /**
-   * This method returns the count of all records for a database and table name pair where the
-   * partitionName is not null.
+   * This method returns the count of all records for a database and table name pair where the partitionName is not
+   * null.
    *
    * @param databaseName
    * @param tableName
    * @return A count of the number of partitions on this table.
    */
-  @Query(
-      value =
-          "select count(partitionName) from HousekeepingMetadata t "
-              + "where t.databaseName = :databaseName "
-              + "and t.tableName = :tableName "
-              + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  @Query(value = "select count(partitionName) from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   Long countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(
       @Param("databaseName") String databaseName, @Param("tableName") String tableName);
 
   /**
-   * This method is used for dry runs since the entries are not being updated. It counts the number
-   * of partitions on a table which have not yet expired, i.e. they will not be cleaned up in this
-   * instant.
+   * This method is used for dry runs since the entries are not being updated. It counts the number of partitions on a
+   * table which have not yet expired, i.e. they will not be cleaned up in this instant.
    *
    * @param instant
    * @param databaseName
    * @param tableName
    * @return A count of the number of existing partitions on this table
    */
-  @Query(
-      value =
-          "select count(partitionName) from HousekeepingMetadata t "
-              + "where t.databaseName = :databaseName "
-              + "and t.tableName = :tableName "
-              + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED') "
-              + "and t.cleanupTimestamp >= :instant")
+  @Query(value = "select count(partitionName) from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED') "
+      + "and t.cleanupTimestamp >= :instant")
   Long countRecordsForDryRunWherePartitionIsNotNullOrExpired(
       @Param("instant") LocalDateTime instant,
       @Param("databaseName") String databaseName,
       @Param("tableName") String tableName);
 
   /**
-   * This method deletes the rows for scheduled or failed partitions for the specified {@code
-   * databaseName} and {@code tableName}.
+   * This method deletes the rows for scheduled or failed partitions for the specified {@code databaseName} and
+   * {@code tableName}.
    *
    * @param databaseName
    * @param tableName
    */
   @Modifying
-  @Query(
-      value =
-          "delete from HousekeepingMetadata t "
-              + "where t.databaseName = :databaseName "
-              + "and t.tableName = :tableName "
-              + "and t.partitionName is not NULL "
-              + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  @Query(value = "delete from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and t.partitionName is not NULL "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   void deleteScheduledOrFailedPartitionRecordsForTable(
       @Param("databaseName") String databaseName, @Param("tableName") String tableName);
 
   /**
-   * This method returns all table records where the partition name is NULL and the status is
-   * `SCHEDULED` or `FAILED`
+   * This method returns all table records where the partition name is NULL and the status is SCHEDULED` or `FAILED`
    */
-  @Query(
-      value =
-          "from HousekeepingMetadata t "
-              + "where t.partitionName is NULL "
-              + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  @Query(value = "from HousekeepingMetadata t "
+      + "where t.partitionName is NULL "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   List<HousekeepingMetadata> findActiveTables();
 
   /**
-   * This method deletes the rows which have "DELETED" or "DISABLED" status and are older than the
-   * specified {@code instant}.
+   * This method deletes the rows which have "DELETED" or "DISABLED" status and are older than the specified
+   * {@code instant}.
    *
    * @param instant
    */
   @Modifying
-  @Query(
-      value =
-          "delete from HousekeepingMetadata t where t.cleanupTimestamp < :instant "
-              + "and (t.housekeepingStatus = 'DELETED' or t.housekeepingStatus = 'DISABLED')")
+  @Query(value = "delete from HousekeepingMetadata t where t.cleanupTimestamp < :instant "
+      + "and (t.housekeepingStatus = 'DELETED' or t.housekeepingStatus = 'DISABLED')")
   void cleanUpOldDeletedRecords(@Param("instant") LocalDateTime instant);
 
   /**
@@ -168,13 +149,11 @@ public interface HousekeepingMetadataRepository
    * @param tableName
    * @return List of records that match the inputs given.
    */
-  @Query(
-      value =
-          "from HousekeepingMetadata t "
-              + "where t.databaseName = :databaseName "
-              + "and t.tableName = :tableName "
-              + "and t.partitionName IS NOT NULL "
-              + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
+  @Query(value = "from HousekeepingMetadata t "
+      + "where t.databaseName = :databaseName "
+      + "and t.tableName = :tableName "
+      + "and t.partitionName IS NOT NULL "
+      + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   List<HousekeepingMetadata> findRecordsForCleanupByDbAndTableName(
       @Param("databaseName") String databaseName, @Param("tableName") String tableName);
 }
