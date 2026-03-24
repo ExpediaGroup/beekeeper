@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2023 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.expediagroup.beekeeper.core.repository;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MICROS;
 import static java.time.temporal.ChronoUnit.MONTHS;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,7 +72,7 @@ public class HousekeepingMetadataRepositoryTest {
   private static final String DATABASE_NAME = "database";
   private static final String TABLE_NAME = "table";
   private static final String PARTITION_NAME = "event_date=2020-01-01/event_hour=0/event_type=A";
-  private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC"));
+  private static final LocalDateTime CREATION_TIMESTAMP = LocalDateTime.now(ZoneId.of("UTC")).truncatedTo(MICROS);
   private static final PeriodDuration CLEANUP_DELAY = PeriodDuration.parse("P3D");
   private static final LocalDateTime CLEANUP_TIMESTAMP = CREATION_TIMESTAMP.plus(CLEANUP_DELAY);
 
@@ -525,8 +526,10 @@ public class HousekeepingMetadataRepositoryTest {
     assertThat(actual.getTableName()).isEqualTo(expected.getTableName());
     assertThat(actual.getPartitionName()).isEqualTo(expected.getPartitionName());
     assertThat(actual.getHousekeepingStatus()).isEqualTo(expected.getHousekeepingStatus());
-    assertThat(actual.getCreationTimestamp()).isEqualTo(expected.getCreationTimestamp());
-    assertThat(actual.getModifiedTimestamp()).isEqualTo(expected.getModifiedTimestamp());
+    assertThat(actual.getCreationTimestamp().truncatedTo(MICROS))
+        .isEqualTo(expected.getCreationTimestamp().truncatedTo(MICROS));
+    assertThat(actual.getModifiedTimestamp().truncatedTo(MICROS))
+        .isEqualTo(expected.getModifiedTimestamp().truncatedTo(MICROS));
     assertThat(actual.getCleanupDelay()).isEqualTo(expected.getCleanupDelay());
     assertThat(actual.getCleanupAttempts()).isEqualTo(expected.getCleanupAttempts());
     assertThat(actual.getLifecycleType()).isEqualTo(expected.getLifecycleType());
