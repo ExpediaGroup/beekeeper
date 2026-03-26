@@ -28,8 +28,7 @@ class ConsistencyCheckTest {
 
   @Test
   void metastorePathsCorrect() {
-    ConsistencyCheck.checkMetastorePaths(
-        Collections.singleton(new Path("/db/table/snapshot/partition")), 4);
+    ConsistencyCheck.checkMetastorePaths(Collections.singleton(new Path("/db/table/snapshot/partition")), 4);
   }
 
   @Test
@@ -49,14 +48,13 @@ class ConsistencyCheckTest {
   @Test
   void metastorePathDepthIncorrect() {
     assertThatExceptionOfType(IllegalStateException.class)
-        .isThrownBy(
-            () -> ConsistencyCheck.checkMetastorePath(new Path("/db/snapshot/partition"), 4));
+        .isThrownBy(() -> ConsistencyCheck.checkMetastorePath(
+            new Path("/db/snapshot/partition"), 4));
   }
 
   @Test
   void unvisitedPath() throws IOException {
-    Path nonExistent =
-        new Path("/db/table/snapshot/" + RandomStringUtils.randomAlphanumeric(8) + "/partition");
+    Path nonExistent = new Path("/db/table/snapshot/" + RandomStringUtils.randomAlphanumeric(8) + "/partition");
     Configuration conf = new Configuration(false);
     conf.setBoolean("fs.file.impl.disable.cache", true);
     FileSystem fs = nonExistent.getFileSystem(conf);

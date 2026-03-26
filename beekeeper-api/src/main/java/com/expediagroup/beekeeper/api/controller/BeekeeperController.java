@@ -80,9 +80,7 @@ public class BeekeeperController {
     return ResponseEntity.ok(housekeepingEntityService.getAllMetadata(spec, pageable));
   }
 
-  @RequestMapping(
-      value = "/database/{databaseName}/table/{tableName}/unreferenced-paths",
-      method = RequestMethod.GET)
+  @RequestMapping(value = "/database/{databaseName}/table/{tableName}/unreferenced-paths", method = RequestMethod.GET)
   @Parameter(name = "tableName", in = ParameterIn.PATH)
   @Parameter(name = "databaseName", in = ParameterIn.PATH)
   @Parameter(name = "path", in = ParameterIn.QUERY)
@@ -97,16 +95,16 @@ public class BeekeeperController {
       @PathVariable String databaseName,
       @PathVariable String tableName,
       @Parameter(hidden = true) @And(value = {
-                @Spec(path = "tableName", pathVars = "tableName", spec = EqualIgnoreCase.class),
-                @Spec(path = "databaseName", pathVars = "databaseName", spec = EqualIgnoreCase.class),
-                @Spec(path = "path", params = "path", spec = EqualIgnoreCase.class),
-                @Spec(path = "partitionName", params = "partition_name", spec = EqualIgnoreCase.class),
-                @Spec(path = "housekeepingStatus", params = "housekeeping_status", spec = EqualIgnoreCase.class),
-                @Spec(path = "lifecycleType", params = "lifecycle_type", spec = EqualIgnoreCase.class),
-                @Spec(path = "cleanupTimestamp", params = "deleted_before", spec = LessThan.class),
-                @Spec(path = "cleanupTimestamp", params = "deleted_after", spec = GreaterThan.class),
-                @Spec(path = "creationTimestamp", params = "registered_before", spec = LessThan.class),
-                @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class) }) Specification<HousekeepingPath> spec,
+          @Spec(path = "tableName", pathVars = "tableName", spec = EqualIgnoreCase.class),
+          @Spec(path = "databaseName", pathVars = "databaseName", spec = EqualIgnoreCase.class),
+          @Spec(path = "path", params = "path", spec = EqualIgnoreCase.class),
+          @Spec(path = "partitionName", params = "partition_name", spec = EqualIgnoreCase.class),
+          @Spec(path = "housekeepingStatus", params = "housekeeping_status", spec = EqualIgnoreCase.class),
+          @Spec(path = "lifecycleType", params = "lifecycle_type", spec = EqualIgnoreCase.class),
+          @Spec(path = "cleanupTimestamp", params = "deleted_before", spec = LessThan.class),
+          @Spec(path = "cleanupTimestamp", params = "deleted_after", spec = GreaterThan.class),
+          @Spec(path = "creationTimestamp", params = "registered_before", spec = LessThan.class),
+          @Spec(path = "creationTimestamp", params = "registered_after", spec = GreaterThan.class) }) Specification<HousekeepingPath> spec,
       @ParameterObject Pageable pageable) {
     return ResponseEntity.ok(housekeepingEntityService.getAllPaths(spec, pageable));
   }

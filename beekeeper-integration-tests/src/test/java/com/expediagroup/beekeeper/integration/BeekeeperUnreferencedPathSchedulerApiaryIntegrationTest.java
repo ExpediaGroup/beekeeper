@@ -71,8 +71,7 @@ import com.expediagroup.beekeeper.scheduler.apiary.BeekeeperSchedulerApiary;
 import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
 
 @Testcontainers
-public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest
-    extends BeekeeperIntegrationTestBase {
+public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends BeekeeperIntegrationTestBase {
 
   protected static final int TIMEOUT = 30;
   protected static final String APIARY_QUEUE_URL_PROPERTY = "properties.apiary.queue-url";
@@ -85,13 +84,12 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest
 
   @Container
   protected static final LocalStackContainer SQS_CONTAINER = ContainerTestUtils.awsContainer(SQS);
-
   protected static AmazonSQS amazonSQS;
   protected static String ACTUAL_QUEUE_URL;
 
   @RegisterExtension
-  protected ThriftHiveMetaStoreJUnitExtension thriftHiveMetaStore =
-      new ThriftHiveMetaStoreJUnitExtension(DATABASE_NAME_VALUE, emptyMap());
+  protected ThriftHiveMetaStoreJUnitExtension thriftHiveMetaStore = new ThriftHiveMetaStoreJUnitExtension(
+      DATABASE_NAME_VALUE, emptyMap());
 
   protected static final String SQS_ENDPOINT_PROPERTY = "properties.sqs.endpoint";
   protected static final String SQS_REGION_PROPERTY = "properties.sqs.region";
@@ -102,8 +100,7 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest
     ACTUAL_QUEUE_URL = ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE);
     amazonSQS.createQueue(QUEUE);
     System.setProperty(APIARY_QUEUE_URL_PROPERTY, ACTUAL_QUEUE_URL);
-    System.setProperty(
-        SQS_ENDPOINT_PROPERTY, ContainerTestUtils.awsServiceEndpoint(SQS_CONTAINER, SQS));
+    System.setProperty(SQS_ENDPOINT_PROPERTY, ContainerTestUtils.awsServiceEndpoint(SQS_CONTAINER, SQS));
     System.setProperty(SQS_REGION_PROPERTY, AWS_REGION);
   }
 
@@ -133,9 +130,8 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest
 
   @Test
   public void unreferencedAlterTableEvent() throws SQLException, IOException, URISyntaxException {
-    AlterTableSqsMessage alterTableSqsMessage =
-        new AlterTableSqsMessage(
-            "s3://bucket/tableLocation", "s3://bucket/oldTableLocation", true, true);
+    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://bucket/tableLocation",
+        "s3://bucket/oldTableLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 1);
 
@@ -144,11 +140,9 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest
   }
 
   @Test
-  public void unreferencedMultipleAlterTableEvents()
-      throws SQLException, IOException, URISyntaxException {
-    AlterTableSqsMessage alterTableSqsMessage =
-        new AlterTableSqsMessage(
-            "s3://bucket/tableLocation", "s3://bucket/oldTableLocation", true, true);
+  public void unreferencedMultipleAlterTableEvents() throws SQLException, IOException, URISyntaxException {
+    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://bucket/tableLocation",
+        "s3://bucket/oldTableLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
     alterTableSqsMessage.setTableLocation("s3://bucket/tableLocation2");
     alterTableSqsMessage.setOldTableLocation("s3://bucket/tableLocation");
@@ -161,15 +155,10 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest
   }
 
   @Test
-  public void unreferencedAlterPartitionEvent()
-      throws SQLException, IOException, URISyntaxException {
-    AlterPartitionSqsMessage alterPartitionSqsMessage =
-        new AlterPartitionSqsMessage(
-            "s3://bucket/table/expiredTableLocation",
-            "s3://bucket/table/partitionLocation",
-            "s3://bucket/table/unreferencedPartitionLocation",
-            true,
-            true);
+  public void unreferencedAlterPartitionEvent() throws SQLException, IOException, URISyntaxException {
+    AlterPartitionSqsMessage alterPartitionSqsMessage = new AlterPartitionSqsMessage(
+        "s3://bucket/table/expiredTableLocation", "s3://bucket/table/partitionLocation",
+         "s3://bucket/table/unreferencedPartitionLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterPartitionSqsMessage.getFormattedString()));
     alterPartitionSqsMessage.setTableLocation("s3://bucket/table/expiredTableLocation2");
     alterPartitionSqsMessage.setPartitionLocation("s3://bucket/table/partitionLocation2");
@@ -179,41 +168,30 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
     assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/table/partitionLocation");
-    assertUnreferencedPath(
-        unreferencedPaths.get(1), "s3://bucket/table/unreferencedPartitionLocation");
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/table/unreferencedPartitionLocation");
   }
 
   @Test
   public void unreferencedMultipleAlterPartitionEvent()
       throws IOException, SQLException, URISyntaxException {
-    List.of(
-            new AlterPartitionSqsMessage(
-                "s3://bucket/table/expiredTableLocation",
-                "s3://bucket/table/partitionLocation",
-                "s3://bucket/table/unreferencedPartitionLocation",
-                true,
-                true),
-            new AlterPartitionSqsMessage(
-                "s3://bucket/table/expiredTableLocation2",
-                "s3://bucket/table/partitionLocation2",
-                "s3://bucket/table/partitionLocation",
-                true,
-                true))
+    List
+        .of(new AlterPartitionSqsMessage("s3://bucket/table/expiredTableLocation",
+                        "s3://bucket/table/partitionLocation", "s3://bucket/table/unreferencedPartitionLocation", true, true),
+                new AlterPartitionSqsMessage("s3://bucket/table/expiredTableLocation2",
+                        "s3://bucket/table/partitionLocation2", "s3://bucket/table/partitionLocation", true, true))
         .forEach(msg -> amazonSQS.sendMessage(sendMessageRequest(msg.getFormattedString())));
 
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
 
     List<HousekeepingPath> unreferencedPaths = getUnreferencedPaths();
     assertUnreferencedPath(unreferencedPaths.get(0), "s3://bucket/table/partitionLocation");
-    assertUnreferencedPath(
-        unreferencedPaths.get(1), "s3://bucket/table/unreferencedPartitionLocation");
+    assertUnreferencedPath(unreferencedPaths.get(1), "s3://bucket/table/unreferencedPartitionLocation");
   }
 
   @Test
-  public void unreferencedDropPartitionEvent()
-      throws SQLException, IOException, URISyntaxException {
-    DropPartitionSqsMessage dropPartitionSqsMessage =
-        new DropPartitionSqsMessage("s3://bucket/table/partitionLocation", true, true);
+  public void unreferencedDropPartitionEvent() throws SQLException, IOException, URISyntaxException {
+    DropPartitionSqsMessage dropPartitionSqsMessage = new DropPartitionSqsMessage("s3://bucket/table/partitionLocation",
+        true, true);
     amazonSQS.sendMessage(sendMessageRequest(dropPartitionSqsMessage.getFormattedString()));
     dropPartitionSqsMessage.setPartitionLocation("s3://bucket/table/partitionLocation2");
     amazonSQS.sendMessage(sendMessageRequest(dropPartitionSqsMessage.getFormattedString()));
@@ -226,8 +204,7 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest
 
   @Test
   public void unreferencedDropTableEvent() throws SQLException, IOException, URISyntaxException {
-    DropTableSqsMessage dropTableSqsMessage =
-        new DropTableSqsMessage("s3://bucket/tableLocation", true, true);
+    DropTableSqsMessage dropTableSqsMessage = new DropTableSqsMessage("s3://bucket/tableLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(dropTableSqsMessage.getFormattedString()));
     dropTableSqsMessage.setTableLocation("s3://bucket/tableLocation2");
     amazonSQS.sendMessage(sendMessageRequest(dropTableSqsMessage.getFormattedString()));
@@ -240,14 +217,11 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest
 
   @Test
   public void testEventAddedToHistoryTable() throws IOException, URISyntaxException, SQLException {
-    AlterTableSqsMessage alterTableSqsMessage =
-        new AlterTableSqsMessage(
-            "s3://bucket/tableLocation", "s3://bucket/oldTableLocation", true, true);
+    AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://bucket/tableLocation",
+         "s3://bucket/oldTableLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
 
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getBeekeeperHistoryRowCount(UNREFERENCED) == 1);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getBeekeeperHistoryRowCount(UNREFERENCED) == 1);
 
     List<BeekeeperHistory> beekeeperHistory = getBeekeeperHistory(UNREFERENCED);
     BeekeeperHistory history = beekeeperHistory.get(0);
@@ -270,9 +244,7 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest
   public void prometheus() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(PROMETHEUS_URI);
-    await()
-        .atMost(30, TimeUnit.SECONDS)
-        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
+    await().atMost(30, TimeUnit.SECONDS).until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
   protected SendMessageRequest sendMessageRequest(String payload) {
@@ -291,8 +263,7 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest
     assertThat(actual.getHousekeepingStatus()).isEqualTo(SCHEDULED);
     assertThat(actual.getCreationTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE);
     assertThat(actual.getModifiedTimestamp()).isAfterOrEqualTo(CREATION_TIMESTAMP_VALUE);
-    assertThat(actual.getCleanupTimestamp())
-        .isEqualTo(actual.getCreationTimestamp().plus(actual.getCleanupDelay()));
+    assertThat(actual.getCleanupTimestamp()).isEqualTo(actual.getCreationTimestamp().plus(actual.getCleanupDelay()));
     assertThat(actual.getCleanupDelay()).isEqualTo(PeriodDuration.parse(SHORT_CLEANUP_DELAY_VALUE));
     assertThat(actual.getCleanupAttempts()).isEqualTo(CLEANUP_ATTEMPTS_VALUE);
     assertThat(actual.getClientId()).isEqualTo(CLIENT_ID_VALUE);
@@ -300,16 +271,12 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest
   }
 
   public void assertMetrics() {
-    Set<MeterRegistry> meterRegistry =
-        ((CompositeMeterRegistry) BeekeeperSchedulerApiary.meterRegistry()).getRegistries();
+    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperSchedulerApiary.meterRegistry())
+        .getRegistries();
     assertThat(meterRegistry).hasSize(2);
-    meterRegistry.forEach(
-        registry -> {
-          List<Meter> meters = registry.getMeters();
-          assertThat(meters)
-              .extracting("id", Meter.Id.class)
-              .extracting("name")
-              .contains(SCHEDULED_ORPHANED_METRIC);
-        });
+    meterRegistry.forEach(registry -> {
+      List<Meter> meters = registry.getMeters();
+      assertThat(meters).extracting("id", Meter.Id.class).extracting("name").contains(SCHEDULED_ORPHANED_METRIC);
+    });
   }
 }

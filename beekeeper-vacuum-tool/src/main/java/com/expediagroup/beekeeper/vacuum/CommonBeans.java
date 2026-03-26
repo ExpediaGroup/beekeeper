@@ -36,11 +36,8 @@ import com.hotels.hcommon.hive.metastore.client.supplier.HiveMetaStoreClientSupp
 
 @Configuration
 @EntityScan(basePackages = {"com.expediagroup.beekeeper.core.model"})
-@EnableJpaRepositories(
-    basePackages = {
-      "com.expediagroup.beekeeper.core.repository",
-      "com.expediagroup.beekeeper.vacuum.repository"
-    })
+@EnableJpaRepositories(basePackages = { "com.expediagroup.beekeeper.core.repository",
+                                        "com.expediagroup.beekeeper.vacuum.repository" })
 public class CommonBeans {
 
   @Bean
@@ -57,12 +54,9 @@ public class CommonBeans {
     conf.set("fs.s3.impl", S3AFileSystem.class.getName());
     conf.set("fs.s3a.impl", S3AFileSystem.class.getName());
     conf.set("fs.s3n.impl", S3AFileSystem.class.getName());
-    conf.set(
-        "fs.s3.aws.credentials.provider", EC2ContainerCredentialsProviderWrapper.class.getName());
-    conf.set(
-        "fs.s3a.aws.credentials.provider", EC2ContainerCredentialsProviderWrapper.class.getName());
-    conf.set(
-        "fs.s3n.aws.credentials.provider", EC2ContainerCredentialsProviderWrapper.class.getName());
+    conf.set("fs.s3.aws.credentials.provider", EC2ContainerCredentialsProviderWrapper.class.getName());
+    conf.set("fs.s3a.aws.credentials.provider", EC2ContainerCredentialsProviderWrapper.class.getName());
+    conf.set("fs.s3n.aws.credentials.provider", EC2ContainerCredentialsProviderWrapper.class.getName());
 
     // Disable FileSystem cache to avoid UserGroupInformation.getCurrentUser() which is
     // incompatible with Java 17+ when the security manager is not installed
@@ -81,21 +75,19 @@ public class CommonBeans {
 
   @Bean
   Supplier<CloseableMetaStoreClient> metaStoreClientSupplier(
-      CloseableMetaStoreClientFactory metaStoreClientFactory, HiveConf hiveConf) {
+      CloseableMetaStoreClientFactory metaStoreClientFactory,
+      HiveConf hiveConf) {
     String name = "beekeeper-vacuum-tool";
     return new HiveMetaStoreClientSupplier(metaStoreClientFactory, hiveConf, name);
   }
 
   @Bean
-  public BeekeeperHistoryService beekeeperHistoryService(
-      BeekeeperEventsHistoryRepository repository) {
+  public BeekeeperHistoryService beekeeperHistoryService(BeekeeperEventsHistoryRepository repository) {
     return new BeekeeperHistoryService(repository);
   }
 
   @Bean
-  public SchedulerService schedulerService(
-      BeekeeperRepository beekeeperRepository, BeekeeperHistoryService beekeeperHistoryService) {
-    return new UnreferencedHousekeepingPathSchedulerService(
-        beekeeperRepository, beekeeperHistoryService);
+  public SchedulerService schedulerService(BeekeeperRepository beekeeperRepository, BeekeeperHistoryService beekeeperHistoryService) {
+    return new UnreferencedHousekeepingPathSchedulerService(beekeeperRepository, beekeeperHistoryService);
   }
 }

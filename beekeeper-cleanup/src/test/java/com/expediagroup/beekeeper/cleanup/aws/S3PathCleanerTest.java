@@ -95,9 +95,9 @@ class S3PathCleanerTest {
   void setUp() {
     amazonS3 = AmazonS3ClientBuilder
         .standard()
-         .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
-         .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region"))
-         .build();
+        .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
+        .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(S3_ENDPOINT, "region"))
+        .build();
     amazonS3.createBucket(bucket);
     amazonS3
         .listObjectsV2(bucket)

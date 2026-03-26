@@ -69,13 +69,11 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   protected static final String OBJECT_KEY_ROOT = DB_AND_TABLE_PREFIX + "/id1/partition1";
   protected static final String OBJECT_KEY1 = DB_AND_TABLE_PREFIX + "/id1/partition1/file1";
   protected static final String OBJECT_KEY2 = DB_AND_TABLE_PREFIX + "/id1/partition1/file2";
-  protected static final String OBJECT_KEY_SENTINEL =
-      DB_AND_TABLE_PREFIX + "/id1/partition1_$folder$";
+  protected static final String OBJECT_KEY_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition1_$folder$";
   protected static final String ABSOLUTE_PATH = "s3://" + BUCKET + "/" + OBJECT_KEY_ROOT;
 
   protected static final String OBJECT_KEY_OTHER = DB_AND_TABLE_PREFIX + "/id1/partition10/file1";
-  protected static final String OBJECT_KEY_OTHER_SENTINEL =
-      DB_AND_TABLE_PREFIX + "/id1/partition10_$folder$";
+  protected static final String OBJECT_KEY_OTHER_SENTINEL = DB_AND_TABLE_PREFIX + "/id1/partition10_$folder$";
 
   protected static final String SPRING_PROFILES_ACTIVE = "test";
   protected static final String SCHEDULER_DELAY_MS = "5000";
@@ -86,7 +84,6 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
 
   @Container
   protected static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
-
   protected static AmazonS3 amazonS3;
 
   protected final ExecutorService executorService = Executors.newFixedThreadPool(1);
@@ -96,8 +93,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
     System.setProperty(SPRING_PROFILES_ACTIVE_PROPERTY, SPRING_PROFILES_ACTIVE);
     System.setProperty(SCHEDULER_DELAY_MS_PROPERTY, SCHEDULER_DELAY_MS);
     System.setProperty(DRY_RUN_ENABLED_PROPERTY, DRY_RUN_ENABLED);
-    System.setProperty(
-        AWS_S3_ENDPOINT_PROPERTY, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3));
+    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3));
 
     amazonS3 = ContainerTestUtils.s3Client(S3_CONTAINER, AWS_REGION);
     amazonS3.createBucket(new CreateBucketRequest(BUCKET, AWS_REGION));
@@ -115,8 +111,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
 
   @BeforeEach
   public void setup() {
-    amazonS3
-        .listObjectsV2(BUCKET)
+    amazonS3.listObjectsV2(BUCKET)
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
     executorService.execute(() -> BeekeeperPathCleanup.main(new String[] {}));
@@ -137,8 +132,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
 
     String path = "s3://" + BUCKET + "/" + OBJECT_KEY1;
     insertUnreferencedPath(path);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
@@ -156,8 +150,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
     amazonS3.putObject(BUCKET, OBJECT_KEY_OTHER_SENTINEL, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
@@ -196,8 +189,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
     amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH + "/");
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
@@ -219,8 +211,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
     amazonS3.putObject(BUCKET, databaseSentinel, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
@@ -263,9 +254,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
     String path = "s3://" + BUCKET + "/" + OBJECT_KEY1;
     insertUnreferencedPath(path);
 
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> getBeekeeperHistoryRowCount(UNREFERENCED) == 1);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getBeekeeperHistoryRowCount(UNREFERENCED) == 1);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
     // deleting a file shouldn't delete a folder sentinel
@@ -286,8 +275,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
     amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
@@ -296,16 +284,12 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   }
 
   private void assertMetrics() {
-    Set<MeterRegistry> meterRegistry =
-        ((CompositeMeterRegistry) BeekeeperPathCleanup.meterRegistry()).getRegistries();
+    Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperPathCleanup.meterRegistry()).getRegistries();
     assertThat(meterRegistry).hasSize(2);
-    meterRegistry.forEach(
-        registry -> {
-          List<Meter> meters = registry.getMeters();
-          assertThat(meters)
-              .extracting("id", Meter.Id.class)
-              .extracting("name")
-              .contains("path-cleanup-job", "s3-paths-deleted", "s3-" + METRIC_NAME);
+    meterRegistry.forEach(registry -> {
+      List<Meter> meters = registry.getMeters();
+      assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
+          .contains("path-cleanup-job", "s3-paths-deleted", "s3-" + METRIC_NAME);
         });
   }
 
@@ -313,8 +297,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   public void healthCheck() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
@@ -322,8 +305,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
   public void prometheus() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(PROMETHEUS_URI);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 }

@@ -58,7 +58,7 @@ class S3SentinelFilesCleanerTest {
 
   @BeforeEach
   void setUp() {
-    amazonS3 =AmazonS3ClientBuilder
+    amazonS3 = AmazonS3ClientBuilder
         .standard()
         .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))
         .withEndpointConfiguration(

@@ -123,11 +123,11 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   protected static AmazonS3 amazonS3;
 
   private static Map<String, String> metastoreProperties = ImmutableMap
-          .<String, String>builder()
-          .put(ENDPOINT, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3))
-          .put(ACCESS_KEY, S3_ACCESS_KEY)
-          .put(SECRET_KEY, S3_SECRET_KEY)
-          .build();
+      .<String, String>builder()
+      .put(ENDPOINT, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3))
+      .put(ACCESS_KEY, S3_ACCESS_KEY)
+      .put(SECRET_KEY, S3_SECRET_KEY)
+      .build();
 
   @RegisterExtension
   protected ThriftHiveMetaStoreJUnitExtension thriftHiveMetaStore = new ThriftHiveMetaStoreJUnitExtension(
@@ -164,9 +164,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     hiveTestUtils = new HiveTestUtils(metastoreClient);
 
     amazonSQS.purgeQueue(new PurgeQueueRequest(ACTUAL_QUEUE_URL));
-    amazonS3
-        .listObjectsV2(BUCKET)
-        .getObjectSummaries()
+    amazonS3.listObjectsV2(BUCKET).getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
     executorService.execute(() -> BeekeeperSchedulerApiary.main(new String[] {}));
     await().atMost(Duration.ofMinutes(1)).until(BeekeeperSchedulerApiary::isRunning);
@@ -222,9 +220,9 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   @Test
   public void expiredMetadataMultipleAddPartitionEvents() throws SQLException, IOException, URISyntaxException {
     AddPartitionSqsMessage addPartitionSqsMessage = new AddPartitionSqsMessage(LOCATION_A, PARTITION_KEYS,
-            PARTITION_A_VALUES, true);
+        PARTITION_A_VALUES, true);
     AddPartitionSqsMessage addPartitionSqsMessage2 = new AddPartitionSqsMessage(LOCATION_B, PARTITION_KEYS,
-            PARTITION_B_VALUES, true);
+        PARTITION_B_VALUES, true);
     amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage.getFormattedString()));
     amazonSQS.sendMessage(sendMessageRequest(addPartitionSqsMessage2.getFormattedString()));
 
@@ -260,9 +258,9 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     insertExpiredMetadata(LOCATION_B + "-old", PARTITION_B_NAME);
 
     AlterPartitionSqsMessage alterPartitionSqsMessage = new AlterPartitionSqsMessage(LOCATION_A, PARTITION_KEYS,
-            PARTITION_A_VALUES, true);
+        PARTITION_A_VALUES, true);
     AlterPartitionSqsMessage alterPartitionSqsMessage2 = new AlterPartitionSqsMessage(LOCATION_B, PARTITION_KEYS,
-            PARTITION_B_VALUES, true);
+        PARTITION_B_VALUES, true);
     amazonSQS.sendMessage(sendMessageRequest(alterPartitionSqsMessage.getFormattedString()));
     amazonSQS.sendMessage(sendMessageRequest(alterPartitionSqsMessage2.getFormattedString()));
 
@@ -323,7 +321,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, List.of("2020-01-01", "1", "B"));
 
     insertExpiredMetadata(PARTITION_ROOT_PATH, null);
-    insertExpiredMetadata(PARTITION_ROOT_PATH + PARTITION_A_NAME + "/event_type=C",PARTITION_A_NAME + "/event_type=C");
+    insertExpiredMetadata(PARTITION_ROOT_PATH + PARTITION_A_NAME + "/event_type=C", PARTITION_A_NAME + "/event_type=C");
 
     AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage(PARTITION_ROOT_PATH, true);
     amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
@@ -340,16 +338,16 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   public void healthCheck() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(HEALTHCHECK_URI);
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
   @Test
   public void prometheus() {
     CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpGet request = new HttpGet(PROMETHEUS_URI);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> client.execute(request).getStatusLine().getStatusCode() == 200);
   }
 
   protected SendMessageRequest sendMessageRequest(String payload) {
@@ -384,8 +382,8 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
         .getRegistries();
     assertThat(meterRegistry).hasSize(2);
     meterRegistry.forEach(registry -> {
-          List<Meter> meters = registry.getMeters();
-          assertThat(meters).extracting("id", Meter.Id.class).extracting("name").contains(SCHEDULED_EXPIRED_METRIC);
+      List<Meter> meters = registry.getMeters();
+      assertThat(meters).extracting("id", Meter.Id.class).extracting("name").contains(SCHEDULED_EXPIRED_METRIC);
     });
   }
 }

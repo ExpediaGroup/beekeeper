@@ -41,13 +41,14 @@ public class BeekeeperExceptionHandler {
       PropertyReferenceException exception, HttpServletRequest request) {
 
     ErrorResponse errorResponse = ErrorResponse.builder()
-            .timestamp(LocalDateTime.now().toString())
-            .status(HttpStatus.BAD_REQUEST.value())
-            .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-            .message(exception.getMessage())
-            .path(request.getRequestURI())
-            .build();
+        .timestamp(LocalDateTime.now().toString())
+        .status(HttpStatus.BAD_REQUEST.value())
+        .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+        .message(exception.getMessage())
+        .path(request.getRequestURI())
+        .build();
 
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
+
 }

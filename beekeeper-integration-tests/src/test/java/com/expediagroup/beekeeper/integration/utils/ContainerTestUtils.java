@@ -39,8 +39,7 @@ public class ContainerTestUtils {
         .withServices(service);
   }
 
-  public static String awsServiceEndpoint(
-      LocalStackContainer awsContainer, LocalStackContainer.Service service) {
+  public static String awsServiceEndpoint(LocalStackContainer awsContainer, LocalStackContainer.Service service) {
     return awsContainer.getEndpointOverride(service).toString();
   }
 
@@ -49,19 +48,18 @@ public class ContainerTestUtils {
   }
 
   public static AmazonSQS sqsClient(LocalStackContainer awsContainer, String region) {
-    EndpointConfiguration endpointConfiguration =
-        new EndpointConfiguration(awsServiceEndpoint(awsContainer, SQS), region);
-    return AmazonSQSClientBuilder.standard()
-        .withEndpointConfiguration(endpointConfiguration)
-        .build();
+    EndpointConfiguration endpointConfiguration = new EndpointConfiguration(awsServiceEndpoint(awsContainer, SQS),
+        region);
+    return AmazonSQSClientBuilder.standard().withEndpointConfiguration(endpointConfiguration).build();
   }
 
   public static AmazonS3 s3Client(LocalStackContainer awsContainer, String region) {
-    EndpointConfiguration endpointConfiguration =
-        new EndpointConfiguration(awsServiceEndpoint(awsContainer, S3), region);
+    EndpointConfiguration endpointConfiguration = new EndpointConfiguration(awsServiceEndpoint(awsContainer, S3),
+        region);
 
     // build with disableChunkedEncoding to be able to create empty files
-    return AmazonS3ClientBuilder.standard()
+    return AmazonS3ClientBuilder
+        .standard()
         .withEndpointConfiguration(endpointConfiguration)
         .withPathStyleAccessEnabled(true)
         .disableChunkedEncoding()

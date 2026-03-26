@@ -96,20 +96,20 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   private static final String PARTITION_ROOT_PATH = ROOT_PATH + "some_location/id1";
   private static final String PARTITION_PATH = PARTITION_ROOT_PATH + "/" + PARTITION_NAME + "/file1";
   private static final String PARTITIONED_TABLE_OBJECT_KEY = DATABASE_NAME_VALUE
-          + "/"
-          + PARTITIONED_TABLE_NAME
-          + "/id1";
+      + "/"
+      + PARTITIONED_TABLE_NAME
+      + "/id1";
 
   private static final String PARTITIONED_OBJECT_KEY = DATABASE_NAME_VALUE
-          + "/some_location/id1/"
-          + PARTITION_NAME
-          + "/file1";
+      + "/some_location/id1/"
+      + PARTITION_NAME
+      + "/file1";
 
   private static final String UNPARTITIONED_TABLE_PATH = ROOT_PATH + UNPARTITIONED_TABLE_NAME + "/id1";
   private static final String UNPARTITIONED_TABLE_OBJECT_KEY = DATABASE_NAME_VALUE
-          + "/"
-          + UNPARTITIONED_TABLE_NAME
-          + "/id1";
+      + "/"
+      + UNPARTITIONED_TABLE_NAME
+      + "/id1";
 
   private static final String S3_CLIENT_CLASS_NAME = "S3Client";
   private static final String HIVE_CLIENT_CLASS_NAME = "HiveClient";
@@ -121,7 +121,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
   private final TestAppender appender = new TestAppender();
 
-  private Map<String, String> metastoreProperties = ImmutableMap
+  private static Map<String, String> metastoreProperties = ImmutableMap
       .<String, String>builder()
       .put(ENDPOINT, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3))
       .put(ACCESS_KEY, S3_ACCESS_KEY)
@@ -220,7 +220,8 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   public void dryRunDontDropPartitionedTable() throws Exception {
     Table table = hiveTestUtils.createTableWithDeletionProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, true);
     hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
-    hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, List.of("2020-01-01", "1", "B"));
+    hiveTestUtils
+        .addPartitionsToTable(PARTITION_ROOT_PATH, table, List.of("2020-01-01", "1", "B"));
 
     String partition2Name = "event_date=2020-01-01/event_hour=1/event_type=B";
     String partition2Path = PARTITION_ROOT_PATH + "/" + partition2Name + "/file1";
@@ -266,11 +267,10 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   private void assertMetrics() {
     Set<MeterRegistry> meterRegistry = ((CompositeMeterRegistry) BeekeeperMetadataCleanup.meterRegistry()).getRegistries();
     assertThat(meterRegistry).hasSize(2);
-    meterRegistry.forEach(
-        registry -> {
-          List<Meter> meters = registry.getMeters();
-          assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-              .contains("metadata-cleanup-job", "hive-table-deleted", "hive-partition-deleted", "hive-table-" +
+    meterRegistry.forEach(registry -> {
+      List<Meter> meters = registry.getMeters();
+      assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
+          .contains("metadata-cleanup-job", "hive-table-deleted", "hive-partition-deleted", "hive-table-" +
 DeletedMetadataReporter.DRY_RUN_METRIC_NAME,
               "hive-partition-" + DeletedMetadataReporter.DRY_RUN_METRIC_NAME, "s3-paths-deleted", "s3-" +
 BytesDeletedReporter.DRY_RUN_METRIC_NAME);

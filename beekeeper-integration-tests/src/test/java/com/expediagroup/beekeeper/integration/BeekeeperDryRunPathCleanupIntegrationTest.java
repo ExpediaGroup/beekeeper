@@ -181,9 +181,7 @@ public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrat
     amazonS3.putObject(BUCKET, tableSentinel, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> logsContainLineFromS3Client(parentSentinel));
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLineFromS3Client(parentSentinel));
 
     assertS3ClientLogs(4);
   }
@@ -211,9 +209,7 @@ public class BeekeeperDryRunPathCleanupIntegrationTest extends BeekeeperIntegrat
     amazonS3.putObject(BUCKET, OBJECT_KEY_SENTINEL, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
-        .until(() -> logsContainLineFromS3Client(OBJECT_KEY_SENTINEL));
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> logsContainLineFromS3Client(OBJECT_KEY_SENTINEL));
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isTrue();
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY_SENTINEL)).isTrue();

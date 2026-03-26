@@ -66,20 +66,16 @@ import com.hotels.hcommon.hive.metastore.client.closeable.CloseableMetaStoreClie
 import com.hotels.hcommon.hive.metastore.client.supplier.HiveMetaStoreClientSupplier;
 
 @Configuration
-@ComponentScan(
-    basePackages = {"com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.scheduler"})
+@ComponentScan(basePackages = {"com.expediagroup.beekeeper.core", "com.expediagroup.beekeeper.scheduler"})
 @EntityScan(basePackages = {"com.expediagroup.beekeeper.core"})
 @EnableJpaRepositories(basePackages = {"com.expediagroup.beekeeper.core.repository"})
 @EnableRetry(proxyTargetClass = true)
 public class CommonBeans {
 
   @Bean
-  public EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap(
-      List<SchedulerService> schedulerServices) {
-    EnumMap<LifecycleEventType, SchedulerService> schedulerMap =
-        new EnumMap<>(LifecycleEventType.class);
-    schedulerServices.forEach(
-        scheduler -> schedulerMap.put(scheduler.getLifecycleEventType(), scheduler));
+  public EnumMap<LifecycleEventType, SchedulerService> schedulerServiceMap(List<SchedulerService> schedulerServices) {
+    EnumMap<LifecycleEventType, SchedulerService> schedulerMap = new EnumMap<>(LifecycleEventType.class);
+    schedulerServices.forEach(scheduler -> schedulerMap.put(scheduler.getLifecycleEventType(), scheduler));
     return schedulerMap;
   }
 
@@ -100,8 +96,7 @@ public class CommonBeans {
   }
 
   @Bean(name = "retryingMessageReader")
-  public MessageReader retryingMessageReader(
-      @Qualifier("sqsMessageReader") MessageReader messageReader) {
+  public MessageReader retryingMessageReader(@Qualifier("sqsMessageReader") MessageReader messageReader) {
     return new RetryingMessageReader(messageReader);
   }
 
@@ -114,20 +109,20 @@ public class CommonBeans {
   @Bean(name = "unreferencedHousekeepingPathMessageEventHandler")
   public MessageEventHandler unreferencedHousekeepingPathMessageEventHandler(
       @Qualifier("unreferencedHousekeepingPathGenerator") HousekeepingEntityGenerator generator) {
-    List<Class<? extends ListenerEvent>> eventClasses =
-        List.of(
-            AlterPartitionEvent.class,
-            AlterTableEvent.class,
-            DropPartitionEvent.class,
-            DropTableEvent.class);
+    List<Class<? extends ListenerEvent>> eventClasses = List.of(
+        AlterPartitionEvent.class,
+        AlterTableEvent.class,
+        DropPartitionEvent.class,
+        DropTableEvent.class
+    );
 
-    List<ListenerEventFilter> filters =
-        List.of(
-            new EventTypeListenerEventFilter(eventClasses),
-            new LocationOnlyUpdateListenerEventFilter(),
-            new TableParameterListenerEventFilter(),
-            new WhitelistedListenerEventFilter(),
-            new IcebergTableListenerEventFilter());
+    List<ListenerEventFilter> filters = List.of(
+        new EventTypeListenerEventFilter(eventClasses),
+        new LocationOnlyUpdateListenerEventFilter(),
+        new TableParameterListenerEventFilter(),
+        new WhitelistedListenerEventFilter(),
+        new IcebergTableListenerEventFilter()
+    );
 
     return new MessageEventHandler(generator, filters);
   }
@@ -142,18 +137,18 @@ public class CommonBeans {
   @Bean(name = "expiredHousekeepingMetadataMessageEventHandler")
   public MessageEventHandler expiredHousekeepingMetadataMessageEventHandler(
       @Qualifier("expiredHousekeepingMetadataGenerator") HousekeepingEntityGenerator generator) {
-    List<Class<? extends ListenerEvent>> eventClasses =
-        List.of(
-            CreateTableEvent.class,
-            AlterTableEvent.class,
-            AddPartitionEvent.class,
-            AlterPartitionEvent.class);
+    List<Class<? extends ListenerEvent>> eventClasses = List.of(
+        CreateTableEvent.class,
+        AlterTableEvent.class,
+        AddPartitionEvent.class,
+        AlterPartitionEvent.class
+    );
 
-    List<ListenerEventFilter> filters =
-        List.of(
-            new EventTypeListenerEventFilter(eventClasses),
-            new TableParameterListenerEventFilter(),
-            new IcebergTableListenerEventFilter());
+    List<ListenerEventFilter> filters = List.of(
+        new EventTypeListenerEventFilter(eventClasses),
+        new TableParameterListenerEventFilter(),
+        new IcebergTableListenerEventFilter()
+    );
 
     return new MessageEventHandler(generator, filters);
   }
@@ -161,21 +156,18 @@ public class CommonBeans {
   @Bean
   public BeekeeperEventReader eventReader(
       @Qualifier("retryingMessageReader") MessageReader messageReader,
-      @Qualifier("unreferencedHousekeepingPathMessageEventHandler")
-          MessageEventHandler unreferencedHousekeepingPathMessageEventHandler,
-      @Qualifier("expiredHousekeepingMetadataMessageEventHandler")
-          MessageEventHandler expiredHousekeepingMetadataMessageEventHandler) {
-    List<MessageEventHandler> handlers =
-        List.of(
-            unreferencedHousekeepingPathMessageEventHandler,
-            expiredHousekeepingMetadataMessageEventHandler);
+      @Qualifier("unreferencedHousekeepingPathMessageEventHandler") MessageEventHandler unreferencedHousekeepingPathMessageEventHandler,
+      @Qualifier("expiredHousekeepingMetadataMessageEventHandler") MessageEventHandler expiredHousekeepingMetadataMessageEventHandler) {
+    List<MessageEventHandler> handlers = List.of(
+        unreferencedHousekeepingPathMessageEventHandler,
+        expiredHousekeepingMetadataMessageEventHandler
+    );
 
     return new MessageReaderAdapter(messageReader, handlers);
   }
 
   @Bean
-  BeekeeperHistoryService beekeeperHistoryService(
-      BeekeeperHistoryRepository beekeeperHistoryRepository) {
+  BeekeeperHistoryService beekeeperHistoryService(BeekeeperHistoryRepository beekeeperHistoryRepository) {
     return new BeekeeperHistoryService(beekeeperHistoryRepository);
   }
 
@@ -192,8 +184,8 @@ public class CommonBeans {
   }
 
   @Bean
-  Supplier<CloseableMetaStoreClient> metaStoreClientSupplier(
-      CloseableMetaStoreClientFactory metaStoreClientFactory, HiveConf hiveConf) {
+  Supplier<CloseableMetaStoreClient> metaStoreClientSupplier(CloseableMetaStoreClientFactory metaStoreClientFactory,
+      HiveConf hiveConf) {
     String name = "beekeeper-scheduler";
     return new HiveMetaStoreClientSupplier(metaStoreClientFactory, hiveConf, name);
   }
@@ -204,8 +196,7 @@ public class CommonBeans {
   }
 
   @Bean(name = "hiveClientFactory")
-  public HiveClientFactory clientFactory(
-      Supplier<CloseableMetaStoreClient> metaStoreClientSupplier,
+  public HiveClientFactory clientFactory(Supplier<CloseableMetaStoreClient> metaStoreClientSupplier,
       PartitionIteratorFactory partitionIteratorFactory) {
     return new HiveClientFactory(metaStoreClientSupplier, partitionIteratorFactory);
   }

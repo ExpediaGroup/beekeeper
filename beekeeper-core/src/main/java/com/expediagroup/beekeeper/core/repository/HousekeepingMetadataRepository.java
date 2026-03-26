@@ -36,7 +36,8 @@ public interface HousekeepingMetadataRepository
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED') "
       + "and t.modifiedTimestamp <= :instant and t.cleanupAttempts < 10 order by t.modifiedTimestamp")
   Slice<HousekeepingMetadata> findRecordsForCleanupByModifiedTimestamp(
-      @Param("instant") LocalDateTime instant, Pageable pageable);
+      @Param("instant") LocalDateTime instant,
+      Pageable pageable);
 
   /**
    * Returns the record that matches the inputs given, if there is one.
@@ -86,7 +87,8 @@ public interface HousekeepingMetadataRepository
       + "and t.tableName = :tableName "
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   Long countRecordsForGivenDatabaseAndTableWherePartitionIsNotNull(
-      @Param("databaseName") String databaseName, @Param("tableName") String tableName);
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName);
 
   /**
    * This method is used for dry runs since the entries are not being updated. It counts the number of partitions on a
@@ -121,10 +123,11 @@ public interface HousekeepingMetadataRepository
       + "and t.partitionName is not NULL "
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   void deleteScheduledOrFailedPartitionRecordsForTable(
-      @Param("databaseName") String databaseName, @Param("tableName") String tableName);
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName);
 
   /**
-   * This method returns all table records where the partition name is NULL and the status is SCHEDULED` or `FAILED`
+   * This method returns all table records where the partition name is NULL and the status is `SCHEDULED` or `FAILED`
    */
   @Query(value = "from HousekeepingMetadata t "
       + "where t.partitionName is NULL "
@@ -155,5 +158,6 @@ public interface HousekeepingMetadataRepository
       + "and t.partitionName IS NOT NULL "
       + "and (t.housekeepingStatus = 'SCHEDULED' or t.housekeepingStatus = 'FAILED')")
   List<HousekeepingMetadata> findRecordsForCleanupByDbAndTableName(
-      @Param("databaseName") String databaseName, @Param("tableName") String tableName);
+      @Param("databaseName") String databaseName,
+      @Param("tableName") String tableName);
 }
