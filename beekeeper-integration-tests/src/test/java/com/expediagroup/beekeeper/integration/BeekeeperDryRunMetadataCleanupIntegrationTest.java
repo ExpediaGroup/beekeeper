@@ -121,7 +121,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
   private final TestAppender appender = new TestAppender();
 
-  private static Map<String, String> metastoreProperties = ImmutableMap
+  private Map<String, String> metastoreProperties = ImmutableMap
       .<String, String>builder()
       .put(ENDPOINT, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3))
       .put(ACCESS_KEY, S3_ACCESS_KEY)

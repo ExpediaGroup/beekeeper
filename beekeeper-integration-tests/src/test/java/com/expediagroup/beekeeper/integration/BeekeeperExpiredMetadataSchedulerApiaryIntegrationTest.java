@@ -122,7 +122,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
 
   protected static AmazonS3 amazonS3;
 
-  private static Map<String, String> metastoreProperties = ImmutableMap
+  private Map<String, String> metastoreProperties = ImmutableMap
       .<String, String>builder()
       .put(ENDPOINT, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3))
       .put(ACCESS_KEY, S3_ACCESS_KEY)
