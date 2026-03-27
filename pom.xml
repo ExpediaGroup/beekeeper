@@ -61,6 +61,7 @@
     <hcommon-hive-metastore.version>1.4.2</hcommon-hive-metastore.version>
     <jib.maven.plugin.version>3.4.4</jib.maven.plugin.version>
     <spotless.maven.plugin.version>2.43.0</spotless.maven.plugin.version>
+    <maven.spotbugs.plugin.version>4.8.6.6</maven.spotbugs.plugin.version>
   </properties>
 
   <dependencyManagement>
