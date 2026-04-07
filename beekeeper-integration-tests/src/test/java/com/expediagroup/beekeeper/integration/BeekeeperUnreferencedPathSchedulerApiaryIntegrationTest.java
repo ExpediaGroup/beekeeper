@@ -172,8 +172,7 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   }
 
   @Test
-  public void unreferencedMultipleAlterPartitionEvent()
-      throws IOException, SQLException, URISyntaxException {
+  public void unreferencedMultipleAlterPartitionEvent() throws IOException, SQLException, URISyntaxException {
     List
         .of(new AlterPartitionSqsMessage("s3://bucket/table/expiredTableLocation",
                 "s3://bucket/table/partitionLocation", "s3://bucket/table/unreferencedPartitionLocation", true, true),

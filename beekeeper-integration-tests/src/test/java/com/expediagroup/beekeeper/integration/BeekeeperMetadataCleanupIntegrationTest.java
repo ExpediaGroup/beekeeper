@@ -206,8 +206,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void cleanupPartitionedTable() throws Exception {
-    Table table =
-        hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE,true, createBeeKeeperDeletionProperties(),true);
+    Table table = hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE,true, createBeeKeeperDeletionProperties(),true);
     hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
 
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
@@ -336,10 +335,10 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void cleanupMultipleTablesOfMixedType() throws Exception {
-    hiveTestUtils.createTableWithProperties(UNPARTITIONED_TABLE_PATH, UNPARTITIONED_TABLE_NAME,false, createBeeKeeperDeletionProperties(),true);
+    hiveTestUtils.createTableWithProperties(UNPARTITIONED_TABLE_PATH, UNPARTITIONED_TABLE_NAME, false, createBeeKeeperDeletionProperties(), true);
 
     Table partitionedTable = hiveTestUtils
-        .createTableWithProperties(PARTITIONED_TABLE_PATH, PARTITIONED_TABLE_NAME,true, createBeeKeeperDeletionProperties(),true);
+        .createTableWithProperties(PARTITIONED_TABLE_PATH, PARTITIONED_TABLE_NAME, true, createBeeKeeperDeletionProperties(), true);
     hiveTestUtils
         .addPartitionsToTable(PARTITION_ROOT_PATH, partitionedTable, PARTITION_VALUES);
 
@@ -388,7 +387,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void testEventAddedToHistoryTable() throws TException, SQLException {
-    hiveTestUtils.createTableWithProperties(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE,false, createBeeKeeperDeletionProperties(),true);
+    hiveTestUtils.createTableWithProperties(UNPARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, false, createBeeKeeperDeletionProperties(), true);
     amazonS3.putObject(BUCKET, UNPARTITIONED_OBJECT_KEY, TABLE_DATA);
 
     insertExpiredMetadata(UNPARTITIONED_TABLE_PATH, null);
@@ -440,7 +439,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void metrics() throws Exception {
-    Table table = hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE,true, createBeeKeeperDeletionProperties(),true);
+    Table table = hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, createBeeKeeperDeletionProperties(), true);
     hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
 
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");

@@ -25,11 +25,8 @@ import jakarta.annotation.PostConstruct;
 @SpringBootApplication
 @EnableConfigurationProperties
 @EntityScan(basePackages = {"com.expediagroup.beekeeper.core.model"})
-@EnableJpaRepositories(
-    basePackages = {
-      "com.expediagroup.beekeeper.core.repository",
-      "com.expediagroup.beekeeper.vacuum.repository"
-    })
+@EnableJpaRepositories(basePackages = { "com.expediagroup.beekeeper.core.repository",
+                                        "com.expediagroup.beekeeper.vacuum.repository" })
 public class TestApplication {
 
   @PostConstruct
