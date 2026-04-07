@@ -115,7 +115,8 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
     executorService.execute(() -> BeekeeperPathCleanup.main(new String[] {}));
-    await().atMost(Duration.ofMinutes(1)).until(BeekeeperPathCleanup::isRunning);
+    await().atMost(Duration.ofMinutes(1))
+        .until(BeekeeperPathCleanup::isRunning);
   }
 
   @AfterEach
@@ -172,8 +173,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
     amazonS3.putObject(BUCKET, objectKeySentinel, "");
 
     insertUnreferencedPath(absolutePath);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, objectKey1)).isFalse();
@@ -234,8 +234,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
     amazonS3.putObject(BUCKET, tableSentinel, "");
 
     insertUnreferencedPath(ABSOLUTE_PATH);
-    await()
-        .atMost(TIMEOUT, TimeUnit.SECONDS)
+    await().atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> getUnreferencedPaths().get(0).getHousekeepingStatus() == DELETED);
 
     assertThat(amazonS3.doesObjectExist(BUCKET, OBJECT_KEY1)).isFalse();
@@ -290,7 +289,7 @@ public class BeekeeperPathCleanupIntegrationTest extends BeekeeperIntegrationTes
       List<Meter> meters = registry.getMeters();
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
           .contains("path-cleanup-job", "s3-paths-deleted", "s3-" + METRIC_NAME);
-        });
+    });
   }
 
   @Test

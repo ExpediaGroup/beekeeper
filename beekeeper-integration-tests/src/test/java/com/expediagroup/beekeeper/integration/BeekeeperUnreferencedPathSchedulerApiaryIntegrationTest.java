@@ -158,7 +158,7 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   public void unreferencedAlterPartitionEvent() throws SQLException, IOException, URISyntaxException {
     AlterPartitionSqsMessage alterPartitionSqsMessage = new AlterPartitionSqsMessage(
         "s3://bucket/table/expiredTableLocation", "s3://bucket/table/partitionLocation",
-         "s3://bucket/table/unreferencedPartitionLocation", true, true);
+        "s3://bucket/table/unreferencedPartitionLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterPartitionSqsMessage.getFormattedString()));
     alterPartitionSqsMessage.setTableLocation("s3://bucket/table/expiredTableLocation2");
     alterPartitionSqsMessage.setPartitionLocation("s3://bucket/table/partitionLocation2");
@@ -176,9 +176,9 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
       throws IOException, SQLException, URISyntaxException {
     List
         .of(new AlterPartitionSqsMessage("s3://bucket/table/expiredTableLocation",
-                        "s3://bucket/table/partitionLocation", "s3://bucket/table/unreferencedPartitionLocation", true, true),
-                new AlterPartitionSqsMessage("s3://bucket/table/expiredTableLocation2",
-                        "s3://bucket/table/partitionLocation2", "s3://bucket/table/partitionLocation", true, true))
+                "s3://bucket/table/partitionLocation", "s3://bucket/table/unreferencedPartitionLocation", true, true),
+            new AlterPartitionSqsMessage("s3://bucket/table/expiredTableLocation2",
+                "s3://bucket/table/partitionLocation2", "s3://bucket/table/partitionLocation", true, true))
         .forEach(msg -> amazonSQS.sendMessage(sendMessageRequest(msg.getFormattedString())));
 
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getUnreferencedPathsRowCount() == 2);
@@ -218,7 +218,7 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   @Test
   public void testEventAddedToHistoryTable() throws IOException, URISyntaxException, SQLException {
     AlterTableSqsMessage alterTableSqsMessage = new AlterTableSqsMessage("s3://bucket/tableLocation",
-         "s3://bucket/oldTableLocation", true, true);
+        "s3://bucket/oldTableLocation", true, true);
     amazonSQS.sendMessage(sendMessageRequest(alterTableSqsMessage.getFormattedString()));
 
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> getBeekeeperHistoryRowCount(UNREFERENCED) == 1);

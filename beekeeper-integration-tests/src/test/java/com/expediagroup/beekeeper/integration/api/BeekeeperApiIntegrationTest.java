@@ -123,9 +123,8 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     HttpResponse<String> response = testClient.getMetadata("wrong_database", "wrong_table");
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
-    Page<HousekeepingMetadataResponse> responsePage =
-        mapper.readValue(
-            body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
+    Page<HousekeepingMetadataResponse> responsePage = mapper
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     assertThat(responsePage.getTotalElements()).isEqualTo(0);
   }
 
@@ -149,7 +148,7 @@ public class BeekeeperApiIntegrationTest extends BeekeeperIntegrationTestBase {
     assertThat(response.statusCode()).isEqualTo(OK.value());
     String body = response.body();
     Page<HousekeepingMetadataResponse> responsePage = mapper
-            .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
+        .readValue(body, new TypeReference<RestResponsePage<HousekeepingMetadataResponse>>() {});
     List<HousekeepingMetadataResponse> result = responsePage.getContent();
 
     assertThatMetadataEqualsResponse(testMetadataA, result.get(0));

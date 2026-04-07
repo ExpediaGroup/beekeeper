@@ -71,9 +71,7 @@ import com.expediagroup.beekeeper.metadata.cleanup.handler.MetadataHandler;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(
-    classes = {TestApplication.class},
-    loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = {TestApplication.class}, loader = AnnotationConfigContextLoader.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class PagingMetadataCleanupServiceTest {
 
@@ -220,7 +218,7 @@ public class PagingMetadataCleanupServiceTest {
 
   @Test
   public void mixOfAllPaths() {
-    List<HousekeepingMetadata> tables =List
+    List<HousekeepingMetadata> tables = List
         .of(createHousekeepingMetadata("table1", "s3://bucket/some_foo", null, SCHEDULED),
             createHousekeepingMetadata("table2", "s3://bucket/some_bar", null, FAILED),
             createHousekeepingMetadata("table3", "s3://bucket/some_foobar", null, DELETED),
@@ -294,7 +292,6 @@ public class PagingMetadataCleanupServiceTest {
   void doNotInfiniteLoopOnRepeatedFailures() {
     List<HousekeepingMetadata> tables = List
         .of(createHousekeepingMetadata("table1", "s3://bucket/some_foo", null, FAILED),
-            createHousekeepingMetadata("table1", "s3://bucket/some_foo", null, FAILED),
             createHousekeepingMetadata("table2", "s3://bucket/some_bar", null, FAILED),
             createHousekeepingMetadata("table3", "s3://bucket/some_foobar", null, FAILED));
 
@@ -333,7 +330,10 @@ public class PagingMetadataCleanupServiceTest {
   }
 
   private HousekeepingMetadata createHousekeepingMetadata(
-      String tableName, String path, String partitionName, HousekeepingStatus housekeepingStatus) {
+      String tableName,
+      String path,
+      String partitionName,
+      HousekeepingStatus housekeepingStatus) {
     HousekeepingMetadata metadata = HousekeepingMetadata
         .builder()
         .path(path)

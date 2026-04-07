@@ -270,10 +270,8 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
     meterRegistry.forEach(registry -> {
       List<Meter> meters = registry.getMeters();
       assertThat(meters).extracting("id", Meter.Id.class).extracting("name")
-          .contains("metadata-cleanup-job", "hive-table-deleted", "hive-partition-deleted", "hive-table-" +
-DeletedMetadataReporter.DRY_RUN_METRIC_NAME,
-              "hive-partition-" + DeletedMetadataReporter.DRY_RUN_METRIC_NAME, "s3-paths-deleted", "s3-" +
-BytesDeletedReporter.DRY_RUN_METRIC_NAME);
+          .contains("metadata-cleanup-job", "hive-table-deleted", "hive-partition-deleted", "hive-table-" + DeletedMetadataReporter.DRY_RUN_METRIC_NAME,
+              "hive-partition-" + DeletedMetadataReporter.DRY_RUN_METRIC_NAME, "s3-paths-deleted", "s3-" + BytesDeletedReporter.DRY_RUN_METRIC_NAME);
     });
   }
 
