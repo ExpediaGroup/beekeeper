@@ -44,18 +44,17 @@
     <awaitility.version>4.2.0</awaitility.version>
     <docker.registry>expediagroup</docker.registry>
     <jdk.version>21</jdk.version>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
-    <maven.compiler.release>21</maven.compiler.release>
+    <maven.compiler.source>${jdk.version}</maven.compiler.source>
+    <maven.compiler.target>${jdk.version}</maven.compiler.target>
+    <maven.compiler.release>${jdk.version}</maven.compiler.release>
     <logback.version>1.4.14</logback.version>
     <log4j2.version>2.22.1</log4j2.version>
     <lombok.version>1.18.36</lombok.version>
     <maven.assembly.plugin.version>3.1.0</maven.assembly.plugin.version>
     <snakeyaml.version>2.2</snakeyaml.version>
     <springframework.boot.version>3.2.12</springframework.boot.version>
-    <springframework.version>6.1.15</springframework.version>
     <testcontainers.version>1.19.3</testcontainers.version>
-    <docker.from.tag>21-slim</docker.from.tag>
+    <docker.from.tag>${jdk.version}-slim</docker.from.tag>
     <jackson.version>2.16.1</jackson.version>
     <hive.version>2.3.7</hive.version>
     <hcommon-hive-metastore.version>1.4.2</hcommon-hive-metastore.version>
@@ -187,9 +186,9 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.13.0</version>
           <configuration>
-            <source>21</source>
-            <target>21</target>
-            <release>21</release>
+            <source>${jdk.version}</source>
+            <target>${jdk.version}</target>
+            <release>${jdk.version}</release>
             <encoding>UTF-8</encoding>
             <parameters>true</parameters>
             <annotationProcessorPaths>
