@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.expediagroup.beekeeper.api.controller;
 
-import org.springdoc.api.annotations.ParameterObject;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -80,7 +80,6 @@ public class BeekeeperController {
     return ResponseEntity.ok(housekeepingEntityService.getAllMetadata(spec, pageable));
   }
 
-
   @RequestMapping(value = "/database/{databaseName}/table/{tableName}/unreferenced-paths", method = RequestMethod.GET)
   @Parameter(name = "tableName", in = ParameterIn.PATH)
   @Parameter(name = "databaseName", in = ParameterIn.PATH)
@@ -95,7 +94,7 @@ public class BeekeeperController {
   public ResponseEntity<Page<HousekeepingPathResponse>> getAllPaths(
       @PathVariable String databaseName,
       @PathVariable String tableName,
-      @Parameter(hidden = true) @And(value ={
+      @Parameter(hidden = true) @And(value = {
           @Spec(path = "tableName", pathVars = "tableName", spec = EqualIgnoreCase.class),
           @Spec(path = "databaseName", pathVars = "databaseName", spec = EqualIgnoreCase.class),
           @Spec(path = "path", params = "path", spec = EqualIgnoreCase.class),

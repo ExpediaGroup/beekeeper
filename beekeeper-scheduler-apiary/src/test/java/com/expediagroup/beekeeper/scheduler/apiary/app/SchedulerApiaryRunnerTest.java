@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.awaitility.Duration;
+import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,7 +54,7 @@ public class SchedulerApiaryRunnerTest {
   @Test
   public void typicalRun() throws Exception {
     runRunner();
-    await().atMost(Duration.FIVE_SECONDS)
+    await().atMost(Duration.ofSeconds(5))
         .untilAsserted(() -> verify(schedulerApiary, atLeast(1)).scheduleBeekeeperEvent());
     destroy();
     verify(schedulerApiary).close();
@@ -67,7 +67,7 @@ public class SchedulerApiaryRunnerTest {
         .when(schedulerApiary)
         .scheduleBeekeeperEvent();
     runRunner();
-    await().atMost(Duration.FIVE_SECONDS)
+    await().atMost(Duration.ofSeconds(5))
         .untilAsserted(() -> verify(schedulerApiary, atLeast(2)).scheduleBeekeeperEvent());
     destroy();
     verify(schedulerApiary).close();
@@ -83,7 +83,7 @@ public class SchedulerApiaryRunnerTest {
 
     try {
       runRunner();
-      await().atMost(Duration.FIVE_SECONDS)
+      await().atMost(Duration.ofSeconds(5))
           .untilAsserted(() -> verify(schedulerApiary, atLeast(1)).scheduleBeekeeperEvent());
       destroy();
       fail("Runner should have thrown exception");

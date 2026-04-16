@@ -1,16 +1,14 @@
 /**
- * Copyright (C) 2019-2023 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration.utils;
@@ -20,6 +18,7 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
@@ -36,15 +35,16 @@ public class ContainerTestUtils {
   }
 
   public static LocalStackContainer awsContainer(LocalStackContainer.Service service) {
-    return new LocalStackContainer().withServices(service);
+    return new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.0.0"))
+        .withServices(service);
   }
 
   public static String awsServiceEndpoint(LocalStackContainer awsContainer, LocalStackContainer.Service service) {
-    return awsContainer.getEndpointConfiguration(service).getServiceEndpoint();
+    return awsContainer.getEndpointOverride(service).toString();
   }
 
   public static String queueUrl(LocalStackContainer awsContainer, String queue) {
-    return awsServiceEndpoint(awsContainer, SQS) + "/queue/" + queue;
+    return awsServiceEndpoint(awsContainer, SQS) + "/000000000000/" + queue;
   }
 
   public static AmazonSQS sqsClient(LocalStackContainer awsContainer, String region) {
@@ -61,6 +61,7 @@ public class ContainerTestUtils {
     return AmazonS3ClientBuilder
         .standard()
         .withEndpointConfiguration(endpointConfiguration)
+        .withPathStyleAccessEnabled(true)
         .disableChunkedEncoding()
         .build();
   }

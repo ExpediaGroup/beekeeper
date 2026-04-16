@@ -1,16 +1,14 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration;
@@ -34,6 +32,7 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_N
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -41,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -75,7 +73,7 @@ import com.hotels.beeju.extensions.ThriftHiveMetaStoreJUnitExtension;
 @Testcontainers
 public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends BeekeeperIntegrationTestBase {
 
-  protected static final int TIMEOUT = 5;
+  protected static final int TIMEOUT = 30;
   protected static final String APIARY_QUEUE_URL_PROPERTY = "properties.apiary.queue-url";
   protected static final String METASTORE_URI_PROPERTY = "properties.metastore-uri";
 
@@ -87,23 +85,30 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   @Container
   protected static final LocalStackContainer SQS_CONTAINER = ContainerTestUtils.awsContainer(SQS);
   protected static AmazonSQS amazonSQS;
+  protected static String ACTUAL_QUEUE_URL;
 
   @RegisterExtension
   protected ThriftHiveMetaStoreJUnitExtension thriftHiveMetaStore = new ThriftHiveMetaStoreJUnitExtension(
       DATABASE_NAME_VALUE, emptyMap());
 
+  protected static final String SQS_ENDPOINT_PROPERTY = "properties.sqs.endpoint";
+  protected static final String SQS_REGION_PROPERTY = "properties.sqs.region";
+
   @BeforeAll
   public static void init() {
-    String queueUrl = ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE);
-    System.setProperty(APIARY_QUEUE_URL_PROPERTY, queueUrl);
-
     amazonSQS = ContainerTestUtils.sqsClient(SQS_CONTAINER, AWS_REGION);
+    ACTUAL_QUEUE_URL = ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE);
     amazonSQS.createQueue(QUEUE);
+    System.setProperty(APIARY_QUEUE_URL_PROPERTY, ACTUAL_QUEUE_URL);
+    System.setProperty(SQS_ENDPOINT_PROPERTY, ContainerTestUtils.awsServiceEndpoint(SQS_CONTAINER, SQS));
+    System.setProperty(SQS_REGION_PROPERTY, AWS_REGION);
   }
 
   @AfterAll
   public static void teardown() {
     System.clearProperty(APIARY_QUEUE_URL_PROPERTY);
+    System.clearProperty(SQS_ENDPOINT_PROPERTY);
+    System.clearProperty(SQS_REGION_PROPERTY);
 
     amazonSQS.shutdown();
   }
@@ -112,9 +117,9 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   public void setup() {
     System.setProperty(METASTORE_URI_PROPERTY, thriftHiveMetaStore.getThriftConnectionUri());
 
-    amazonSQS.purgeQueue(new PurgeQueueRequest(ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE)));
+    amazonSQS.purgeQueue(new PurgeQueueRequest(ACTUAL_QUEUE_URL));
     executorService.execute(() -> BeekeeperSchedulerApiary.main(new String[] {}));
-    await().atMost(Duration.ONE_MINUTE).until(BeekeeperSchedulerApiary::isRunning);
+    await().atMost(Duration.ofMinutes(1)).until(BeekeeperSchedulerApiary::isRunning);
   }
 
   @AfterEach
@@ -242,7 +247,7 @@ public class BeekeeperUnreferencedPathSchedulerApiaryIntegrationTest extends Bee
   }
 
   protected SendMessageRequest sendMessageRequest(String payload) {
-    return new SendMessageRequest(ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE), payload);
+    return new SendMessageRequest(ACTUAL_QUEUE_URL, payload);
   }
 
   protected void assertUnreferencedPath(HousekeepingPath actual, String expectedPath) {

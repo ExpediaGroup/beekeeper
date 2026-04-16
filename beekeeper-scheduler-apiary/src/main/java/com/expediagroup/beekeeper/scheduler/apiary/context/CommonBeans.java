@@ -1,16 +1,14 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.scheduler.apiary.context;
@@ -28,6 +26,10 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.retry.annotation.EnableRetry;
+
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 
 import com.expedia.apiary.extensions.receiver.common.event.AddPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
@@ -78,8 +80,19 @@ public class CommonBeans {
   }
 
   @Bean(name = "sqsMessageReader")
-  public MessageReader messageReader(@Value("${properties.apiary.queue-url}") String queueUrl) {
-    return new SqsMessageReader.Builder(queueUrl).build();
+  public MessageReader messageReader(
+      @Value("${properties.apiary.queue-url}") String queueUrl,
+      @Value("${properties.sqs.endpoint:}") String sqsEndpoint,
+      @Value("${properties.sqs.region:us-east-1}") String sqsRegion) {
+    SqsMessageReader.Builder builder = new SqsMessageReader.Builder(queueUrl);
+    if (!sqsEndpoint.isEmpty()) {
+      AmazonSQS amazonSQS =
+          AmazonSQSClientBuilder.standard()
+              .withEndpointConfiguration(new EndpointConfiguration(sqsEndpoint, sqsRegion))
+              .build();
+      builder = builder.withConsumer(amazonSQS);
+    }
+    return builder.build();
   }
 
   @Bean(name = "retryingMessageReader")
@@ -144,8 +157,7 @@ public class CommonBeans {
   public BeekeeperEventReader eventReader(
       @Qualifier("retryingMessageReader") MessageReader messageReader,
       @Qualifier("unreferencedHousekeepingPathMessageEventHandler") MessageEventHandler unreferencedHousekeepingPathMessageEventHandler,
-      @Qualifier("expiredHousekeepingMetadataMessageEventHandler") MessageEventHandler expiredHousekeepingMetadataMessageEventHandler
-  ) {
+      @Qualifier("expiredHousekeepingMetadataMessageEventHandler") MessageEventHandler expiredHousekeepingMetadataMessageEventHandler) {
     List<MessageEventHandler> handlers = List.of(
         unreferencedHousekeepingPathMessageEventHandler,
         expiredHousekeepingMetadataMessageEventHandler

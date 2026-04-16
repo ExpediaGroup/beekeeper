@@ -49,8 +49,20 @@
           <artifactId>servlet-api</artifactId>
         </exclusion>
         <exclusion>
+          <groupId>javax.servlet</groupId>
+          <artifactId>javax.servlet-api</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>org.eclipse.jetty.orbit</groupId>
           <artifactId>javax.servlet</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-reload4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
         </exclusion>
         <exclusion>
           <groupId>org.apache.geronimo.specs</groupId>
@@ -67,14 +79,12 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>8.0.17</version>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
     </dependency>
     <dependency>
       <groupId>org.flywaydb</groupId>
-      <artifactId>flyway-core</artifactId>
-      <version>5.2.4</version>
+      <artifactId>flyway-mysql</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -131,14 +141,16 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>pl.project13.maven</groupId>
-        <artifactId>git-commit-id-plugin</artifactId>
+        <groupId>io.github.git-commit-id</groupId>
+        <artifactId>git-commit-id-maven-plugin</artifactId>
+        <version>7.0.0</version>
       </plugin>
       <plugin>
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
         <configuration>
           <from>
+            <image>eclipse-temurin:21-jre</image>
             <platforms>
               <platform>
                 <architecture>amd64</architecture>
@@ -152,6 +164,16 @@
           </from>
           <container>
             <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+            <jvmFlags>
+              <jvmFlag>--add-opens=java.base/java.lang=ALL-UNNAMED</jvmFlag>
+              <jvmFlag>--add-opens=java.base/java.lang.reflect=ALL-UNNAMED</jvmFlag>
+              <jvmFlag>--add-opens=java.base/java.io=ALL-UNNAMED</jvmFlag>
+              <jvmFlag>--add-opens=java.base/java.net=ALL-UNNAMED</jvmFlag>
+              <jvmFlag>--add-opens=java.base/java.nio=ALL-UNNAMED</jvmFlag>
+              <jvmFlag>--add-opens=java.base/java.util=ALL-UNNAMED</jvmFlag>
+              <jvmFlag>--add-opens=java.base/java.util.concurrent=ALL-UNNAMED</jvmFlag>
+              <jvmFlag>--add-opens=java.base/sun.nio.ch=ALL-UNNAMED</jvmFlag>
+            </jvmFlags>
           </container>
         </configuration>
       </plugin>

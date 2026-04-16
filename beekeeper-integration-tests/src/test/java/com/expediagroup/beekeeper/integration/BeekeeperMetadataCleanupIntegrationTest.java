@@ -1,16 +1,14 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration;
@@ -35,6 +33,7 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.SHORT_C
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +49,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.thrift.TException;
-import org.awaitility.Duration;
-import org.junit.Rule;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -59,6 +56,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import io.micrometer.core.instrument.Meter;
@@ -126,19 +124,15 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
       + UNPARTITIONED_TABLE_NAME
       + "/id1/file1";
 
-  @Rule
-  public static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
-  static {
-    S3_CONTAINER.start();
-  }
+  @Container
+  protected static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
 
   protected static AmazonS3 amazonS3;
-  protected static final String S3_ENDPOINT = ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3);
   protected final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
-  private static Map<String, String> metastoreProperties = ImmutableMap
+  private Map<String, String> metastoreProperties = ImmutableMap
       .<String, String>builder()
-      .put(ENDPOINT, S3_ENDPOINT)
+      .put(ENDPOINT, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3))
       .put(ACCESS_KEY, S3_ACCESS_KEY)
       .put(SECRET_KEY, S3_SECRET_KEY)
       .build();
@@ -155,7 +149,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
     System.setProperty(SPRING_PROFILES_ACTIVE_PROPERTY, "test");
     System.setProperty(SCHEDULER_DELAY_MS_PROPERTY, SCHEDULER_DELAY_MS);
     System.setProperty(DRY_RUN_ENABLED_PROPERTY, "false");
-    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, S3_ENDPOINT);
+    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3));
     System.setProperty(AWS_DISABLE_GET_VALIDATION_PROPERTY, "true");
     System.setProperty(AWS_DISABLE_PUT_VALIDATION_PROPERTY, "true");
 
@@ -166,7 +160,6 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
   @AfterAll
   public static void teardown() {
     amazonS3.shutdown();
-    S3_CONTAINER.stop();
 
     System.clearProperty(SPRING_PROFILES_ACTIVE_PROPERTY);
     System.clearProperty(SCHEDULER_DELAY_MS_PROPERTY);
@@ -188,7 +181,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
     executorService.execute(() -> BeekeeperMetadataCleanup.main(new String[] {}));
-    await().atMost(Duration.ONE_MINUTE).until(BeekeeperMetadataCleanup::isRunning);
+    await().atMost(Duration.ofMinutes(1)).until(BeekeeperMetadataCleanup::isRunning);
   }
 
   @AfterEach
@@ -213,7 +206,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void cleanupPartitionedTable() throws Exception {
-    Table table = hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, createBeeKeeperDeletionProperties(), true);
+    Table table = hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE,true, createBeeKeeperDeletionProperties(),true);
     hiveTestUtils.addPartitionsToTable(PARTITION_ROOT_PATH, table, PARTITION_VALUES);
 
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
@@ -376,7 +369,7 @@ public class BeekeeperMetadataCleanupIntegrationTest extends BeekeeperIntegratio
 
   @Test
   public void onlyCleanupLocationWhenPartitionExists() throws TException, SQLException {
-    hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, createBeeKeeperDeletionProperties() ,true);
+    hiveTestUtils.createTableWithProperties(PARTITIONED_TABLE_PATH, TABLE_NAME_VALUE, true, createBeeKeeperDeletionProperties(), true);
 
     amazonS3.putObject(BUCKET, PARTITIONED_TABLE_OBJECT_KEY, "");
     amazonS3.putObject(BUCKET, PARTITIONED_OBJECT_KEY, TABLE_DATA);

@@ -1,16 +1,14 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.vacuum;
@@ -37,7 +35,7 @@ import com.hotels.hcommon.hive.metastore.client.closeable.CloseableMetaStoreClie
 import com.hotels.hcommon.hive.metastore.client.supplier.HiveMetaStoreClientSupplier;
 
 @Configuration
-@EntityScan(basePackages = { "com.expediagroup.beekeeper.core.model" })
+@EntityScan(basePackages = {"com.expediagroup.beekeeper.core.model"})
 @EnableJpaRepositories(basePackages = { "com.expediagroup.beekeeper.core.repository",
                                         "com.expediagroup.beekeeper.vacuum.repository" })
 public class CommonBeans {
@@ -60,6 +58,13 @@ public class CommonBeans {
     conf.set("fs.s3a.aws.credentials.provider", EC2ContainerCredentialsProviderWrapper.class.getName());
     conf.set("fs.s3n.aws.credentials.provider", EC2ContainerCredentialsProviderWrapper.class.getName());
 
+    // Disable FileSystem cache to avoid UserGroupInformation.getCurrentUser() which is
+    // incompatible with Java 17+ when the security manager is not installed
+    conf.setBoolean("fs.file.impl.disable.cache", true);
+    conf.setBoolean("fs.s3.impl.disable.cache", true);
+    conf.setBoolean("fs.s3a.impl.disable.cache", true);
+    conf.setBoolean("fs.s3n.impl.disable.cache", true);
+
     return conf;
   }
 
@@ -77,7 +82,7 @@ public class CommonBeans {
   }
 
   @Bean
-  public BeekeeperHistoryService beekeeperHistoryService(BeekeeperEventsHistoryRepository repository){
+  public BeekeeperHistoryService beekeeperHistoryService(BeekeeperEventsHistoryRepository repository) {
     return new BeekeeperHistoryService(repository);
   }
 
@@ -85,5 +90,4 @@ public class CommonBeans {
   public SchedulerService schedulerService(BeekeeperRepository beekeeperRepository, BeekeeperHistoryService beekeeperHistoryService) {
     return new UnreferencedHousekeepingPathSchedulerService(beekeeperRepository, beekeeperHistoryService);
   }
-
 }

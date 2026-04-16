@@ -1,16 +1,14 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration;
@@ -36,6 +34,7 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_N
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,7 +45,6 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -86,6 +84,8 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
 
   protected static final int TIMEOUT = 30;
   protected static final String APIARY_QUEUE_URL_PROPERTY = "properties.apiary.queue-url";
+  protected static final String SQS_ENDPOINT_PROPERTY = "properties.sqs.endpoint";
+  protected static final String SQS_REGION_PROPERTY = "properties.sqs.region";
 
   protected static final String QUEUE = "apiary-receiver-queue";
   protected static final String SCHEDULED_EXPIRED_METRIC = "metadata-scheduled";
@@ -116,16 +116,13 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   protected static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
 
   protected static AmazonSQS amazonSQS;
+  protected static String ACTUAL_QUEUE_URL;
   protected HiveTestUtils hiveTestUtils;
   protected HiveMetaStoreClient metastoreClient;
 
-  static {
-    S3_CONTAINER.start();
-  }
-
   protected static AmazonS3 amazonS3;
 
-  private static Map<String, String> metastoreProperties = ImmutableMap
+  private Map<String, String> metastoreProperties = ImmutableMap
       .<String, String>builder()
       .put(ENDPOINT, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3))
       .put(ACCESS_KEY, S3_ACCESS_KEY)
@@ -138,11 +135,12 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
 
   @BeforeAll
   public static void init() {
-    String queueUrl = ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE);
-    System.setProperty(APIARY_QUEUE_URL_PROPERTY, queueUrl);
-
     amazonSQS = ContainerTestUtils.sqsClient(SQS_CONTAINER, AWS_REGION);
+    ACTUAL_QUEUE_URL = ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE);
     amazonSQS.createQueue(QUEUE);
+    System.setProperty(APIARY_QUEUE_URL_PROPERTY, ACTUAL_QUEUE_URL);
+    System.setProperty(SQS_ENDPOINT_PROPERTY, ContainerTestUtils.awsServiceEndpoint(SQS_CONTAINER, SQS));
+    System.setProperty(SQS_REGION_PROPERTY, AWS_REGION);
 
     amazonS3 = ContainerTestUtils.s3Client(S3_CONTAINER, AWS_REGION);
     amazonS3.createBucket(new CreateBucketRequest(BUCKET, AWS_REGION));
@@ -151,6 +149,8 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   @AfterAll
   public static void teardown() {
     System.clearProperty(APIARY_QUEUE_URL_PROPERTY);
+    System.clearProperty(SQS_ENDPOINT_PROPERTY);
+    System.clearProperty(SQS_REGION_PROPERTY);
     System.clearProperty(METASTORE_URI_PROPERTY);
 
     amazonSQS.shutdown();
@@ -163,11 +163,11 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
     metastoreClient = thriftHiveMetaStore.client();
     hiveTestUtils = new HiveTestUtils(metastoreClient);
 
-    amazonSQS.purgeQueue(new PurgeQueueRequest(ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE)));
+    amazonSQS.purgeQueue(new PurgeQueueRequest(ACTUAL_QUEUE_URL));
     amazonS3.listObjectsV2(BUCKET).getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
     executorService.execute(() -> BeekeeperSchedulerApiary.main(new String[] {}));
-    await().atMost(Duration.ONE_MINUTE).until(BeekeeperSchedulerApiary::isRunning);
+    await().atMost(Duration.ofMinutes(1)).until(BeekeeperSchedulerApiary::isRunning);
   }
 
   @AfterEach
@@ -351,7 +351,7 @@ public class BeekeeperExpiredMetadataSchedulerApiaryIntegrationTest extends Beek
   }
 
   protected SendMessageRequest sendMessageRequest(String payload) {
-    return new SendMessageRequest(ContainerTestUtils.queueUrl(SQS_CONTAINER, QUEUE), payload);
+    return new SendMessageRequest(ACTUAL_QUEUE_URL, payload);
   }
 
   protected void assertExpiredMetadata(HousekeepingMetadata actual, String expectedPath, String partitionName) {

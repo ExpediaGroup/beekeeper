@@ -21,9 +21,9 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
+import java.time.Duration;
 import java.time.Instant;
 
-import org.awaitility.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -55,7 +55,7 @@ class RepositoryCleanupSchedulerTest {
 
   @Test
   void typical() {
-    await().atMost(Duration.TEN_SECONDS)
+    await().atMost(Duration.ofSeconds(10))
         .untilAsserted(() -> verify(repositoryCleanupService, atLeast(2)).cleanUp(any()));
   }
 
@@ -63,7 +63,7 @@ class RepositoryCleanupSchedulerTest {
   void cleanupServiceException() {
     doThrow(BeekeeperException.class).when(repositoryCleanupService)
         .cleanUp(any(Instant.class));
-    await().atMost(Duration.TEN_SECONDS)
+    await().atMost(Duration.ofSeconds(10))
         .untilAsserted(() -> verify(repositoryCleanupService, atLeast(2)).cleanUp(any()));
   }
 }

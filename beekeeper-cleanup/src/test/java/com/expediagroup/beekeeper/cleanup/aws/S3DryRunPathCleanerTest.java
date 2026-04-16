@@ -69,7 +69,7 @@ class S3DryRunPathCleanerTest {
 
   @BeforeEach
   void setUp() {
-    String S3_ENDPOINT = awsContainer.getEndpointConfiguration(S3).getServiceEndpoint();
+    String S3_ENDPOINT = awsContainer.getEndpointOverride(S3).toString();
     amazonS3 = AmazonS3ClientBuilder
         .standard()
         .withCredentials(new BasicAWSCredentialsProvider("accesskey", "secretkey"))

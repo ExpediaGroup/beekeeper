@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2022 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,10 +49,12 @@ class S3SentinelFilesCleanerTest {
   @Rule
   public static LocalStackContainer awsContainer = new LocalStackContainer(
       DockerImageName.parse("localstack/localstack:0.14.2")).withServices(S3);
+
   static {
     awsContainer.start();
   }
-  public static String S3_ENDPOINT = awsContainer.getEndpointConfiguration(S3).getServiceEndpoint();
+
+  public static String S3_ENDPOINT = awsContainer.getEndpointOverride(S3).toString();
 
   @BeforeEach
   void setUp() {

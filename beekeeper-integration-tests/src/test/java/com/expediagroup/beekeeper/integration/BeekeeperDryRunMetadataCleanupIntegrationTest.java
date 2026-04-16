@@ -1,16 +1,14 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.integration;
@@ -28,6 +26,7 @@ import static com.expediagroup.beekeeper.integration.CommonTestVariables.LONG_CL
 import static com.expediagroup.beekeeper.integration.CommonTestVariables.TABLE_NAME_VALUE;
 
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,8 +37,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
-import org.awaitility.Duration;
-import org.junit.Rule;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -47,6 +44,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -116,20 +114,16 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
   private static final String S3_CLIENT_CLASS_NAME = "S3Client";
   private static final String HIVE_CLIENT_CLASS_NAME = "HiveClient";
 
-  @Rule
-  public static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
-  static {
-    S3_CONTAINER.start();
-  }
+  @Container
+  private static final LocalStackContainer S3_CONTAINER = ContainerTestUtils.awsContainer(S3);
 
   private static AmazonS3 amazonS3;
-  private static final String S3_ENDPOINT = ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3);
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
   private final TestAppender appender = new TestAppender();
 
-  private static Map<String, String> metastoreProperties = ImmutableMap
+  private Map<String, String> metastoreProperties = ImmutableMap
       .<String, String>builder()
-      .put(ENDPOINT, S3_ENDPOINT)
+      .put(ENDPOINT, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3))
       .put(ACCESS_KEY, S3_ACCESS_KEY)
       .put(SECRET_KEY, S3_SECRET_KEY)
       .build();
@@ -146,7 +140,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
     System.setProperty(SPRING_PROFILES_ACTIVE_PROPERTY, "test");
     System.setProperty(SCHEDULER_DELAY_MS_PROPERTY, SCHEDULER_DELAY_MS);
     System.setProperty(DRY_RUN_ENABLED_PROPERTY, "true");
-    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, S3_ENDPOINT);
+    System.setProperty(AWS_S3_ENDPOINT_PROPERTY, ContainerTestUtils.awsServiceEndpoint(S3_CONTAINER, S3));
     System.setProperty(AWS_DISABLE_GET_VALIDATION_PROPERTY, "true");
     System.setProperty(AWS_DISABLE_PUT_VALIDATION_PROPERTY, "true");
 
@@ -165,7 +159,6 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
     System.clearProperty(METASTORE_URI_PROPERTY);
 
     amazonS3.shutdown();
-    S3_CONTAINER.stop();
   }
 
   @BeforeEach
@@ -179,7 +172,7 @@ public class BeekeeperDryRunMetadataCleanupIntegrationTest extends BeekeeperInte
         .getObjectSummaries()
         .forEach(object -> amazonS3.deleteObject(BUCKET, object.getKey()));
     executorService.execute(() -> BeekeeperMetadataCleanup.main(new String[] {}));
-    await().atMost(Duration.ONE_MINUTE).until(BeekeeperMetadataCleanup::isRunning);
+    await().atMost(Duration.ofMinutes(1)).until(BeekeeperMetadataCleanup::isRunning);
 
     // clear all logs before asserting them
     appender.clear();
