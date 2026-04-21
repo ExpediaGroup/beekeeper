@@ -28,7 +28,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'corretto'
+          distribution: 'temurin'
           java-version: '21'
           java-package: jdk
           server-id: central # Value of the distributionManagement/repository/id field of the pom.xml
@@ -48,3 +48,4 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
+
