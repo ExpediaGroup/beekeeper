@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2021 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
@@ -44,7 +43,6 @@ import com.expediagroup.beekeeper.cleanup.service.RepositoryCleanupScheduler;
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 
 @ExtendWith(SpringExtension.class)
-@ExtendWith(MockitoExtension.class)
 @TestPropertySource(properties = {
     "properties.scheduler-delay-ms=2000" })
 @ContextConfiguration(classes = { CleanupServiceScheduler.class, TestConfig.class },

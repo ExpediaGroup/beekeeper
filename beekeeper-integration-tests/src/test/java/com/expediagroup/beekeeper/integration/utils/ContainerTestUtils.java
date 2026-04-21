@@ -35,7 +35,7 @@ public class ContainerTestUtils {
   }
 
   public static LocalStackContainer awsContainer(LocalStackContainer.Service service) {
-    return new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.0.0"))
+    return new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.7.0"))
         .withServices(service);
   }
 

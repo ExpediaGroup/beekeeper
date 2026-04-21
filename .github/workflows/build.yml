@@ -28,7 +28,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'corretto'
+          distribution: 'temurin'
           java-version: '21'
           java-package: jdk
           server-id: central # Value of the distributionManagement/repository/id field of the pom.xml
