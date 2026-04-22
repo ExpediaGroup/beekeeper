@@ -72,6 +72,17 @@
           <groupId>log4j</groupId>
           <artifactId>log4j</artifactId>
         </exclusion>
+        <!-- Old Tomcat Jasper implements javax.servlet.Servlet; with javax.servlet-api on the
+             runtime classpath, Tomcat 10.x would find JspServlet and fail to cast it to
+             jakarta.servlet.Servlet. Excluding it prevents the ClassCastException. -->
+        <exclusion>
+          <groupId>tomcat</groupId>
+          <artifactId>jasper-compiler</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>tomcat</groupId>
+          <artifactId>jasper-runtime</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
