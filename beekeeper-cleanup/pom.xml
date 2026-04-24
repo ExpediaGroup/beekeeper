@@ -73,6 +73,17 @@
           <groupId>log4j</groupId>
           <artifactId>log4j</artifactId>
         </exclusion>
+        <!-- Old Tomcat Jasper implements javax.servlet.Servlet; with javax.servlet-api on the
+             runtime classpath, Tomcat 10.x would find JspServlet and fail to cast it to
+             jakarta.servlet.Servlet. Excluding it prevents the ClassCastException. -->
+        <exclusion>
+          <groupId>tomcat</groupId>
+          <artifactId>jasper-compiler</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>tomcat</groupId>
+          <artifactId>jasper-runtime</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -105,6 +116,17 @@
           <artifactId>log4j</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <!-- hive-metastore 2.3.7 references javax.servlet.Filter internally at runtime;
+         Spring Boot 3.x uses Jakarta Servlet so javax.servlet is no longer on the classpath.
+         This runtime dependency satisfies Hive's classloading without affecting Spring's
+         Jakarta servlet stack. -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
+      <scope>runtime</scope>
     </dependency>
 
     <!-- aws -->
