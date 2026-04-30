@@ -65,7 +65,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>27.1-jre</version>
+      <version>32.0.0-jre</version>
     </dependency>
     <!-- hive-metastore 2.3.7 references javax.servlet.Filter internally at runtime;
          Spring Boot 3.x uses Jakarta Servlet so javax.servlet is no longer on the classpath.
