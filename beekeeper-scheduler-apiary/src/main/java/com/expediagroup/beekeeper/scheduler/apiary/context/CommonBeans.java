@@ -1,14 +1,16 @@
 /**
  * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.scheduler.apiary.context;
@@ -26,6 +28,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.retry.annotation.EnableRetry;
+
+import io.micrometer.core.instrument.MeterRegistry;
 
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.sqs.AmazonSQS;
@@ -108,7 +112,8 @@ public class CommonBeans {
 
   @Bean(name = "unreferencedHousekeepingPathMessageEventHandler")
   public MessageEventHandler unreferencedHousekeepingPathMessageEventHandler(
-      @Qualifier("unreferencedHousekeepingPathGenerator") HousekeepingEntityGenerator generator) {
+      @Qualifier("unreferencedHousekeepingPathGenerator") HousekeepingEntityGenerator generator,
+      MeterRegistry meterRegistry) {
     List<Class<? extends ListenerEvent>> eventClasses = List.of(
         AlterPartitionEvent.class,
         AlterTableEvent.class,
@@ -118,7 +123,7 @@ public class CommonBeans {
 
     List<ListenerEventFilter> filters = List.of(
         new EventTypeListenerEventFilter(eventClasses),
-        new LocationOnlyUpdateListenerEventFilter(),
+        new LocationOnlyUpdateListenerEventFilter(meterRegistry),
         new TableParameterListenerEventFilter(),
         new WhitelistedListenerEventFilter(),
         new IcebergTableListenerEventFilter()

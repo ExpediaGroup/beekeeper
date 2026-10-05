@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2023 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,14 @@ import static org.mockito.Mockito.when;
 
 import static com.expediagroup.beekeeper.core.model.LifecycleEventType.UNREFERENCED;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
@@ -37,11 +41,25 @@ public class LocationOnlyUpdateListenerEventFilterTest {
 
   private static final String OLD_LOCATION = "old location";
   private static final String NEW_LOCATION = "new location";
-  private final LocationOnlyUpdateListenerEventFilter locationOnlyUpdateListenerEventFilter = new LocationOnlyUpdateListenerEventFilter();
+  private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
+  private LocationOnlyUpdateListenerEventFilter locationOnlyUpdateListenerEventFilter;
   private @Mock AlterPartitionEvent alterPartitionEvent;
   private @Mock AlterTableEvent alterTableEvent;
   private @Mock DropPartitionEvent dropPartitionEvent;
   private @Mock DropTableEvent dropTableEvent;
+
+  @BeforeEach
+  public void setup() {
+    locationOnlyUpdateListenerEventFilter = new LocationOnlyUpdateListenerEventFilter(meterRegistry);
+  }
+
+  private double filteredCount(EventType eventType) {
+    return meterRegistry
+        .find(LocationOnlyUpdateListenerEventFilter.METRIC_NAME)
+        .tag("eventType", eventType.toString())
+        .counter()
+        .count();
+  }
 
   @Test
   public void alterPartitionEventNotMetadataOnly() {
@@ -50,6 +68,7 @@ public class LocationOnlyUpdateListenerEventFilterTest {
     when(alterPartitionEvent.getPartitionLocation()).thenReturn(NEW_LOCATION);
     boolean filter = locationOnlyUpdateListenerEventFilter.isFiltered(alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isFalse();
+    assertThat(meterRegistry.find(LocationOnlyUpdateListenerEventFilter.METRIC_NAME).counter()).isNull();
   }
 
   @Test
@@ -59,6 +78,7 @@ public class LocationOnlyUpdateListenerEventFilterTest {
     when(alterTableEvent.getTableLocation()).thenReturn(NEW_LOCATION);
     boolean filter = locationOnlyUpdateListenerEventFilter.isFiltered(alterTableEvent, UNREFERENCED);
     assertThat(filter).isFalse();
+    assertThat(meterRegistry.find(LocationOnlyUpdateListenerEventFilter.METRIC_NAME).counter()).isNull();
   }
 
   @Test
@@ -66,8 +86,11 @@ public class LocationOnlyUpdateListenerEventFilterTest {
     when(alterTableEvent.getEventType()).thenReturn(EventType.ALTER_TABLE);
     when(alterTableEvent.getOldTableLocation()).thenReturn(OLD_LOCATION);
     when(alterTableEvent.getTableLocation()).thenReturn(OLD_LOCATION);
+    when(alterTableEvent.getDbName()).thenReturn("database");
+    when(alterTableEvent.getTableName()).thenReturn("table");
     boolean filter = locationOnlyUpdateListenerEventFilter.isFiltered(alterTableEvent, UNREFERENCED);
     assertThat(filter).isTrue();
+    assertThat(filteredCount(EventType.ALTER_TABLE)).isEqualTo(1.0);
   }
 
   @Test
@@ -75,8 +98,25 @@ public class LocationOnlyUpdateListenerEventFilterTest {
     when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
     when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_LOCATION);
     when(alterPartitionEvent.getPartitionLocation()).thenReturn(OLD_LOCATION);
+    when(alterPartitionEvent.getDbName()).thenReturn("database");
+    when(alterPartitionEvent.getTableName()).thenReturn("table");
     boolean filter = locationOnlyUpdateListenerEventFilter.isFiltered(alterPartitionEvent, UNREFERENCED);
     assertThat(filter).isTrue();
+    assertThat(filteredCount(EventType.ALTER_PARTITION)).isEqualTo(1.0);
+  }
+
+  @Test
+  public void alterPartitionEventMetadataOnlySamePartitionNameIncrementsMetricOncePerEvent() {
+    when(alterPartitionEvent.getEventType()).thenReturn(EventType.ALTER_PARTITION);
+    when(alterPartitionEvent.getOldPartitionLocation()).thenReturn(OLD_LOCATION);
+    when(alterPartitionEvent.getPartitionLocation()).thenReturn(OLD_LOCATION);
+    when(alterPartitionEvent.getDbName()).thenReturn("database");
+    when(alterPartitionEvent.getTableName()).thenReturn("table");
+
+    locationOnlyUpdateListenerEventFilter.isFiltered(alterPartitionEvent, UNREFERENCED);
+    locationOnlyUpdateListenerEventFilter.isFiltered(alterPartitionEvent, UNREFERENCED);
+
+    assertThat(filteredCount(EventType.ALTER_PARTITION)).isEqualTo(2.0);
   }
 
   @Test

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2023 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,13 @@
  */
 package com.expediagroup.beekeeper.scheduler.apiary.filter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 
 import com.expedia.apiary.extensions.receiver.common.event.AlterPartitionEvent;
 import com.expedia.apiary.extensions.receiver.common.event.AlterTableEvent;
@@ -26,32 +32,52 @@ import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 
 @Component
 public class LocationOnlyUpdateListenerEventFilter implements ListenerEventFilter {
-  
+
+  private static final Logger log = LoggerFactory.getLogger(LocationOnlyUpdateListenerEventFilter.class);
+  public static final String METRIC_NAME = "location-only-update-filtered";
+
   private final LocationNormalizer locationNormalizer;
-  
-  public LocationOnlyUpdateListenerEventFilter () {
-    this.locationNormalizer = new LocationNormalizer();
+  private final MeterRegistry meterRegistry;
+
+  public LocationOnlyUpdateListenerEventFilter (MeterRegistry meterRegistry) {
+    this(new LocationNormalizer(), meterRegistry);
   }
 
-  public LocationOnlyUpdateListenerEventFilter (LocationNormalizer locationNormaliser) {
+  public LocationOnlyUpdateListenerEventFilter (LocationNormalizer locationNormaliser, MeterRegistry meterRegistry) {
     this.locationNormalizer = locationNormaliser;
+    this.meterRegistry = meterRegistry;
   }
 
-  
+
   @Override
   public boolean isFiltered(ListenerEvent listenerEvent, LifecycleEventType lifecycleEventType) {
     EventType eventType = listenerEvent.getEventType();
+    boolean filtered;
     switch (eventType) {
     case ALTER_PARTITION:
       AlterPartitionEvent alterPartitionEvent = (AlterPartitionEvent) listenerEvent;
-      return isLocationSame(alterPartitionEvent.getOldPartitionLocation(),
+      filtered = isLocationSame(alterPartitionEvent.getOldPartitionLocation(),
           alterPartitionEvent.getPartitionLocation());
+      break;
     case ALTER_TABLE:
       AlterTableEvent alterTableEvent = (AlterTableEvent) listenerEvent;
-      return isLocationSame(alterTableEvent.getOldTableLocation(), alterTableEvent.getTableLocation());
+      filtered = isLocationSame(alterTableEvent.getOldTableLocation(), alterTableEvent.getTableLocation());
+      break;
     default:
       return false;
     }
+
+    if (filtered) {
+      reportFilteredEvent(listenerEvent, eventType);
+    }
+    return filtered;
+  }
+
+  private void reportFilteredEvent(ListenerEvent listenerEvent, EventType eventType) {
+    log.info(
+        "Filtered out {} event for \"{}.{}\" because the old and new locations are the same (no-op alter/rename).",
+        eventType, listenerEvent.getDbName(), listenerEvent.getTableName());
+    Counter.builder(METRIC_NAME).tags(Tags.of("eventType", eventType.toString())).register(meterRegistry).increment();
   }
 
   private boolean isLocationSame(String oldLocation, String location) {
