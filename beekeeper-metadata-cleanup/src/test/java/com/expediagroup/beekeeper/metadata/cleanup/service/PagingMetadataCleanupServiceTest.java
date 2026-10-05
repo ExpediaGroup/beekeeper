@@ -1,14 +1,16 @@
 /**
  * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.metadata.cleanup.service;
@@ -54,6 +56,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.testcontainers.shaded.com.google.common.collect.Lists;
+
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
 import com.expediagroup.beekeeper.cleanup.hive.HiveClientFactory;
@@ -107,7 +111,7 @@ public class PagingMetadataCleanupServiceTest {
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     when(hiveClientFactory.newInstance()).thenReturn(hiveClient);
     handler = new ExpiredMetadataHandler(hiveClientFactory, metadataRepository, metadataCleaner, pathCleaner,
-        beekeeperHistoryService);
+        beekeeperHistoryService, new SimpleMeterRegistry());
     handlers = List.of(handler);
     pagingCleanupService = new PagingMetadataCleanupService(handlers, 2, false);
   }

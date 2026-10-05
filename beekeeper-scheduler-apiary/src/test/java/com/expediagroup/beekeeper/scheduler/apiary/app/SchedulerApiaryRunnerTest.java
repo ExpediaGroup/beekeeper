@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2020 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.ApplicationArguments;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.scheduler.apiary.service.SchedulerApiary;
 
@@ -44,11 +47,12 @@ public class SchedulerApiaryRunnerTest {
   private final ExecutorService executor = Executors.newFixedThreadPool(1);
   @Mock private ApplicationArguments args;
   @Mock private SchedulerApiary schedulerApiary;
+  private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
   private SchedulerApiaryRunner schedulerApiaryRunner;
 
   @BeforeEach
   public void init() {
-    schedulerApiaryRunner = new SchedulerApiaryRunner(schedulerApiary);
+    schedulerApiaryRunner = new SchedulerApiaryRunner(schedulerApiary, meterRegistry);
   }
 
   @Test
@@ -69,6 +73,10 @@ public class SchedulerApiaryRunnerTest {
     runRunner();
     await().atMost(Duration.ofSeconds(5))
         .untilAsserted(() -> verify(schedulerApiary, atLeast(2)).scheduleBeekeeperEvent());
+    await().atMost(Duration.ofSeconds(5))
+        .untilAsserted(() -> assertThat(
+            meterRegistry.find(SchedulerApiaryRunner.METRIC_NAME).tag("exception", "RuntimeException").counter())
+            .isNotNull());
     destroy();
     verify(schedulerApiary).close();
   }

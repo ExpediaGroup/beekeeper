@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import com.google.common.collect.Lists;
 
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
@@ -78,7 +80,8 @@ public class PagingCleanupServiceTest {
 
   @Test
   public void typicalWithPaging() {
-    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService);
+    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService,
+        new SimpleMeterRegistry());
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 2, false);
 
     List<String> paths = List.of("s3://bucket/some_foo", "s3://bucket/some_bar", "s3://bucket/some_foobar");
@@ -99,7 +102,8 @@ public class PagingCleanupServiceTest {
 
   @Test
   public void mixOfScheduledAndFailedPaths() {
-    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService);
+    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService,
+        new SimpleMeterRegistry());
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 2, false);
     List<HousekeepingPath> paths = List
         .of(createEntityHousekeepingPath("s3://bucket/some_foo", SCHEDULED),
@@ -115,7 +119,8 @@ public class PagingCleanupServiceTest {
 
   @Test
   public void mixOfAllPaths() {
-    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService);
+    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService,
+        new SimpleMeterRegistry());
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 2, false);
     List<HousekeepingPath> paths = List
         .of(createEntityHousekeepingPath("s3://bucket/some_foo", SCHEDULED),
@@ -132,7 +137,8 @@ public class PagingCleanupServiceTest {
 
   @Test
   void pathCleanerException() {
-    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService);
+    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService,
+        new SimpleMeterRegistry());
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 2, false);
 
     doThrow(new RuntimeException("Error")).doNothing().when(pathCleaner).cleanupPath(any(HousekeepingPath.class));
@@ -160,7 +166,8 @@ public class PagingCleanupServiceTest {
   @Test
   @Timeout(value = 10)
   void doNotInfiniteLoopOnRepeatedFailures() {
-    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService);
+    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService,
+        new SimpleMeterRegistry());
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 1, false);
     List<HousekeepingPath> paths = List
         .of(createEntityHousekeepingPath("s3://bucket/some_foo", FAILED),
@@ -188,7 +195,8 @@ public class PagingCleanupServiceTest {
   @Test
   @Timeout(value = 10)
   void doNotInfiniteLoopOnDryRunCleanup() {
-    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService);
+    UnreferencedPathHandler handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService,
+        new SimpleMeterRegistry());
     pagingCleanupService = new PagingPathCleanupService(List.of(handler), 1, true);
     List<HousekeepingPath> paths = List
         .of(createEntityHousekeepingPath("s3://bucket/some_foo", SCHEDULED),

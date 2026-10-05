@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.cleanup.hive.HiveClient;
 import com.expediagroup.beekeeper.cleanup.hive.HiveClientFactory;
@@ -62,6 +65,7 @@ public class ExpiredMetadataHandlerTest {
   private @Mock S3PathCleaner s3PathCleaner;
   private @Mock HousekeepingMetadata housekeepingMetadata;
   private @Mock BeekeeperHistoryService beekeeperHistoryService;
+  private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
 
   private static final LifecycleEventType lifecycleEventType = EXPIRED;
   private static final String DATABASE = "database";
@@ -77,7 +81,7 @@ public class ExpiredMetadataHandlerTest {
   @BeforeEach
   public void init() {
     expiredMetadataHandler = new ExpiredMetadataHandler(hiveClientFactory, housekeepingMetadataRepository,
-        hiveMetadataCleaner, s3PathCleaner, beekeeperHistoryService);
+        hiveMetadataCleaner, s3PathCleaner, beekeeperHistoryService, meterRegistry);
   }
 
   @Test
@@ -145,6 +149,8 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata).setHousekeepingStatus(SKIPPED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
     verify(beekeeperHistoryService, never()).saveHistory(any(), any());
+    assertThat(meterRegistry.find(ExpiredMetadataHandler.METRIC_NAME).tag("status", SKIPPED.toString()).counter()
+        .count()).isEqualTo(1.0);
   }
 
   @Test
@@ -370,6 +376,8 @@ public class ExpiredMetadataHandlerTest {
     verify(housekeepingMetadata).setHousekeepingStatus(FAILED);
     verify(housekeepingMetadataRepository).save(housekeepingMetadata);
     verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_DELETE));
+    assertThat(meterRegistry.find(ExpiredMetadataHandler.METRIC_NAME).tag("status", FAILED.toString()).counter()
+        .count()).isEqualTo(1.0);
   }
 
   @Test

@@ -1,14 +1,16 @@
 /**
  * Copyright (C) 2019-2026 Expedia, Inc.
  *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.expediagroup.beekeeper.scheduler.apiary.app;
@@ -27,6 +29,10 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PreDestroy;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+
 import com.expediagroup.beekeeper.core.error.BeekeeperException;
 import com.expediagroup.beekeeper.scheduler.apiary.service.SchedulerApiary;
 
@@ -35,15 +41,18 @@ public class SchedulerApiaryRunner implements ApplicationRunner {
 
   private static final Logger log = LoggerFactory.getLogger(SchedulerApiaryRunner.class);
   private static final long RUNNER_DESTROY_TIMEOUT_SECONDS = 11L;
+  public static final String METRIC_NAME = "scheduler-apiary-error";
 
   private final ReentrantLock lock;
   private final SchedulerApiary schedulerApiary;
+  private final MeterRegistry meterRegistry;
 
   private final AtomicBoolean running = new AtomicBoolean(false);
 
   @Autowired
-  public SchedulerApiaryRunner(SchedulerApiary schedulerApiary) {
+  public SchedulerApiaryRunner(SchedulerApiary schedulerApiary, MeterRegistry meterRegistry) {
     this.schedulerApiary = schedulerApiary;
+    this.meterRegistry = meterRegistry;
     lock = new ReentrantLock();
   }
 
@@ -57,6 +66,10 @@ public class SchedulerApiaryRunner implements ApplicationRunner {
         schedulerApiary.scheduleBeekeeperEvent();
       } catch (Exception e) {
         log.error("Error while scheduling path", e);
+        Counter.builder(METRIC_NAME)
+            .tags(Tags.of("exception", e.getClass().getSimpleName()))
+            .register(meterRegistry)
+            .increment();
       }
     }
     log.info("Runner has stopped");

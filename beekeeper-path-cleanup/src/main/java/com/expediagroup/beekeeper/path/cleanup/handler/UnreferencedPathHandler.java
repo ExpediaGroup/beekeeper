@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
@@ -37,8 +39,9 @@ public class UnreferencedPathHandler extends GenericPathHandler {
   public UnreferencedPathHandler(
       HousekeepingPathRepository housekeepingPathRepository,
       @Qualifier("s3PathCleaner") PathCleaner pathCleaner,
-      BeekeeperHistoryService beekeeperHistoryService) {
-    super(housekeepingPathRepository, pathCleaner, beekeeperHistoryService);
+      BeekeeperHistoryService beekeeperHistoryService,
+      MeterRegistry meterRegistry) {
+    super(housekeepingPathRepository, pathCleaner, beekeeperHistoryService, meterRegistry);
     this.housekeepingPathRepository = housekeepingPathRepository;
   }
 

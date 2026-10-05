@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.core.model.LifecycleEventType;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
@@ -51,7 +53,8 @@ public class UnreferencedPathHandlerTest {
 
   @BeforeEach
   public void initTest() {
-    handler = new UnreferencedPathHandler(housekeepingPathRepository, s3PathCleaner, beekeeperHistoryService);
+    handler = new UnreferencedPathHandler(housekeepingPathRepository, s3PathCleaner, beekeeperHistoryService,
+        new SimpleMeterRegistry());
   }
 
   @Test

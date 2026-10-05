@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+
 import com.expediagroup.beekeeper.cleanup.path.PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.model.HousekeepingStatus;
@@ -37,16 +41,19 @@ import com.expediagroup.beekeeper.core.validation.S3PathValidator;
 public abstract class GenericPathHandler {
 
   private final Logger log = LoggerFactory.getLogger(GenericPathHandler.class);
+  public static final String METRIC_NAME = "path-cleanup-exception";
 
   private final HousekeepingPathRepository housekeepingPathRepository;
   private final PathCleaner pathCleaner;
   private final BeekeeperHistoryService beekeeperHistoryService;
+  private final MeterRegistry meterRegistry;
 
   public GenericPathHandler(HousekeepingPathRepository housekeepingPathRepository, PathCleaner pathCleaner,
-      BeekeeperHistoryService beekeeperHistoryService) {
+      BeekeeperHistoryService beekeeperHistoryService, MeterRegistry meterRegistry) {
     this.housekeepingPathRepository = housekeepingPathRepository;
     this.pathCleaner = pathCleaner;
     this.beekeeperHistoryService = beekeeperHistoryService;
+    this.meterRegistry = meterRegistry;
   }
 
   public abstract Slice<HousekeepingPath> findRecordsToClean(LocalDateTime instant, Pageable pageable);
@@ -96,6 +103,10 @@ public abstract class GenericPathHandler {
       updateAttemptsAndStatus(housekeepingPath, HousekeepingStatus.FAILED);
       saveHistory(housekeepingPath, FAILED_TO_DELETE);
       log.warn("Unexpected exception deleting \"{}\"", housekeepingPath.getPath(), e);
+      Counter.builder(METRIC_NAME)
+          .tags(Tags.of("exception", e.getClass().getSimpleName()))
+          .register(meterRegistry)
+          .increment();
     }
   }
 

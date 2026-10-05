@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,7 +165,7 @@ public class CommonBeansTest {
   @Test
   public void verifyExpiredMetadataHandler() {
     ExpiredMetadataHandler expiredMetadataHandler = commonBeans.expiredMetadataHandler(hiveClientFactory,
-        metadataRepository, metadataCleaner, pathCleaner, beekeeperHistoryService);
+        metadataRepository, metadataCleaner, pathCleaner, beekeeperHistoryService, meterRegistry);
     assertThat(expiredMetadataHandler).isInstanceOf(ExpiredMetadataHandler.class);
   }
 
@@ -175,7 +175,7 @@ public class CommonBeansTest {
     CleanupService cleanupService = commonBeans.cleanupService(
         List.of(
             commonBeans.expiredMetadataHandler(hiveClientFactory, metadataRepository, metadataCleaner, pathCleaner,
-                beekeeperHistoryService)), 2,
+                beekeeperHistoryService, meterRegistry)), 2,
         false);
     assertThat(cleanupService).isInstanceOf(PagingMetadataCleanupService.class);
   }

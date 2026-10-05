@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import com.expediagroup.beekeeper.cleanup.aws.S3PathCleaner;
 import com.expediagroup.beekeeper.core.model.HousekeepingPath;
 import com.expediagroup.beekeeper.core.repository.HousekeepingPathRepository;
@@ -61,12 +64,14 @@ public class GenericPathHandlerTest {
   @Mock
   private PageImpl<HousekeepingPath> mockPage;
   private static final String VALID_TABLE_PATH = "s3://bucket/table";
+  private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
 
   private UnreferencedPathHandler handler;
 
   @BeforeEach
   public void initTest() {
-    handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService);
+    handler = new UnreferencedPathHandler(housekeepingPathRepository, pathCleaner, beekeeperHistoryService,
+        meterRegistry);
     when(mockPath.getPath()).thenReturn(VALID_TABLE_PATH);
   }
 
@@ -105,6 +110,7 @@ public class GenericPathHandlerTest {
     verify(housekeepingPathRepository).save(mockPath);
     verify(beekeeperHistoryService).saveHistory(any(), eq(FAILED_TO_DELETE));
     assertThat(pageable).isEqualTo(pageable);
+    assertThat(meterRegistry.find(GenericPathHandler.METRIC_NAME).counter().count()).isEqualTo(1.0);
   }
 
   @Test

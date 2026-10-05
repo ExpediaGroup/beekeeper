@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019-2025 Expedia, Inc.
+ * Copyright (C) 2019-2026 Expedia, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClient;
 import com.expediagroup.beekeeper.cleanup.metadata.CleanerClientFactory;
 import com.expediagroup.beekeeper.cleanup.metadata.MetadataCleaner;
@@ -45,24 +49,28 @@ public class ExpiredMetadataHandler implements MetadataHandler {
 
   private final Logger log = LoggerFactory.getLogger(ExpiredMetadataHandler.class);
   private static final String TABLE_DELETION_PROPERTY = "beekeeper.expired.data.table.deletion.enabled";
+  public static final String METRIC_NAME = "metadata-cleanup-exception";
 
   private final CleanerClientFactory cleanerClientFactory;
   private final HousekeepingMetadataRepository housekeepingMetadataRepository;
   private final MetadataCleaner metadataCleaner;
   private final PathCleaner pathCleaner;
   private final BeekeeperHistoryService historyService;
+  private final MeterRegistry meterRegistry;
 
   public ExpiredMetadataHandler(
       CleanerClientFactory cleanerClientFactory,
       HousekeepingMetadataRepository housekeepingMetadataRepository,
       MetadataCleaner metadataCleaner,
       PathCleaner pathCleaner,
-      BeekeeperHistoryService historyService) {
+      BeekeeperHistoryService historyService,
+      MeterRegistry meterRegistry) {
     this.cleanerClientFactory = cleanerClientFactory;
     this.housekeepingMetadataRepository = housekeepingMetadataRepository;
     this.metadataCleaner = metadataCleaner;
     this.pathCleaner = pathCleaner;
     this.historyService = historyService;
+    this.meterRegistry = meterRegistry;
   }
 
   @Override
@@ -92,6 +100,7 @@ public class ExpiredMetadataHandler implements MetadataHandler {
           housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName());
       log.info(logMessage);
       log.debug(logMessage, e);
+      reportException(SKIPPED, e);
     } catch (Exception e) {
       updateAttemptsAndStatus(housekeepingMetadata, FAILED);
       String logMessage = String.format("Unexpected exception when deleting metadata for table \"%s.%s\".",
@@ -102,7 +111,15 @@ public class ExpiredMetadataHandler implements MetadataHandler {
       log
           .warn("Unexpected exception when deleting metadata for table \"{}.{}\"",
               housekeepingMetadata.getDatabaseName(), housekeepingMetadata.getTableName(), e);
+      reportException(FAILED, e);
     }
+  }
+
+  private void reportException(HousekeepingStatus status, Exception e) {
+    Counter.builder(METRIC_NAME)
+        .tags(Tags.of("status", status.toString(), "exception", e.getClass().getSimpleName()))
+        .register(meterRegistry)
+        .increment();
   }
 
   private boolean cleanup(
