@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.9] - 2026-11-18
+## Fixed
+- Release and snapshot workflows use Maven 3.9.16 instead of the runner's Maven 3.10.0, whose Central bundles were rejected with "Bundle has content that does NOT have a .pom file". The `3.6.8` release was tagged and its Docker images were published, but its Maven artifacts were not published to Maven Central. See [central-publishing-maven-plugin#78](https://github.com/mavenplugins/central-publishing-maven-plugin/issues/78).
+
 ## [3.6.8] - 2026-11-18
 ## Security
 - Changed the Jib base image of `beekeeper-api`, `beekeeper-metadata-cleanup`, `beekeeper-path-cleanup` and `beekeeper-scheduler-apiary` from `eclipse-temurin:21-jre` to `amazoncorretto:21.0.13-al2023` (Corretto `21.0.13.1.2`), which includes the fix for CVE-2026-114938, a memory-corruption flaw in the HotSpot AVX-512 Base64 decoder on x86-64 (see [ALAS2023-2026-3479](https://alas.aws.amazon.com/AL2023/ALAS2023-2026-3479.html)). `eclipse-temurin:21-jre` currently resolves to `21.0.13+9`, which is affected.
