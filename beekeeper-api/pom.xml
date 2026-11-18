@@ -85,7 +85,7 @@
         <artifactId>jib-maven-plugin</artifactId>
         <configuration>
           <from>
-            <image>eclipse-temurin:21-jre</image>
+            <image>amazoncorretto:21.0.13-al2023</image>
             <platforms>
               <platform>
                 <architecture>amd64</architecture>

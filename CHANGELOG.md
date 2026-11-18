@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.8] - 2026-11-18
+## Security
+- Changed the Jib base image of `beekeeper-api`, `beekeeper-metadata-cleanup`, `beekeeper-path-cleanup` and `beekeeper-scheduler-apiary` from `eclipse-temurin:21-jre` to `amazoncorretto:21.0.13-al2023` (Corretto `21.0.13.1.2`), which includes the fix for CVE-2026-114938, a memory-corruption flaw in the HotSpot AVX-512 Base64 decoder on x86-64 (see [ALAS2023-2026-3479](https://alas.aws.amazon.com/AL2023/ALAS2023-2026-3479.html)). `eclipse-temurin:21-jre` currently resolves to `21.0.13+9`, which is affected.
+
+## [3.6.7] - 2026-04-24
+## Fixed
+- Added `javax.servlet:javax.servlet-api` at runtime scope to modules with `hive-metastore` on the runtime classpath, and excluded `tomcat:jasper-compiler` and `tomcat:jasper-runtime` from `hive-metastore` in `beekeeper-cleanup` and `beekeeper-scheduler`. This fixes runtime failures and a `ClassCastException` after the move to Spring Boot 3 / Java 21 ([#203](https://github.com/ExpediaGroup/beekeeper/pull/203)).
+
+## [3.6.6] - 2026-04-21
+## Changed
+- Upgraded LocalStack in integration tests from `3.0.0` to `3.7.0` to fix flaky startup timeouts, and switched the GitHub Actions workflows to the Temurin JDK ([#202](https://github.com/ExpediaGroup/beekeeper/pull/202)).
+
+## [3.6.5] - 2026-04-16
+- Release with no functional changes.
+
 ## [3.6.4] - 2025-08-04
 ## Fixed
 - Fixed ExpiredMetadataHandler s3 path cleanup issue on retry.
